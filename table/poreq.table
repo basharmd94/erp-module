@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table poreq
+  caption "Purchase Requisition"
+  columns ztime,zutime,zid,xporeqnum,xdatereq,xref,xporef,xdiv,xsec,xproj,~
+          xstatusreq,xwh,xlong,zemail,xemail,xdept,xtrnporeq,~
+          xteam,xmember,xmanager,xapprover,xdateapp,xapptime,~
+          xnreq,xtypepor,xappby1,xappby2,xappby3,xappid1,~
+          xyear,xper,xsdestin,xdateout,xname,xsource,xrem,~
+		  xyearpay,xperpay,xemail1
+
+  primary key zid, xporeqnum
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table

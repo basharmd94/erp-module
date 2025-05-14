@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table moordshdt
+  caption "Manufacturing Order"
+  columns ztime,zutime,zid,xdate,xdfshift,xitem,xqty,zemail,xemail,xemp,xempf,xempt
+
+  primary key zid, xdate,xdfshift,xitem
+
+  foreign key
+        zid references zbusiness.zid
+		zid,xdate references moordsh.zid,xdate
+  end foreign key
+
+end table
+
+
+

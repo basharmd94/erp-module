@@ -1,0 +1,10 @@
+//ap.menu
+caption "Accounts Payable"
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Transactions                      |#classPath+"/"+#servlet+"?menu=aptrn"|ap,gl,sl
+Reports               |#classPath+"/"+#servlet+"?menu=apreports"|ap,gl,sl
+//Settings                 |#classPath+"/"+#servlet+"?menu=apcodes"|ap,gl,sl
+//-------------------------------------------------------------------
+

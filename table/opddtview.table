@@ -1,0 +1,20 @@
+product ERP on the Net
+
+table opddtview
+  caption "OP Details View"
+  columns zid,xdornum,xrow,xdate,xcus,~
+          xitem,xwh,xqty,xrate,xdttax,xdtwotax,xdtcomm,xdtdisc,xstatusdor
+
+  primary key zid,xdornum,xrow
+  
+  sql create view opddtview (~
+		zid,xdornum,xrow,xdate,xcus,~
+		xitem,xwh,xqty,xrate,xdttax,xdtwotax,xdtcomm,xdtdisc,xstatusdor) ~
+  as select  ~
+		opddt.zid,opddt.xdornum,opddt.xrow,opdor.xdate,opdor.xcus,~
+		opddt.xitem,opdor.xwh,opddt.xqty,opddt.xrate,opddt.xdttax,opddt.xdtwotax,opddt.xdtcomm,~
+		opddt.xdtdisc,opdor.xstatusdor ~
+  from opddt,opdor where opddt.zid=opdor.zid and opddt.xdornum=opdor.xdornum ~
+  and (opdor.xstatusdor='2-Confirmed' or opdor.xstatusdor='3-Invoiced')
+
+end table

@@ -1,0 +1,12 @@
+product ERP on the Net
+
+table imtorcost
+  caption "Transfer Cost"
+  columns ztime,zutime,zid,ximtor,xrow,xname,xcur,xexch,xlong,xcost
+  primary key zid,ximtor,xrow
+  foreign key
+        zid references zbusiness.zid
+        zid,ximtor references imtor.zid,ximtor
+  end foreign key
+
+end table

@@ -1,0 +1,60 @@
+page prmonthst
+	caption "Month Status Entry"
+	sidebar list one
+	sections form one
+	list one
+		table prmonthst
+		order xyear,xper
+		rows 12
+		objects xyear,xper attrib(link #servlet+"?page=prmonthst&command=Show&xyear=?&xper=?"),~
+				xday,xgvholyd,xweekend,xhour
+
+		field xgvholyd
+			caption Govt. Holiday
+		end field
+
+	end list
+
+	form one
+		table prmonthst
+		order xyear,xper
+		layout 1
+		objects Add, Update ,Delete ,Show,Clear,Top, Previous, Next, Bottom,~
+				xyear,xper,xday,xgvholyd,xweekend,xhour,Calender,xpaydate,zemail display(const),xemail display(const)
+
+		field Calender
+			attrib local
+			storage date
+			display text
+			caption Show Calendar
+			width 1
+		end field
+				
+		field add
+			event before
+				set zemail=#user
+				set xemail=""
+			end event
+		end field
+
+		field update
+			event before
+				set xemail=#user
+			end event
+		end field
+
+		field xgvholyd
+			caption Govt. Holiday
+		end field
+
+		field zemail
+			caption Added By:
+		end field
+
+		field xemail
+			caption Updated By:
+		end field
+		
+	end form
+
+end page

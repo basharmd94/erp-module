@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table xuserslic
+	caption "Mobile License"
+
+	columns ztime,zutime,zid,id,xterminal,xlicnum,xterminaluser,xpassword,xemino,xremarks,zactive
+
+	primary key zid,xterminal
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+end table

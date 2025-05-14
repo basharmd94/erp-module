@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table opddtbar
+	caption "Delivery Order Barcode Entry"
+	
+	columns ztime,zutime,zid,xdornum,xrow,xline,xqty,xitem,xbarcode,xentst,zemail
+
+	primary key zid, xdornum,xrow,xline
+	
+	unique zid,xitem,xbarcode,xentst
+	
+	foreign key
+        zid references zbusiness.zid
+        zid,xdornum,xrow references opddt.zid,xdornum,xrow
+		zid,xdornum,xrow,xitem references opddt.zid,xdornum,xrow,xitem
+	end foreign key
+end table
+

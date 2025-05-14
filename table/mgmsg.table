@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table mgmsg
+	caption "Messages"
+	columns ztime, zutime, zid, xmsgid,xfrom,xto,xcc,xsubject,xmsg,xdatesch,xdatecom,~
+			xdateprom,xamtprom,xsendemail,xsendsms,xrecur,xteam,xmember ,xmanager
+
+	primary key xmsgid
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+	field xmsgid
+	//attrib auto 1, 1
+	attrib *gid *Message Id*
+	end field
+
+end table

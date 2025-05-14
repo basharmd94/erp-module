@@ -1,0 +1,22 @@
+product ERP on the Net
+
+
+table prloanview
+
+  caption "Loans & Advances View"
+  
+  columns zid,xemp,xpaycode,xrow,xdate,xpaydate,xadvance,xprrate,xinstalno,xcomm,xprime,xpflag,xreturn,xpayamt
+  
+  primary key zid,xitem,xwh
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  sql create view prloanview (zid,xemp,xpaycode,xrow,xdate,xpaydate,xadvance,xprrate,xinstalno,xcomm,xprime,xpflag,xreturn,xpayamt) ~
+            as SELECT zid,xemp,xpaycode,xrow,xdate,xpaydate,xadvance,xprrate,xinstalno,xcomm,xprime,xpflag, ~
+	 			coalesce(( select sum(practrndt.xamount) from practrndt where practrndt.xemp = pradvd.xemp and practrndt.xpaycode = pradvd.xpaycode and practrndt.xrow = pradvd.xrow and practrndt.zid = pradvd.zid), 0), ~
+				coalesce(( select sum(pradvdadj.xpayamt) from pradvdadj where pradvdadj.xemp = pradvd.xemp and pradvdadj.xpaycode = pradvd.xpaycode and pradvdadj.xrow = pradvd.xrow and pradvdadj.zid = pradvd.zid), 0) ~
+            from pradvd
+
+end table

@@ -1,0 +1,9 @@
+     list xretsub
+        table glsub
+        order xsub,xacc
+        select "xacc='"+globals(xretacc)+"'"
+        rows 20
+        objects xsub attrib(link "abc" embed onclick="return updateParent(this:'xretsub')"), ~
+                xdesc
+                
+     end list

@@ -1,0 +1,11 @@
+     list xastcatg
+        table xcodes
+        order xcode
+        select "xtype='FA Category'"
+        //navigators alpha
+        rows 8
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xastcatg')"),~
+                    xdescdet
+//                xdescdet,zactive
+
+     end list

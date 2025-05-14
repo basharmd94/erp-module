@@ -1,0 +1,556 @@
+page prdiscpldet
+  
+	 embed onload="move_caret('one','xdiscpmeth')"
+     caption "<span class=bl>Disciplinary Info of Employee <a href=/da/"+#servlet+"?page=prdiscplhed&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+     sidebar list one
+	 section form one, script one
+
+  list one
+   table prdiscpldet
+   order xemp,xrow
+   fixed xemp
+   rows 60
+   object xrow attrib(link #servlet+"?page="+page+"&command=Show&xrow=?"),~
+          xdiscpmeth,xdatefrom,xdateto,xdayab
+         
+    field xamount
+      caption Training Cost
+    end field
+   
+    field xdayab
+    	caption Days
+    end field
+
+  end list
+
+  form one
+    table prdiscpldet
+    order xemp,xrow
+    fixed xemp
+    layout 1
+    object Add,Show,Update,Delete,Clear,Previous,Next,Top,Bottom,Return,~
+           xrow attrib(row 0 1),xdate,xdiscpmeth,xaction,xdatefrom default(#d),xdateto default(#d) attrib(attach),~
+		   xdayab display(const),xreason,xremarks,xamount display(hide),~
+           xtype,xnewdesig,xdept,xnewdept display(hide),~
+           zemail display(hide),xemail display(hide)
+
+    field xdiscpmeth
+    	attrib mandatory
+        caption Disciplinary Action
+            pick select xcode from xcodes where xtype='Discipline1'
+
+    end field
+    
+    field xaction
+    	attrib mandatory
+    	caption Salary Deduction Basis
+    	display combo
+    	pick "Basic,Gross,Full Pay,Worning"
+    	//default "Basic"
+    end if
+
+    field xamount
+      caption Amount
+    end field
+    
+    field xdept
+        display hide
+    end field
+    
+    field xtype
+      caption Salary for Demotion
+      display hide
+      pick "Decreased,Not Decreased"
+    end field
+    
+    field xdayab
+      caption Total Days
+      display hide
+    end field
+    
+    field xremarks
+      height 2
+      width 60
+      col 3
+    end field
+    
+    field xnewdesig
+      caption Demoted Position
+      display hide
+    end field
+    
+    field xreason
+      height 2
+    end field
+    
+    field xrow
+    	event after
+    		set globals(xrow) = xrow
+    		set globals(xdatefrom) = xdatefrom
+    		set globals(xdateto) = xdateto
+    	end event
+	end field
+    
+     field add
+       event before
+       		set globals(ErrChk) = ""
+       		set xday = #sql(int,"select xperend from prdef where zid='"+#id+"'")
+       		
+       		call chk_access
+       		
+       		if globals(ErrChk) .ne. "1"
+       			set chkmeth = #sql("select xcode from xcodes where xtype='Discipline1' and xcode='"+xdiscpmeth+"'")
+       			if #result .ne. "true"
+       				set globals(ErrChk) = "1"
+       				error "<font color=red>Wrong "+#field(xdiscpmeth.caption)+"</font>"
+       			end if
+       		end if       		
+       		
+       		if globals(ErrChk) .ne. "1"
+	         	if xdatefrom .gt. xdateto
+	         		set globals(ErrChk) = "1"
+	         		error "Invalid Date Range</p>Cannot "+#command
+	         	end if       		
+       		end if       		
+       		
+       		if globals(ErrChk) .ne. "1"
+	         	set chkrec = #sql("select xrow from prdiscpldet where xemp='"+xemp+"' and xdateto>='"+xdatefrom+"' and xdatefrom<='"+xdatefrom+"'")
+	         	//print #result
+	         	if #result .eq. "true"
+	         		set globals(ErrChk) = "1"
+	         		error "Duplicate Record</p>Cannot "+#command
+	         	end if
+	        end if
+
+	       	set xyear = #sub(xdatefrom,0,4)
+	       	set xper = #sub(xdatefrom,5,2)
+            call lastday
+            
+       		if globals(ErrChk) .ne. "1"
+	       		if xdiscpmeth .eq. "1-Suspension"
+					set xprops = #sql("select xprops from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+					set stype=#prop(xprops,"Deduction%") 
+				    
+	       			set xdayab = #days(xdateto)-#days(xdatefrom)+1
+	       			//print xdayab+" "+xpaydate
+	       			
+	            	set chkrec = #sql("select xpaydate from prpay where xpaydate='"+xpaydate+"'")
+	            	if #result .ne. "true"
+						set myqry = "insert into prpay (zid,xpaydate,xremarks,zemail,xemail,xyear,xper)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','','"+#user+"','','"+xyear+"','"+xper+"')"
+						set tmpstr = #sql(myqry)		            		
+	            	end if          
+	       			
+	          		set chkrec = #sql("select xpaydate from prmsg where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update prmsg set xdaysuspend="+xdayab+",xsuspendf='"+stype+"' where xpaydate='"+xpaydate+"' and xemp='"+xemp+"'"
+						set tmpstr = #sql(mysql)
+						//print #result+" "+mysql						
+	          		else
+
+						buffer prmsg
+						set prmsg.xpaydate = xpaydate
+						set prmsg.xemp = xemp
+						set prmsg.xremarks = ""
+						set prmsg.xdayab = 0
+						set prmsg.xdaylv = 0
+						set prmsg.xnhour = 0
+						set prmsg.xgvothour = 0
+						set prmsg.xnoothour = 0
+						set prmsg.xresth = 0
+                        set prmsg.xpflag = ''
+                        set prmsg.xadvflag = "Yes"
+                        set prmsg.zemail = #user
+                        set prmsg.xemail = ""
+                        set prmsg.xratev = 0
+                        set prmsg.xday = 0
+                        set prmsg.xdate = #date
+                        set prmsg.xdaysuspend = 0+xdayab
+                        set prmsg.xdaysuspenq = 0
+                        set prmsg.xsuspendf = 0.0+stype
+                        set prmsg.xsuspenqf = 0
+						insert prmsg
+
+	          		end if	       			
+	       		else if xdiscpmeth .eq. "2-Suspension Pending Enquiry"
+					set xprops = #sql("select xprops from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+					set stype=#prop(xprops,"Deduction%")
+				    
+	       			set xdayab = #days(xdateto)-#days(xdatefrom)+1
+	       			//print xdayab+" "+xpaydate
+	       			
+	            	set chkrec = #sql("select xpaydate from prpay where xpaydate='"+xpaydate+"'")
+	            	if #result .ne. "true"
+						set myqry = "insert into prpay (zid,xpaydate,xremarks,zemail,xemail,xyear,xper)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','','"+#user+"','','"+xyear+"','"+xper+"')"
+						set tmpstr = #sql(myqry)		            		
+	            	end if          
+	          		set chkrec = #sql("select xpaydate from prmsg where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update prmsg set xdaysuspenq="+xdayab+",xsuspenqf='"+stype+"' where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+						set tmpstr = #sql(mysql)						
+	          		else
+						buffer prmsg
+						set prmsg.xpaydate = xpaydate
+						set prmsg.xemp = xemp
+						set prmsg.xremarks = ""
+						set prmsg.xdayab = 0
+						set prmsg.xdaylv = 0
+						set prmsg.xnhour = 0
+						set prmsg.xgvothour = 0
+						set prmsg.xnoothour = 0
+						set prmsg.xresth = 0
+                        set prmsg.xpflag = ''
+                        set prmsg.xadvflag = "Yes"
+                        set prmsg.zemail = #user
+                        set prmsg.xemail = ""
+                        set prmsg.xratev = 0
+                        set prmsg.xday = 0
+                        set prmsg.xdate = #date
+                        set prmsg.xdaysuspend = 0
+                        set prmsg.xdaysuspenq = 0+xdayab
+                        set prmsg.xsuspendf = 0
+                        set prmsg.xsuspenqf = 0.0+stype
+						insert prmsg
+					end if
+	       		end if
+	       	else
+				set xdatefrom=""
+				set xdateto=""
+       		end if       		
+
+			if globals(ErrChk) .ne. "1"
+				set zemail=#user
+				set xemail=""
+			end if
+			       		      		
+       end event
+     end field
+
+     field Update
+       event before
+			set globals(ErrChk)=""
+            set xday = #sql(int,"select xperend from prdef where zid='"+#id+"'")
+						
+			if xrow .ne. globals(xrow)
+				set globals(ErrChk)="1"
+				error "Record pointer mismatch</p>Cannot "+#command
+			end if
+         
+       		call chk_access
+       		
+       		if globals(ErrChk) .ne. "1"
+       			set chkmeth = #sql("select xcode from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+       			if #result .ne. "true"
+       				set globals(ErrChk) = "1"
+       				error "<font color=red>Wrong "+#field(xdiscpmeth.caption)+"</font>"
+       			end if
+       		end if       		
+       		
+       		if globals(ErrChk) .ne. "1"
+	         	if xdatefrom .gt. xdateto
+	         		set globals(ErrChk) = "1"
+	         		error "Invalid Date Range</p>Cannot "+#command
+	         	end if       		
+       		end if       		
+       		
+       		if globals(ErrChk) .ne. "1"
+				if xdatefrom .eq. globals(xdatefrom) .and. xdateto .eq. globals(xdateto)
+				else		
+		         	set chkrec = #sql("select xrow from prdiscpldet where xemp='"+xemp+"' and xdateto>='"+xdatefrom+"' and xdatefrom<='"+xdatefrom+"'")
+		         	if #result .eq. "true"
+		         		set globals(ErrChk) = "1"
+		         		error "Duplicate Record</p>Cannot "+#command
+		         	end if
+				end if       		
+       		end if
+
+	       	set xyear = #sub(xdatefrom,0,4)
+	       	set xper = #sub(xdatefrom,5,2)
+            call lastday
+                   		
+       		if globals(ErrChk) .ne. "1"
+	       		if xdiscpmeth .eq. "1-Suspension"
+					set xprops = #sql("select xprops from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+					set stype=#prop(xprops,"Deduction%") 
+				    				
+	       			set xdayab = #days(xdateto)-#days(xdatefrom)+1
+	       			//print xdayab+" "+xpaydate
+	       			
+	            	set chkrec = #sql("select xpaydate from prpay where xpaydate='"+xpaydate+"'")
+	            	if #result .ne. "true"
+						set myqry = "insert into prpay (zid,xpaydate,xremarks,zemail,xemail,xyear,xper)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','','"+#user+"','','"+xyear+"','"+xper+"')"
+						set tmpstr = #sql(myqry)		            		
+	            	end if          
+	       			
+	          		set chkrec = #sql("select xpaydate from prmsg where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update prmsg set xdaysuspend="+xdayab+",xsuspendf='"+stype+"' where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+						set tmpstr = #sql(mysql)						
+	          		else
+						buffer prmsg
+						set prmsg.xpaydate = xpaydate
+						set prmsg.xemp = xemp
+						set prmsg.xremarks = ""
+						set prmsg.xdayab = 0
+						set prmsg.xdaylv = 0
+						set prmsg.xnhour = 0
+						set prmsg.xgvothour = 0
+						set prmsg.xnoothour = 0
+						set prmsg.xresth = 0
+                        set prmsg.xpflag = ''
+                        set prmsg.xadvflag = "Yes"
+                        set prmsg.zemail = #user
+                        set prmsg.xemail = ""
+                        set prmsg.xratev = 0
+                        set prmsg.xday = 0
+                        set prmsg.xdate = #date
+                        set prmsg.xdaysuspend = 0+xdayab
+                        set prmsg.xdaysuspenq = 0
+                        set prmsg.xsuspendf = 0.0+stype
+                        set prmsg.xsuspenqf = 0
+						insert prmsg
+	          		end if	       			
+	       		else if xdiscpmeth .eq. "2-Suspension Pending Enquiry"
+					set xprops = #sql("select xprops from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+					set stype=#prop(xprops,"Deduction%") 
+				    
+	       			set xdayab = #days(xdateto)-#days(xdatefrom)+1
+	       			//print xdayab+" "+xpaydate
+	       			
+	            	set chkrec = #sql("select xpaydate from prpay where xpaydate='"+xpaydate+"'")
+	            	if #result .ne. "true"
+						set myqry = "insert into prpay (zid,xpaydate,xremarks,zemail,xemail,xyear,xper)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','','"+#user+"','','"+xyear+"','"+xper+"')"
+						set tmpstr = #sql(myqry)		            		
+	            	end if          
+	       			
+	          		set chkrec = #sql("select xpaydate from prmsg where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update prmsg set xdaysuspenq="+xdayab+",xsuspenqf='"+stype+"' where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+						set tmpstr = #sql(mysql)						
+	          		else
+						buffer prmsg
+						set prmsg.xpaydate = xpaydate
+						set prmsg.xemp = xemp
+						set prmsg.xremarks = ""
+						set prmsg.xdayab = 0
+						set prmsg.xdaylv = 0
+						set prmsg.xnhour = 0
+						set prmsg.xgvothour = 0
+						set prmsg.xnoothour = 0
+						set prmsg.xresth = 0
+                        set prmsg.xpflag = ''
+                        set prmsg.xadvflag = "Yes"
+                        set prmsg.zemail = #user
+                        set prmsg.xemail = ""
+                        set prmsg.xratev = 0
+                        set prmsg.xday = 0
+                        set prmsg.xdate = #date
+                        set prmsg.xdaysuspend = 0
+                        set prmsg.xdaysuspenq = 0+xdayab
+                        set prmsg.xsuspendf = 0
+                        set prmsg.xsuspenqf = 0.0+stype
+						insert prmsg
+					end if	       		
+	       		end if
+	       	else
+				set xdatefrom=""
+				set xdateto=""
+       		end if       		
+
+			if globals(ErrChk) .ne. "1"
+				set zemail=#user
+				set xemail=""
+			end if
+       end event
+     end field
+
+     field Delete
+       event before
+			set globals(ErrChk)=""
+			set xday = #sql(int,"select xperend from prdef where zid='"+#id+"'")
+			
+			if xrow .ne. globals(xrow)
+				set globals(ErrChk)="1"
+				error "Record pointer mismatch</p>Cannot "+#command
+			end if
+         
+       		call chk_access
+
+	       	set xyear = #sub(xdatefrom,0,4)
+	       	set xper = #sub(xdatefrom,5,2)
+            call lastday
+                   		
+       		if globals(ErrChk) .ne. "1"
+	       		if xdiscpmeth .eq. "1-Suspension"
+					set xprops = #sql("select xprops from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+					set stype=#prop(xprops,"Deduction%") 
+				    	       			
+	          		set chkrec = #sql("select xpaydate from prmsg where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update prmsg set xdaysuspend="0",xsuspendf="0" where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+						set tmpstr = #sql(mysql)						
+	          		end if	       			
+	       		else if xdiscpmeth .eq. "2-Suspension Pending Enquiry"
+					set xprops = #sql("select xprops from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+					set stype=#prop(xprops,"Deduction%") 
+				    					
+	       			set xdayab = #days(xdateto)-#days(xdatefrom)+1
+	       			//set xpaydate = #sub(xdatefrom,0,8)+xday
+	       			//print xdayab+" "+xpaydate
+	       			
+	          		set chkrec = #sql("select xpaydate from prmsg where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update prmsg set xdaysuspenq="0",xsuspenqf="0" where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+						set tmpstr = #sql(mysql)						
+	          		end if	    
+				end if   			
+       		end if       		
+
+			if globals(ErrChk) .ne. "1"
+				set zemail=#user
+				set xemail=""
+			end if
+       end event
+     end field
+
+    embed onsubmit="submitit(this)"
+    field Return
+      embed onclick="clicked(this)"
+    end field
+
+  end form
+
+  script one
+  <script language="javascript" type="text/javascript">
+  var detail
+  function clicked(b){
+    detail="Back"
+  }
+  function submitit(form){
+    if (detail=="Back"){
+      form.page.value="prdiscplhed"
+      form.searchbutton.value="Find xemp=?"
+    }
+  }
+  </script>
+  end script
+  
+     method chk_access
+     	set stype = ""
+       	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+       	 set stype=#prop(xprops,"security")          	 
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          
+			  set myqry = "insert into xcriminal (zid,xwornum,xemail,xdate,xtime,xobject)"
+			  set myqry = myqry + " values('"+#id+"','"+mysql+"','"+#user+"','"+#date+"',~
+				'"+#time+"','"+page+"')"
+			  set tmpstr =#sql(myqry)		
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+     
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	end if    
+     end method
+    
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql     
+
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(xacc)+"','','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+#time+"','"+page+"','')"
+		set tmpstr =#sql(myqry)		
+     end method
+
+     method lastday
+	  	int day = 0	
+//	  	set salcal = prdef.xprsalcalc("zid='"+#id+"'")
+//	  	if #result .ne. "true"
+//	  		set globals(ErrChk) = "1"
+//	  		error "Payroll Default not defined"
+//	  	end if
+	  	
+	  	if globals(ErrChk) .ne. "1"
+			if salcal .eq. "Last Day"
+				if xper .eq. "01" .or. xper .eq. "03" .or. xper .eq. "05" .or. xper .eq. "07" .or. xper .eq. "08" .or. xper .eq. "10" .or. xper .eq. "12"
+					int day = 32
+				else if xper .eq. "1" .or. xper .eq. "3" .or. xper .eq. "5" .or. xper .eq. "7" .or. xper .eq. "8" .or. xper .eq. "10" .or. xper .eq. "12"
+					int day = 32
+				end if
+				if xper .eq. "04" .or. xper .eq. "06" .or. xper .eq. "09" .or. xper .eq. "11"
+					int day = 31
+				else if xper .eq. "4" .or. xper .eq. "6" .or. xper .eq. "9" .or. xper .eq. "11"
+					int day = 31
+				end if
+				if xper .eq. "02"
+					int day = 28 
+				else if xper .eq. "2" 
+					int day = 28
+				end if
+			else if salcal .eq. "Custom"
+				int day = prdef.xperend("zid='"+#id+"'")+1 
+			end if
+          	set tmpdate = xyear+"-"+xper+"-"+day
+          	set temp = #days(tmpdate)
+          	set xpaydate=#longtodate(temp)
+          	//print xpaydate
+		end if            
+     end method
+
+end page

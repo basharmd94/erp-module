@@ -1,0 +1,14 @@
+//MF Reports.menu
+caption "MO Reports" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Manufacture Order Report         |#classPath+"/"+#servlet+"?page=*crystal moord1(xmoord=MO Number=0, xmoord=To Mo)"
+Manufacture Order by Item        |#classPath+"/"+#servlet+"?page=*crystal moorditm(xdate=From Date=#date,xdate=To Date=#date,~
+                                   xitem=From Item=0, xitem=To Item=z)"
+Item Wise Unit Cost		         |#classPath+"/"+#servlet+"?page=*crystal moorditem(xitem=From Item=0, xitem=To Item=z,xdate=From Date=#date,xdate=To Date=#date)"
+//Manufacture Order Report           |#classPath+"/"+#servlet+"?page=*crystal moord(xmoord=MO Number=0)"
+//Printing Performance           |#classPath+"/"+#servlet+"?page=*crystal moprin(xdate=Date=#date)"
+
+//-------------------------------------------------------------------
+

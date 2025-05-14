@@ -1,0 +1,234 @@
+page prmstcon
+     caption "<span class=bl>Detail Information of Employee <a href=/da/"+#servlet+"?page=prmst&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+	 embed onload="move_caret('one','xemp')"
+     sidebar text one
+     sections form one, list one, script myscript, text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     form one
+        //caption "<font color=black size=4>Employment Info of "+globals(xemp)+" ("+globals(xname)+")"
+        table prmst
+        order xemp
+        fixed xemp
+        layout 2
+        objects Update,Authority,Show, Back,~
+            xdesig ,xdept,xcostcent,xsec,xempcat,xcat,xrepto attrib(attach),name,~
+    		xlocation,xshift,xjoindate,xempnature,~
+          	xtaxrate,xunionmem display(hide),xwelfund,xquarter,~
+          	xpaytyp,xgrade display(hide),xpayscl display(hide),xpsclcode,xdisburse,xprobtodate,xprobfrdate,~
+          	xcondate,xpfflag,xempnew display(hide),xnewdept display(hide),xnewdesig display(hide),~
+          	dumzid display(hide),xdateto display(hide),xuserid display(hide),xuserid1 display(hide),xyesno
+        
+        field dum3
+         caption
+         col 3
+         display const
+         attrib local
+         event after
+            set dum3 = "<font color=red>_______Employment Confirmation_______</font>"
+         end event
+        end field
+        
+		field xshift
+			pick select xcode from xcodes where xtype='Shift'
+		end field
+		
+		field xdisburse
+            pick "select xcode from xcodes where zid='"+#id+"' and xtype='Disbursement Type'"
+        end field
+        
+        field dum4
+         caption
+         //col 3
+         display const
+         attrib local
+         event after
+            set dum4 = "<font color=red>_______________Information______________</font>"
+         end event
+        end field        
+        
+        field xyesno
+              caption OT Eligibility
+              display radio
+        end field
+        
+        field xprobfrdate
+              caption Extension of Probationary Period
+        end field
+        
+//        field xprobtodate
+  //            caption Extension of Probationary Period
+    //    end field
+        
+        field xtaxrate
+              caption Joining Gross Salary
+        end field
+        
+        field xlocation
+           caption Location
+           width 20
+        end field
+        
+        field xkeyarea
+            caption Cost Center
+            width 20
+            display text
+        end field
+
+        field xpsclcode
+        	caption Salary Scale
+        end field
+        
+        field xgrade
+        	display hide
+        	caption Employee Grade
+       		pick select xcode from xcodes where xtype='Employee Grade'
+        end field
+
+        field xcostcent
+        	//display combo
+        	display hide
+        	pick select xcode from xcodes where xtype='Cost Center'
+        end field
+        
+        field xcat
+        	caption Job Weight/Grade
+        	display combo
+        	pick select xcode from xcodes where xtype='Job Weight'
+        end field
+              
+        field xlicense
+           caption Driving License No.
+           width 30
+           pick
+        end field
+        
+        field xtype
+           caption License Type
+           display text
+           width 30
+           pick
+        end field
+
+        field xquarter
+//           col 3
+        end field
+        
+        field xpadd
+           width 35
+           height 3
+        end field
+        
+        field xcondate
+          caption Date of Confirmation
+          //col 3
+        end field
+
+          field xemp
+            width 10
+            event after
+               set globals(xemp)=xemp
+            end event
+          end field
+
+          field xname
+            width 50
+            event after
+              set globals(xname)=xname
+            end event
+          end field
+          
+          field xpayscl
+            width 10
+            default "General"
+            pick list payscal
+          end field
+          
+          field xrepto
+          	display text
+          	pick list xemp
+          	width 10
+          end field
+          
+          field xrecto
+          	display text
+          	pick list xemp
+          	width 10
+          end field
+          
+          field name
+          	caption
+          	display const
+          	attrib local
+          	event after
+          		set name = #sql("select xfirst from prmst where xemp='"+xrepto+"'")
+          	end event
+          end field
+          
+          field name1
+          	caption
+          	display const
+          	attrib local
+          	event after
+          		set name1 = #sql("select xname from prmst where xemp='"+xrecto+"'")
+          	end event
+          end field
+	      
+			field update
+				event before
+					set globals(ErrChk) = ""
+					if globals(xemp) .ne. xemp
+						set globals(ErrChk) = "1"
+						error ""
+					end if
+					if globals(ErrChk) .ne. "1"
+						if xrepto .ne. ""
+							set chkemp = #sql("select xemp from prmst where xemp='"+xrepto+"'")
+							if #result .ne. "true"
+								//set globals(ErrChk) = "1"
+								//error "Wrong Eployee ID selected"
+							else
+								set xuserid = #sql("select zemail from xusers where xemp='"+xrepto+"'")
+							end if
+						end if
+					end if
+				end event
+			end field
+
+	      embed onsubmit="submitit(this)"
+	      field Back
+	        embed onclick="clicked(this)"
+	      end field
+
+	      field Authority
+	        embed onclick="auth(this)"
+	      end field
+			
+  end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function auth(b){
+          detail="auth"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "prmst"
+            form.searchbutton.value = "Find xemp=?"
+          }else if (detail=="auth"){
+            form.page.value = "prauth"
+            form.searchbutton.value = "Find xemp=?"
+          }
+        }
+        </script>
+     end script
+     
+end page

@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table moperfom
+	caption "Printing Performance"
+	
+	columns ztime,zutime,zid,xmoord,xitem,xshift,xqty,xqtyord,xqtyreq,xdisc,xrem,xstatusmor,zemail,xemail,xdate,~
+			xemp,xempf,xempt
+
+	primary key zid, xmoord
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+end table

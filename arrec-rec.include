@@ -1,0 +1,727 @@
+//#include arrec-rec.include
+//REC **************************************************************************
+  list det
+        caption "Detail List"
+        empty *
+        table (select *,case when xprime>=0 then xprime else 0 end as xprimedr,~
+        case when xprime>=0 then 0 else 0.0-xprime end as xprimecr from ~
+          gldetailview) as tbl
+        order xvoucher,xrowvou
+        fixed xvoucher
+        rows 100
+        objects  xrowvou attrib(link #servlet+"?page="+page+"&nexttab=Receipt&command=Show&xvoucher=?&xrowvou=?"), ~
+                xacc, xdesc,xaccusage caption(Usage), xsub caption(Sub A/c),xcur caption(Cur),xexch caption(Exch),xprimedr,xprimecr,xbasedr equals(xprimedr*xexch),xbasecr equals(xprimecr*xexch),xcheque,xlong,xvoucher attrib(hide)
+
+        totals "","Totals",,"","","","",sum,sum,sum,sum
+        field xexch
+          scale 4
+        end field
+        //headers none
+  end list
+
+  list alc
+        caption "Allocated Invoices List"
+        empty *
+        table glalcview
+        order xvoucher,xalcnum //,xrowvou
+        fixed xvoucher//,xrowvou
+        select "xaccusage='AR' and xtotamt > 0 and xvoucher = '"+xvoucher+"' "
+        rows 20
+        objects ~
+         xalcnum  attrib(link #servlet+"?page="+page+"&nexttab=Allocation&command=Show&xalcnum=?&xalcrow=?") caption(No),xalcrow caption(Row),xinvcur caption(Inv Cur),xinvexch caption(Inv Exch),xcur caption(Cur),xexch caption(Exch),xtotamt caption(Amt)
+        totals "Total",,,,,,sum
+
+  end list
+
+  form rec
+        focus xdate
+        valid valid
+        caption "Receipt"
+        table gldetail
+        order xvoucher,xrowvou
+        fixed xvoucher
+
+        //select " xvoucher='"+xvoucher+"'"
+
+        layout 4
+        objects Clear,Show,Add, Update, Delete,Approve,Getcus attrib(hide),~
+               xtypegl display(hide),~
+               xpaycode display(hide),xdatedue display(hide),xinvnum  display(hide),xoriginal  display(hide),~
+               xdateapp  display(hide),~
+               xaccusage  display(hide),xaccsource  display(hide),~
+               ~
+               xref display(hide) attrib(local),xstatusjv display(hide) attrib(local),~
+               xsub attrib(hide),~//xorgcus attrib(hide),~
+               xbalance attrib(hide;local),~
+               xprime attrib(hide),~
+               ~
+               xvouchertop,xbank display(hide),xdate attrib(local),xchequebank inherits(xcheque) attrib(local;mandatory),~
+               xdatefrom inherits(xdatedue) attrib(local;mandatory),~
+               xcus attrib(local;submit),xorg display(const) attrib(local),~
+               xaccar attrib(local;submit;mandatory),xdescar display(const) attrib(local),~
+               xcurbank attrib(local),xprimebank attrib(local),xexchbank attrib(local),xbasebank ,~
+               xyear attrib(local),xper attrib(local),xapproved attrib(local) display(const),~
+               ~//xrem caption() attrib(local) columns(7) display(const),~
+               xlongbank inherits(xlong) attrib(local) columns(7) width(150) height(2),~
+               *block2 5 notag,~
+               strline display(label) columns(5),~
+               ~//strdet display(label) columns(10),~
+               ~//strline display(label) columns(10),~
+               *end block, ~
+               *block2 5 notag,~
+               xrowvou attrib(row 0 10),xacc width(20) attrib(submit),xdescacc display(constant) caption(Desc),~
+               xcheque,xcur caption(Cur) ,xexch width(15) caption(Exch),xprimedr attrib(local),xprimecr attrib(local),xbasedr display(const) attrib(local),xbasecr display(const) attrib(local),~
+               xlong columns(9) width(150) height(2),~
+               xdiv,xsec,xproj,~
+               *end block
+
+         //field xlongbank inherits(xlong)
+
+
+
+         //end field
+
+
+        field xbank
+          inherits
+          attrib local
+          default ardef.xbank(" zemail='"+#user+"'")
+          columns 3
+        end field
+        field Clear
+          event before
+            set xvouchertop=""
+            set xvoucher=""
+            set globals(xvoucher)=""
+            str trn=ardef.xtrn(" zemail='"+#user+"'")
+            //set #fields(xvouchertop.display)="trn GL Voucher;trn"
+          end event
+        end field
+
+        field Getcus
+          event before
+            set xvouchertop=#sql(string,"select xvoucher from gldetailview where xsub='"+xcus+"' and xprime < 0 order by xdate desc")
+            set xvoucher=xvouchertop
+            set globals(xvoucher)=xvoucher
+            set #command="Find xvoucher=?"
+          end event
+        end field
+
+
+        field xvouchertop inherits(xvoucher)
+          attrib local;submit
+          display trn GL Voucher;trn
+          pick list arrec
+         end field
+         field xcurbank inherits(xcur)
+          attrib local
+          event before
+          end event
+         end field
+         field xexchbank inherits(xexch)
+          attrib local
+         end field
+         field xprimebank inherits(xprime)
+          attrib local
+         end field
+         field xbasebank inherits(xbase)
+          attrib local
+          display const
+         end field
+         field xdescar inherits(xdesc)
+          attrib local
+          display const
+         end field
+
+         field xdescacc inherits(xdesc)
+          attrib local
+          display const
+         end field
+         field xorgcus inherits(xorg)
+          attrib local
+          display const
+         end field
+         
+         field xdatefrom
+            caption Cheque Date
+         end field
+
+  end form
+
+  //METHODS **********************************************************************
+
+	valid valid
+    preconfig
+
+            if xvouchertop .ne. ""
+              set globals(xvoucher)=xvouchertop
+            else
+              set globals(xvoucher)=xvoucher
+            end if
+
+    end preconfig
+    before Approve
+        int count=#sql(int,"update glheader set xapproved='1' where xvoucher='"+xvouchertop+"'")
+        set #command="Show"
+    end before
+
+    before Show
+        if xrowvou < 1
+          set #command="Top"
+        end if
+    end before
+
+    before Add
+      set xprime=xprimedr - xprimecr
+        set xvoucher=glheader.xvoucher(xvoucher)
+        if xvoucher .eq. ""
+
+          call newvoucher
+
+
+        else
+          //existing voucher
+          call checktotals
+          if err == 1
+            error emsg
+          end if
+        end if
+
+
+
+    end before
+
+    before Update
+      call updateheader
+      if xrowvou < 1
+        set #command="dummy"
+      else
+        set xprime=xprimedr - xprimecr
+        move #form=glmst(xacc)
+          call checktotals
+          if err == 1
+            error emsg
+          end if
+
+      end if
+
+      //print "xaccusage="+xaccusage
+    end before
+
+    before Delete
+      if xrowvou < 1
+        buffer glheader=glheader(xvoucher)
+        delete glheader(xvoucher)
+
+        set #command="dummy"
+      else
+        set xprime=xprimedr - xprimecr
+        move #form=glmst(xacc)
+          call checktotals
+          if err == 1
+            error emsg
+          end if
+
+      end if
+
+      //print "xaccusage="+xaccusage
+    end before
+
+
+
+    after Add, Update, Delete
+        decimal totamt=#sql(decimal,"select sum(xprime*xexch) from gldetail where xvoucher='"+xvoucher+"'")
+        if totamt <> 0.0
+          int row=#sql(int,"select xrowvou from gldetail where zid="+#id+" and xvoucher='"+xvoucher+"' and xaccusage='AR' order by xrowvou")
+          if row > 0
+            int count=#sql(int,"update gldetail set xprime=xprime-("+totamt+") where zid="+#id+" and xvoucher='"+xvoucher+"' and xrowvou="+row)
+          else
+            int count=#sql(int,"update gldetail set xprime=xprime-("+totamt+") where zid="+#id+" and xvoucher='"+xvoucher+"' and xrowvou=20")
+          end if
+        end if
+        int count=#sql(int,"update gldetail set xcheque='"+xchequebank+"' where zid="+#id+" and xvoucher='"+xvoucher+"'")
+        int count=#sql(int,"update glheader set xref='"+xchequebank+"' where zid="+#id+" and xvoucher='"+xvoucher+"'")
+
+        //print "First Time"
+    end after
+
+    after Delete
+        //print "Second Time"
+        int count=#sql(int,"select count(xrowvou) from gldetail where zid="+#id+" and xvoucher='"+xvoucher+"' ")
+        if count == 0
+          set temp=#sql(int,"delete from glheader where zid="+#id+" and xvoucher='"+xvoucher+"'")
+        elseif count == 1
+          set temp=#sql(int,"delete from gldetail where zid="+#id+" and xvoucher='"+xvoucher+"'")
+          set temp=#sql(int,"delete from glheader where zid="+#id+" and xvoucher='"+xvoucher+"'")
+          //TODO - message "Voucher Deleted"
+        end if
+    end after
+    after Add, Update
+    end after
+
+    config
+//print xvouchertop_ONE
+      set trn=xvouchertop_ONE
+      if trn .eq. ""
+            str trn=ardef.xtrn(" zemail='"+#user+"'")
+      end if
+      set #fields(xbasebank.caption)=#cur+" Amount"
+      set #fields(xprimebank.caption)="Amount Received"
+      //set #fields(xcus.caption)="Customer Number<a href='"+#servlet+"?page="+page+"&xcus="+xcus+"&command=Getcus'><img src='html/images/mag_s.gif' border=0 /></a>"
+
+
+
+      set globals(xvoucher)=xvoucher
+      set xvouchertop=xvoucher
+      set globals(strdet)="<table width=100%><tr><td width=10000 align=center><font color=blue>D E T A I L &nbsp;&nbsp;&nbsp; E N T R Y</font></td></tr></table>"
+			set globals(strline)="<table cellpadding=0 cellspacing=0 width=100%><tr><td bgcolor=blue width=10000></td></tr></table>"
+
+      str header= ""
+      if xvoucher .eq. ""
+          //set header=header+"s"
+      else
+          set header=header+"Receipt No: <font color=red>"+xvoucher+"</font>"
+          set #fields(xbank->xbasebank.display)="const"
+      end if
+
+      call getheader
+
+
+      set xdescacc=glmst.xdesc(" xacc='"+xacc+"' ")
+      set xorgcus=cacus.xorg(" xcus='"+xsub+"' ")
+      set globals(xcur)=xcur
+      set globals(xsub)=xcus
+      set xvoucher=glheader.xvoucher(xvoucher)
+      if xvoucher .eq. ""
+        set #fields(*block2->.visibility)="hide"
+      end if
+      decimal allocation=#sql(decimal, "select sum(xtotamt) from glalc where xvoucher='"+xvoucher+"'")
+      decimal amount=#sql(decimal,"select sum(xprime) from gldetail where xvoucher='"+xvoucher+"' and xaccusage='AR'")
+      set xbalance=0.00-amount-allocation
+      set xbalance=#round(xbalance,2)
+      if xbalance <> 0.00
+        set header = header + "Unallocated Balance: "+xbalance
+      end if
+      call arcount
+      //set header=header
+      set globals(header)=header
+      set globals(xrowvou)=xrowvou
+      set globals(xsub)=xsub
+      if xprime >= 0.0
+        set xprimedr=xprime
+        set xprimecr=0.0
+        set xbasedr=xprime*xexch
+        set xbasecr=0.0
+      else
+        set xprimedr=0.0
+        set xprimecr=0.0 - xprime
+        set xbasedr=0.0
+        set xbasecr=0.0 - xprime*xexch
+      end if
+    end config
+  end valid
+  method arcount
+
+      set globals(arcount)=#sql(int,"select count(*) from gldetail where xvoucher='"+xvoucher+"' and xaccusage='AR' ")
+  end method
+
+  method getheader
+    str temp=xlong
+    move #form=glheader(xvoucher)
+    set xlong=temp
+    set xdatefrom=xdatedue
+
+    int row=#sql(int,"select xrowvou from gldetail where xvoucher='"+xvoucher+"' and xaccusage='Bank'")
+    //print "row="+row
+
+    if row > 0
+      //xbank,xchequebank,xcurbank,xexchbank,xprimebank,xbasebank
+
+      set xbank=gldetailview.xdesc(" xvoucher='"+xvoucher+"' and xrowvou="+row)
+
+
+      set xchequebank=gldetail.xcheque(" xvoucher='"+xvoucher+"' and xrowvou="+row)
+      set xcurbank=gldetail.xcur(" xvoucher='"+xvoucher+"' and xrowvou="+row)
+      set xexchbank=gldetail.xexch(" xvoucher='"+xvoucher+"' and xrowvou="+row)
+      set xprimebank=gldetail.xprime(" xvoucher='"+xvoucher+"' and xrowvou="+row)
+      compute xbasebank=xprimebank*xexchbank
+    end if
+
+    int row=#sql(int,"select xrowvou from gldetail where xvoucher='"+xvoucher+"' and xaccusage='AR'")
+    //print "row="+row
+
+    if row > 0
+      //xcus,xorg,xaccar,xdescar
+      set xaccar=gldetail.xacc(" xvoucher='"+xvoucher+"' and xrowvou="+row)
+      set xdescar=glmst.xdesc(" xacc='"+xaccar+"' ")
+      set xcus=gldetail.xsub(" xvoucher='"+xvoucher+"' and xrowvou="+row)
+      set xorg=cacus.xorg(" xcus='"+xcus+"' ")
+    else
+      int row=#sql(int,"select xrowvou from gldetail where xvoucher='"+xvoucher+"' and xrowvou=20")
+      if row == 20
+        set xaccar=gldetail.xacc(" xvoucher='"+xvoucher+"' and xrowvou="+row)
+        set xdescar=glmst.xdesc(" xacc='"+xaccar+"' ")
+      end if
+
+    end if
+
+
+    if xapproved .eq. "1"
+      set #fields(Approve.display)="disable"
+      set #fields(xdate->.display)="const"
+    end if
+
+    if xcus .eq. ""
+      set #fields(xaccar.display)="text"
+      set #fields(xaccar.pick)="list xacc"
+      set #fields(xaccar.caption)="Ledger A/c"
+
+    else
+
+      if xaccar .eq. ""
+        set xaccar=cagli.xacc("zid='"+#id+"' and xtypegli='Cheque-in-Hand Credit' and xgitem='CHQREG' and xgcsa='' and xwh=''")
+      end if
+    end if
+    set xorg=cacus.xorg(" xcus='"+xcus+"' ")
+    set xdescar=glmst.xdesc(" xacc='"+xaccar+"' ")
+    //print "2xaccar="+xaccar
+    //print "xdescar="+xdescar
+    call datedefaults
+    int glyear=#year(xdate)
+    //print "glyear="+glyear
+    str accbank=glmst.xacc(" xdesc='"+xbank+"'")
+    //print "accbank="+accbank
+    double bankbalance=#sql(double,"select sum(xprime) from gldetailview where zid="+#id+" and xacc='"+accbank+"' and xdate<='"+xdate+"' and xyear="+glyear)
+
+    str bb=#format(bankbalance,decimal,2)
+
+    if bankbalance < 0
+      set bb="<font color=red>("+xcurbank+" "+bb+")</font>"
+    else
+      set bb="<font color=green>"+xcurbank+" "+bb+"</font>"
+
+    end if
+    str date=#format(xdate,date)
+
+    set xrem=  "<table width=100% class=ptitle><tr><td width=100% align=right>Bank Balance as at "+date+" is "+bb+"</td></tr></table>"
+
+  end method
+
+  method datedefaults
+            set statusclose=castatus.xnote("xtypestatus='GL Close Year/Period'")
+            //TODO
+            int i=#ind(statusclose,"/")
+            if i>0
+              str y=#substring(statusclose,0,i)
+              str p=#substring(statusclose,i+1)
+              set p=#padl(p,2,"0")
+              set statusclose=y+p
+            end if
+
+
+            set globals(statusclose)=statusclose
+            set statusapp=castatus.xnote("xtypestatus='GL Approval Required'")
+            set globals(statusapp)=statusapp
+            set globals(xapproved)=xapproved
+            set globals(headerpage)="glheader"
+              set globals(returnpage)="glheader"
+              set globals(trnfield)="xvoucher"
+              set globals(xtypetrn)="GL Voucher"
+              set globals(xtrnnum)=xvoucher
+
+            if #glyear .gt. 0
+              set #field(xyear.display)="constant"
+            end if
+            if #glper .gt. 0
+              set #field(xper.display)="constant"
+            end if
+            string comma = ","
+            if #index(#glset,comma) > 0
+              set #field(xper.display)="combo"
+              set #field(xper.pick)="#glset"
+            end if
+            if #index(#glxset,comma) > 0
+              set #field(xyear.display)="combo"
+              set #field(xyear.pick)="#glxset"
+            end if
+
+            set globals(xdate)=xdate
+            set globals(xyear)=xyear
+            set globals(xper)=xper
+
+
+            if #glall .ne. ""
+              String s = xyear+"/"+xper
+
+              //print #glall
+              //print s
+              if #index(#glall,s)<0
+	              set #field(xdate->.display)="constant"
+	              set #field(Delete.display)="disable"
+	              set #field(Update.display)="disable"
+                set #field(Approve.display) = "disable"
+              end if
+
+            end if
+
+            if statusapp .eq. "1" .and. xapproved .eq. "1"
+	              set #field(xdate->.display)="constant"
+	              set #field(Delete.display)="disable"
+	              set #field(Update.display)="disable"
+	              set #field(Approve.display)="disable"
+            end if
+            if statusapp .ne. "1"
+	              set #field(Approve.display)="disable"
+            end if
+            //TODO yearper
+            str p=#padl(xper,2,"0")
+            str y=xyear
+            set yearper=y+p
+            if yearper .le. statusclose
+	              set #field(xdate->.display)="constant"
+	              set #field(Delete.display)="disable"
+	              set #field(Update.display)="disable"
+	              set #field(Approve.display)="disable"
+                set globals(closed)="1"
+            else
+                set globals(closed)="0"
+            end if
+
+
+  end method
+//****NEW VOUCHER
+
+  method newvoucher
+    int err = 0
+    //create header
+
+            //TODO yearper
+            str p=#padl(xper,2,"0")
+            str y=xyear
+            set yearper=y+p
+//Print "yearper="+yearper
+            if yearper .le. statusclose
+              error "The Year/Period is Closed -- Cannot Add!"
+            end if
+            set xstatusjv="Balanced"
+
+            int offset
+            int per
+            int year=#sub(xdate,0,4)
+
+            int tempper
+            int tempyear
+            set offset=#gloffset
+            set per=12+#sub(xdate,5,2)-offset
+            if per<=12
+                set tempper=per
+                set tempyear=year-1
+            else
+                set tempper=per-12
+                set tempyear=year
+            end if
+
+            if #glyear > 0
+              set tempyear = #glyear
+            end if
+
+            if #glyear > 0
+//console "index="+#index(#glset,xper)
+
+              if #index(#glxset,xyear) < 0
+                set tempyear = #glyear
+              else
+                set tempyear = xyear
+              end if
+            end if
+
+            if #glper > 0
+//console "index="+#index(#glset,xper)
+
+              if #index(#glset,xper) < 0
+                set tempper = #glper
+              else
+                set tempper = xper
+              end if
+            end if
+
+
+            set xyear=tempyear
+            set xper=tempper
+
+
+console "glall="+#glall
+
+
+
+
+
+
+
+
+            if #glall .ne. ""
+              String s = xyear+"/"+xper
+              if #index(#glall,s)<0
+                set err = 1
+                error "<span class=bl>Year and Period Must Match the Following Open Periods:</span><br><span class=br>"+#glall+"</span>"
+              end if
+
+            end if
+
+
+
+
+    str trn=xvouchertop_ONE
+    set xvoucher=""
+    int i = 0
+    while xvoucher .eq. ""
+      set xvoucher=#trn("GL Voucher",trn)
+      buffer glheader=#form
+      set glheader.xvoucher=xvoucher
+      set glheader.xdoctype="GL Voucher"
+      set glheader.xdocnum=xvoucher
+      set glheader.xlong=xlongbank
+      
+      set glheader.xmember = #user
+      set glheader.xteam = #sql(string,"select xteam from cateam where xmember = '"+xmember+"'")
+      set glheader.xmanager = #sql(string,"select xmanager from caman where xteam = '"+xteam+"'")
+      set glheader.xdatedue=xdatefrom
+
+      insert glheader
+      if #result .eq. "false"
+        set xvoucher=""
+        set i = i + 1
+        if i > 10
+          set err = 1
+          error "Cannot Insert GL Header - Tried "+i+" Times."
+        end if
+      end if
+    end while
+
+    buffer gldetail
+    set gldetail.xvoucher=xvoucher
+    set gldetail.xrowvou=10
+    //set acc=glmst.xacc(" xdesc='"+xbank+"'")
+    set acc=cagli.xacc("zid='"+#id+"' and xtypegli='Cheque-in-Hand Debit' and xgitem='CHQREG' and xgcsa='' and xwh=''")
+    move gldetail=glmst(" xacc='"+acc+"'")
+
+    set gldetail.xsub=""
+    set gldetail.xcheque=xchequebank
+    set gldetail.xcur=xcurbank
+    set gldetail.xexch=xexchbank
+    set gldetail.xprime=xprimebank
+    set gldetail.xlong=xlongbank
+    set gldetail.xstatus="Not Cleared"
+    insert gldetail
+
+    buffer gldetail
+    set gldetail.xvoucher=xvoucher
+    set gldetail.xrowvou=20
+    set xacc=xaccar
+    move gldetail=glmst(xacc)
+    set gldetail.xsub=xcus
+    set gldetail.xcheque=xchequebank
+    set gldetail.xcur=xcurbank
+    set gldetail.xexch=xexchbank
+    set gldetail.xprime=0.0 - xprimebank
+    set gldetail.xlong=xlongbank
+    set gldetail.xstatus="Not Cleared"
+    insert gldetail
+
+
+    set #command="Top"
+  end method
+  method updateheader
+    set temp=#sql(int,"update glheader set xdate='"+xdate+"' ~
+                             ,xyear="+xyear+" ~
+                             ,xper="+xper+" ~
+                             ,xref='"+xchequebank+"' ~
+                             ,xlong='"+xlongbank+"' ~
+                             ,xdatedue='"+xdatefrom+"' ~
+                             where zid="+#id+" and xvoucher='"+xvouchertop+"'")
+  end method
+
+  method checktotals
+
+    int err = 0
+    str emsg = ""
+    decimal totbank=#sql(decimal,"select sum(xprime*xexch) from gldetail where xvoucher='"+xvoucher+"' and xaccusage='Bank'")
+
+    decimal totled=0.00-#sql(decimal,"select sum(xprime*xexch) from gldetail where xvoucher='"+xvoucher+"' and xaccusage<>'AR' and xaccusage<>'Bank'")
+
+    decimal curval = 0.00
+    decimal newval = xprime * xexch
+    if #command .ne. "Add"
+      decimal curval=#sql(decimal,"select sum(xprime*xexch) from gldetail where xvoucher='"+xvoucher+"' and xrowvou="+xrowvou)
+    end if
+
+    if xaccusage .eq. "AR"
+      if #command .eq. "Delete"
+        decimal totalc=#sql(decimal,"select sum(xtotamt*xexch) from glalc where xvoucher='"+xvoucher+"' and xrowvou="+xrowvou)
+        if totalc <> 0
+          set err = 1
+          set emsg="Already Allocated -- Cannot "+#command
+        end if
+      elseif #command .eq. "Update"
+        set newval=0.0-newval
+        set curval=0.0-curval
+
+//print "newval="+newval+"/curval="+curval
+        if newval < curval
+          decimal totalc=#sql(decimal,"select sum(xtotamt*xexch) from glalc where xvoucher='"+xvoucher+"' and xrowvou="+xrowvou)
+//print "newval="+newval+"/totalc="+totalc
+          if totalc > newval
+            set err = 1
+            set emsg="Already Allocated "+#cur+totalc+" -- The New Amount ("+#cur+newval+") Cannot be Less than Allocated Amount"
+
+          end if
+        end if
+      end if
+    elseif xaccusage .eq. "Bank"
+      if #command .eq. "Delete"
+        decimal nonbank=0.0 - #sql(decimal,"select sum(xprime*xexch) from gldetail where xvoucher='"+xvoucher+"' and xaccusage<>'Bank'")
+        if nonbank > 0
+          set err = 1
+          set emsg="Already Allocated -- Cannot "+#command
+        end if
+      elseif #command .eq. "Update"
+        decimal ledger=0.0 - #sql(decimal,"select sum(xprime*xexch) from gldetail where xvoucher='"+xvoucher+"' and xaccusage<>'Bank' and xaccusage<>'AR'")
+        decimal allalc=ledger + #sql(decimal,"select sum(xtotamt*xexch) from glalc where xvoucher='"+xvoucher+"' ")
+//print "newval="+newval+"/allalc="+allalc
+        if newval < allalc
+          set err = 1
+          set emsg="Already Allocated "+#cur+allalc+" -- The New Amount ("+#cur+newval+") Cannot be Less than the Allocated Amount"
+        end if
+      end if
+
+    else  //ledger
+      if #command .eq. "Update" .or. #command .eq. "Add"
+        set newval=0.0 - newval
+        if #command .eq. "Add"
+          set curval=0.0 - curval
+        else
+          set curval=0.0
+        end if
+        dec difval=newval-curval
+
+
+        if difval > 0.0
+          decimal totar=0.00-#sql(decimal,"select sum(xprime*xexch) from gldetail where xvoucher='"+xvoucher+"' and xaccusage='AR'")
+          decimal totalc=#sql(decimal,"select sum(xtotamt*xexch) from glalc where xvoucher='"+xvoucher+"'")
+          decimal unalc=totar-totalc
+//print "difval="+difval+"/unalc="+unalc
+          if difval > unalc
+            set err = 1
+            set emsg="Already Allocated "+#cur+" "+totalc+" -- The New Amount ("+#cur+" "+newval+") Less Current Amount  ("+#cur+" "+curval+") exceeds Un-Allocated Amount "+#cur+" "+unalc
+
+          end if
+        end if
+      end if
+    end if
+
+
+
+   set emsg="<span class=br>"+emsg+"</span>"
+
+
+  end method

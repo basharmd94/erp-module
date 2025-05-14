@@ -1,0 +1,158 @@
+ method opordsms
+	set globals(ErrChk) = ""
+	if globals(ErrChk) .ne. "1"
+		//begin
+		set ordernum=""
+		str mysql = "select xordernum from opordsms where zid='"+#id+"' and xordernum>'"+ordernum+"' and zactive is null order by xordernum"			
+		set ordernum = #sql(str,mysql)
+		//error #result+" FF"
+		while #result .eq. "true"
+			set xcus =#sql(str,"select xcus from opordsms where zid='"+#id+"' and xordernum='"+ordernum+"'")
+			set xdate =#sql(date,"select xdate from opordsms where zid='"+#id+"' and xordernum='"+ordernum+"'")
+			set xref =#sql(str,"select xref from opordsms where zid='"+#id+"' and xordernum='"+ordernum+"'")
+			set xmember =#sql(str,"select xemp from prmst where zid='"+#id+"' and xphonec='"+xref+"'")
+			set xorg =#sql(str,"select xorg from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xshort =#sql(str,"select xshort from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xadd1 =#sql(str,"select xadd1 from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xadd2 =#sql(str,"select xadd2 from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xcity =#sql(str,"select xcity from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xstate =#sql(str,"select xstate from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xzip =#sql(str,"select xzip from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xcountry =#sql(str,"select xcountry from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xfirst =#sql(str,"select xfirst from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xphone =#sql(str,"select xphone from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xfax =#sql(str,"select xfax from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xaccar =#sql(str,"select xaccar from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xtaxscope =#sql(str,"select xtaxscope from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xgcus =#sql(str,"select xgcus from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xstatuscus =#sql(str,"select xstatuscus from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xcrlimit =0+#sql(decimal,"select xcrlimit from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xcrterms =#sql(str,"select xcrterms from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xdisc =0+#sql(decimal,"select xdisc from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xcomm =0+#sql(decimal,"select xcomm from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xpayins =#sql(str,"select xpayins from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xtypebo =#sql(str,"select xtypebo from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xcreditr =#sql(str,"select xcreditr from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set xinvrule =#sql(str,"select xinvrule from opdef where zid='"+#id+"'")
+							
+			set temp="CO--"
+			str mysql = #sql(str,"select xordernum from opord where zid='"+#id+"' and xordernum like '"+temp+"%' order by xordernum desc")
+			if #result .eq. "true" .and. mysql .ne. ""
+				set last_num = 0+#sub(mysql,4,6)
+			end if
+			set last_num = 0+1+last_num
+			set mysql = #padl(""+last_num,6,"0")
+			set xordernum = temp + mysql
+			//opord:xdatecuspo,xdateinc
+			
+			
+
+
+		  
+			set mysql = "insert into opord (ztime,zid, xordernum,xstatusord,xdate,xcus,xmember,xcur,xexch,xinvrule,xappamt,xquoteby)"						  
+			set mysql = mysql + " values('"+#time+"','"+#id+"','"+xordernum+"','1-Open','"+xdate+"','"+xcus+"','"+xmember+"',~
+						'BDT',1,'"+xinvrule+"',"0",'1-Selling Unit')"
+			set tmpstr = #sql(str,mysql) 
+			if #result .eq. "true"
+				//oporddel:xpayexpm,xpayexpy
+			
+				
+				set mysql = "insert into oporddel (ztime,zid, xordernum,xcus,xrow,xorg,xadd1,xadd2,~
+								xcity,xstate,xzip,xcountry,xfirst,xphone, xfax,xwh,xtaxscope)"						  
+				set mysql = mysql + " values('"+#time+"','"+#id+"','"+xordernum+"','"+xcus+"',"10",'"+xorg+"','"+xadd1+"','"+xadd2+"',~
+							'"+xcity+"','"+xstate+"','"+xzip+"','"+xcountry+"','"+xfirst+"','"+xphone+"','"+xfax+"','General Store','"+xtaxscope+"')"
+				set tmpstr = #sql(str,mysql) 
+				
+			
+				
+				
+				if #result .eq. "true" 
+					set mysql = "insert into opordcus (ztime,zid, xordernum,xcus,xshort,xorg,xadd1, xadd2, xcity, xstate,xzip,xcountry,~
+									xfirst,xphone, xfax,xaccar,xgcus,xtaxscope,xstatuscus,xcrlimit,xcreditr,xcrterms,xdisc,xcomm,xpayins,xbotype)"						  
+					set mysql = mysql + " values('"+#time+"','"+#id+"','"+xordernum+"','"+xcus+"','"+xshort+"','"+xorg+"','"+xadd1+"','"+xadd2+"','"+xcity+"','"+xstate+"','"+xzip+"','"+xcountry+"',~
+								'"+xfirst+"','"+xphone+"','"+xfax+"','"+xaccar+"','"+xgcus+"','"+xtaxscope+"','"+xstatuscus+"','"+xcrlimit+"','"+xcreditr+"',~
+								'"+xcrterms+"','"+xdisc+"','"+xcomm+"','"+xpayins+"','"+xtypebo+"')"
+					set tmpstr = #sql(str,mysql) 
+				end if
+			end if
+			//error "GGG "
+			set row=0
+			str mysql = "select xrow from opordsms where zid='"+#id+"' and xordernum='"+ordernum+"' and xrow>'"+row+"' and zactive is null order by xordernum,xrow"			
+			set row = #sql(str,mysql)
+			while #result .eq. "true"
+				set xdate=#sql(date,"select xdate from opordsms where zid='"+#id+"' and xordernum='"+ordernum+"' and xrow='"+row+"' and zactive is null")
+				set xitem=#sql(str,"select xitem from opordsms where zid='"+#id+"' and xordernum='"+ordernum+"' and xrow='"+row+"' and zactive is null")
+				set xqtyset=0+#sql(decimal,"select xqty from opordsms where zid='"+#id+"' and xordernum='"+ordernum+"' and xrow='"+row+"' and zactive is null")
+				set xwh=#sql(str,"select xwh from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xdesc=#sql(str,"select xdesc from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xtaxcat=#sql(str,"select xtaxcat from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xunitsel=#sql(str,"select xunitiss from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xmultisel=0+#sql(decimal,"select xmultisel from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xrate=0+#sql(decimal,"select xstdprice from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xgitem=#sql(str,"select xgitem from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xcatful=#sql(str,"select xcatful from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xunitwt=#sql(str,"select xunitwt from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xtypestk=#sql(str,"select xtypestk from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xsup=#sql(str,"select xsup from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xwtunit=0+#sql(decimal,"select xwtunit from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xleadf=0+#sql(int,"select xleadf from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xstdcost=0+#sql(decimal,"select xstdcost from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xleadv=0+#sql(int,"select xleadv from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xleadt=0+#sql(int,"select xleadt from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xtypeserial=#sql(str,"select xtypeserial from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xcfsel=0+#sql(decimal,"select xcfiss from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				set xtypebo =#sql(str,"select xtypebo from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+				set xdisc =0+#sql(decimal,"select xdisc from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+				set xtaxrate1 =0+#sql(decimal,"select xtaxrate from catax where zid='"+#id+"' and xtaxscope='"+xtaxscope+"'")
+				set xtaxcode1 =#sql(str,"select xtaxcode from catax where zid='"+#id+"' and xtaxscope='"+xtaxscope+"'")
+				set xprice=0+xrate*xqtyset
+				//set chstk=0+#sql(decimal,"select xavail from imstk where zid='"+#id+"' and xitem='"+xitem+"' and xempty <> '1'")
+				//if xqtyset>chstk
+//					set xalqty=0+chstk
+	//			end if
+		//		if xqtyset<chstk
+			//		set xalqty=0+xqtyset
+				//end if
+				//print xitem+" 1 "+xdate+" 2 "+xqtyset+" 3 "+xwh+" 4 "+xtaxcat+" 5 "+xunitsel+" 6 "+xrate+" 7 "+xgitem+" 8 "+xprice+" 9 "+chstk+~
+				//" 10 "+xdesc+" 11 "+ xmultisel+" 12 "+xcatful +" 13 "+xunitwt +" 14 "+ xtypestk+" 15 "+xsup +" 16 "+xwtunit+" 17 "+xleadf+" 18 "+ xstdcost+" 19 "+~
+				//xleadv+" 20 "+xleadt+" 21 "+xtypeserial+" 22 "+xtypebo+" 23 "+xprice+" 24 "+xalqty
+				//opodt:xdropship 0,xcfsel selling conv factor (caitem),xdisc,xdiscf0,xcomm 0,xpricebasis xtaxcode1-5,xtaxrate1-5,xgstinc 0,xtimesch 0
+				
+
+				
+				
+				set myqry = "insert into opodt (ztime,zid,xordernum,xrow,xcode,xitem,xwh,xunitsel,xtypebo,xcur,xexch,xexchsell,xrate,xcfsel,~
+							xprice,xtaxcat,xcform,xtaxcode1,xtaxrate1,xtaxcode2,xtaxrate2,xtaxcode3,xdropship,xdiscf,xcomm,~
+							xtaxrate3,xtaxcode4,xtaxrate4,xtaxcode5,xtaxrate5,xpricebasis,xdisc)"						  
+				set myqry = myqry + " values('"+#time+"','"+#id+"','"+xordernum+"','"+row+"','"+xitem+"','"+xitem+"','"+xwh+"','"+xunitsel+"','"+xtypebo+"','BDT',"1","1",'"+xrate+"','"+xcfsel+"',~
+								'"+xprice+"','"+xtaxcat+"','0-None','"+xtaxcode1+"','"+xtaxrate1+"','',"0",'','0',"0","0",~
+								"0",'',"0",'',"0",'Standard List','"+xdisc+"')"	
+				set tmpstr = #sql(str,myqry) 	
+				if #result .eq. "true"
+					set myqry = "insert into opqty (ztime,zid,xordernum,xroword,xitem,xitemext,xqtyord,xqtyreq,xtypestk, xsup,xwtunit,xunitwt,xleadf,~
+								 xleadv, xleadt, xlead,xstdcost,xcurcost,xcost,xprice,xtypeserial,xcgroup,xgitem,xloc)"						  
+					set myqry = myqry + " values('"+#time+"','"+#id+"','"+xordernum+"','"+row+"','"+xitem+"','','"+xqtyset+"','"+xqtyset+"','"+xtypestk+"','"+xsup+"','"+xwtunit+"','"+xunitwt+"','"+xleadf+"',~
+									'"+xleadv+"','"+xleadt+"',"0",'"+xstdcost+"',"0","0",'"+xprice+"','"+xtypeserial+"','','"+xgitem+"','')"	
+					set tmpstr = #sql(str,myqry) 
+					//if #result .eq. "true"
+						//set myqry = "insert into opsch (ztime,zid,xordernum,xroword,xitem,xitemext,xline,xqty,xqtyalc,xdatesch,xdatecom,xflagful,~
+							// xcatful,xvehicle,xdatedel,xtimeslot,xtimesch,xtimedel)"						  
+						//set myqry = myqry + " values('"+#time+"','"+#id+"','"+xordernum+"','"+row+"','"+xitem+"','',"10",'"+xqtyset+"','"+xalqty+"','"+#date+"','"+#date+"','',~
+							//			'"+xcatful+"','Self Collection','"+#date+"','',"0","0")"	
+						//set tmpstr = #sql(str,myqry) 
+					//end if	
+				end if
+			
+				if globals(ErrChk) .ne. "1"
+					str mysql = "update opordsms set zactive='1' where zid='"+#id+"' and xordernum='"+ordernum+"' and xrow='"+row+"'"
+					set tmpstr = #sql(str,mysql)
+				end if 
+				str mysql = "select xrow from opordsms where zid='"+#id+"' and xordernum='"+ordernum+"' and xrow>'"+row+"' and zactive is null order by xordernum,xrow"			
+				set row = #sql(str,mysql)
+			end while
+					
+			str mysql = "select xordernum from opordsms where zid='"+#id+"' and xordernum>'"+ordernum+"' and zactive is null  order by xordernum"			
+			set ordernum = #sql(str,mysql)
+		end while
+	end if
+ end method

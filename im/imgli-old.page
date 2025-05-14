@@ -1,0 +1,398 @@
+page imgli
+
+     caption "IM to GL Interface"
+     sidebar list one
+     sections form one,text top, script myscript,~
+              method chk_access, method chk_command
+     
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list one
+      caption "<br><center><b>"Interface Table"</b>"
+      table imgli
+      order ximtrn,xwh,xgitem
+      rows 10
+      objects ximtrn,xwh,xgitem attrib(link "Main?page="+page+"&command=Show&ximtrn=?&xwh=?&xgitem=?"),~
+      	xaccdr,xsubdr
+		  
+     end list
+
+     form one     	
+     	valid valid
+        table imgli
+        order ximtrn,xwh,xgitem
+        return "Main"
+        layout 1
+        objects  Add,Show,Clear,Update, Delete, Top, Previous, Next, Bottom,~
+                 ximtrn,"",xwh,xgitem,~
+                 xaccdr attrib(submit; attach),accdrdesc,xsubdr attrib(attach),subdrdesc
+                 
+
+        field show
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+          	 if globals(ErrChk) .ne. "1"
+	           	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+	           	 set stype=#prop(xprops,"security")          	 
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Undo_Import.display) = "hide"
+		                set #field(Detail.display) = "hide"		  
+		                set #field(Confirm.display) = "hide"
+						set #field(Transfer.display) = "hide"		                                	                
+						set #field(Create.display) = "hide"	                
+						set #field(Sub.display) = "hide"		                
+						set #field(Post.display) = "hide"
+						set #field(Docs.display) = "hide"
+						set #field(Manual.display) = "hide"
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if           
+           end event
+           event after
+	         if globals(ErrChk) .ne. "1"
+	         	set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+	         	if #result .ne. "true"
+	                set #field(Details.display) = "hide"
+	                set #field(Top.display) = "hide"
+	                set #field(Bottom.display) = "hide"
+	                set #field(Next.display) = "hide"
+	                set #field(Previous.display) = "hide"
+	                set #field(Show.display) = "hide"
+	                set #field(Add.display) = "hide"
+	                set #field(Update.display) = "hide"
+	                set #field(Delete.display) = "hide"
+	                set #field(Clear.display) = "hide"
+	                set #field(Create.display) = "hide"
+	                set #field(Import.display) = "hide"		                
+	                set #field(Undo_Import.display) = "hide"
+	                set #field(Detail.display) = "hide"		
+	                set #field(Confirm.display) = "hide"
+					set #field(Transfer.display) = "hide"		                                	                
+					set #field(Create.display) = "hide"	                
+					set #field(Sub.display) = "hide"
+					set #field(Post.display) = "hide"
+					set #field(Docs.display) = "hide"
+					set #field(Manual.display) = "hide"					
+	                class osbcustom(clear)                		                
+	         	end if
+	         end if             
+           end event           
+        end field
+
+        field Top
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+          	 if globals(ErrChk) .ne. "1"
+	           	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+	           	 set stype=#prop(xprops,"security")          	 
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Create.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Undo_Import.display) = "hide"
+		                set #field(Detail.display) = "hide"		
+		                set #field(Confirm.display) = "hide"
+						set #field(Transfer.display) = "hide"		                                	                
+						set #field(Create.display) = "hide"
+						set #field(Post.display) = "hide"
+						set #field(Docs.display) = "hide"
+						set #field(Manual.display) = "hide"						
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if           
+           end event
+           event after
+	         if globals(ErrChk) .ne. "1"
+	         	set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+	         	if #result .ne. "true"
+	                set #field(Details.display) = "hide"
+	                set #field(Top.display) = "hide"
+	                set #field(Bottom.display) = "hide"
+	                set #field(Next.display) = "hide"
+	                set #field(Previous.display) = "hide"
+	                set #field(Show.display) = "hide"
+	                set #field(Add.display) = "hide"
+	                set #field(Update.display) = "hide"
+	                set #field(Delete.display) = "hide"
+	                set #field(Clear.display) = "hide"
+	                set #field(Import.display) = "hide"		                
+	                set #field(Undo_Import.display) = "hide"
+	                set #field(Detail.display) = "hide"		
+	                set #field(Confirm.display) = "hide"
+					set #field(Transfer.display) = "hide"		                                	                
+					set #field(Create.display) = "hide"	                
+					set #field(Sub.display) = "hide"
+					set #field(Post.display) = "hide"
+					set #field(Docs.display) = "hide"
+					set #field(Manual.display) = "hide"
+	                class osbcustom(clear)                		                
+	         	end if
+	         end if             
+           end event
+        end field
+                 
+          field ximtrn
+          	col 3
+          	pick select xtrn from xtrn where xtypetrn='Inventory Transaction'
+          end field
+          
+		   field accdrdesc
+		      attrib local
+		      caption Description
+		      display constant
+		      event after
+		        set accdrdesc=#sql("select xdesc from glmst where xacc='"+xaccdr+"'")
+		      end event
+		   end field
+
+		   field subdrdesc
+		      attrib local
+		      caption Description
+		      display constant
+		      event after
+		        set subdrdesc=#sql("select xdesc from glsub where xacc='"+xaccdr+"' and xsub='"+xsubdr+"'")
+		      end event
+		   end field
+
+		   field Add
+		     event before
+		        set globals(ErrChk) = ""
+		        
+		        call chk_access
+
+				if globals(ErrChk) .ne. "1"
+					set chktrn = #sql("select xtrn from xtrn where xtypetrn='Inventory Transaction' and xtrn='"+ximtrn+"'")
+					if #result .ne. "true"
+						set globals(ErrChk)="1"
+						error "Wrong Transaction prefix</p>Cannot "+#command
+					end if
+				end if		        
+
+				if globals(ErrChk) .ne. "1"
+					set chkgrp = #sql("select xcode from xcodes where xtype='Item Group' and xcode='"+xgitem+"'")
+					if #result .ne. "true"
+						set globals(ErrChk)="1"
+						error "Wrong Item Group</p>Cannot "+#command
+					end if
+				end if		        
+	
+				if globals(ErrChk) .ne. "1"
+					set chkwh = #sql("select xcode from xcodes where xtype='Warehouse' and xcode='"+xwh+"'")
+					if #result .ne. "true"
+						set globals(ErrChk)="1"
+						error "Wrong Warehouse</p>Cannot "+#command
+					end if
+				end if		   
+													        		        
+	            if globals(ErrChk) .ne. "1"
+	              set xacc=xaccdr
+	              buffer glmst
+	              move glmst=glmst(xacc)
+	              if #result .ne. "true"
+	                set globals(ErrChk) = "1"
+	                set #list(account.select)=#char(34)+"xacc like '"+xaccdr+"%'"+#char(34)
+	                set #list(account.navigator)=""
+	                Error "Wrong account -- pick from the list"
+	              else
+	              	if glmst.zactive .eq. "1"
+		                set #list(account.select)=""
+		                set #list(account.navigator)="alpha"
+		                set accusage=glmst.xaccusage
+		                set accsource=glmst.xaccsource
+		            else
+		            	set globals(ErrChk) = "1"
+		            	error "Account "+xacc+" Inactive; Cannot use"
+		            end if
+	              end if
+	            end if
+	            
+	            if globals(ErrChk) .ne. "1"
+	                if accusage .eq. "Ledger" .or. accusage .eq. "Bank" .or. accusage .eq. "Cash" .and. accsource .eq. "Subaccount"
+	                  set myqry = "select xsub from glsub where xacc='"+xaccdr+"' and xsub='"+xsubdr+"'"
+	                  set tmpret = #sql(str,myqry)
+	                  if #result .ne. "true"
+	                    set globals(ErrChk) = "1"
+	                    set #field(xsubdr.pick)="list xsub"
+	                    error "Not a valid Sub-Account<br>Pick from the list"
+	                  end if
+	                else
+	                  set xsub = ""
+	                end if
+	            end if
+		     end event
+		   end field
+
+		   field Update
+		     event before
+		        set globals(ErrChk) = ""
+		        
+		        call chk_access
+		        
+		     end event
+		   end field
+
+		   field Delete
+		     event before
+		        set globals(ErrChk) = ""	        
+		        call chk_access		        
+		     end event
+		   end field
+		   		   
+   end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        </script>
+     end script
+     
+     method chk_access
+     	set stype = ""
+       	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+       	 set stype=#prop(xprops,"security")          	 
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          
+			  set myqry = "insert into xcriminal (zid,xwornum,xemail,xdate,xtime,xobject)"
+			  set myqry = myqry + " values('"+#id+"','"+mysql+"','"+#user+"','"+#date+"',~
+				'"+#time+"','"+page+"')"
+			  set tmpstr =#sql(myqry)		
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+
+     
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	else if excomm .eq. "Approve"
+     		set #field(Approve.display) = "hide"
+     	end if    
+     end method
+     
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql     
+				
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(ximtmptrn)+"','','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+#time+"','"+page+"','')"
+		set tmpstr =#sql(myqry)		
+     end method     
+     
+	valid valid         
+		//mandatory xacc,xcheque
+		
+		config		        
+			set accusage = #sql(str,"select xaccusage from glmst where xacc='"+xaccdr+"'")
+			set accsource = #sql(str,"select xaccsource from glmst where xacc='"+xaccdr+"'")
+            if accusage .eq. "Ledger" .or. accusage .eq. "Bank" .or. accusage .eq. "Cash" .and. accsource .eq. "Subaccount"
+                set #field(xsubdr.pick)="list xsubdr"
+                set subdrdesc=#sql(str,"select xdesc from glsub where xacc='"+xaccdr+"' and xsub='"+xsubdr+"'")
+            else
+            	set #field(xsubdr.display) = "hide"
+            	set #field(subdrdesc.display) = "hide"
+              	set xsubdr = ""
+              	set subdrdesc = ""
+            end if
+           
+		end config  
+	end valid   
+     
+end page

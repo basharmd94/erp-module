@@ -1,0 +1,11 @@
+     list imbat
+        table imbatview
+        order xitem,xbatch
+        fixed xitem,xwh
+        select "xqty <> 0"
+        rows 20
+        objects ~
+          xbatch attrib(link "javascript:void(0);" embed onclick="return updateParent(this:'xbatch')"),xqty,xissunc,xavail,xrecunc,xval,xcostunit equals(xval/xqty)
+     end list
+
+

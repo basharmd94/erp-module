@@ -1,0 +1,524 @@
+//#include poord.include
+//******************************************************************************
+		form order
+		valid valid,access
+        caption "Order"
+        table poord 
+        order xpornum desc
+        select "xtypepor='"+mode+"'" 
+        layout 1
+        objects ~        		
+                Show,Add,Top, Previous, Next, Bottom, Update,~
+                Delete, Clear,Create GRN,Close,Hold,Release,~
+                xtrnpor,xpornum display(text),xdate,~
+                xsup attrib(attach; mandatory),sup_name,xsupref,xdatesupref default(#d),xcur,~
+                xexch,xwh,xdiv,xsec,xproj,xpartial,xdisc display(hide),~
+                xrem,xdtdisc display(hide),xdtwotax display(constant),xdttax display(constant),~
+                xval,xdiscamt display(const),xtotamt display(constant) ,~
+                xappamt display(hide),xcoststat display(const),xtempstr1 display(hide),xstatuspor,~
+                zemail display(hide),xemail display(hide),xtypepor display(hide),xwhoption display(const),~
+                xtempstr1 display(hide)
+
+#include pogrn_create.methods
+                
+				field Close
+					event before
+						set xstatuspor=#status("xstatuspor","C")
+						action Update
+					end event
+				end field
+				
+				field Hold
+					event before
+						set xstatuspor=#status("xstatuspor",6)
+						action Update
+					end event
+				end field
+				
+				field Release
+					event before
+						set xstatuspor=#status("xstatuspor",1)
+						action Update
+					end event
+				end field
+
+				field xsup
+					pick list xsup
+					event after
+						set globals(xsup)=xsup
+					end event
+				end field
+
+		        field xdate
+		          default #date
+		          event after
+		            set globals(xdate)=xdate
+		          end event
+		        end field
+		
+		        field xval
+		          display constant
+		          caption Gross Amount
+		        end field
+		
+		        field sup_name
+		          attrib local
+		          caption Company
+		          display constant
+		          event after
+		            set sup_name=#sql(string,"select xorg from casup where xsup = '"+xsup+"'")
+		          end event
+		        end field
+		
+		        field xpartial
+		          display hide
+		          default "Allowed"
+		        end field
+		
+		        field xrem
+		          caption Notes
+		          width 80
+		          height 2
+		          col 3
+		        end field
+		
+		        field xstatuspor
+		          display const
+		          event after
+		            set globals(xstatuspor)=xstatuspor
+		          end event
+		        end field
+		
+		        field xcur
+		          display combo
+		          default "BDT"
+		          width 4
+		          event after
+		            set globals(xcur)=xcur
+		          end event
+		        end field
+		
+		        field xexch
+		         display text
+		         event after
+		            set globals(xexch)=xexch
+		         end event
+		        end field
+		
+		        field xsec
+		          default "Any"
+		          display hide
+		        end field
+		
+		        field xproj
+		          default "Any"
+		          display hide
+		        end field
+		
+		        field xtrnpor
+		        	caption P.O. Prefix
+		        	default "PO--"
+		        end field
+
+		        field xwh
+		          event after
+		            set globals(xwh)=xwh
+		          end event
+		        end field
+        
+				field Add
+					event before
+						set globals(ErrChk) = ""
+						
+						if globals(ErrChk) .ne. "1"
+							set chktrn = #sql("select xtrn from xtrn where xtypetrn='Purchase Order' and zactive='1' and xtrn='"+xtrnpor+"'")
+							if #result .ne. "true"
+								set globals(ErrChk) = "1"
+								error "Wrong Transaction Prefix</p>Cannot "+#command
+							end if
+						end if            
+						
+						if globals(ErrChk) .ne. "1"
+							if mode .eq. "Local" 
+								if xtrnpor .eq. "IP--"
+									set globals(ErrChk)="1"
+									error "Wrong Code</br>'IP--' is meant for import purchase only"
+								end if
+							end if
+						end if
+						
+						if globals(ErrChk) .ne. "1"
+				            set whselect=podef.xwhselect()
+				            if whselect .eq. "0"
+								set chkwh = #sql("select xcode from xcodes where xtype='Warehouse' and xcode='"+xwh+"'")
+								if #result .ne. "true"
+									set globals(ErrChk)="1"
+									error "Wrong WH Code Entered"
+								end if
+							end if
+						end if
+												
+						if globals(ErrChk) .ne. "1"
+							set chkcur = #sql("select xcur from xcur where xcur='"+xcur+"'")
+							if #result .eq. "false"
+								set globals(ErrChk)="1"
+								error "Wrong Currency code selected</p>Cannot "+#command
+							end if
+						end if
+						
+						if globals(ErrChk) .eq. ""
+							set chksup = #sql("select xorg from casup where zid='"+#id+"' and xsup='"+xsup+"' and xstatussup='1-Open'")
+							if #result .ne. "true"
+								set globals(ErrChk) = "1"
+								error "Wrong Supplier Code"
+							else
+								if xcur .eq. ""
+									set xcur=casup.xcur("zid='"+#id+"' and xsup='"+xsup+"'")
+								end if
+								set xstatuspor=#status("xstatuspor",1)
+								set xdtwotax = 0
+								set xdttax = 0
+								set xdtdisc = 0
+								set xdiscamt = 0
+								set xval = 0
+								set xtotamt = 0
+								set xappamt = 0
+								set xappcode=""
+								set zemail=#user                  
+								set xexch=#exch(xcur)
+								set xtypepor = globals(mode)
+								str mysql = #sql(str,"select xpornum from poord where xpornum like '"+xtrnpor+"%' order by xpornum desc")
+								if #result .eq. "true" .and. mysql .ne. ""
+									set last_num = 0+#sub(mysql,4,6)
+								end if
+								set last_num = 0+1+last_num
+								set mysql = #padl(""+last_num,6,"0")
+								set xpornum = xtrnpor + mysql  
+								set whoption = podef.xwhselect("zid='"+#id+"'")
+								if whoption .eq. "1"
+									set xwhoption = "Detail"
+								else
+									set xwhoption = "Header"
+								end if						
+							end if
+						end if
+					end event
+					event after
+						if globals(ErrChk) .ne. "1"
+							buffer poorddep
+							set xrow=cadep.xrow("xrow>0")
+							move poorddep=cadep(xrow)
+							set poorddep.xpornum=xpornum
+							insert poorddep
+						end if
+					end event					
+				end field
+
+		        field Update
+		          event before
+		            set globals(ErrChk)=""
+		
+		            if globals(ErrChk) .ne. "1"
+						if mode .eq. "Local" 
+			            	set trncode = #sub(xpornum,0,4)
+			            	if trncode .eq. "IP--"
+			            		set globals(ErrChk)="1"
+			            		error "Wrong Code</p>'IP--' is meant for import purchase only"
+			            	end if
+			            end if
+		            end if
+		                       
+		            if globals(ErrChk) .ne. "1"
+		            	set chkcur = #sql("select xcur from xcur where xcur='"+xcur+"'")
+		            	if #result .eq. "false"
+		            		set globals(ErrChk)="1"
+		            		error "Wrong Currency code selected</p>Cannot "+#command
+		            	end if
+		            end if
+		            
+		            if globals(ErrChk) .ne. "1"
+		               call chkrec
+		            end if
+		
+		            if globals(ErrChk) .ne. "1"
+		               if xsup .ne. globals(xsup)
+		                  set globals(ErrChk) = "1"
+		                  error "Cannot Change Supplier"
+		               end if
+		               if xpornum .ne. globals(xpornum)
+		                  set globals(ErrChk) = "1"
+		                  error "Cannot Change Order Number"
+		               end if
+		            end if
+					if globals(ErrChk) .ne. "1"
+						if xwhoption .eq. "Header"
+							set chkwh = #sql("select xcode from xcodes where xtype='Warehouse' and xcode='"+xwh+"'")
+							if #result .ne. "true"
+								set globals(ErrChk)="1"
+								error "Wrong WH Code Entered"
+							end if
+						end if
+					end if		            
+		            if globals(ErrChk) .ne. "1"
+		            	if xcur .ne. globals(xcur)
+		            		set xexch=#exch(xcur)
+		            	end if
+		            end if
+		          end event
+		        end field
+
+		        field Delete
+		          event before
+		            set globals(ErrChk) = ""
+		
+		            if globals(ErrChk) .ne. "1"
+		              call chkrec
+		            end if
+					if globals(ErrChk) .ne. "1"
+			            buffer poorddep
+			            set poorddep.xpornum=xpornum
+			            delete poorddep(xpornum)
+					end if            
+		          end event
+		        end field
+
+     end form
+
+#include access.valid   
+  
+     method templog
+		set myqry = "insert into ztemplog (zid,xordernum,xdate,xtime,xobject,xaction,xemail,xrem)"
+		set myqry = myqry + " values('"+#id+"','"+globals(xgrnnum)+"','"+#date+"','"+#time+"','"+page+"',~
+			'"+#command+"','"+#user+"','')"
+		set tmpstr =#sql(myqry)
+		if #result .eq. "true"
+		else
+			set globals(ErrChk) = "1"
+			error "Error: Contact System Administrator or</br>Run Correction"
+		end if
+     end method
+	   
+     method chkrec
+        if xpornum .ne. globals(xpornum)
+            set globals(ErrChk) = "1"
+            error "Record pointer mismatch</p>Cannot "+#command
+        end if
+
+        if globals(ErrChk) .ne. "1" 
+          if #command .ne. "Create GRN"
+           if xstatuspor .eq. "Received" .or. xstatuspor .eq. "Partial Received" .or. xstatuspor .eq. "Completed"
+             set globals(ErrChk) = "1"
+             error "Cannot "+#command+"</p>Already "+globals(xstatuspor)
+           end if  
+          end if 
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+         set status=#sql(str,"select xstatuspor from poord where xpornum='"+xpornum+"'")
+         if #command .eq. "Create GRN"
+           if status .eq. "Received" .or. status .eq. "Completed"
+             set globals(ErrChk) = "1"
+             error "Cannot "+#command+"</p>Already "+status
+           end if
+         end if 
+        end if
+        
+     end method
+	   
+	valid valid
+		config
+			set globals(pkey) = xpornum
+			set globals(mode) = mode
+			set globals(xpornum) = xpornum
+
+			int detcount = #sql(int,"select count(*) from poodt where zid='"+#id+"' and xpornum='"+xpornum+"'")
+			if xpornum .ne. ""              
+				if detcount < 1
+					print "<span class=bl>No Details Entered -- Go to Details tab and Add record.</span>"
+				end if
+			end if
+              
+            str grns=""
+            str header="<font color=green>"+xstatuspor+"</font><font color=red> "+mode+"</font> Purchase Order"
+            str print=podef.xprintpor()
+            if xpornum .ne. "" .and. xpornum .ne. "null"
+            	if print .ne. "0" .and. detcount > 0            
+              		set header=header+": <a href='"+#report(poordn.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xpornum+"&prompt2="+xpornum+"' target='_new'>"+xpornum+"</a> "
+	            else
+	              	set header=header+": <span class=br>"+xpornum+"</span>"
+              	end if
+            end if
+                       
+            str grns=#sqllist(" ","select xgrnnum from pogrn where zid='"+#id+"' and xpornum='"+xpornum+"'")
+            if grns .ne. ""
+              set header=header+" with GRN: "+grns
+            end if               
+			            
+            set whselect=podef.xwhselect()
+            if whselect .eq. "0"
+            else
+            	set #field(xwh.display) = "hide"
+            	set xwh = ""
+            end if
+     
+			double qty = #sql(double,"select sum(xqtyord-xqtygrn) from poodt where zid='"+#id+"' and xpornum = '"+xpornum+"'")
+			//print "qtyord,qtygrn,xstatuspor="+qtyord+"*"+qtygrn+"*"+xstatuspor
+			if xstatuspor .eq. #status("xstatuspor",4) .or. xstatuspor .eq. #status("xstatuspor",5)
+				if qty <= 0  
+					str s = #status("xstatuspor",5)
+				else
+					str s = #status("xstatuspor",4)
+				end if
+				int temp = #sql(int,"update poord set xstatuspor='"+s+"' where zid='"+#id+"' and xpornum = '"+xpornum+"'")
+				//print #result+" "+qty				
+			end if
+	
+			if xstatuspor .ne. #status("xstatuspor",6)
+				set #field(Release.display)="disabled"
+			end if
+			if xstatuspor .ne. #status("xstatuspor",1)
+				set #field(Hold.display)="disabled"
+			end if
+			//Close
+			if xstatuspor .eq. #status("xstatuspor","C")
+				set #field(Close.display)="disabled"
+			end if
+			int ucgrn=#sql(int,"select count(*) from pogrn where zid="+#id+" and xpornum='"+xpornum+"' and xstatusgrn not like '5-%' and xstatusgrn not like 'C-%'")
+			if ucgrn > 0
+				set #field(Close.display)="disabled"
+			end if
+	        
+			if detcount > 0
+			else 
+				set #field(Create.display) = "disable"
+			end if 
+			set globals(header)=header
+			set statuspor = poord.xstatuspor("zid='"+#id+"' and xpornum='"+xpornum+"'")
+          	if statuspor .gt. #status("xstatuspor",2)
+            	set #field(xcur.display) = "constant"
+            	set #field(xexch.display) = "constant"
+          	end if
+          	if statuspor .eq. #status("xstatuspor",4)
+            	set #field(xdate->.display) = "constant"
+            	set #field(Delete.display) = "disabled"
+            	set #field(Update.display) = "disabled"
+          	end if
+
+          	if statuspor .ge. #status("xstatuspor",5)
+            	set #field(Delete.display) = "disabled"
+            	set #field(Update.display) = "disabled"
+            	set #field(Create.display) = "disabled"
+          	end if
+
+          	if xpornum .eq. ""
+            	set #field(Details.display) = "disabled"
+            	set #field(Add.display) = ""
+          	end if
+		
+			if mode .eq. "Import"
+				set lcstat = #sql("select xstatusord from poilc where zid='"+#id+"' and xpornum='"+xpornum+"'")
+				if xcoststat .ne. "LC Completed"
+					set #field(Create.display) = "disable"
+				end if
+			end if
+							
+            set xsinglecur = #sql("select xsinglecur from cadef where zid='"+#id+"'")
+            if xsinglecur .eq. "1"
+            	set #field(xcur.display) = "hide"
+            	set #field(xexch.display) = "hide"
+            end if
+     		
+            set xappdiv = #sql("select xappdiv from cadef where zid='"+#id+"'")
+            if xappdiv .eq. "0"
+            	set #field(xdiv.display) = "hide"
+            end if
+            
+            set xappsec = #sql("select xappsec from cadef where zid='"+#id+"'")
+            if xappsec .eq. "0"
+            	set #field(xsec.display) = "hide"
+            end if
+            
+            set xappproj = #sql("select xappproj from cadef where zid='"+#id+"'")
+            if xappproj .eq. "0"
+            	set #field(xproj.display) = "hide"
+            end if            
+
+			set page = "opord"
+            set attax = #sql("select xattribtax from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if attax .eq. "Show"
+            else if attax .eq. "Constant"
+            	set #field(xdttax.display) = "const"
+            else if attax .eq. "Hide"
+            	set #field(xdttax.display) = "hide"
+            end if   
+            
+            set atdisc = #sql("select xattribdisc from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atdisc .eq. "Show"
+            else if atdisc .eq. "Constant"
+            	set #field(xdtdisc.display) = "const"
+            else if atdisc .eq. "Hide"
+            	set #field(xdtdisc.display) = "hide"
+            end if   
+                                  
+            set atcomm = #sql("select xattribcomm from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atcomm .eq. "Show"
+            else if atcomm .eq. "Constant"
+            	set #field(xdtcomm.display) = "const"
+            else if atcomm .eq. "Hide"
+            	set #field(xdtcomm.display) = "hide"
+            end if   
+            
+            set atrate = #sql("select xattribrate from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atrate .eq. "Show"
+            else if atrate .eq. "Constant"
+            	set #field(xrate.display) = "const"
+            else if atrate .eq. "Hide"
+            	set #field(xrate.display) = "hide"
+            end if   
+
+            set atval = #sql("select xattribval from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atval .eq. "Show"
+            else if atval .eq. "Constant"
+            	set #field(xdtwotax.display) = "const"
+            	set #field(xlineamt.display) = "const"
+            else if atval .eq. "Hide"
+            	set #field(xdtwotax.display) = "hide"
+            	set #field(xlineamt.display) = "hide"
+            end if   
+            
+            set atsp = #sql("select xattribsp from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atsp .eq. "Show"
+            else if atsp .eq. "Constant"
+            	set #field(xsp.display) = "const"
+            else if atsp .eq. "hide"
+            	set #field(xsp.display) = "hide"
+            	set #field(sp_name.display) = "hide"
+            end if       	
+            
+            set atwh = #sql("select xattribwh from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atwh .eq. "Show"
+            else if atwh .eq. "Constant"
+            	set #field(xwh.display) = "const"
+            else if atwh .eq. "Hide"
+            	set #field(xwh.display) = "hide"
+            end if   
+                          
+            set atzemail = #sql("select xattribzemail from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atzemail .eq. "Show"
+            else if atzemail .eq. "Constant"
+            	set #field(zemail.display) = "const"
+            else if atzemail .eq. "Hide"
+            	set #field(zemail.display) = "hide"
+            end if   
+            
+            set atxemail = #sql("select xattribxemail from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atxemail .eq. "Show"
+            else if atxemail .eq. "Constant"
+            	set #field(xemail.display) = "const"
+            else if atxemail .eq. "Hide"
+            	set #field(xemail.display) = "hide"
+            end if
+			                  
+         end config
+     end valid
+     

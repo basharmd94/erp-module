@@ -1,0 +1,94 @@
+page prpersoninfo
+     caption "<span class=bl>Spouse Information of Employee <a href=/da/"+#servlet+"?page=prmst&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+     sections form one, list one,script myscript
+     
+     
+  list one
+    table prspouse
+    order xemp,xrow
+    fixed xemp
+    row 60
+    object xrow attrib(link #servlet+"?page="+page+"&command=Show&xrow=?"),~
+           xspouse,xbdtspouse,xwpno
+      
+    field xwpno
+        caption Spouse Blood Group
+    end field
+        
+  end list
+
+
+     form one
+        //caption "Personal Information of <font color=black >"+xemp+"</font>"
+        table prspouse
+        order xemp,xrow
+        fixed xemp
+        layout 1
+        objects Add,Update,Show,Clear,Delete,Next,Previous,Top,Bottom,Back,~
+			xrow attrib(row 0 1),xspouse,xbdtspouse,xwpno,xmargin,xyield display(hide),xspppno display(hide),xspocc display(hide),xspitno display(hide)
+			
+        field xspouse
+          //  caption Name Of Nominee
+        end field
+        
+        field xmargin
+            caption PF %
+            display hide
+        end field
+
+        field xwpno
+            caption Spouse Blood Group
+        end field
+        
+        field next
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow+1
+        		set xrow = 0+nrow
+        		action show
+        	end event
+        end field
+
+        field previous
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow-1
+        		set xrow = 0+nrow
+        		action show
+        	end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+		embed onsubmit="submitit(this)"
+		field Back
+			embed onclick="clicked(this)"
+		end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail=""
+
+        function clicked(b)
+        {
+          details="back"
+        }
+        function submitit(form)
+        {
+          if (details=="back"){
+            form.page.value = "prothdt"
+            form.searchbutton.value= "Find xemp=?"
+          }
+         }
+
+        </script>
+     end script
+
+end page

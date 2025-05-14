@@ -1,0 +1,10 @@
+     list xporeqnum
+     	caption "List of Requisition(s)"
+        table poreq
+        order xporeqnum
+        select "((select count(zemail) from xusers where zemail='"+#user+"') <> 0) and (xstatusreq='6-Approved')"
+        rows 10
+        objects xporeqnum attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+                xdatereq,xref,xstatusreq
+
+     end list

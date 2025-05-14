@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table imtemptdtview
+	caption "imtemptdt Detail View"
+
+	columns ztime,zutime, zid, ximtmptrn,xtorlno,xitem,item_name,xqtyord,xunit,ximtrnnum,xdocnum,xrate,xval,zemail,xemail,xbatch,xbin
+
+	sql create view imtemptdtview (ztime,zutime, zid, ximtmptrn,xtorlno,xitem,item_name,xqtyord,xunit,ximtrnnum,xdocnum,xrate,xval,zemail,xemail,xbatch,xbin) ~
+		as select ~
+		imtemptdt.ztime,imtemptdt.zutime,imtemptdt.zid, imtemptdt.ximtmptrn,imtemptdt.xtorlno,imtemptdt.xitem,~
+        (select xdesc from caitem where zid=imtemptdt.zid and xitem=imtemptdt.xitem),~
+		imtemptdt.xqtyord,imtemptdt.xunit,imtemptdt.ximtrnnum,imtemptdt.xdocnum,imtemptdt.xrate,imtemptdt.xval,imtemptdt.zemail,imtemptdt.xemail,imtemptdt.xbatch,imtemptdt.xbin ~
+		FROM imtemptdt
+end table

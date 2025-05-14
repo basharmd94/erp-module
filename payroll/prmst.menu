@@ -1,0 +1,19 @@
+//Prmst
+//---------------------------------------------------------------------------------------
+caption "Employee Master Menu" page 3
+option                  |action                                  |modules|models
+//---------------------------------------------------------------------------------------
+Employee Master                     			|#classPath+"/"+#servlet+"?page=prmstdb&command=clear"
+-
+Job Description                        			|#classPath+"/"+#servlet+"?page=prjobdesc&command=clear"
+Pay Package                            			|#classPath+"/"+#servlet+"?page=prpaymenthd&command=clear"
+-
+Increment                       				|#classPath+"/"+#servlet+"?page=princremhed&command=clear"
+Disciplinary Information               			|#classPath+"/"+#servlet+"?page=prdiscplhed&command=clear"
+Employee Transfer                      			|#classPath+"/"+#servlet+"?page=premptransfer&command=clear"
+Awards/Rewards Information       				|#classPath+"/"+#servlet+"?page=praward&command=clear"
+-
+Final Separation 			           			|#classPath+"/"+#servlet+"?page=prjobendhed&command=clear"
+-
+Codes Setup 			           				|#classPath+"/"+#servlet+"?menu=pdsetup&command=clear"
+//-------------------------------------------------------------------

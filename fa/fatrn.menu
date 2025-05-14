@@ -1,0 +1,14 @@
+//-------------------------------------------------------------------
+caption "Acquistion Entry" page 3
+option                           |action
+//-------------------------------------------------------------------
+Acquistion Entry            |#classPath+"/"+#servlet+"?page=faacqaircn"
+Addition Entry             	|#classPath+"/"+#servlet+"?page=faaddaircn"
+//Depreciation Entry        |#classPath+"/"+#servlet+"?page=fatrn_de"
+Disposal Entry              |#classPath+"/"+#servlet+"?page=fadisaircn"
+//Revaluation Entry         |#classPath+"/"+#servlet+"?page=fatrn_rv"
+//Transfer Entry            |#classPath+"/"+#servlet+"?page=fatransfer"
+-
+Asset Master              	|#classPath+"/"+#servlet+"?page=famstaircn"
+//Depreciation Process      |#classPath+"/"+#servlet+"?page=fadpprocs_mth"
+//-------------------------------------------------------------------

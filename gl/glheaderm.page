@@ -1,0 +1,958 @@
+page glheaderm
+
+	caption header
+		
+    sidebar list detail 
+    sections form one, list outofbal, header,  script myscript
+
+    list header
+        caption "Last  "+#list(header.row)+"  Voucher(s)"
+        table glheader
+        order xvoucher DESC
+        select "(xper>0) and (xaction='Receipt') and (xstatusjv='Balanced')"
+        rows 100
+        objects ~
+                xvoucher attrib(link #servlet+"?page="+page+"&command=Show&xvoucher=?"), ~
+                xref,xdate,xyear,xper,xstatusjv,xpostflag
+				
+    end list
+
+    list outofbal
+        caption "<font color=red>Out of Balance Voucher(s)"
+        table glheader
+        order xvoucher DESC
+        select "(xper>0) and (xaction='Receipt') and (xstatusjv<>'Balanced')"
+        rows 100
+        objects ~
+                xvoucher attrib(link #servlet+"?page="+page+"&command=Show&xvoucher=?"), ~
+                xref,xdate,xyear,xper
+
+    end list
+     
+    list detail
+        caption "Voucher Details For: "+xvoucher
+        table gldetaildescview
+        order xvoucher,xrow
+        fixed xvoucher
+        rows 100
+        objects xrow attrib(link #servlet+"?page=gldetailm&command=Show&xvoucher=?&xrow=?"), ~
+                xacc,acc_desc,~
+                xsub,sub_desc,~
+				xsec,xproj,~
+                debit,credit
+
+        totals "","Totals","","","","","",sum,sum
+
+        field xsec
+			caption Section
+        end field
+
+        field xproj
+			caption Project
+        end field		
+		
+        field acc_desc
+          caption Description
+        end field
+
+        field sub_desc
+          caption Description
+        end field
+        
+        field debit
+        	caption Debit
+			storage decimal
+        	len 20.2
+        end field
+
+        field credit
+        	caption Credit
+			storage decimal
+        	len 20.2
+        end field
+                
+    end list
+	
+    form one
+     	valid valid,access
+        table glheader
+        order xvoucher DESC
+        select "xper>0 and (xaction='Receipt')"
+        layout 1
+        objects Show, Clear, Add, Details, Update, Previous,  Delete,Next,~
+               xtrngl attrib(attach),trndesc,xvoucher display(text), xref, xdate default(#d), ~
+               xaccdr attrib(submit; attach),acc_desc,xsubdr attrib(submit; attach),sub_desc,~
+               amt_bal,xdesc04,xpaytype,xcheque,xstatus display(hide),xlong display(hide),xnote,~
+               xdesc01,xdesc02,xdesc03,xdatedue default(#d),~
+               xyear display(const),xper display(const),xstatusjv,xpostflag,~
+               xdesc05,zemail display(const),xemail display(const),xnumofper display(hide),~
+               xictrnno display(hide), dumzid display(hide),~
+               xteam display(hide),xmember display(hide),xmanager display(hide),xapproved display(hide),~
+               xaction display(hide)
+
+		field show
+			event before
+				set globals(hed)=xvoucher
+			end event
+		end field
+		
+		
+		field xpaytype
+			caption Receipt Type
+		end field
+		
+		field top
+			event after
+				set globals(hed) = xvoucher
+			end event
+		end field		
+		
+        field xdesc01
+          display const
+          caption Auto Reverse Status
+	    end field
+
+        field xdesc02
+          display hide
+	      end field
+
+        field xdesc03
+          display hide
+	      end field
+
+        //field xdesc04
+        //  display hide
+	    //end field
+		
+		field xdesc04
+		   caption Project
+		   attribe maindatory
+		   display ocombo
+		   lenth 4
+		   pick select xcode from xcodes where xtype='Project'
+		end field
+		
+
+        field xdesc05
+          display hide
+	      end field
+
+        field xdatedue
+          display hide
+        end field
+
+        field xnote
+          caption Narration
+          width 50
+          height 2
+	    end field
+
+        field xdate
+          event after
+            set globals(xdate) = xdate
+            string comma = ","
+			console "glset="+#glset
+			console "glper="+#glper
+			console "#index="+#index(#glset,comma)
+            if #index(#glset,comma) > 0
+              set #field(xper.display)="combo"
+              set #field(xper.pick)="#glset"
+            end if
+            if #index(#glxset,comma) > 0
+              set #field(xyear.display)="combo"
+              set #field(xyear.pick)="#glxset"
+            end if
+			
+          end event
+        end field
+
+        field xstatusjv
+           display const
+           attrib attach
+        end field
+
+        field xpostflag
+           display const
+        end field
+
+        field xaccdr
+          display text
+          pick list xaccp
+          caption Debit Account Code
+        end field
+        
+        field acc_desc
+          caption Description
+          display const
+          attrib local
+        end field
+
+        field xsubdr
+          display text
+          //pick list xsubhed
+          caption Sub Account Code
+        end field
+
+        field sub_desc
+          caption Description
+          display const
+          attrib local
+        end field
+        
+        field xpaytype
+        	default "Cash"
+        	attrib submit
+        end field
+        
+        field amt_bal
+          caption Account Balance
+          attrib local
+          display const
+          event after
+            if xsubdr .ne. ""
+               set amt_bal=#sql(double,"select sum(xtotamt) from glbal where zid='"+#id+"' and xacc='"+globals(xaccdr)+"' and xsub='"+globals(xsubdr)+"' and xper<>"+0+"")
+            else
+               set amt_bal=#sql(decimal,"select sum(xtotamt) from glbal where zid='"+#id+"' and xacc='"+globals(xaccdr)+"' and xper<>"+0+"")
+            end if
+          end event
+        end field
+        
+		field xtrngl			
+			pick "select xtrn from xtrn where zid='"+#id+"' and xtypetrn='GL Voucher' and xaction='Receipt' and zactive='1'"
+			default #sql("select xtrn from xtrn where zid='"+#id+"' and xtypetrn='GL Voucher' and xaction='Receipt' and zactive='1'")
+		end field       
+		
+		field trndesc
+			attrib local
+			display const
+			caption
+		end field 
+		
+        field xvoucher
+			w 15
+         event after
+          set globals(returnpage)="glheaderm"
+          set globals(trnfield)="xvoucher"
+          set globals(xtypetrn)="GL Voucher"
+          set globals(xtrnnum)=xvoucher
+         
+          set globals(xvoucher)=xvoucher
+          set globals(xstate)=#sub(xvoucher,0,4)
+          set globals(xpostflag)=xpostflag
+          set globals(xyear) = xyear
+          set globals(xper) = xper
+          set globals(xcheque) = xcheque
+          set globals(xtrngl) = xtrngl          
+          if xvoucher .eq. ""
+              set #field(Details.display) = "disable"
+              set #field(Delete.display) = "disable"
+              set #field(Update.display) = "disable"
+          end if
+          if xpostflag .eq. "Posted"
+            set #field(Post.display) = "disable"
+            set #field(Delete.display) = "disable"
+            set #field(Update.display) = "disable"
+          end if          
+          if xvoucher .ne. ""
+          	set #field(xtrngl.display) = "constant"
+          end if
+          if xstatusjv .eq. "Balanced"
+          else
+            set #field(xstatusjv.caption) = "<font color=red size=2>"+#field(xstatusjv.caption)+"</font>"
+            set #field(Post.display) = "disable"
+          end if
+          set #field(xaccdr.caption) = "<font color=red>"+#field(xaccdr.caption)+"</font>"
+          set #field(xsubdr.caption) = "<font color=red>"+#field(xsubdr.caption)+"</font>"
+          set #field(xpaytype.caption) = "<font color=red>"+#field(xpaytype.caption)+"</font>"
+          set #field(xcheque.caption) = "<font color=red>"+#field(xcheque.caption)+"</font>"
+      	  set #field(zemail.caption) = "Entered By"
+      	  set #field(xemail.caption) = "Last Updated By" 	          
+        end event
+       end field
+     
+       field clear
+         event after
+            set #field(Details.display) = "disable"
+            set #field(Delete.display) = "disable"
+            set #field(Update.display) = "disable"
+            set #field(Post.display) = "disable"
+         end event
+       end field
+
+        field Add
+          event before
+            set globals(ErrChk)=""
+            
+	        if globals(ErrChk) .ne. "1"
+	        	set chkrec = #sql("select xtrn from xtrn where zid='"+#id+"' and xtypetrn='GL Voucher' and xtrn='"+xtrngl+"' and xaction='Receipt' and zactive='1'")
+	        	if #result .ne. "true"
+	        		set globals(ErrChk) = "1"
+	        		error "Wrong Transaction Type</p>Select appropriate prefix"
+	        	end if
+	        end if
+
+            if globals(ErrChk) .ne. "1"
+              set xacc=xaccdr
+              buffer glmst
+              move glmst=glmst(xacc)
+              if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                set #list(account.select)=#char(34)+"xacc like '"+xacc+"%'"+#char(34)
+                set #list(account.navigator)=""
+                Error "Wrong account -- pick from the list"
+              else
+              	if glmst.zactive .eq. "1"
+	                set #list(account.select)=""
+	                set #list(account.navigator)="alpha"
+	            else
+	            	set globals(ErrChk) = "1"
+	            	error "Account "+xacc+" Inactive; Cannot use"
+	            end if
+	          end if
+			end if	
+			
+			if globals(ErrChk) .ne. "1"	              
+              	if glmst.xaccusage .eq. "Cash" .or. glmst.xaccusage .eq. "Bank"
+              	else
+              		set globals(ErrChk) = "1"
+              		error "Wrong Account Code</p>Select either Bank or Cash"
+              	end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+                if glmst.xaccusage .eq. "Ledger" .or. glmst.xaccusage .eq. "Bank" .or. glmst.xaccusage .eq. "Cash" .and. glmst.xaccsource .eq. "Subaccount"
+                  set myqry = "select xsub from glsub where zid='"+#id+"' and xacc='"+xaccdr+"' and xsub='"+xsubdr+"'"
+                  set tmpret = #sql(str,myqry)
+                  if #result .ne. "true"
+                    set globals(xaccdr)=xaccdr
+                    set globals(ErrChk) = "1"
+                    set #field(xsubdr.pick)="list xsubhed"
+                    error "Not a valid Sub-Account<br>Pick from the list"
+                  end if
+                else
+                  set xsubdr = ""
+                end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+	            int offset
+	            int per
+	            int year=#sub(xdate,0,4)
+	
+	            int tempper
+	            int tempyear	            
+	            set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+	            set per=12+#sub(xdate,5,2)-offset
+	            if per<=12
+	                set tempper=per
+	                set tempyear=year-1
+	            else
+	                set tempper=per-12
+	                set tempyear=year
+	            end if
+				
+				if tempyear==#glyear .and. tempper==#glper				
+				//else
+					//set dtcheck = #sql("select xdatecheck from cadef where zid='"+#id+"'")
+					//if dtcheck .eq. "1"				
+			          //  if #glall .ne. ""
+			            //  String s = tempyear+"/"+tempper
+			              //if #index(#glall,s)<0
+			              	//set globals(ErrChk) = "1"
+			                //error "<span class=bl>Year and Period Must Match the Following Period:</span><br><span class=br>"+#glall+"</span>"
+			              //end if	
+			           // end if
+			        //else
+			        	//set globals(ErrChk) = "1"
+			        	//error "Post/Previous month's data entry not allowed"
+					//end if
+				//end if
+                       
+	            //set globals(voucher) = #sql("select xwpeffect from zbusiness where zid='"+#id+"'")
+	          	//class osbcustom(#days(#d,globals(voucher),xsign,"e"))
+	          	//if xsign <= 0
+	          	//	set globals(ErrChk)="1"
+	          	//	error xsign
+	          	//end if              	
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              if xpaytype .eq. "Cheque" .and. xcheque .eq. ""
+              	set globals(ErrChk) = "1"
+              	error "Please Key in the Cheque Number"
+              end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+				if xcheque .ne. "" .and. glmst.xaccusage .eq. "Bank"
+					set temp = #sql(string, "select xvoucher from gldetail where zid='"+#id+"' and xvoucher<>'"+xvoucher+"' and xcheque='"+xcheque+"'")				
+					if temp .ne. ""
+						set globals(ErrChk) = "1"
+						error "The Cheque Number "+xcheque+ " is already entered in Voucher No: "+temp
+					else
+						set temp = #sql(string, "select xvoucher from glheader where zid='"+#id+"' and xvoucher<>'"+xvoucher+"' and xcheque='"+xcheque+"'")
+						if temp .ne. ""
+							set globals(ErrChk) = "1"
+							error "The Cheque Number "+xcheque+ " is already entered in Voucher No: "+temp
+						else							
+							set temp=#sql(string, "select xrow from gldetail where zid='"+#id+"' and xaccusage='Bank' and xvoucher='"+xvoucher+"' and xacc<>'"+xacc+"' and xcheque='"+xcheque+"'")
+							if temp .ne. ""
+								set globals(ErrChk) = "1"
+								error "The Cheque Number "+xcheque+ " is already entered in Row No: "+xrow
+							end if
+						end if						
+					end if            
+				end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+			
+				set xvoucher = #trn("GL Voucher",xtrngl)
+				
+				if xpaytype .eq. "" .or. xpaytype .eq. "Cash"
+					set xcheque = ""
+				end if
+				set xyear = tempyear
+				set xper = tempper            
+				set xdesc05=""
+				set xdesc01=""
+				set xstatusjv = "Balanced"
+				set xpostflag = ""
+				set zemail=#user
+				set xstatus = "Not Cleared"
+				set xaction = #sql("select xaction from xtrn where zid='"+#id+"' and xtypetrn='GL Voucher' and xtrn='"+xtrngl+"'")
+            end if
+          end event
+          event after
+            if globals(ErrChk) .eq. ""
+              
+              int rownum = 0+1
+			  set myqry = "insert into gldetail (zid,xvoucher,xrow,xacc,xsub,xaccsource,xaccusage,xpaytype,xcheque,~
+					xstatus,xcur,xexch,xdiv,xsec,xproj,xlong,xprime,xbase,zemail,xemail,xicacc,xicsub,xacctype,xstatusrfp,~
+					xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xtypegl)"
+			  set myqry = myqry + " values('"+#id+"','"+xvoucher+"','"+rownum+"','"+xaccdr+"','"+xsubdr+"',~
+			  	    '"+glmst.xaccsource+"','"+glmst.xaccusage+"','"+xpaytype+"','"+xcheque+"','"+xstatus+"',~
+			  	    'BDT','1','','','"+xdesc04+"','','0','0','"+#user+"','','','','"+glmst.xacctype+"','','','','','','0','"+xnote+"','0','')"
+			  set tmpstr = #sql(myqry)		
+
+            end if
+          end event
+        end field
+
+        field Update
+          event before
+            set globals(ErrChk)=""
+            set postflag = glheader.xpostflag("zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'")
+			
+            if globals(ErrChk) .ne. "1"
+	            if xvoucher .sw. "IC"
+	              set globals(ErrChk) = "1"
+	              error "IC Voucher Not allowed here."
+	            end if
+	        end if
+
+			if globals(ErrChk) .ne. "1"
+				if xvoucher .ne. globals(xvoucher)
+					set globals(ErrChk) = "1"
+					set #command = "show" 
+					print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>" 
+				end if
+			end if
+			
+			if globals(ErrChk) .ne. "1"
+				if xvoucher .ne. globals(hed)
+					set globals(ErrChk) = "1"
+					set #command = "show" 
+					print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>" 
+				end if
+			end if          
+			
+            if postflag .eq. "Posted"
+              set globals(ErrChk) = "1"
+              error "Cannot Update Record, Already Posted."
+            end if
+
+	        if globals(ErrChk) .ne. "1"
+	        	if xtrngl .ne. globals(xtrngl)
+	        		set globals(ErrChk) = "1"
+	        		error "Record pointer mismatch"
+	        	end if
+	        end if
+
+            if globals(ErrChk) .ne. "1"
+	            int offset
+	            int per
+	            int year=#sub(xdate,0,4)
+	
+	            int tempper
+	            int tempyear	            
+	            set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+	            set per=12+#sub(xdate,5,2)-offset
+	            if per<=12
+	                set tempper=per
+	                set tempyear=year-1
+	            else
+	                set tempper=per-12
+	                set tempyear=year
+	            end if
+				
+				if tempyear==#glyear .and. tempper==#glper				
+				//else
+					//set dtcheck = #sql("select xdatecheck from cadef where zid='"+#id+"'")
+					//if dtcheck .eq. "1"				
+			            //if #glall .ne. ""
+			              //String s = tempyear+"/"+tempper
+			              //if #index(#glall,s)<0
+			              	//set globals(ErrChk) = "1"
+			                //error "<span class=bl>Year and Period Must Match the Following Period:</span><br><span class=br>"+#glall+"</span>"
+			              //end if	
+			            //end if
+			        //else
+			        	//set globals(ErrChk) = "1"
+			        	//error "Post/Previous month's data entry not allowed"
+					//end if
+				end if
+                       
+	            //set globals(voucher) = #sql("select xwpeffect from zbusiness where zid='"+#id+"'")
+	          	//class osbcustom(#days(#d,globals(voucher),xsign,"e"))
+	          	//if xsign <= 0
+	          	//	set globals(ErrChk)="1"
+	          	//	error xsign
+	          	//end if              	
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call chk_detacc
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              if xpaytype .eq. "Cheque" .and. xcheque .eq. ""
+              	set globals(ErrChk) = "1"
+              	error "Please Key in the Cheque Number"
+              end if
+            end if
+                        
+            if globals(ErrChk) .ne. "1"
+              set xacc=xaccdr
+              buffer glmst
+              move glmst=glmst(xacc)
+              if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                set #list(account.select)=#char(34)+"xacc like '"+xacc+"%'"+#char(34)
+                set #list(account.navigator)=""
+                Error "Wrong account -- pick from the list"
+              else
+              	if glmst.zactive .eq. "1"
+	                set #list(account.select)=""
+	                set #list(account.navigator)="alpha"
+	            else
+	            	set globals(ErrChk) = "1"
+	            	error "Account "+xacc+" Inactive; Cannot use"
+	            end if
+	          end if
+			end if	
+			
+			if globals(ErrChk) .ne. "1"	              
+              	if glmst.xaccusage .eq. "Cash" .or. glmst.xaccusage .eq. "Bank"
+              	else
+              		set globals(ErrChk) = "1"
+              		error "Wrong Account Code</p>Select either Bank or Cash"
+              	end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+                if glmst.xaccusage .eq. "Ledger" .or. glmst.xaccusage .eq. "Bank" .or. glmst.xaccusage .eq. "Cash" .and. glmst.xaccsource .eq. "Subaccount"
+                  set myqry = "select xsub from glsub where zid='"+#id+"' and xacc='"+xaccdr+"' and xsub='"+xsubdr+"'"
+                  set tmpret = #sql(str,myqry)
+                  if #result .ne. "true"
+                    set globals(ErrChk) = "1"
+                    set #field(xsubdr.pick)="list xsubhed"
+                    error "Not a valid Sub-Account<br>Pick from the list"
+                  end if
+                else
+                  set xsubdr = ""
+                end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+            	if xcheque .ne. globals(xcheque)
+					if xcheque .ne. "" .and. glmst.xaccusage .eq. "Bank"
+						set temp = #sql(string, "select xvoucher from gldetail where zid='"+#id+"' and xvoucher<>'"+xvoucher+"' and xcheque='"+xcheque+"'")				
+						if temp .ne. ""
+							set globals(ErrChk) = "1"
+							error "The Cheque Number "+xcheque+ " is already entered in Voucher No: "+temp
+						else
+							set temp = #sql(string, "select xvoucher from glheader where zid='"+#id+"' and xvoucher<>'"+xvoucher+"' and xcheque='"+xcheque+"'")
+							if temp .ne. ""
+								set globals(ErrChk) = "1"
+								error "The Cheque Number "+xcheque+ " is already entered in Voucher No: "+temp
+							else							
+								set temp=#sql(string, "select xrow from gldetail where zid='"+#id+"' and xaccusage='Bank' and xvoucher='"+xvoucher+"' and xacc<>'"+xacc+"' and xcheque='"+xcheque+"'")
+								if temp .ne. ""
+									set globals(ErrChk) = "1"
+									error "The Cheque Number "+xcheque+ " is already entered in Row No: "+xrow
+								end if
+							end if						
+						end if            
+					end if
+				end if
+            end if
+            
+            if globals(ErrChk) .eq. ""
+				set xyear = tempyear
+				set xper = tempper            
+              	set xemail=#user            
+            end if
+            
+            if globals(ErrChk) .eq. "1"
+              action show
+            end if
+          end event
+          event after
+          	if globals(ErrChk) .ne. "1"
+	            set xrow=0+1
+	            str mysql = "update gldetail set xacc='"+xaccdr+"',xsub='"+xsubdr+"',xaccsource='"+glmst.xaccsource+"',~
+	            			xaccusage='"+glmst.xaccusage+"',xacctype='"+glmst.xacctype+"',xpaytype='"+xpaytype+"',~
+	            			xcheque='"+xcheque+"',xstatus='"+xstatus+"',xproj='"+xdesc04+"' where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"' and ~
+	            			xrow='"+xrow+"'"
+	            set tmpstr = #sql(str,mysql)
+	         end if
+          end event
+        end field
+
+        field delete
+          event before
+            set globals(ErrChk) =""
+            set postflag = glheader.xpostflag("zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'")
+            
+            if globals(ErrChk) .ne. "1"
+	            if postflag .eq. "Posted"
+	               set globals(ErrChk) = "1"
+	               error "Cannot Delete Record, Already Posted."
+	            else if postflag .eq. "Checked"
+	               set globals(ErrChk) = "1"
+	               error "Cannot Delete Record, Already Checked."
+	            end if
+	        end if
+
+			if globals(ErrChk) .ne. "1"
+				if xvoucher <> globals(xvoucher)
+					set globals(ErrChk) = "1"
+					set #command = "show" 
+					print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>" 
+				end if
+			end if
+			
+			if globals(ErrChk) .ne. "1"
+				if xvoucher <> globals(hed)
+					set globals(ErrChk) = "1"
+					set #command = "show" 
+					print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>" 
+				end if
+			end if          
+
+            if globals(ErrChk) .ne. "1"
+              set xrow=0+1
+              str mysql = "select xrow from gldetail where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"' and xrow > '"+xrow+"'"
+              set tmpstr = #sql(str,mysql)
+              if #result .eq. "true"
+              	set globals(ErrChk) = "1"
+              	error "Detail Exists</p>Cannot Delete"
+              end if
+            end if
+            
+            if globals(ErrChk) .eq. ""
+              str mysql = "delete from gldetail where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"' and xrow='"+xrow+"'"
+              set updval = #sql(str,mysql)
+            end if           
+          end event
+        end field
+
+    	field post
+          event before
+            set globals(ErrChk)=""
+            
+			if globals(ErrChk) .ne. "1"
+				if xvoucher <> globals(xvoucher)
+					set globals(ErrChk) = "1"
+					set #command = "show" 
+					print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>" 
+				end if
+			end if
+			
+			if globals(ErrChk) .ne. "1"
+				if xvoucher <> globals(hed)
+					set globals(ErrChk) = "1"
+					set #command = "show" 
+					print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>" 
+				end if
+			end if          
+                        
+            if globals(ErrChk) .eq. ""
+	            set tmpvoucher=globals(xvoucher)
+	            set postflag = #sql("select xpostflag from glheader where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'")
+	            if postflag .eq. "Posted"
+	              set globals(ErrChk)="1"
+	              error "Already Posted."
+	            end if
+	        end if
+	        
+	        if globals(ErrChk) .ne. "1"
+	        	decimal drtot = 0.0
+	        	set drtot = #sql(decimal,"select sum(xprime) from gldetail where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"' and xprime>'"+drtot+"'")
+	        	if drtot > 0.0
+	        	else
+	        		set globals(ErrChk) = "1"
+	        		error "Detail has no record</p>Cannot "+#command
+				end if	        	
+	        end if
+	        
+	        if globals(ErrChk) .ne. "1"
+	    	    if xstatusjv .eq. "Out of Balance"
+	              	set globals(ErrChk)="1"
+	        	  	error "Voucher# <font size=2 color=red>"+globals(xvoucher)+"</font> not yet Balanced<br>Cannot be Posted."
+	        	else
+	        		set jv_stat = #sql(decimal,"select sum(xprime*xexch) from gldetail where zid="+#id+" and xvoucher = '"+globals(xvoucher)+"'")
+	        		if jv_stat != 0.0
+	                 	str mysql = "update glheader set xstatusjv='Out of Balance' where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'"
+	                 	set tmpstr = #sql(str,mysql)	        		
+		              	set globals(ErrChk)="1"
+		        	  	error "Voucher# <font size=2 color=red>"+globals(xvoucher)+"</font> not yet Balanced<br>Cannot be Posted."
+	        		end if
+	            end if
+	        end if
+	        
+            if globals(ErrChk) .ne. "1"
+				str mysql = "update glheader set xpostflag = 'Posted' where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'"
+				set tmpstr = #sql(str,mysql)	        		
+				
+				str mysql = "update glheader set xemail = '"+#user+"' where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'"
+				set tmpstr = #sql(str,mysql)	        	
+					
+				print "<font size=3 color=blue>Posted Successfully."								
+            end if
+          	action show
+          end event          
+    	end field
+
+        embed onsubmit="submitit(this)"
+        field details
+          embed onclick="clicked(this)"
+        end field
+        
+        field Docs
+          embed onclick="docs(this)"
+        end field
+
+        field Manual
+          embed onclick="manual(this)"
+        end field
+        
+        field *Search
+          embed onclick="search(this)"
+        end field
+                
+     end form
+
+     method chk_detacc
+      set chkacc=#sql("select xacc from gldetail where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"' and xrow<>"+1+" and xacc='"+xaccdr+"'")
+      if #result .eq. "true"
+        set acc=#sql("select xdesc from glmst where zid='"+#id+"' and xacc='"+xaccdr+"'")
+        set globals(ErrChk)="1"
+        error "A/C "xaccdr+" ("+acc+")</p> Already tagged in detail</p>Cannot "+#command
+      end if
+     end method
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function docs(b){
+          detail="docs"
+        }
+        function manual(b){
+          detail="manual"
+        }        
+        function search(b){
+          detail="search"
+        }
+        
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "gldetailm"
+            form.searchbutton.value = "Top"
+            //return false
+          }else if (detail=="docs"){
+            form.page.value = "xdocs"
+            form.searchbutton.value = "Top"
+          }else if (detail=="manual"){
+            form.page.value = "glhelpjv"
+            form.searchbutton.value = "Top"
+          }else if (detail=="search"){
+              var link =  "portal?page=glvsearch&menu=*none*&zvalue="+form.zvalue.value
+
+              var width = 700
+              var left = 600
+              if (screen){
+                left = screen.width-width
+              }
+              var param = "toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,center=0,alwaysRaised=yes,resizable=yes,width="+width+",top=0,left="+left
+              window.open(link,"Search",param)
+              result = false
+		    }
+		   }
+        </script>
+     end script
+
+	valid valid         
+		config
+			set globals(pkey)=xvoucher		
+	        set globals(xaccdr)=xaccdr
+	        set globals(xsubdr)=xsubdr
+	        set globals(xacc) = xaccdr
+	        set globals(xtrngl) = xtrngl
+	        set trndesc = #sql(str,"select xdesc from xtrn where zid='"+#id+"' and xtypetrn='GL Voucher' and xtrn='"+xtrngl+"'")
+			
+			set header="Receipt Voucher<p>"
+			set header=header+"<font size=4><br>Receipt Voucher <a href='"+#report(glvoucher1.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xvoucher+"&prompt2="+xvoucher+"' target='_new'>Print</a><p>"
+			
+			//set header=header+"<br>Receipt Voucher <a href='"+#report(glvoucher2-with-subreport.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xvoucher+"&prompt2="+xvoucher+"' target='_new'>Print</a><br>"
+			//set header=header+"<br>Money Recipt <a href='"+#report(glmnrcp_cash.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xvoucher+"&prompt2="+xvoucher+"' target='_new'>Print</a><br>"
+			
+			set detcount = #sql(int,"select count(*) from gldetail where zid='"+#id+"' and xvoucher='"+xvoucher+"'")
+			if xvoucher .ne. ""              
+				if detcount < 2
+					print "<span class=bl>No Details Entered -- Go to Details and Add record.</span>"
+				end if
+			end if
+
+    		set jv_stat = #sql(decimal,"select sum(xprime*xexch) from gldetail where zid="+#id+" and xvoucher = '"+globals(xvoucher)+"'")
+			if jv_stat != 0.0
+				set #field(Post.display) = "disable"
+				set myqry = "update glheader set xstatusjv = 'Out of Balance' where zid='"+#id+"' and xvoucher = '"+globals(xvoucher)+"'"
+			else
+				set myqry = "update glheader set xstatusjv = 'Balanced' where zid='"+#id+"' and xvoucher = '"+globals(xvoucher)+"'"
+			end if
+            set tmpflag = #sql(myqry)
+	    
+	    //set xdate=glheader.xdate("zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'")
+	    //if #date .gt. xdate
+		//set #field(update.display)="disable"
+		//print "<font color=green size=+1> Voucher Not Changeable; Date Over </font>"
+	    //end if	    
+	    
+            
+	    set postflag = glheader.xpostflag("zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'")
+            if postflag .eq. "Posted"
+              set #field(update.display)="disable"
+              set #field(delete.display)="disable"
+              set #field(allocate.display)="disable"
+            end if            
+	        
+			set acc_desc = #sql(str,"select xdesc from glmst where zid='"+#id+"' and xacc='"+xaccdr+"'")
+			set xaccusage = #sql(str,"select xaccusage from glmst where zid='"+#id+"' and xacc='"+xaccdr+"'")
+			set xaccsource = #sql(str,"select xaccsource from glmst where zid='"+#id+"' and xacc='"+xaccdr+"'")
+            if xaccusage .eq. "Ledger" .or. xaccusage .eq. "Bank" .or. xaccusage .eq. "Cash" .and. xaccsource .eq. "Subaccount"
+                set #field(xsubdr.pick)="list xsub"
+                set sub_desc=#sql(str,"select xdesc from glsub where zid='"+#id+"' and xacc='"+xacc+"' and xsub='"+xsubdr+"'")
+            else if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+                set #field(xsubdr.pick)="list glcus"
+                set sub_desc=#sql(str,"select xorg from cacus where zid='"+#id+"' and xcus='"+xsubdr+"'")
+            else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+                set #field(xsubdr.pick)="list glsup"
+                set sub_desc=#sql(str,"select xorg from casup where zid='"+#id+"' and xsup='"+xsubdr+"'")
+            else if xaccusage .eq. "Ledger" .and. xaccsource .eq. "Employee"
+                set #field(xsubdr.pick)="list glemp"
+                set sub_desc=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xsubdr+"'")
+            else
+            	set #field(xsubdr.display) = "hide"
+            	set #field(sub_desc.display) = "hide"
+              	set xsubdr = ""
+              	set sub_desc = ""
+            end if
+            
+            set xsinglecur = #sql("select xsinglecur from cadef where zid='"+#id+"'")
+            if xsinglecur .eq. "1"
+            	set #field(xcur.display) = "hide"
+            	set #field(xexch.display) = "hide"
+            	set #field(xbase.display) = "hide"
+            else
+            	set #field(xprime.attribute) = "attach"
+            	set #field(xbase.display) = "const"
+            	set #field(xcur.attrib) = "attach"
+            	set #field(xexch.display) = "const"
+            end if
+            
+            if xpaytype .eq. "Cash"
+            	set #field(xcheque.display) = "hide"
+            end if
+            set atref = #sql("select xattribref from cadefp where zid='"+#id+"' and zref = 'GL' and zobject='"+page+"'")
+            if atref .eq. "Show"
+            else if atref .eq. "Constant"
+            	set #field(xref.display) = "const"
+            else if atref .eq. "Hide"
+            	set #field(xref.display) = "hide"
+            end if   
+            
+            set atautrev = #sql("select xattribautrev from cadefp where zid='"+#id+"' and zref = 'GL' and zobject='"+page+"'")
+            if atautrev .eq. "Show"
+            else if atautrev .eq. "Constant"
+            	set #field(xdesc01.display) = "const"
+            else if atautrev .eq. "Hide"
+            	set #field(xdesc01.display) = "hide"
+            end if   
+                                  
+            set atzemail = #sql("select xattribzemail from cadefp where zid='"+#id+"' and zref = 'GL' and zobject='"+page+"'")
+            if atzemail .eq. "Show"
+            else if atzemail .eq. "Constant"
+            	set #field(zemail.display) = "const"
+            else if atzemail .eq. "Hide"
+            	set #field(zemail.display) = "hide"
+            end if   
+            
+            set atxemail = #sql("select xattribxemail from cadefp where zid='"+#id+"' and zref = 'GL' and zobject='"+page+"'")
+            if atxemail .eq. "Show"
+            else if atxemail .eq. "Constant"
+            	set #field(xemail.display) = "const"
+            else if atxemail .eq. "Hide"
+            	set #field(xemail.display) = "hide"
+            end if               
+		end config  
+	end valid   
+     
+#include access.valid
+     
+end page

@@ -1,0 +1,126 @@
+page imsetdept
+     caption "Department Wise Authority Setup"
+     sidebar list one//,list two, text three
+     sections form one ,method chk_access
+
+
+     list one
+        table imsetdept
+        order xdept
+        rows 20
+        objects  xdept attrib(link #servlet+"?page="+page+"&command=Show&xdept=?"), ~
+                 xemail1,zemail,xemail
+				 
+			field xemail1
+				caption Approver ID
+			end field
+			
+			field zemail
+				caption Added By
+			end field 
+			
+			field xemail
+				caption Updated By
+			end field
+			
+				 
+
+     end list
+
+     form one
+        caption "Department Wise Authority Setup"
+        table imsetdept
+        order xdept
+        layout 1
+        objects Show, Add, Update, Delete, Top, Previous, Next, Bottom,"<p>" ,~
+				xdept,xemail1,zemail,xemail
+                
+
+
+	field xemail1
+		caption Approver ID
+		pick "select zemail from zxusers where zid='"+#id+"'"
+	end field
+	
+	field xdept
+		pick "select xcode from xcodes where zid='"+#id+"' and xtype='Department1'"
+	end field
+
+	field zemail
+		caption Added By
+		display const
+	end field 
+	
+	field xemail
+		caption Updated By
+		display const
+	end field
+				
+				
+	field Add
+           event before
+              set globals(ErrChk) = ""
+			  
+			  if globals(ErrChk) .ne. "1"
+				set zemail=#user
+				set xemail=""
+			  end if
+			  
+           end event
+	end field
+	
+	
+	field Update
+           event before
+              set globals(ErrChk) = ""
+			  
+			  if globals(ErrChk) .ne. "1"
+				set zemail=""
+				set xemail=#user
+			  end if
+			  
+           end event
+	end field
+
+	field Delete
+           event before
+              set globals(ErrChk) = ""
+           end event
+	end field
+
+     end form
+     
+     method chk_access
+     	set stype = ""
+	  	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          buffer xcriminal
+	          set xcriminal.xwornum = mysql
+	          set xcriminal.xemail = #user
+	          set xcriminal.xdate = #date
+	          str tmptime = ""
+	          class osbcustom(#time(tmptime))
+	          set xcriminal.xtime = tmptime
+	          set xcriminal.xobject = page
+	          insert xcriminal
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+
+end page

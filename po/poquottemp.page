@@ -1,0 +1,237 @@
+page poquottemp 
+
+	caption "Quotation Entry"
+	sidebar  list Two //text one
+	sections form one,list one, script myscript, text top
+
+	text top
+		"<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+	end text
+	
+	
+	
+	
+	list Two
+		caption "Supplier Quotation for Item"
+		table poquottemp
+		order xrow Desc 
+		select "xitem='"+xitem+"'"
+		rows 5
+		objects xrow attrib(link #servlet+"?page="+page+"&command=Show&xrow=?"),~
+			xdate,xitem,Item Name equals((select xdesc from caitem where zid=poquottemp.zid and xitem=poquottemp.xitem)),~
+			xsup, Supplier Name equals((select xorg from casup where zid=poquottemp.zid and xsup=poquottemp.xsup)),~
+			xrate
+
+	end list
+
+	list one
+		caption "Quation Entry(s)-New"
+		table poquottemp
+		order xrow Desc        
+		rows 5
+		objects xrow attrib(link #servlet+"?page="+page+"&command=Show&xrow=?"),~
+			xdate,xitem,Item Name equals((select xdesc from caitem where zid=poquottemp.zid and xitem=poquottemp.xitem)),~
+			xsup, Supplier Name equals((select xorg from casup where zid=poquottemp.zid and xsup=poquottemp.xsup)),~
+			xrate
+
+	end list
+
+
+
+	form one
+		valid valid,access        
+		table poquottemp
+		order xrow
+		layout 2
+		objects Add,Show,Update,Clear, Delete,Quot_Search,~
+			xrow attrib(row 0 1),xdate,xitem attrib(submit;attach),item_name,xsup attrib(submit;attach),sup_name,~
+			xrate,zemail,xemail
+
+
+		
+		field item_name
+			attrib local
+			display const
+			event after
+				set item_name=#sql("select xdesc from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+			end event
+		end field
+		
+		field Quot_Search
+			event before			
+			class osbcustom(search(xitem,"a","poquottemp","xitem","pickqut","xrow:xitem:xsup:xrate","yes","Row No:Itemcode:Supplier Code:Rate"))
+			end event
+		end field		
+		
+		
+		field xrate
+			caption Price
+		end field 
+		
+		field sup_name
+			attrib local
+			display const
+			event after
+				set sup_name=#sql("select xorg from casup where zid='"+#id+"' and xsup='"+xsup+"'")
+			end event
+		end field
+		
+		field zemail
+			caption Entry by
+			display const
+		end field 
+
+		field xemail
+			caption Last Updated by
+			display const
+		end field 
+
+
+		field Add
+			event before
+				set globals(ErrChk) = ""
+				
+				if globals (ErrChk) .ne. "1"
+					set chk_xtm=#sql("select xitem from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+					if chk_xtm .ne. xitem .or. xitem .eq. ""
+        				set globals(ErrChk) = "1"
+        				error "Item code is unknown"
+        			end if
+				end if 
+				
+				if globals (ErrChk) .ne. "1"
+					set Chk_sup=#sql("select xsup from casup where zid='"+#id+"' and xsup='"+xsup+"'")
+					if Chk_sup .ne. xsup .or. xsup .eq. ""
+						set globals(ErrChk) = "1"
+						error "Supplier name is unknown"
+					end if 
+				end if
+				
+				set xpostflag = ""
+				set zemail=#user
+				set xemail=""
+			end event
+		end field
+
+		field Update
+			event before
+				set globals(ErrChk) = ""
+				
+				set xemail=#user
+			end event
+		end field
+
+		field Delete
+			event before
+				set globals(ErrChk)=""
+			end event
+		end field
+
+		embed onsubmit="submitit(this)"
+		field Details
+			embed onclick="Details(this)"
+		end field
+	end form
+
+	script myscript
+		<script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+		<script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+		<script language="javascript" type="text/javascript">
+		$.hotkeys.add('Ctrl+s',function(){
+		//alert('Pressed Ctrl+s');
+		var form=document.forms[0];
+		form.searchbutton.value="Add";
+		form.submit();
+		});
+		$.hotkeys.add('Ctrl+e',function(){
+		//alert('Pressed Ctrl+e');
+		var form=document.forms[0];
+		form.searchbutton.value="Update";
+		form.submit();
+		});
+		$.hotkeys.add('Ctrl+d',function(){
+		//alert('Pressed Ctrl+d');
+		var form=document.forms[0];
+		form.searchbutton.value="Delete";
+		form.submit();
+		});
+		$.hotkeys.add('Ctrl+r',function(){
+		//alert('Pressed Ctrl+r');
+		var form=document.forms[0];
+		form.searchbutton.value="Clear";
+		form.submit();
+		});
+		</script>
+
+		<script language="javascript" type="text/javascript">
+		var detail
+
+		function Details(b)
+		{
+		detail="details"
+		}
+
+		function submitit(form){
+		if (detail=="details"){
+		form.page.value = "prclubdet"
+		form.searchbutton.value= "Top"
+		}
+		}
+		function pickEmp1(link){
+		if (navigator.appName.indexOf("Netscape") >= 0){
+		document.one.xemp_ONE.value=link.text.substring(0,4)
+		document.one.xemp_TWO.value=link.text.substring(4)
+		}else{
+		document.one.xemp_ONE.value=link.innerText.substring(0,4)
+		document.one.xemp_TWO.value=link.innerText.substring(4)
+		}
+		return false
+		}
+		
+		function pickemp(link){
+		if (navigator.appName.indexOf("Netscape") >= 0){
+		document.one.xrow.xvalue=link.text
+		}else{
+		document.one.xrow.value=link.innerText
+		}
+		return false
+		}				
+		function pickqut(link){
+		if (navigator.appName.indexOf("Netscape") >= 0){
+		document.one.xrow.xvalue=link.text
+		}else{
+		document.one.xrow.value=link.innerText
+		}
+		return false
+		}				
+
+		</script>
+	end script
+	
+
+	method upd_log
+		set tmp = "LOG-"
+			str mysql = #sql(str,"select xsornum from zreclog where zid='"+#id+"' and xsornum like '"+tmp+"%' order by xsornum desc")
+			if #result .eq. "true" .and. mysql .ne. ""
+				set last_numlg = 0+#sub(mysql,4,10)
+			end if
+			set last_numlg = 1+last_numlg
+			set mysql = #padl(""+last_numlg,10,"0") 
+			set mysql=tmp+mysql     
+					
+			set myqry = "insert into zreclog (ztime,zutime,zid,xsornum,xdesc,xaction,xemail,xdate,xtime,xobject,xname)"
+			set myqry = myqry + " values('"+#time+"','"+#time+"','"+#id+"','"+mysql+"','"+globals(pkey)+"','"+#command+"','"+#user+"',~
+					   '"+#date+"','"+#time+"','"+page+"','')"
+			set tmpstr =#sql(myqry)		
+			//print #result+" "+globals(pkey)+" "+mysql		
+    end method	
+	
+	valid valid
+		config
+			set globals(pkey)=xsup+" "+xrow
+		end config
+	end valid
+
+#include access.valid
+end page

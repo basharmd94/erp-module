@@ -1,0 +1,120 @@
+page prtxtupdnout
+
+    caption "Attendance Posting(Out)"
+    sections form imtrn,script myscript
+
+    form imtrn      
+      layout 1
+      objects ~
+      		xdatefrom default(#d),Process,Show
+      		
+       field xdatefrom
+            caption Date
+       end field
+	   
+		field process
+			event before
+			set globals(ErrChk) = ""      
+			set In_time = ""
+			set Out_time = ""
+			set stat = ""
+			set D_time = ""
+			set P_time = ""		  
+
+			int i = 0
+			int count=0
+			str clist="xemp"
+			str mysql = "select "+clist+" from pratdummy where zid='"+#id+"'  and xdate='"+xdatefrom+"'"
+			set count = #sqlfill(mysql)
+
+
+			if count>0
+
+				while i<count
+					array get(i,clist)
+					
+					set emp_code = #sql(str,"select xemp from prmst where zid='"+#id+"' and xid='"+xemp+"' and xstatusemp='A-Active' and xshift<>''")
+					
+					
+					print emp_code+" "+emp_code1
+					set empshift=#sql(str,"select xshift from prmst where zid='"+#id+"' and  xemp='"+emp_code+"'")
+					set shift=empshift
+
+					if shift .ne. ""
+						set d_out_time=#sql("select xtssch from pratdt where zid='"+#id+"' and xshift ='"+shift+"' ")
+						
+						set In_timen = #sql("select min(xdesc) from pratdummy where xdate='"+xdatefrom+"' and xemp='"+xemp+"'")
+						set Out_timen = #sql("select max(xdesc) from pratdummy where xdate='"+xdatefrom+"' and xemp='"+xemp+"'")
+
+//error Out_timen+"OY"+d_out_time
+
+
+						if Out_timen .lt. d_out_time
+							set statout = "Early Out"
+						end if
+
+						if Out_timen .gt. d_out_time
+							set statout = "Late Out"
+						end if		
+
+						if Out_timen .eq. d_out_time
+							set statout = " "
+						end if
+						
+						//error Out_timen+"-"+statout
+
+						set Out_time=xdatefrom+" "+Out_timen
+						
+						set outtime=#sub(Out_timen,0,2)
+						set inttime=#sub(In_timen,0,2)
+						set dotime=#sub(d_out_time,0,2)
+						
+						//error outtime+"-"+dotime+"dddd"+hour+"-"+shift
+						
+						set chkrec = #sql("select xemp from pratd where zid ='"+#id+"' and xdate='"+xdatefrom+"' and xshift='"+shift+"' and xemp='"+emp_code+"'")        \
+						
+						if #result .eq. "true"	
+							
+							str mysql = "update pratd set xouttime='"+Out_time+"' where zid='"+#id+"' and xdate='"+xdatefrom+"' and  xshift='"+shift+"' and xemp='"+emp_code+"'"
+							set updval = #sql(str,mysql)	
+							
+							print #result +" "+Out_time +"-"+mysql
+						end if
+						
+					end if
+
+					set i=0+i+1
+				end while
+			end if
+
+			if globals(ErrChk) .ne. "1"
+				print "<font Color=Green size=+2>Attendance Posting(Out) Completed Successfully"
+			end if
+
+			end event
+		end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+          }
+        }
+         function keeplastkey(){
+        document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        }
+        </script>
+    end script
+
+end page

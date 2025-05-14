@@ -1,0 +1,321 @@
+page prjobenddet
+  
+	 embed onload="move_caret('one','xdiscpmeth')"
+     caption "<span class=bl>Final Separation Info of Employee <a href=/da/"+#servlet+"?page=prjobendhed&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xname)+")"
+	 sidebar list one
+     section form one, script one
+
+  list one
+   caption "Added Record(s)"
+   table prjobenddet
+   order xemp,xpaycode
+   fixed xemp
+   object xpaycode attrib(link #servlet+"?page="+page+"&command=Show&xpaycode=?"),~
+          xtotamt
+
+    	  totals "Total",sum         
+  end list
+
+  form one
+    //caption "<font color=black size=4>Final Seperation Info of <font color=white></p>"+globals(xname)+"</font></font>"
+    table prjobenddet
+    order xemp,xpaycode
+    fixed xemp
+    layout 1
+    object Add,Show,Update,Delete,Clear,Previous,Next,Top,Bottom,Return,~
+           xpaycode,xpaymeth,xaction,xsign display(hide),xtotamt,xrem,zemail display(hide),xemail display(hide)
+
+    field xaction
+    	display hide
+    	pick "Add,Deduct"
+    end field
+    
+   field xpaymeth
+   	attrib local
+   	caption Calculation Method for Gratuity
+   	display combo
+   	default "Single Basic"
+   	pick "Single Basic,Double Basic"
+   end field
+    
+    
+    field xpaycode
+      caption Benefits Payable Code(s)
+      display combo
+      pick select xcode from xcodes where xtype='Benefit Payable'
+      event after
+        set globals(xpaycode)=xpaycode
+		set statemp = #sql("select xstatusemp from prmst where xemp='"+xemp+"'")
+		if statemp .eq. "Left"
+			set #field(Add.display)="disable"
+			set #field(update.display)="disable"
+			set #field(delete.display)="disable"
+		end if        
+      end event
+    end field
+  
+    field xrem
+      height 2
+      with 50
+    end field
+
+     field add
+       event before
+       	 set globals(ErrChk) = ""
+       	 
+       	 call chk_access
+       	 
+		if globals(ErrChk) .ne. "1"
+			set statemp = #sql("select xstatusemp from prmst where xemp='"+xemp+"'")
+			if statemp .eq. "Left"
+				set globals(ErrChk) = "1"
+				error "Already Left</p>Cannot "+#command
+			end if
+		end if
+       	 
+       	 if globals(ErrChk) .ne. "1"
+	       	 set chkrec = #sql("select xcode from xcodes where xtype='Benefit Payable' and xcode='"+xpaycode+"'")
+	       	 if #result .ne. "true"
+	       	 	set globals(ErrChk) = "1"
+	       	 	error "Wrong Code"
+	       	 end if
+	     end if
+	       	 
+         if globals(ErrChk) .ne. "1"
+			int pos = 0
+			class osbcustom(#find("Gratuity",xpaycode,,pos))
+			if pos > 0
+	     		decimal grat_amt = 0.0
+	     		
+	     		set typelocal="Module"
+				set typename="pr"				
+				set propname = "basic"
+				set bprop = ""
+				class osbcustom(get_local_prop(typelocal,typename,propname,bprop))
+				set basic_code = #sql(str,"select xpaycode from prpayhead where xpaycode='"+bprop+"'")
+				
+				set propname = "gratuity"
+				int minyear = 0
+				class osbcustom(get_local_prop(typelocal,typename,propname,minyear))
+				
+				set last_basic = #sql(decimal,"select xamount from practrndt where xemp='"+xemp+"' and xpaycode='"+basic_code+"' order by xemp,xpaydate desc")
+				set joindate = #sql(str,"select xjoindate from prmst where xemp='"+xemp+"'")
+				set jobd = #sql(int,"select datediff(month,xjoindate,xdateto) from prmst where xemp='"+xemp+"'")
+				int life = 0
+				class osbcustom(#calc(jobd,12,"/",0,life))
+				if life > minyear
+					class osbcustom(#calc(last_basic,life,"*",0,grat_amt))
+					if xpaymeth .sw. "Single"
+					else if xpaymeth .sw. "Double"
+						class osbcustom(#calc(grat_amt,2,"*",2,grat_amt))
+					end if
+					set xtotamt = 0.0+grat_amt
+					set xaction = "Add"
+					set xsign = 0+1
+					//print "B: "+last_basic+" "+depdate+" "+joindate+" "+jobd+" "+life+" "+grat_amt+" "+minyear
+				end if				
+			end if
+
+			int pos = 0
+			class osbcustom(#find("Provident",xpaycode,,pos))
+			if pos > 0
+				int minyear = 3
+				
+				set joindate = #sql(str,"select xjoindate from prmst where xemp='"+xemp+"'")
+				set jobd = #sql(int,"select datediff(month,xjoindate,xdateto) from prmst where xemp='"+xemp+"'")
+				int life = 0
+				class osbcustom(#calc(jobd,12,"/",0,life))
+				if life > minyear
+					set totpf = #sql(decimal,"select sum(xtotamt*xsign) from prpf where xemp='"+xemp+"'")
+					set xtotamt = 0.0+totpf
+					set xaction = "Add"
+					set xsign = 0+1					
+					//print totpf
+				else
+					set totpf = #sql(decimal,"select sum(xpfempcont*xsign) from prpf where xemp='"+xemp+"'")
+					set xtotamt = 0.0+totpf
+					set xaction = "Add"
+					set xsign = 0+1										
+				end if				
+			end if
+						
+	         set zemail=#user
+	         set xemail=""
+         end if
+         
+       end event
+     end field
+
+     field update
+       event before
+       	 set globals(ErrChk) = ""
+       	 
+       	 call chk_access
+
+		if globals(ErrChk) .ne. "1"
+			set statemp = #sql("select xstatusemp from prmst where xemp='"+xemp+"'")
+			if statemp .eq. "Left"
+				set globals(ErrChk) = "1"
+				error "Already Left</p>Cannot "+#command
+			end if
+		end if
+       	        	 
+       	 if globals(ErrChk) .ne. "1"
+       	 	if xpaycode .ne. globals(xpaycode)
+       	 		set globals(ErrChk) = "1"
+       	 		error "Wrong Action"
+       	 	end if
+       	 end if
+       	 
+       	 if globals(ErrChk) .ne. "1"
+	       	 set chkrec = #sql("select xcode from xcodes where xtype='Benefit Payable' and xcode='"+xpaycode+"'")
+	       	 if #result .ne. "true"
+	       	 	set globals(ErrChk) = "1"
+	       	 	error "Wrong Code"
+	       	 end if
+	     end if
+	       	 
+         if globals(ErrChk) .ne. "1"
+			int pos = 0
+			class osbcustom(#find("Gratuity",xpaycode,,pos))
+			if pos > 0
+	     		decimal grat_amt = 0.0
+	     		
+	     		set typelocal="Module"
+				set typename="pr"				
+				set propname = "basic"
+				set bprop = ""
+				class osbcustom(get_local_prop(typelocal,typename,propname,bprop))
+				set basic_code = #sql(str,"select xpaycode from prpayhead where xpaycode='"+bprop+"'")
+				
+				set propname = "gratuity"
+				int minyear = 0
+				class osbcustom(get_local_prop(typelocal,typename,propname,minyear))
+				
+				set last_basic = #sql(decimal,"select xamount from practrndt where xemp='"+xemp+"' and xpaycode='"+basic_code+"' order by xemp,xpaydate desc")
+				set joindate = #sql(str,"select xjoindate from prmst where xemp='"+xemp+"'")
+				set jobd = #sql(int,"select datediff(month,xjoindate,xdateto) from prmst where xemp='"+xemp+"'")
+				int life = 0
+				class osbcustom(#calc(jobd,12,"/",0,life))
+				if life > minyear
+					class osbcustom(#calc(last_basic,life,"*",0,grat_amt))
+					if xpaymeth .sw. "Single"
+					else if xpaymeth .sw. "Double"
+						class osbcustom(#calc(grat_amt,2,"*",2,grat_amt))
+					end if
+					set xtotamt = 0.0+grat_amt
+					set xaction = "Add"
+					set xsign = 0+1
+					//print "B: "+last_basic+" "+depdate+" "+joindate+" "+jobd+" "+life+" "+grat_amt+" "+minyear
+				end if				
+			end if
+
+			int pos = 0
+			class osbcustom(#find("Provident",xpaycode,,pos))
+			if pos > 0
+				int minyear = 3
+				
+				set joindate = #sql(str,"select xjoindate from prmst where xemp='"+xemp+"'")
+				set jobd = #sql(int,"select datediff(month,xjoindate,xdateto) from prmst where xemp='"+xemp+"'")
+				int life = 0
+				class osbcustom(#calc(jobd,12,"/",0,life))
+				if life > minyear
+					set totpf = #sql(decimal,"select sum(xtotamt*xsign) from prpf where xemp='"+xemp+"'")
+					set xtotamt = 0.0+totpf
+					set xaction = "Add"
+					set xsign = 0+1					
+					//print totpf
+				else
+					set totpf = #sql(decimal,"select sum(xpfempcont*xsign) from prpf where xemp='"+xemp+"'")
+					set xtotamt = 0.0+totpf
+					set xaction = "Add"
+					set xsign = 0+1										
+				end if				
+			end if
+						
+	         set zemail=#user
+	         set xemail=""
+         end if
+         
+       end event
+     end field
+
+     field delete
+       event before
+       	 set globals(ErrChk) = ""
+       	 
+       	 call chk_access
+
+		if globals(ErrChk) .ne. "1"
+			set statemp = #sql("select xstatusemp from prmst where xemp='"+xemp+"'")
+			if statemp .eq. "Left"
+				set globals(ErrChk) = "1"
+				error "Already Left</p>Cannot "+#command
+			end if
+		end if       	        	      
+       	 if globals(ErrChk) .ne. "1"
+       	 	if xpaycode .ne. globals(xpaycode)
+       	 		set globals(ErrChk) = "1"
+       	 		error "Wrong Action"
+       	 	end if
+       	 end if
+		    
+       end event
+     end field
+     
+    embed onsubmit="submitit(this)"
+    field Return
+      embed onclick="clicked(this)"
+    end field
+
+  end form
+
+  script one
+  <script language="javascript" type="text/javascript">
+  var detail
+  function clicked(b){
+    detail="Back"
+  }
+  function submitit(form){
+    if (detail=="Back"){
+      form.page.value="prjobendhed"
+      form.searchbutton.value="Find xemp=?"
+    }
+  }
+  </script>
+  end script
+
+end page
+
+     method chk_access
+     	set stype = ""
+	  	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          buffer xcriminal
+	          set xcriminal.xwornum = mysql
+	          set xcriminal.xemail = #user
+	          set xcriminal.xdate = #date
+	          str tmptime = ""
+	          class osbcustom(#time(tmptime))
+	          set xcriminal.xtime = tmptime
+	          set xcriminal.xobject = page
+	          insert xcriminal
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method

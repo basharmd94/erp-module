@@ -1,0 +1,49 @@
+page prupdloadprocess
+
+    embed onload = "move_caret('one','')"
+
+    caption "Payroll Process - Trial Run"
+    section form one
+
+    form one
+      layout 1
+      object  Process,Clear,~
+              xdiv1
+      
+      field Process
+        event before
+          set globals(ErrChk) = ""
+          set globals(dbase_days) = 0.0D
+
+          if globals(ErrChk) .ne. "1"
+            set globals(xemp) = " "
+            set mysql = "select xemp from prmst where zid='"+#id+"' and xdiv='"+xdiv1+"' and xemp>'"+globals(xemp)+"' order by zid,xemp"
+            set globals(xemp) = #sql(str,mysql)
+
+            while #result .eq. "true" .and. globals(xemp) .ne. ""
+				set globals(xpaycode)=" "
+				set mysql = "select xpaycode from prpaymentdt where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xpaycode>'"+globals(xpaycode)+"' order by zid,xemp,xpaycode"
+				set globals(xpaycode) = #sql(str,mysql)
+				while #result .eq. "true" .and. globals(xpaycode) .ne. ""
+					set xamount=#sql(decimal,"select xamount from prpaymentdt where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"'")
+								
+					set myqry = "insert into prpaymentdt (ztime,zid,xemp,xpaycode,xamount)"
+					set myqry = myqry + " values('"+#time+"',"100050",'"+globals(xemp)+"','"+globals(xpaycode)+"','"+xamount+"')"
+					set tmpstr = #sql(myqry)
+					
+					print #result +" "+globals(xemp)+" "+globals(xpaycode)
+					
+					set mysql = "select xpaycode from prpaymentdt where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xpaycode>'"+globals(xpaycode)+"' order by zid,xemp,xpaycode"
+					set globals(xpaycode) = #sql(str,mysql)
+				end while
+				set mysql = "select xemp from prmst where zid='"+#id+"' and xdiv='"+xdiv1+"' and xemp>'"+globals(xemp)+"' order by zid,xemp"
+				set globals(xemp) = #sql(str,mysql)
+            end while
+          end if
+        end event
+      end field
+
+   end form
+
+
+end page

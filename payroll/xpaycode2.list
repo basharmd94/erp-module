@@ -1,0 +1,11 @@
+Product ERP on The Net
+
+list xpaycode2
+  caption "Paycode"
+  table prpayhead
+  order xpaycode
+  select "xprsign like '2%'"
+  navigators alpha
+  objects xpaycode attrib(link "abc" embed onclick="return updateParent(this:'xpaycode')"), ~
+          xdesc
+end list

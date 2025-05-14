@@ -1,0 +1,93 @@
+page opdordel
+     caption "Delivery Details for : "+xdornum
+     sections list one, form one, script myscript
+     
+     list one
+     	caption "Delivery Location(s) of Customer "+xcus
+        table cadel
+        order xcus,xrow
+        fixed xcus
+        navigators alpha
+        rows 20
+        objects xrow attrib(link #servlet+"?page=opdordel&command=Load&xcus=?&xrow=?"), ~
+                xorg, xzip,xcountry,xphone,xfirst,xlast,xcus
+
+     end list
+
+     form one
+        //caption "Delivery Details for : "+xdornum 
+        table opdordel
+        order xdornum,xrow
+        fixed xdornum
+        
+        layout 1
+        objects ~
+                Return,Load,Show,Add,Update,Delete,~
+                xrow attrib(row 0 10;search),~
+                xorg,xadd1, xadd2, xcity, xstate,xzip,xcountry,~
+                xsalute, xfirst,xmiddle,xlast, xtitle, xemail, xphone, xfax, xurl, ~
+                xcur, xwh, xmr,xrg,xtr,xsp,xcus,xordernum
+
+				field Load
+					event before
+						set xordernum = opdor.xdornum("zid="+#id+" and xdornum='"+xdornum+"'")
+						set row = opdordel.xrow("zid="+#id+" and xdornum='"+xdornum+"'")
+						str mysql = "delete from opdordel where zid="+#id+" and xdornum='"+xdornum+"' and xrow='"+row+"'"
+						set tmpstr = #sql(str,mysql)
+						move #form=cadel(xcus,xrow)						
+					end event
+					event after
+						print "<span class=br>New Address Loaded -- Add/Update to Save!</span>"						
+					end event
+				end field
+
+        field xrow
+          event after
+			set #field(xorg->.display)="constant"
+            string temp=opdordel.xdornum("xdornum='"+xdornum+"'")
+            if #result .eq. "true"
+               set #field(Add.display)="disable"
+               set #field(Update.display)="disable"
+            else
+               set #field(Update.display)="disable"
+               set #field(Delete.display)="disable"
+            end if
+          end event
+        end field
+
+
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "opdor"
+            form.searchbutton.value = "Find xdornum=?"
+          }
+        }
+       function pickDes(link,org){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xrow.value=link.text
+            document.one.xorg.value=org.text
+          }else{
+            document.one.xrow.value=link.innerText
+            document.one.xorg.value=org.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+end page

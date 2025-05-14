@@ -1,0 +1,23 @@
+product ERP on the Net
+
+table bmbdt
+  caption "BOM Components"
+  columns ztime,zutime,zid,xbom,xoption,xline,xitem,xqty,xunit,~
+          xstype,zemail,xemail
+          
+  primary key zid,xbom,xline
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xitem references caitem.zid,xitem
+        zid,xbom references bmbom.zid,xbom
+  end foreign key
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+  //field xcus
+    //extend
+    //attrib trn Sales Order, 10
+  //end field
+  //sql
+end table

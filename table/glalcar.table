@@ -1,0 +1,32 @@
+product ERP on the Net
+
+table glalcar
+  caption "AR Allocation View"
+  columns  ztime,zutime, zid, xalcnum,xalcrow,xdate,xdatedue,xinvnum,xref,xacc,xaccusage,xaccsource,xsub,xdiv,xsec,xproj,~
+           xinvcur,xinvexch,xprime,xbase,xlong,xallocation,xtypegl,xexchval,xoriginal
+  primary key zid, xvoucher, xrow
+  foreign key
+        zid references zbusiness.zid
+        zid,xvoucher references GLheader.zid,xvoucher
+  end foreign key
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+//  sql create view glalcar (ztime,zutime, zid, xalcnum,xalcrow,xdate,xdatedue,xinvnum,xref,xacc,xaccusage,xaccsource,xsub,xdiv,xsec,xproj,xinvcur,xinvexch,xprime,xbase,xlong,xallocation,xtypegl,xexchval) ~
+//                 as select  ztime,zutime, zid, xvoucher,xrow,(select xdate from glheader where glheader.zid=gldetail.zid and glheader.xvoucher=gldetail.xvoucher),xdatedue,xinvnum,(select xref from glheader where glheader.zid=gldetail.zid and glheader.xvoucher=gldetail.xvoucher),xacc,xaccusage,xaccsource,xsub,xdiv,xsec,xproj,xcur,xexch,xprime,xexch*xprime,xlong, ~
+//                 cast(coalesce((SELECT SUM(((glalc.xtotamt/glalc.xinvexch*glalc.xexch)*glalc.xdifcur)+(glalc.xtotamt*glalc.xsamecur)) FROM glalc WHERE glalc.xalcnum = gldetail.xvoucher AND glalc.xalcrow = gldetail.xrow AND glalc.zid=gldetail.zid),0) as numeric(18,4)),  ~
+//                 xtypegl,xexchval ~
+//                 from gldetail ~
+//      WHERE gldetail.xaccusage='AR' and gldetail.xprime > 0
+
+  sql create view glalcar (ztime,zutime, zid, xalcnum,xalcrow,xdate,xdatedue,xinvnum,xref,xacc,xaccusage,xaccsource,xsub,xdiv,xsec,xproj,xinvcur,xinvexch,xprime,xbase,xlong,xallocation,xtypegl,xexchval,xoriginal) ~
+                 as select  ztime,zutime, zid, xvoucher,xrow,xdate,xdatedue,xinvnum,xref,xacc,xaccusage,xaccsource,xsub,xdiv,xsec,xproj,xcur,xexch,xprime,xexch*xprime,xlong, ~
+                 cast(coalesce((SELECT SUM(((glalc.xtotamt/glalc.xinvexch*glalc.xexch)*glalc.xdifcur)+(glalc.xtotamt*glalc.xsamecur)) FROM glalc WHERE glalc.xalcnum = gldetailview.xvoucher AND glalc.xalcrow = gldetailview.xrow AND glalc.zid=gldetailview.zid),0) as numeric(18,4)),  ~
+                 xtypegl,xexchval,xoriginal ~
+                 from gldetailview ~
+      WHERE gldetailview.xaccusage='AR' and gldetailview.xprime > 0
+end table
+
+//ztime,
+
+

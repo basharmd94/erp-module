@@ -1,0 +1,319 @@
+page pocondtemp
+
+    caption "<span class=bl>Condition Details for P.O. : <a href=/da/portal?page=poordimptemp&command=Show&xpornum="+xpornum+">" +xpornum+ "</a></span>"
+
+    embed onload="move_caret('detail','xcode')"
+
+    sidebar
+    
+    sections form detail,list detail, text top, script myscript
+
+    text top
+        "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list detail
+        caption "Condition(s) Added"
+        table pocondtemp
+        order xpornum,xrow
+        fixed xpornum
+        select "zid='"+#id+"'"
+        rows 20
+        objects xrow attrib(link #servlet+"?page=pocondtemp&command=Show&xpornum=?&xrow=?"), ~
+                xcode, desc equals((select xdescdet from xcodes where zid=pocondtemp.zid and xcode=pocondtemp.xcode and xtype='PO Condition'))
+
+        field desc
+            storage varchar
+            caption Description
+        end field
+
+        field xcode
+            caption Condition Code
+        end field
+
+    end list
+
+    form detail
+        //caption "Details"
+        valid detail,access
+        table pocondtemp
+        order xpornum,xrow
+        fixed xpornum
+        select "zid='"+#id+"'"
+        layout 1
+        objects Show,Add, Update, Clear, Top, Previous, Delete, Next, Bottom,Return,~
+                xrow attrib(row 0 1),xcode attrib(submit;attach),desc,xrem,~
+                xdateiss display(hide),zemail display(hide),xemail display(hide)
+
+        field show
+        	event before
+        		set globals(temp) = xrow
+        		set globals(tempitem)=xcode
+        	end event
+        	event after
+        		set globals(temp) = xrow
+        		set globals(tempitem)=xcode
+        	end event
+        end field
+
+        field Top
+        	event after
+        		set globals(temp) = xrow
+        		set globals(tempitem)=xcode
+        	end event
+        end field
+
+        field xrow
+            event after
+                set globals(xrow)=xrow
+                set statuspor=#sql("select xstatuspor from poordtemp where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                if statuspor .ge. #status("xstatuspor",4)
+                    set #field(Update.display) = "disabled"
+                    set #field(Delete.display) = "disabled"
+                    set #field(Clear.display) = "disabled"
+                    set #field(Add.display) = "disabled"
+                end if
+            end event
+        end field
+
+        field xcode
+            caption Condition Code
+            pick list pocond
+            width 40
+            event after
+                set globals(xcode)=xcode
+            end event
+        end field
+
+        field desc
+            attrib local
+            display const
+            caption Description
+            event after
+                set desc = #sql(str,"select xdescdet from xcodes where zid='"+#id+"' and xcode='"+xcode+"' and xtype='PO Condition'")
+            end event
+        end field
+        
+        field xrem
+            width 40
+            height 2
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_code
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set zemail=#user
+                end if
+            end event
+        end field
+
+        field update
+            event before
+                set globals(ErrChk) = ""
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(xrow)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(temp)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xcode .ne. globals(tempitem)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Change Code</font>"
+        			end if
+        		end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_code
+                end if
+                if globals(ErrChk) .ne. "1"
+                    set xemail = #user
+                end if
+            end event
+        end field
+
+        field delete
+            event before
+                set globals(ErrChk) = ""
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(xrow)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(temp)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xcode .ne. globals(tempitem)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+            embed onclick="clicked(this)"
+        end field
+
+        field Details
+            embed onclick="back(this)"
+        end field
+
+    end form
+
+    script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+            $.hotkeys.add('Ctrl+s',function(){
+                //alert('Pressed Ctrl+s');
+                var form=document.forms[0];
+                form.searchbutton.value="Add";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+e',function(){
+                //alert('Pressed Ctrl+e');
+                var form=document.forms[0];
+                form.searchbutton.value="Update";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+d',function(){
+                //alert('Pressed Ctrl+d');
+                var form=document.forms[0];
+                form.searchbutton.value="Delete";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+r',function(){
+                //alert('Pressed Ctrl+r');
+                var form=document.forms[0];
+                form.searchbutton.value="Clear";
+                form.submit();
+            });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+            var detail
+            function clicked(b){
+                detail="clicked"
+            }
+
+            function back(b){
+                b.value = "Top"
+                detail="back"
+            }
+
+            function submitit(form){
+                if (detail=="clicked"){
+                    form.page.value = "poordimptemp"
+                    form.searchbutton.value = "Find xpornum=?"
+                    //return false
+                }else if (detail=="back"){
+                    form.page.value= "poodtreq"
+                    form.searchbutton.value = "Top"
+                }
+            }
+
+            function pickItem(link){
+                if (navigator.appName.indexOf("Netscape") >= 0){
+                    document.detail.xitem.xvalue=link.text
+                }else{
+                    document.detail.xitem.value=link.innerText
+                }
+                return false
+            }
+
+            function pickItemQot(link,qty,rate,qotno,line){
+                if (navigator.appName.indexOf("Netscape") >= 0){
+                    document.detail.xitem.value=link.text
+                    document.detail.xqtyord.value=qty.text
+                    document.detail.xrate.value=rate.text
+                    document.detail.xpoqot.value=qotno.text
+                    document.detail.xline.value=line.text
+                }else{
+                    document.detail.xitem.value=link.innerText
+                    document.detail.xqtyord.value=qty.innerText
+                    document.detail.xrate.value=rate.innerText
+                    document.detail.xpoqot.value=qotno.innerText
+                    document.detail.xline.value=line.innerText
+                }
+                return false
+            }
+
+        </script>
+    end script
+
+    method chk_code
+        set chkrec=#sql(str,"select xcode from xcodes where zid='"+#id+"' and xcode='"+xcode+"' and xtype='PO Condition'")
+        if #result .ne. "true"
+            set globals(ErrChk)="1"
+            error "Invalid Code Selected"
+        end if
+    end method
+
+    method chk_rec
+        if globals(ErrChk) .ne. "1"
+            set statuspor = poordtemp.xstatuspor("zid='"+#id+"' and xpornum='"+xpornum+"'")
+            if statuspor .ne. #status("xstatuspor",1)
+                set globals(ErrChk) = "1"
+                error "Cannot "+#command+"</p>Status "+statuspor
+            end if
+        end if
+    end method
+
+    valid detail
+        mandatory xitem
+        config
+            set globals(pkey) = xpornum+" "+xrow
+            set tpage = "pocondtemp"
+            set itemdesc = #sql("select xdescdet from xcodes where zid='"+#id+"' and xcode='"+xcode+"' and xtype='PO Condition'")
+        end config
+    end valid
+
+#include access.valid
+
+end page

@@ -1,0 +1,10 @@
+product ERP on the Net
+
+table pogli
+  caption "PO to GL Interface"
+  columns ztime,zutime,zid,xgitem,xaccpur,xsubcr,xdiscacc,xdiscsub
+  primary key zid, xgitem
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+end table

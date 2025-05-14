@@ -1,0 +1,90 @@
+//generate report files
+method prreport
+  //table prroll - zid,xcyclepay,xdatepay,xpayrun,xempnum,xcodepay,~
+  //               xseq,xseqdisp,xamt,xgpay,xformulapay,xgbenefit,xbasicpay
+  //table prcode - zid,xcodepay,~
+  //               xgpay,xseq,xseqdisp,xdesc,xratemaster,xtyperatepay,zactive
+  //inputs - zid,xcyclepay,xdatepay,xpayrun,xtyperun
+  
+  //table caheaders - zid,xcoderep,xkey,xdate,~
+  //                  xh101,....
+  
+  int count=#sql(integer,"delete from caheaders where xcoderep='PR-Payroll' and xkey='"+xcyclepay+"' and xdate='"+xdatepay+"'")
+  print ""+count+" Old Headers Deleted"
+  
+  str seqlist=#sqllist("select xseqrep from prcodeview  where (xseqrep is not null and xseqrep<> '') and zid="+#id+" and xcyclepay='"+xcyclepay+"' and xdatepay='"+xdatepay+"' and xpayrun="+xpayrun+" order by xseqrep")
+  str codelist=#sqllist("select xcodepay from prcodeview  where (xseqrep is not null and xseqrep<> '') and zid="+#id+" and xcyclepay='"+xcyclepay+"' and xdatepay='"+xdatepay+"' and xpayrun="+xpayrun+" order by xseqrep")
+  //print "codelist="+codelist
+  //print "seqlist="+seqlist
+
+  int size=#parse("code",codelist,",")
+  //print "size="+size
+  int size1=#parse("seq",seqlist,",")
+  int i=0
+  buffer caheaders
+  set caheaders.xcoderep="PR-Payroll"
+  set caheaders.xkey=xcyclepay
+  set caheaders.xdate=xdatepay
+  set caheaders.xstatus=xtyperun+":"+xpayrun
+  //print "size1="+size1
+  while i < size
+    set code=#eval("code["+i+"]")
+    set seq=#eval("seq["+i+"]")
+    //print "code="+code
+    //print "seq="+seq
+    set codefield="caheaders.xh"+seq
+    //print "codefield="+codefield
+    set $codefield=code
+    comp i=i+1
+  end while
+  insert caheaders
+  
+  //cavalues
+  int count=#sql(integer,"delete from cavalues where xcoderep='PR-Payroll' and xkey='"+xcyclepay+"' and xdate='"+xdatepay+"'")
+  print ""+count+" Old Values Deleted"
+  
+  str xempnum=""
+  set xempnum=#sql(varchar,"select xempnum from premp where xempnum > '"+xempnum+"' order by xempnum")
+  while xempnum .ne. "
+    str seqlist=#sqllist("select xseqrep from prroll  where (xseqrep is not null and xseqrep<> '') and zid="+#id+" and xcyclepay='"+xcyclepay+"' and xdatepay='"+xdatepay+"' and xempnum='"+xempnum+"' and xpayrun="+xpayrun+" order by xseqrep")
+    str amtlist=#sqllist("select xamt from prroll  where (xseqrep is not null and xseqrep<> '') and zid="+#id+" and xcyclepay='"+xcyclepay+"' and xdatepay='"+xdatepay+"' and xempnum='"+xempnum+"' and xpayrun="+xpayrun+" order by xseqrep")
+
+//print "xempnum="+xempnum
+//print "xseqlist="+xseqlist
+    if seqlist .ne. ""
+    
+      int size=#parse("amt",amtlist,",")
+      //print "size="+size
+      int size1=#parse("seq",seqlist,",")
+      int i=0
+      buffer cavalues
+      set cavalues.xcoderep="PR-Payroll"
+      set cavalues.xkey=xcyclepay
+      set cavalues.xdate=xdatepay
+      set cavalues.xlinerep=xempnum
+      set cavalues.xgrep=prroll.xgbenefit(xcyclepay,xdatepay,xpayrun,xempnum)
+      //print "size1="+size1
+      while i < size
+        set amt=#eval("amt["+i+"]")
+        set seq=#eval("seq["+i+"]")
+        //print "amt="+amt
+        //print "seq="+seq
+        set amtfield="cavalues.xv"+seq
+        //print "amtfield="+amtfield
+        set $amtfield=amt
+        comp i=i+1
+      end while
+      insert cavalues
+    
+    
+    
+    
+    end if
+  
+    set xempnum=#sql(varchar,"select xempnum from premp where xempnum > '"+xempnum+"' order by xempnum")
+  end while
+  
+  
+end method
+
+

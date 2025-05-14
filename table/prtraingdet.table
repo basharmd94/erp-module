@@ -1,0 +1,17 @@
+product ERP on the Net
+
+
+table prtraingdet
+  caption "Training History"
+  columns ztime,zutime,zid,xemp,xtypeevent,xrow,xtraining,xinstut,xtraintype,xdatefrom,~
+          xdateto,xdayab,xtype,xamount,xremarks,zemail,xemail,xdegcom,xmarks,xpass
+          
+
+  primary key zid,xemp,xtypeevent,xrow
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xemp references prmst.zid,xemp
+  end foreign key
+ 
+end table

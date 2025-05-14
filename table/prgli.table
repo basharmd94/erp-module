@@ -1,0 +1,12 @@
+product ERP on the Net
+
+table prgli
+  caption "Payroll to GL Interface"
+  columns ztime,zutime,zid,xpaycode,xacc,xsub
+  primary key zid,xpaycode
+  foreign key
+        zid references zbusiness.zid
+		zid,xpaycode references prpayhead.zid,xpaycode
+
+  end foreign key
+end table

@@ -1,0 +1,10 @@
+caption "Leave Entry" page
+//---------------------------------------------------------------------------------------
+option                  |action                                      |modules|models
+//---------------------------------------------------------------------------------------
+Apply                    	|#classPath+"/"+#servlet+"?page=prlvapply&command=clear"      
+Recommend                   |#classPath+"/"+#servlet+"?page=prlvrecomend&command=Top"  
+Sanction                    |#classPath+"/"+#servlet+"?page=prlvsanction&command=Top"   
+Leave Entry Administrator  	|#classPath+"/"+#servlet+"?page=prlv"      
+
+//---------------------------------------------------------------------------------------

@@ -1,0 +1,239 @@
+page bmrcvitm
+
+     caption "By Products Details"
+
+     sidebar list option
+
+     sections form one, script myscript
+     
+     list option
+        table bmrcvitm
+        order xbom,xline
+        fixed xbom
+        select "zid='"+#id+"'"
+        rows 5
+        objects  xline attrib(link "main?page="+page+"&command=Show&xbom=?&xline=?"), ~
+                xitem,desc equals((select xdesc from caitem where zid=bmrcvitm.zid and xitem=bmrcvitm.xitem)),~
+                xqty,xunit,xstype
+
+        field xqty
+            len 10.6
+        end field
+
+        field xpercent
+            caption Wastage Percent
+            len 10.2
+        end field
+
+        field desc
+            caption Description
+            storage varchar
+        end field
+
+     end list
+
+     form one
+        //caption "<font color=black size=3>By Products Details</font>"
+        valid valid,access
+        table bmrcvitm
+        order xbom,xline
+        fixed xbom
+        select "zid='"+#id+"'"
+        return "Main"
+        layout 1
+        objects Show,Clear,Add, Update, Delete, Top, Previous, Next, Bottom,Return,~
+                xline attrib(row 0 10),"",xitem attrib(submit;attach),xdesc,xqty attrib(attach),~
+                xunit display(const),xstype display(const),~
+                zemail attrib(hidden),xemail attrib(hidden)
+
+		field show
+			event before
+				set globals(temp) = xline
+			end event
+			event after
+				set globals(temp) = xline
+			end event
+		end field
+
+		field Top
+			event before
+				set globals(temp) = xline
+			end event
+			event after
+				set globals(temp) = xline
+			end event
+		end field
+
+        field xline
+            col 3
+            event after
+                set globals(xline)=xline
+            end event
+        end field
+
+        field xdesc
+            attrib local
+            event after
+                set xdesc=#sql("select xdesc from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+            end event
+            display constant
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    buffer caitem
+                    move caitem=caitem(xitem)
+                    if xitem .eq. ""
+                        set globals(Err_check) = "1"
+                        error "No Item Selected"
+                    else
+                        if caitem.xitem .ne. xitem
+                            set globals(Err_check) = "1"
+                            error "Invalid Item"
+                        else
+                            set xunit = caitem.xunitstk
+                            set xstype = caitem.xstype
+                            set zemail = #user
+                        end if
+                    end if
+                end if
+            end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+
+                if globals(Err_check) .ne. "1"
+                    buffer caitem
+                    move caitem=caitem(xitem)
+                    if xitem .eq. ""
+                        set globals(Err_check) = "1"
+                        error "No Item Selected"
+                    else
+                        if caitem.xitem .ne. xitem
+                            set globals(Err_check) = "1"
+                            error "Invalid Item"
+                        else
+                            set xunit = caitem.xunitstk
+                            set xstype = caitem.xstype
+                            set xemail = #user
+                        end if
+                    end if
+                end if
+            end event
+        end field
+
+        field Delete
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+            embed onclick="ret()"
+        end field
+
+   end form
+
+    script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+            
+            function ret(){
+              detail="ret"
+            }
+
+            function submitit(form){
+
+            if (detail=="ret"){
+                form.page.value= "bmbom"
+                form.searchbutton.value = "Find xbom=?"
+             }
+            }
+
+            function pickItem(link){
+              if (navigator.appName.indexOf("Netscape")>0){
+                document.one.xitem.value=link.text
+              }else{
+                document.one.xitem.value=link.innerText
+              }
+              return false
+            }
+
+        </script>
+    end script
+
+    method chk_rec
+        if globals(ErrChk) .ne. "1"
+        	if xline .ne. globals(xline)
+        		set globals(ErrChk) = "1"
+        		set #command = "show"
+        		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+        	end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+        	if xline .ne. globals(temp)
+        		set globals(ErrChk) = "1"
+        		set #command = "show"
+        		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+        	end if
+        end if
+    end method
+
+    valid valid
+        config
+            set globals(pkey) = xbom+" "+xoption+" "+xline
+            if xunit .eq. ""
+                set xunit=caitem.xunitstk("zid='"+#id+"' and xitem='"+xitem+"'")
+            end if
+        end config
+    end valid
+
+#include access.valid
+
+end page

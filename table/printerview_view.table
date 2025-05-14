@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table printerview_view
+  caption "Interview Schedule View Table"
+  columns 	zid,xsrqnum,xgroup,xwmjobnum,xdate,xtypep,xdesc01,zemail,xemail,~
+			xcat,xdept,xsec,xtitlejob,xcostcent,xtsact
+  
+
+  primary key zid,xsrqnum
+
+	sql create view printerview_view (zid,xsrqnum,xgroup,xwmjobnum,xdate,xtypep,xdesc01,zemail,xemail,~
+										xcat,xdept,xsec,xtitlejob,xcostcent,xtsact) ~
+	
+							as select zid,xsrqnum,xgroup,xwmjobnum,xdate,xtypep,xdesc01,zemail,xemail,~
+										xcat,xdept,xsec,xtitlejob,xcostcent,xtsact ~
+							from printerview
+
+end table

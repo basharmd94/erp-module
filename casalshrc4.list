@@ -1,0 +1,15 @@
+     list casalshrc4
+        table casalshrc4
+        order xdistrict,xthana
+        select "xdistrict='"+globals(xcity)+"'"
+        navigators alpha
+        rows 20
+        objects xthana attrib(link "abc" embed onclick="return updateParent(this:'xadd2')"),~
+                xlong,zactive
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

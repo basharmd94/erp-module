@@ -1,0 +1,10 @@
+//po.menu
+//-----------------------------------------------------------------------------
+option                |action
+//-----------------------------------------------------------------------------
+Creation of GRN/MRR					          	|#classPath+"/"+#servlet+"?page=poordgr"
+Confirm GRN/MRR           	  					|#classPath+"/"+#servlet+"?page=pogrn"
+Quality Control                               	|#classPath+"/"+#servlet+"?page=pogrnq"
+-
+Purchase Return                               	|#classPath+"/"+#servlet+"?page=podrn"
+//------------------------------------------------------------------------------

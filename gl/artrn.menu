@@ -1,0 +1,18 @@
+//artrn.menu
+caption "AR Transactions"
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+//Customer Invoices                      |#classPath+"/"+#servlet+"?page=arinv"
+Vouchers               |#classPath+"/"+#servlet+"?page=glheader"
+//Receipts               |#classPath+"/"+#servlet+"?page=arrec"
+//Credit Notes                 |#classPath+"/"+#servlet+"?page=arcrn"
+-
+//AR Exchange Gain/Loss            |#classPath+"/"+#servlet+"?page=glexcharper"
+//AR Revaluation            |#classPath+"/"+#servlet+"?page=glvalar"
+Bank Reconciliation              |#classPath+"/"+#servlet+"?page=gldetbank"
+-
+Opening Balances                 |#classPath+"/"+#servlet+"?page=glopen"
+Setup		                 |#classPath+"/"+#servlet+"?menu=arcodes"
+//-------------------------------------------------------------------
+

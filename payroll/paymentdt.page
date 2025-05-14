@@ -1,0 +1,94 @@
+page paymentdt
+     
+	 caption header
+     //sidebar text two,list two, text three
+     sections list one,form one, script myscript
+
+     list one
+      caption "Payment List"
+      table paymentdt
+      order xpaycode
+      fixed xemp
+      navigator alpha
+      objects  xpaycode attrib(link #servlet+"?page=paymentdt&command=Show&xpaycode=?"),xamount
+						
+      totals "Totals",sum
+     end list
+
+     form one
+        caption "Payment Details"
+        table paymentdt		
+		valid valid
+        order xemp,xpaycode
+        fixed xemp
+        layout 1
+        objects "<b>Employee Code <font color=red>"+xemp,"</font></b><p>",~
+          Add, Back, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+          xpaycode,xdumdesc,xamount,zemail display(hide),xemail display(hide)
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+          field xpaycode
+            display text
+            pick list paycode
+          end field
+
+          field xdumdesc
+            attrib local
+            display constant
+            caption Description
+            event after
+              set xdumdesc = #sql(str,"select xdesc from payhead where xpaycode='"+xpaycode+"'")
+            end event
+          end field
+
+          embed onsubmit="submitit(this)"
+
+          field Back
+            embed onclick="clicked(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          details="back"
+        }
+        function submitit(form)
+        {
+          if (details=="back")
+          {
+            form.page.value = "prothdt"
+            form.searchbutton.value= "Find xemp=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+	 
+	 valid valid
+		config
+			set header = "<font color=green size=4+>Employee Master</font><br>"
+		end config
+	 end valid
+
+end page
+//form.searchbutton.value="Find xemp=?"

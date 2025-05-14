@@ -1,0 +1,330 @@
+page poddt 
+     caption "Purchase Returns - Details for "+xdrnnum
+	 dependent
+     sidebar list delivery, others//,imstk
+     sections form detail,list details, script myscript
+
+
+     list others
+        caption "All Purchase Returns Against GRN No: <font color=red>"+xgrnnum+"</font>"
+		table (select * ,~
+				(select xdesc from caitem where zid=poddt.zid and xitem=poddt.xitem) as Item_Name ~
+							from poddt) as tbl
+        order xgrnnum,xdrnnum,xrow
+        select " xgrnnum='"+xgrnnum+"'"
+        rows 5 f
+        objects xdrnnum attrib(link #servlet+"?page=podrn&command=Show&xdrnnum=?"),xrow, ~
+                xitem,Item_Name,xqty,xunitpur,xrate,xgrnnum,xlineamt equals(xqty*xrate),xbin,xbatch
+
+        totals "","","","Totals","","","","","",sum
+        
+        field desc
+        	caption Description
+        	 storage varchar
+        end field        
+
+     end list
+
+     list details
+		table (select * ,~
+			(select xdesc from caitem where zid=poddt.zid and xitem=poddt.xitem) as Item_Name ~
+					from poddt) as tbl
+
+        order xdrnnum,xrow
+        fixed xdrnnum
+        rows 5 f
+        objects xrow attrib(link #servlet+"?page=poddt&command=Show&xdrnnum=?&xrow=?"), ~
+                xitem,Item_Name,xqty,xunitpur,xrate,xgrnnum,xlineamt equals(xqty*xrate),xbin,xbatch
+
+        totals "","","Totals","","","","","",sum
+        
+        field desc
+        	caption Description
+        	 storage varchar
+        end field        
+
+     end list
+
+     list delivery
+        caption "GRN Details"
+		table (select * ,~
+				(select xdesc from caitem where zid=podrnview.zid and xitem=podrnview.xitem) as Item_Name ~
+							from podrnview) as tbl
+        
+        order xgrnnum,xrow
+        fixed xgrnnum
+        navigators alpha
+        rows 10
+			objects xrow,xgrnnum attrib(link #servlet+"?page=poddt&command=ShowLoad&xitem=?&xrow=?&xqty=?&xgrnnum=?&xwh=?"), ~
+                xitem ,Item_Name,xqty,xwh
+
+		totals "","","Totals","","","",sum,sum
+
+     end list
+
+     form detail
+     	valid valid,access
+        //caption "Enter Details for Purchase Returns <font color=black >"+xdrnnum+"</font>",
+        table poddt
+        order xdrnnum,xrow
+        fixed xdrnnum
+        
+        layout 1
+        objects  ~
+                Return,Show,Clear,Add, Update,Top, Previous, Delete,Next, Bottom,SerialNumbers,ShowLoad display(hide),~
+                xtemp,xgrnnum display(const),xrow,~
+                xitem attrib(attach),desc attrib(local) display(const),xwh display(ocombo), ~
+                xqty,xunitpur display(ocombo),xcfpur,xrate display(const),xbin,xbatch
+
+        field xgrnnum
+          default podrn.xgrnnum(xdrnnum)
+        end field
+        
+        field xrate
+          default pogdt.xrate(xgrnnum,xrow)
+        end field
+
+		field ShowLoad
+			event after
+//				set xqtyord=xqty
+//				set xcfpur=caitem.xcfpur("zid='"+#id+"' and xitem='"+xitem+"'")
+			end event
+		end field
+                
+        field xbatch
+          pick list xbatchcrn
+        end field
+        
+        field xrow
+			event after
+				set globals(xgrnnum)=xgrnnum
+				set globals(xdrnnum)=xdrnnum
+				set globals(xrow)=xrow
+				string status=podrn.xstatusdrn("xdrnnum='"+xdrnnum+"'")
+				if status .eq. #status("xstatusdrn",2) .or. status .eq. #status("xstatusdrn",3)
+					set #field(xgrnnum->.display) = "constant"
+					set #field(Clear.display) = "disable"
+					set #field(Add.display) = "disable"
+					set #field(Update.display) = "disable"
+					set #field(Delete.display) = "disable"
+				end if
+				set checkserial=#sql(string,"select xtypeserial from caitem where xitem='"+xitem+"'")
+				//print "checkserial="+checkserial
+				if checkserial .sw. "1"
+				else
+					set #field(SerialNumbers.display)="disable"
+				end if
+//--for serial number
+	
+				set globals(xitem)=xitem
+				//set globals(xdesc)=xdesc
+				set globals(xwh)=xwh
+				set globals(xqty)=xqty*xcfpur
+				set globals(returnpage)=page
+				set globals(trnfield)="xdrnnum"
+				set globals(xdrnnum)=xdrnnum
+				set globals(trnrowfield)="xrow"
+				//set globals(xtypein)="Sales Returns"
+				//set globals(xnumin)=xcrnnum
+				//set globals(xrowin)=xrow
+				//set globals(xconin)="0"
+				set globals(xtypeout)="Purchase Return"
+				set globals(xnumout)=xdrnnum
+				set globals(xrowout)=xrow
+				set globals(xconout)="0"
+//-end of serial number
+			end event
+		end field
+
+        field xtemp
+          display hide
+          attrib local
+          event after
+          end event
+        end field
+
+        field xcode
+          event after
+            //class opodt(hidecrn)
+          end event
+        end field
+
+        field Add
+          event before
+          	set globals(ErrChk) = ""
+          	
+          	if globals(ErrChk) .ne. "1"
+	            string s="select xitem from podrnview where xgrnnum='"+xgrnnum+"' and xrow="+xrow
+	            set s=#sql(string, s)
+	            if s .ne. xitem
+	            	set globals(ErrChk) = "1"
+	              	error "Invalid Item for return - Not found in GRN line."
+	            end if
+          	end if
+
+			if globals(ErrChk) .ne. "1"
+	            set s="select (xqty-xqtycrn)*xcfpur from podrnview where xgrnnum='"+xgrnnum+"' and xrow="+xrow
+	            double temp=#sql(double, s)
+	            double qty=xqty*xcfpur
+	            if qty <= 0
+	            	set globals(ErrChk) = "1"
+	              	error "Quantity must be more than 0."
+	            else if qty > temp
+	            	set globals(ErrChk) = "1"
+	              	error "Quantity cannot be more than received"
+				end if		
+			end if
+			
+            if globals(ErrChk) .ne. "1"
+              buffer pogdt
+              set globals(xgrnnum)=xgrnnum
+              set globals(xrow)=xrow
+              move pogdt=pogdt(xgrnnum,xrow)
+              buffer poddt
+              move poddt=pogdt(xgrnnum,xrow)
+              set poddt.xdrnnum = xdrnnum
+              set poddt.xrow = xrow
+              set poddt.xqty = xqty
+              set poddt.xunitpur = xunitpur
+              set poddt.xcfpur = xcfpur
+              set poddt.xwh = xwh
+              set xrate=#sql(double, "select xrate/xcfpur from pogdt where xgrnnum='"+xgrnnum+"' and xrow="+xrow)
+              set xrate=xrate*xcfpur
+              set poddt.xrate = xrate
+              insert poddt
+            end if
+            set #command = "Show"
+          end event
+        end field
+
+        field Update
+          event before
+          	set globals(ErrChk) = ""
+          	
+          	if globals(ErrChk) .ne. "1"
+	            string s="select xitem from podrnview where xgrnnum='"+xgrnnum+"' and xrow="+xrow
+	            set s=#sql(string, s)
+	            if s .ne. xitem
+	            	set globals(ErrChk) = "1"
+	              	error "Invalid Item for return - Not found in GRN line."
+	            end if
+          	end if
+
+			if globals(ErrChk) .ne. "1"
+	            string s1="select (xqty-xqtycrn)*xcfpur from podrnview where xgrnnum='"+xgrnnum+"' and xrow="+xrow
+	            set temp1=#sql(double, s1)
+	            string s2="select xqty*xcfpur from poddt where xdrnnum='"+xdrnnum+"' and xrow="+xrow
+	            set temp2=#sql(double, s2)
+	            compute temp=temp1+temp2
+	            double qty=xqty*xcfpur
+	            if qty <= 0
+	            	set globals(ErrChk) = "1"
+	              	error "Quantity must be more than 0."
+	            else if qty > temp
+	            	set globals(ErrChk) = "1"
+	              	error "Quantity cannot be more than received"
+	            end if
+			end if
+			
+            if globals(ErrChk) .ne. "1"
+	            set xrate=#sql(double, "select xrate/xcfpur from pogdt where xgrnnum='"+xgrnnum+"' and xrow="+xrow)
+	            set xrate=xrate*xcfpur
+	        end if
+         end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+        field SerialNumbers
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript 
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+     
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+//          b.value = "Find xdrnnum=?"
+          detail=b.value
+        }
+        function submitit(form){
+          if (detail=="Return"){
+            form.page.value = "podrn"
+            form.searchbutton.value = "Find xdrnnum=?"
+            //return false
+          }
+          if (detail=="SerialNumbers"){
+            form.page.value = "imserout"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+
+        function pickDetail(link, row,item,wh,qty,qtycrn,unitpur,cfpur){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.detail.xgrnnum.value=link.text
+            document.detail.xrow.value=row.text
+            document.detail.xitem.value=item.text
+            document.detail.xwh.value=wh.text
+            document.detail.xunitpur.value=unitpur.text
+            document.detail.xcfpur.value=cfpur.text
+            document.detail.xqty.value=qty.text-qtycrn.text
+            document.detail.xtemp.value=qty.text-qtycrn.text
+          }else{
+            document.detail.xgrnnum.value=link.innerText
+            document.detail.xrow.value=row.innerText
+            document.detail.xitem.value=item.innerText
+            document.detail.xwh.value=wh.innerText
+            document.detail.xunitpur.value=unitpur.innerText
+            document.detail.xcfpur.value=cfpur.innerText
+            document.detail.xqty.value=qty.innerText-qtycrn.innerText
+            document.detail.xtemp.value=qty.innerText-qtycrn.innerText
+          }
+          return false
+        }
+        </script>
+     end script
+     
+     valid valid
+     	config
+     		set globals(pkey) = xdrnnum+" "+xrow
+     	end config
+     end valid
+
+#include access.valid
+
+end page

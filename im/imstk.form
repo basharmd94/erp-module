@@ -1,0 +1,16 @@
+      form imstk
+        table caitem
+        order xitem
+        layout 4
+		default Show
+        objects ~
+                Show,Clear,Top,Previous,Next,Bottom,~
+                xitem attrib(search),xdesc display(const),xlong display(const),xstype display(const)
+        
+        field xitem
+              event after
+                set globals(xitem)=xitem
+              end event
+        end field
+        
+      end form

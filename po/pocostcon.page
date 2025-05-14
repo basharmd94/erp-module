@@ -1,0 +1,385 @@
+page pocostcon
+
+     caption "LC to GL Posting Process"
+     sections form one,script myscript,~
+              method mth_check,method chk_trncode, method chk_account,~
+    	  	  method chk_access, method chk_command             
+
+     form one
+        table
+        order
+        fixed
+        layout 1
+        objects Show,Post to GL,xlcno,xlong,xgltrn,xdate
+
+        field xlcno
+          pick list xlcno
+        end field
+
+        field xgltrn
+          caption GL Voucher Code
+          display combo
+          pick select xtrn from xtrn where xtypetrn='GL Voucher'
+          width 4
+          default "JV--"
+          //attrib readonly
+          event before
+            set globals(xgltrn)=xgltrn
+          end event
+        end field
+
+        field xlong
+          caption Row Numbers
+          height 1
+          width 15
+        end field
+
+        field xdate
+          default #d
+          caption Posting Date
+        end field
+
+        field Post
+          event before
+            set globals(ErrChk) = ""
+            set globals(ErrMsg) = ""
+            set globals(xvoucher) = ""
+
+            call chk_access
+
+            if globals(ErrChk) .ne. "1"
+                set xmember = #user
+                set dateyrpr=xdate
+                
+                set xteam = #sql(string,"select xteam from cateam where xmember = '"+xmember+"'")
+                set xmanager = #sql(string,"select xmanager from caman where xteam = '"+xteam+"'")
+
+                str temp=""
+                str tmp=","
+                int count=0
+                int size=#parse("row",xlong,",")
+                int i=0
+                while i < size
+                    set xpornum=#sql(str,"select xpornum from poilc where xlcno='"+xlcno+"'")
+                    set temp=#eval("row["+i+"]")
+                    set xline=temp
+
+                    buffer pocostlc
+                    move pocostlc=pocostlc(xpornum,xline)
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "<br>Record Not Found"
+                    else if #result .eq. "true" .and. pocostlc.xstatusresp .eq. "Posted"
+                        set globals(ErrChk) = "1"
+                        error "<br>Row : "+temp +" Already "+pocostlc.xstatusresp
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+                        int offset
+                        int per
+                        int year=#sub(dateyrpr,0,4)
+                        int tempper
+                        int tempyear
+                        set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+                        set per=12+#sub(dateyrpr,5,2)-offset
+                        if per<=12
+                        set tempper=per
+                        set tempyear=year-1
+                        else
+                        set tempper=per-12
+                        set tempyear=year
+                        end if
+
+
+                        call chk_trncode
+
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+                        call chk_account
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+                        int linenum = 0
+                        int rownum = 0
+                    end if
+
+                    if globals(ErrChk) .eq. "" .and. globals(xvoucher) .eq. ""
+                        str per
+                        str year=#sub(xdate,0,4)
+                        set per=#sub(xdate,5,2)
+                        set trngl=xgltrn
+                       
+                        str mysql = #sql(str,"select xvoucher from glheader where xvoucher like '"+trngl+"%' order by xvoucher desc")
+                        if #result .eq. "true" .and. mysql .ne. ""
+                        set last_num = 0+#sub(mysql,4,6)
+                        end if
+                        set last_num = 0+1+last_num
+                        set mysql = #padl(""+last_num,6,"0")
+                        set xvoucher = trngl + mysql
+
+                        set xglcode=globals(xgltrn)
+
+                        buffer glheader
+                         set glheader.xtrngl=xgltrn
+                        //set glheader.xvoucher=#trn("GL Voucher",xglcode)
+                        set glheader.xvoucher=xvoucher
+                        set glheader.xref=xlcno
+                        set glheader.xdate=xdate
+                        set glheader.xlong="Voucher for L/C No. "+xlcno
+                        set glheader.xyear=tempyear
+                        set glheader.xper=tempper
+                        set glheader.xstatusjv="Balanced"
+                        //set glheader.xpostflag="Posted"
+                        set glheader.xtrngl=xglcode
+                        set glheader.xnote="Voucher for L/C No. "+xlcno
+                        set glheader.zemail=#user
+                        set glheader.xemail=#user
+                        set glheader.xteam=xteam
+                        set glheader.xmember=xmember
+                        set glheader.xmanager=xmanager
+                        set glheader.xapproved=""
+                        set glheader.xaction=xaction
+                        set glheader.xcheque=pocostlc.xcheque
+                        set glheader.xpaytype=pocostlc.xpaytype
+                        insert glheader
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+                        set xpocode=pocostlc.xpocode
+                        buffer pocharge
+                        move pocharge=pocharge(xpocode)
+                        if #result .eq. "true"
+                            buffer gldetail
+
+                            if globals(xvoucher) .eq. ""
+                                set gldetail.xvoucher=glheader.xvoucher
+                                set gldetail.xrow=pocostlc.xline
+                                set rownum=pocostlc.xline+10
+                            else
+                                set linenum=#sql(int,"select xrow from gldetail where xvoucher='"+globals(xvoucher)+"' order by xrow DESC")
+                                set gldetail.xvoucher=globals(xvoucher)
+                                set gldetail.xrow=linenum+10
+                                set rownum=linenum+20
+                            end if
+                            set gldetail.xacc=pocostlc.xcostacc
+                            set gldetail.xaccusage="Ledger"
+                            set gldetail.xaccsource="Subaccount"
+                            set gldetail.xsub=pocostlc.xsubdr
+                            set gldetail.xdiv=#sql(str,"select xdiv from poord where xpornum = '"+xpornum+"'")
+                            set gldetail.xsec=#sql(str,"select xsec from poord where xpornum = '"+xpornum+"'")
+                            set gldetail.xproj=#sql(str,"select xproj from poord where xpornum = '"+xpornum+"'")
+                            set gldetail.xlong="Payment for : "+#sql(str,"select xdesc from pocharge where xpocode='"+xpocode+"'")+" of L/C No. "+xlcno
+                            set gldetail.xcur=pocostlc.xcur
+                            set gldetail.xexch=pocostlc.xexch
+                            set gldetail.xprime=pocostlc.xcost*1
+                            set gldetail.xbase=pocostlc.xcost*1
+                            set gldetail.xamount=pocostlc.xcost*1
+                            insert gldetail
+                        end if
+
+                        if globals(ErrChk) .ne. "1"
+                            buffer gldetail
+                            if globals(xvoucher) .eq. ""
+                                set gldetail.xvoucher=glheader.xvoucher
+                            else
+                                set gldetail.xvoucher=globals(xvoucher)
+                            end if
+                            decimal crcostb=0.0
+                            set gldetail.xrow=rownum
+                            set gldetail.xacc=pocostlc.xpocracc
+                            set gldetail.xaccusage="Ledger"
+                            set gldetail.xaccsource="Subaccount"
+                            set gldetail.xsub=pocostlc.xsubcr
+                            set gldetail.xdiv=#sql(str,"select xdiv from poord where xpornum = '"+xpornum+"'")
+                            set gldetail.xsec=#sql(str,"select xsec from poord where xpornum = '"+xpornum+"'")
+                            set gldetail.xproj=#sql(str,"select xproj from poord where xpornum = '"+xpornum+"'")
+                            set gldetail.xlong="Payment for : "+#sql(str,"select xdesc from pocharge where xpocode='"+xpocode+"'")+" of L/C No. "+xlcno
+                            set gldetail.xcur=pocostlc.xcur
+                            set gldetail.xexch=pocostlc.xexch
+                            set gldetail.xprime=0.0-pocostlc.xcost*1
+                            set gldetail.xbase=0.0-pocostlc.xcost*1
+                            set gldetail.xamount=0.0-pocostlc.xcost*1
+                            insert gldetail
+
+                            if count == 0
+                                set globals(xvoucher)=glheader.xvoucher
+                            end if
+
+                            set count=count+1
+
+                            set pocostlc.xstatusresp = "Posted"
+                            set pocostlc.xglref=globals(xvoucher)
+                            update pocostlc(xpornum,xline)
+
+                            if count == 1
+                                print "<b>GL Voucher No : "+glheader.xvoucher+" Created</b>"
+                            end if
+                        end if
+                    end if
+                    comp i=i+1
+                end while
+            end if
+
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Another Code"){
+            form.page.value = "caship"
+            form.searchbutton.value = "Find xcode=?"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+
+     method mth_check
+        buffer xlocals
+        set globals(xtypelocal)="Module"
+        set globals(xname)="gl"
+        move xlocals=xlocals(xtypelocal,xname)
+        int offset
+        int per
+        int year=#sub(xdate,0,4)
+        set offset=#prop(xlocals.xprops,"offset")
+        set per=12+#sub(xdate,5,2)-offset
+        if per<=12
+           set xper=per
+           set xyear=year-1
+        else
+           set xper=per-12
+           set xyear=year
+        end if
+
+        set mth_status = #sql(str,"select xpflag from pomthend where xyear='"+xyear+"' and xper='"+xper+"'")
+        if mth_status .eq. "1"
+          set globals(ErrChk) = "1"
+          error xyear+"("+xper+") Already Closed; Cannot "+#command
+        end if   
+     end method
+     
+     method chk_trncode
+         set xaction =#sql(str,"select xaction from xtrn where xtypetrn='GL Voucher' and xtrn='"+globals(xgltrn)+"'")
+         set mysql = "select xtrn from xtrn where xtypetrn='GL Voucher' and xtrn='"+globals(xgltrn)+"'"
+         set tmptrn = #sql(str,mysql)
+         if #result .ne. "true"
+            set globals(ErrChk) = "1"
+            error "<br>GL Trn Code '<font color=blue>"+globals(xgltrn)+"</font>' not found"
+         end if
+     end method
+     
+     method chk_account
+        if pocostlc.xcostacc .eq. ""
+          set globals(ErrChk) = "1"
+          error "<br>Debit Account Not Found for Row : "+temp
+        else
+          set xacc=pocostlc.xcostacc
+          buffer glmst
+          move glmst=glmst(xacc)
+          if glmst.xaccsource .eq. "Subaccount"
+             if pocostlc.xsubdr .eq. ""
+              set globals(ErrChk) = "1"
+              error "<br>Debit Sub Account Not Found for Row : "+temp              
+             end if
+          end if
+        end if
+
+        if pocostlc.xpocracc .eq. ""
+          set globals(ErrChk) = "1"
+          error "<br>Credit Account Not Found for Row : "+temp          
+        else
+          set xacc=pocostlc.xpocracc
+          buffer glmst
+          move glmst=glmst(xacc)
+          if glmst.xaccsource .eq. "Subaccount"
+             if pocostlc.xsubcr .eq. ""
+              set globals(ErrChk) = "1"
+              error "<br>Credit Sub Account Not Found for Row : "+temp              
+             end if
+          end if
+        end if
+     end method
+
+     method chk_access
+     	set stype = ""
+	  	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,4,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          buffer xcriminal
+	          set xcriminal.xwornum = mysql
+	          set xcriminal.xemail = #user
+	          set xcriminal.xdate = #date
+	          set xcriminal.xtime = #time
+	          set xcriminal.xobject = page
+	          insert xcriminal
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+     
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	else if excomm .eq. "Approve"
+     		set #field(Approve.display) = "hide"
+     	end if    
+     end method
+     
+end page

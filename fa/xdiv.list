@@ -1,0 +1,15 @@
+     list xdiv
+        table xcodes
+        order xcode
+        select "xtype='Division'"
+        navigators alpha
+        rows 8
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xdiv')"),~
+                xdescdet,zactive
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

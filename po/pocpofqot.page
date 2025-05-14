@@ -1,0 +1,225 @@
+page pocpofqot
+
+     caption "QT to PO Creation"
+     //sidebar list one
+     sections form one,script myscript,~
+              method mth_check,method chk_trncode, method upd_poord
+
+     form one
+        caption "PO Creation from Quotation"
+        table
+        order
+        fixed
+        //select
+        layout 1
+        objects Create P.O.,xpoqot,xdate,xpornum
+
+        field xpoqot
+          display text
+          pick list xpoqot
+        end field
+
+        field xpornum
+          pick 
+          display text
+          width 4
+          default "PO--"
+          event before
+            set globals(xpornum)=xpornum
+          end event
+        end field
+
+        field xdate
+          default #d
+          caption Creation Date
+        end field
+
+        field Create_old
+          event before
+            set globals(ErrChk) = ""
+            set globals(xtrn) = #sub(globals(xpornum),0,4)
+            buffer gmpoord
+            move gmpoord=gmpoord(xpornum)
+
+            call chkrec
+
+            if globals(ErrChk) .ne. "1"
+              call chk_capacity
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call get_grncode
+            end if
+
+            if globals(ErrChk) .ne. "1"
+               call upd_poord
+            end if
+
+            if globals(ErrChk) .ne. "1"
+               set gmpoord.xstatuspor="Received"
+            	 update gmpoord(xpornum)
+           		 if #result .ne. "true"
+             		  set globals(ErrChk) = "1"
+             		  error "<br>Error occured while updating Order Status for Order: "+globals(xpornum)
+               else
+                  print "<h3><font size=3 color=blue>GRN Created </font>"+poord.xgrnnum
+           		 end if
+               action show
+            end if
+          end event
+        end field
+
+        field Create
+          event before
+            set globals(ErrChk) = ""
+            set globals(ErrMsg) = ""
+            set globals(xtrn) = ""
+
+            call mth_check
+
+            if globals(ErrChk) .ne. "1"
+              call chk_trncode
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call upd_poord
+            end if
+
+            if globals(ErrChk) .ne. ""
+              error globals(ErrMsg)
+              action show
+            end if
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Another Code"){
+            form.page.value = "caship"
+            form.searchbutton.value = "Find xcode=?"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+
+     method mth_check
+        buffer xlocals
+        set globals(xtypelocal)="Module"
+        set globals(xname)="gl"
+        move xlocals=xlocals(xtypelocal,xname)
+        int offset
+        int per
+        int year=#sub(xdate,0,4)
+        set offset=#prop(xlocals.xprops,"offset")
+        set per=12+#sub(xdate,5,2)-offset
+        if per<=12
+           set xper=per
+           set xyear=year-1
+        else
+           set xper=per-12
+           set xyear=year
+        end if
+
+        set mth_status = #sql(str,"select xpflag from pomthend where xyear='"+xyear+"' and xper='"+xper+"'")
+        if mth_status .eq. "1"
+          set globals(ErrChk) = "1"
+          set globals(ErrMsg) = globals(ErrMsg)+xyear+"("+xper+") Already Closed; Cannot "+#command
+        end if   
+     end method
+     
+     method chk_trncode
+         set mysql = "select xtrn from xtrn where xtypetrn='Purchase Order' and xtrn='"+globals(xpornum)+"'"
+         set tmptrn = #sql(str,mysql)
+         if #result .eq. "true"
+            set globals(xtrn) = tmptrn
+         else
+            set globals(ErrChk) = "1"
+            set globals(ErrMsg) = globals(ErrMsg)+"<br>PO Trn Code '<font color=blue>"+globals(xpornum)+"</font>' not found"
+         end if
+     end method
+
+     method upd_poord
+           buffer poqot
+           move poqot=poqot(xpoqot)
+           if #result .ne. "true"
+              set globals(ErrChk) = "1"
+              set globals(ErrMsg) = globals(ErrMsg)+"<br>Quotaion '<font color=blue>"+xpoqot+"</font>' not found"
+           end if
+
+           if globals(ErrChk) .ne. "1"
+             if poqot.xstatusqot .eq. "Order Created"
+                set globals(ErrChk) = "1"
+                set globals(ErrMsg) = globals(ErrMsg)+"Cannot "+#command+"<br>Already "+poqot.xstatusqot
+             end if
+           end if
+
+
+           if globals(ErrChk) .ne. "1"
+             buffer poord
+             move poord=poqot(xpoqot)
+
+             set poord.xpornum = #trn("Purchase Order",globals(xtrn))
+             set poord.xsupref = poqot.xpoqot
+             set poord.xdatesupref = poqot.xdate
+             set poord.xstatuspor = "Cleared"
+             set poord.xpartial = poqot.xref
+             insert poord
+
+             if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Error Occured in Updating PO header; Process Aborted"
+             end if
+           end if
+
+           if globals(ErrChk) .ne. "1"
+              str xrow = ""
+              str mysql = "select xrow from poqdt where xpoqot = '"+xpoqot+"' and xrow > '"+xrow+"'"
+              str xrow=#sql(str, mysql)
+              while #result .eq. "true"
+                print #result
+                buffer poqdt
+                move poqdt = poqdt(xpoqot,xrow)
+                if #result .eq. "true"
+                  buffer poodt
+                  move poodt = poqdt(xpoqot,xrow)
+                  set poodt.xpornum = poord.xpornum
+                  set poodt.xrow = xrow
+                  set poodt.xwh = poqot.xwh
+                  insert poodt
+                end if
+
+                str mysql = "select xrow from poqdt where xpoqot = '"+xpoqot+"' and xrow > '"+xrow+"'"
+                str xrow=#sql(str, mysql)
+              end while
+           end if
+
+           if globals(ErrChk) .ne. "1"
+               set poqot.xstatusqot = "Order Created"
+               set poqot.xpornum = poord.xpornum
+            	 update poqot(xpoqot)
+           		 if #result .ne. "true"
+             		  set globals(ErrChk) = "1"
+             		  error "<br>Error occured while updating Order Status for Order: "+globals(xpornum)
+               else
+                  print "<h3><font size=3 color=blue>P.O. Created </font>"+poord.xpornum
+           		 end if
+               action show
+            end if
+
+     end method
+
+end page

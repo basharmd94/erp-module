@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table mgflags
+	caption "Message Flags"
+
+	columns ztime, zutime, zid, xmsgid,zemail,xmsgread,xmsgarch,xmsgdel
+
+	primary key zid,xmsgid,zemail
+
+	foreign key
+		zid references zbusiness.zid
+		xmsgid references mgmsg.xmsgid
+	end foreign key
+
+	list xmsgread,xmsgarch,xmsgdel
+
+end table

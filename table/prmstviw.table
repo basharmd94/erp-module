@@ -1,0 +1,24 @@
+product ERP on the Net
+
+table prmstviw
+  caption "Emp View" 
+
+  sql create view prmstviw (zid,xemp,xname,xdesig,xdept,xlocation,xdiv,xcostcent,xsec,xempcat,xcat,xstatusemp, ~
+  xpaydate,xdayab,xdaylv,xdaysuspend,xadvflag,xpflag,xratev,xday,xdate, ~
+  xrow,xpaycode,xamount) as ~
+  SELECT prmsg.zid,prmsg.xemp, ~
+		 coalesce((select xname from prmst where zid=prmsg.zid and xemp=prmsg.xemp),''), ~
+		 coalesce((select xdesig from prmst where zid=prmsg.zid and xemp=prmsg.xemp),''), ~
+		 coalesce((select xdept from prmst where zid=prmsg.zid and xemp=prmsg.xemp),''), ~
+		 coalesce((select xlocation from prmst where zid=prmsg.zid and xemp=prmsg.xemp),''), ~
+		 coalesce((select xdiv from prmst where zid=prmsg.zid and xemp=prmsg.xemp),''), ~
+		 coalesce((select xcostcent from prmst where zid=prmsg.zid and xemp=prmsg.xemp),''), ~
+		 coalesce((select xsec from prmst where zid=prmsg.zid and xemp=prmsg.xemp),''), ~
+		 coalesce((select xempcat from prmst where zid=prmsg.zid and xemp=prmsg.xemp),''), ~
+		 coalesce((select xcat from prmst where zid=prmsg.zid and xemp=prmsg.xemp),''), ~
+		 coalesce((select xstatusemp from prmst where zid=prmsg.zid and xemp=prmsg.xemp),''), ~
+		 prmsg.xpaydate,prmsg.xdayab,prmsg.xdaylv,prmsg.xdaysuspend,prmsg.xadvflag,prmsg.xpflag,prmsg.xratev,prmsg.xday,prmsg.xdate, ~
+		 practrndt.xrow,practrndt.xpaycode,practrndt.xamount ~
+	FROM prmsg inner join practrndt on prmsg.zid=practrndt.zid and prmsg.xemp=practrndt.xemp and prmsg.xpaydate=practrndt.xpaydate
+
+end table

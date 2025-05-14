@@ -1,0 +1,28 @@
+//Employee Other Details Menu
+//---------------------------------------------------------------------------------------
+option                  |action                                      |modules|models
+//---------------------------------------------------------------------------------------
+Transaction Entry       |#classPath+"/main?page=prpay"               |
+-
+//Adjustment Process      |#classPath+"/main?page=pradjprocess"        |
+//-
+Payroll Process         |#classPath+"/main?page=prprocess"           |
+//-
+//P.F. Process            |#classPath+"/main?page=prpfprocess"         |
+-
+Actual Query            |#classPath+"/main?page=pracc"               |
+-                                                                    |
+//Leave Entry             |#classPath+"/main?page=prleave"             |
+Loans/Adavances         |#classPath+"/main?page=pradvh"              |
+//-                                                                    |
+//Employee Master         |#classPath+"/main?page=prmst"               |
+//-                                                                    |
+//Payment Head            |#classPath+"/main?page=prpayhead"           |
+//Pay Scale               |#classPath+"/main?page=prpayscal"           |
+//-                                                                    |
+//Leave Process           |#classPath+"/main?page=prlvprocess"           |
+//-
+//Month Status Entry      |#classPath+"/main?page=prmonthst"             |
+//-
+//Provident Fund Status   |#classPath+"/main?page=prpfhed"                  |
+//---------------------------------------------------------------------------------------

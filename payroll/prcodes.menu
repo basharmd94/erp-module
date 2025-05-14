@@ -1,0 +1,15 @@
+//atcodes.menu
+caption "Settings"
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Pay Cycles                       |#classPath+"/"+#servlet+"?page=xcodes(xtype=Pay Cycle)"
+Benefit Groups                   |#classPath+"/"+#servlet+"?page=xcodes(xtype=Benefit Group)"
+Entitlement Groups                   |#classPath+"/"+#servlet+"?page=xcodes(xtype=Entitlement Group)"
+Modes of Payment                   |#classPath+"/"+#servlet+"?page=xcodes(xtype=Mode of Payment)"
+Payroll Rate Types                   |#classPath+"/"+#servlet+"?page=xcodes(xtype=Payroll Rate Type)"
+-
+Pay Codes                        |#classPath+"/"+#servlet+"?page=prcode"
+Payroll Defaults                        |#classPath+"/"+#servlet+"?page=prdef"
+//-------------------------------------------------------------------
+

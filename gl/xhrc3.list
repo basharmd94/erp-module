@@ -1,0 +1,12 @@
+     list xhrc3
+        caption "Account Group level 3"
+        table glhrc3
+        order xhrc1,xhrc2,xhrc3
+        fixed xhrc1,xhrc2
+        navigators alpha //group xsub "select xsub from gldetail where (xprime<xarap)"
+        rows 3
+        objects ~
+         xhrc3 attrib(link "javascript:void();" embed onclick="return updateParent(this:'xhrc3')")
+    end list
+
+

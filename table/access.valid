@@ -1,0 +1,135 @@
+valid access
+
+	config
+		//print "'Ctrl+S':Add,'Ctrl+R':Clear,'Ctrl+D':Delete"
+		//print "<tr bgcolor=#dddddd align=center><td><font color=red><b>Hotkeys(s) </font><font color=white>'Ctrl+A':Add,'Ctrl+C':Clear,'Ctrl+D':Delete</b></font></td></tr>"
+		set caption = "<table cellspacing=1 width=100%><tr class=bl>~
+				<td bgcolor=#dddddd><font color=gray>"+switch+" Hotkeys:</font></td><td bgcolor=#ccccff><font color=green>Add - Ctrl+S</font></td>~
+				<td bgcolor=#dddddd align=right><font color=gray></font></td><td bgcolor=#ccccff><font color=purple>Update - Ctrl+E</font></td>~
+				<td bgcolor=#dddddd align=right><font color=gray></font></td><td bgcolor=#ccccff><font color=red>Delete - Ctrl+D</font></td>~
+				<td bgcolor=#dddddd align=right><font color=gray></font></td><td bgcolor=#ccccff><font color=black>Clear - Ctrl+R</font></td>~
+				<td bgcolor=#dddddd align=right><font color=gray></font></td><td bgcolor=#009999><font color=white>"+#sub(#date,8,2)+" "+cadate.xmonthname("zid='"+#id+"' and xdate='"+#date+"'")+" "#sub(#date,0,4)+", "+cadate.xname("zid='"+#id+"' and xdate='"+#date+"'")+"</font></td>~
+			</tr></table>"
+		///set basecur = zbusiness.xcur("zid='"+#id+"'")
+		///set chkcur = #sql("select xcur from xcur where xcur='"+basecur+"'")
+		///if #result .ne. "true"
+		///	print "<font color=red size=4>Base Currency not defined</font></p><font color=black size=4>System Administration->The Business->Base Currency</font>"
+		///end if
+		///
+		///set offset=castatus.xinteger("zid='"+#id+"' and xtypestatus='GL Period Offset'")
+		///if #result .ne. "true"
+		///	print "<font color=red size=4>GL period offset not defined</font></p><font color=black size=4>Accounts->Set up->Set Period offset</font>"
+		///end if
+
+		if #commnd .eq. "Add" .or. #command .eq. "Update"
+			int find=0        
+			int find = #parse("row",globals(pkey),"'")
+			if find > 1
+				set globals(ErrChk) = "1"
+			end if
+		end if
+						
+		set stype = #sql(str,"select xsecurityapp from zbusiness where zid='"+#id+"'")
+		if stype .eq. "Yes"					
+	
+			set type = "Page"
+			set object = page
+			
+			set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+			if #result .ne. "true"
+				set #field(Details.display) = "hide"
+				set #field(Bottom.display) = "hide"
+				set #field(Next.display) = "hide"
+				set #field(Show.display) = "hide"
+				set #field(Add.display) = "hide"
+				set #field(Update.display) = "hide"
+				set #field(Delete.display) = "hide"
+				set #field(Clear.display) = "hide"
+				set #field(Import.display) = "hide"		                
+				set #field(Undo_Import.display) = "hide"
+				set #field(Detail.display) = "hide"		  
+				set #field(Confirm.display) = "hide"
+				set #field(Transfer.display) = "hide"		                                	                
+				set #field(Create.display) = "hide"	                
+				set #field(Sub.display) = "hide"		                
+				set #field(Post.display) = "hide"
+				set #field(Docs.display) = "hide"
+				set #field(Manual.display) = "hide"
+				set #field(Approve.display) = "hide"
+				set #field(Previous->.display) = "hide"
+				set #field(Top->.display) = "hide"
+			
+				set tmp = "REC-"
+				str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,4,6)
+				end if
+				set last_num = 1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set mysql=tmp+mysql
+				set myqry = "insert into xcriminal (ztime,zid,xwornum,xemail,xdate,xtime,xobject)"
+				set myqry = myqry + " values('"+#time+"','"+#id+"','"+mysql+"','"+#user+"','"+#date+"',~
+					'"+#time+"','"+page+"')"
+					set tmpstr =#sql(myqry)						
+			else
+				print caption		
+			
+				set excomm = #sql("select xcommands from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+				if excomm .eq. "Add"
+					set #field(Add.display) = "hide"
+				else if excomm .eq. "Update"
+					set #field(Update.display) = "hide"
+				else if excomm .eq. "Delete"
+					set #field(Delete.display) = "hide"
+				else if excomm .eq. "Add_Update"
+					set #field(Add.display) = "hide"
+					set #field(Update.display) = "hide"
+				else if excomm .eq. "Add_Delete"
+					set #field(Add.display) = "hide"
+					set #field(Delete.display) = "hide"
+				else if excomm .eq. "Add_Update_Delete"
+					set #field(Add.display) = "hide"
+					set #field(Update.display) = "hide"
+					set #field(Delete.display) = "hide"
+				else if excomm .eq. "Update_Delete"
+					set #field(Update.display) = "hide"
+					set #field(Delete.display) = "hide"
+				else if excomm .eq. "Confirm"
+					set #field(Confirm.display) = "hide"
+				else if excomm .eq. "Post"
+					set #field(Post.display) = "hide"
+				else if excomm .eq. "Create"
+					set #field(Create.display) = "hide"
+				else if excomm .eq. "Invoice"
+					set #field(Invoice.display) = "hide"
+				else if excomm .eq. "Detail"
+					set #field(Details.display) = "hide"
+				else if excomm .eq. "Process"
+					set #field(Process.display) = "hide"
+				else if excomm .eq. "Approve"
+					set #field(Approve.display) = "hide"
+				else if excomm .eq. "Undo"
+					set #field(Undo.display) = "hide"
+				end if    
+			end if
+		else
+			print caption				
+		end if
+
+		if #command .eq. "Update" .or. #command .eq. "Delete" .or. #command .eq. "Create" .or. #command .eq. "Invoice" .or. #command .eq. "Post" .or. #command .eq. "Confirm"
+			set tmp = "LOG-"
+			str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+			if #result .eq. "true" .and. mysql .ne. ""
+				set last_num = 0+#sub(mysql,4,10)
+			end if
+			set last_num = 1+last_num
+			set mysql = #padl(""+last_num,10,"0") 
+			set mysql=tmp+mysql     
+					
+			set myqry = "insert into zreclog (ztime,zid,xsornum,xdesc,xaction,xemail,xdate,xtime,xobject,xname)"
+			set myqry = myqry + " values('"+#time+"','"+#id+"','"+mysql+"','"+globals(pkey)+"','"+#command+"','"+#user+"',~
+					   '"+#date+"','"+#time+"','"+page+"','')"
+			set tmpstr =#sql(myqry)		
+		end if
+	end config
+end valid

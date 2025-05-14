@@ -1,0 +1,87 @@
+page caxrfitem
+  caption "Item Cross References"
+  layout mylayout 5 1 1 //columns rows  tabrows
+       list one  (1, 1)//(col,row,colspan,rowspan,width,height)
+       //text zxlinev_gray (2,1)
+       form one (3,1)
+       //text zxlinev_green (4,1)
+       //list followers,text bbnotice,list bbnotice (5,1)
+       list items (5,1)
+  end layout
+
+
+  list one
+		caption header+"<br>Cross references for item <font color=green>"+xitem+"</font>"
+        table caxrf
+        order xitem,xname,xcode
+        fixed xitem
+        //navigators alpha
+        rows 50
+				columns 1
+        objects ~
+                ~
+                xname, xcode attrib(link #servlet+"?page="+page+"&command=Show&xitem=?&xname=?&xcode=?"),xdesc,zactive,xlong attrib(hide),xitem attrb(hide)
+   end list
+  list items
+		caption "Items with cross references"
+        table (select zid,xitem from caxrf group by zid,xitem) t 
+        order xitem
+        headers ""
+        navigators alpha
+        rows 50
+				columns 5
+        objects  xitem attrib(link #servlet+"?page="+page+"&xitem=?&command=Find xitem=?")
+   end list
+
+     form one
+        //caption ""
+        table caxrf
+				order xitem,xname,xcode
+        fixed xitem
+        
+        layout 2
+        objects Show, Clear,Add, Update, Delete, Top, Previous, Next, Bottom,~                //xitem width(20), ~
+                xname width(10), ~
+								xorg attrib(local) display(label) columns(3),~
+								xcode width(20),zactive,xdesc width(50) columns(3),xlong width(50) 
+
+
+ field xname
+    caption Customer/Supplier
+    pick list xcus
+    second list xsup
+    //attrib submit
+    //extend
+		event before
+			if xitem .ne. ""
+				set globals(xitem)=xitem
+			end if
+		end event
+		event after
+			if xcode .eq. ""
+				set xcode=xitem
+			end if
+			str header=caitem.xsup(xitem)
+			if header .eq. ""
+				set header="<span class=status>No Default Supplier</span>"
+			else
+				set header="<span class=status>Default Supplier: "+header+"<br>"+casup.xorg("xsup='"+header+"'")+"</span>"
+			end if
+			set xorg=casup.xorg("xsup='"+xname+"'")
+			//print xorg
+			if xorg .eq. ""
+				set xorg=cacus.xorg("xcus='"+xname+"'")
+				if xorg .ne. ""
+					set xorg="<span class=status>"xorg+" </span>(Customer)"
+				end if
+			else
+				set xorg="<span class=status>"+xorg+" </span>(Supplier)"
+				
+			end if
+			set globals(xorg)=xorg
+		end event
+  end field
+
+     end form
+
+end page

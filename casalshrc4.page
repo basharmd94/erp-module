@@ -1,0 +1,141 @@
+page casalshrc4
+     caption header
+     sidebar list thna
+     sections form one,list srl, script myscript
+
+	list thna
+        caption "List of Sub Area in "+xdistrict
+        table casalshrc4
+        order xstate,xdiv,xdistrict,xthana
+        fixed xstate,xdiv,xdistrict
+
+        rows 20
+        objects xthana caption(Sub Area) attrib(link #servlet+"?page=casalshrc4&command=Show&xstate=?&xdiv=?&xdistrict=?&xthana=?"),~
+		xemp caption(Sub Area Manager),xname caption(Manager Name)
+        
+     end list
+
+	list srl
+        caption "List of SR in "+xthana
+        table casalshrc5
+        order xstate,xdiv,xdistrict,xthana,xemp
+        fixed xstate,xdiv,xdistrict,xthana
+
+        rows 20
+        objects xemp caption(SR Code) attrib(link #servlet+"?page=casalshrc5&command=Show&xstate=?&xdiv=?&xdistrict=?&xthana=?&xemp=?"),~
+		xname caption(SR Name),xcode caption(SR Code) display(hide)
+		
+
+     end list
+
+     
+     form one
+     	valid valid,access
+        table casalshrc4
+        order xstate,xdiv,xdistrict,xthana
+        fixed xstate,xdiv,xdistrict
+        layout 1
+        objects Back to Area,Sales Representative, Save, Update, Delete,Clear,~
+               xthana display(text),xtype caption(Type) display(const),xdescdet,xcode caption(Sub Area Code),~
+			   xemp caption(Sub Area Manager) attrib(submit),~
+			   xname caption(Manager Name) display(const),zactive,zemail display(const) caption(Added By)
+               
+        field xthana
+		capttion Sub Area
+          event after
+            set globals(xthana)=xthana
+          end event
+        end field
+		
+		field xemp
+			//pick "select xemp from prmst where zid='"+#id+"'"
+			pick list xemp1
+		end field
+		
+        field Save
+        	event before
+        		set globals(ErrChk) = ""
+				
+				if globals(ErrChk) .ne. "1"
+					set chkemp = #sql(str,"select xemp from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+					//pick "select xemp from prmst where zid='"+#id+"'"
+					if #result .ne. "true"
+						set globals(ErrChk)=1
+						error "The Sub Area Manager Does not Exist."
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					set xname=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+					set myqry = "insert into casalshrc4 (ztime, zid,xtype,xstate,xdiv,xdistrict,xthana,xdescdet,xcode,xemp,xname,zemail,zactive)"
+					set myqry = myqry + " values('"+#time+"','"+#id+"','Sub Area','"+globals(xstate)+"','"+globals(xdiv)+"','"+globals(xdistrict)+"',~
+					'"+xthana+"','"+xdescdet+"','"+xcode+"','"+xemp+"','"+xname+"','"+#user+"','1')"
+					set tmpstr =#sql(myqry)		
+					//error xthana+" DD FV "+globals(xthana)
+				end if
+			end event
+        end field
+
+        field update
+        	event before
+        		set globals(ErrChk) = ""
+       		
+        	end event
+        end field
+        
+        field delete
+        	event before
+        		set globals(ErrChk) = ""
+
+        	end event
+        end field
+        
+        embed onsubmit="submitit(this)"
+
+        field Back
+          embed onclick="clicked(this)"
+        end field
+
+        field Sales
+          embed onclick="grouped(this)"
+        end field
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but = ""
+        function clicked(b){
+          but = "clicked"
+        }
+        function grouped(b){
+          but = "grouped"
+        }
+        function submitit(form){
+          if (but == "clicked"){
+            form.page.value = "casalshrc3"
+            form.searchbutton.value = "Find xstate=?&xdiv=?&xdistrict=?"
+
+          }
+          if (but == "grouped"){
+            form.page.value = "casalshrc5"
+            form.searchbutton.value = "Find xstate=?&xdiv=?&xdistrict=?&xthana=?&xemp=?"
+
+          }
+        }
+
+        </script>
+     end script
+     
+     valid valid
+     	config
+     		//set globals(pkey)=xstate+" "+xdiv+" "+xdistrict+" "+xthana
+			set zactive="1"
+			set xname=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+			set header = "<font color=green size=4+>Sub Area</font><br>"
+     	end config
+     end valid
+
+#include access.valid  
+
+end page

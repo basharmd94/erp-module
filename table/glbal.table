@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table glbal
+
+	caption "GL Balance View File"
+
+	columns zid,xyear,xper,xacc,xsub,xdiv,xsec,xproj,xcur,xtotamt
+
+	primary key zid,xyear,xper,xacc,xsub,xdiv,xsec,xproj,xcur
+
+	sql create view glbal (zid,xyear,xper,xacc,xsub,xdiv,xsec,xproj,xcur,xtotamt) as ~
+		SELECT GLheader.zid, GLheader.xyear, GLheader.xper,GLdetail.xacc, GLdetail.xsub, GLdetail.xdiv, GLdetail.xsec,~
+		GLdetail.xproj, GLdetail.xcur, SUM(GLdetail.xprime * GLdetail.xexch) AS xtotamt ~
+		FROM GLdetail INNER JOIN GLheader ON GLdetail.zid = GLheader.zid AND GLdetail.xvoucher = GLheader.xvoucher ~
+		WHERE (select abs(sum(xexch*xprime)) from gldetail where gldetail.xvoucher=glheader.xvoucher and gldetail.zid=glheader.zid)< cast(0.01 as numeric(4,2)) ~
+		GROUP BY GLheader.zid,GLheader.xyear, GLheader.xper, GLdetail.xacc,~
+		GLdetail.xsub, GLdetail.xdiv, GLdetail.xsec, GLdetail.xproj,~
+		GLdetail.xcur
+end table

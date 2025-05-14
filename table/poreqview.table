@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table poreqview
+  caption "PO Requisition View"
+  
+  sql create view poreqview (~
+			zid,xporeqnum,xrow,xdatereq,xref,xporef,~
+	          	xstatusreq,xitem,xstatusreqd,xqtyreq,xporeq,xunitpur,xqtyord,itemdesc,zemail,xemail,xemail1,xdept) ~
+        as select  ~
+			poreq.zid,poreq.xporeqnum,poreqd.xrow,poreq.xdatereq,poreq.xref,poreq.xporef,~
+          	poreq.xstatusreq,poreqd.xitem,poreqd.xstatusreqd,~
+          	poreqd.xqtyreq,poreqd.xporeq,poreqd.xunitpur,poreqd.xqtyord, ~
+			(select xdesc from caitem where zid=poreqd.zid and xitem=poreqd.xitem), ~
+			poreq.zemail,poreq.xemail,poreq.xemail1,poreq.xdept ~
+        from poreqd, poreq where poreqd.zid=poreq.zid and poreqd.xporeqnum=poreq.xporeqnum
+
+end table

@@ -1,0 +1,421 @@
+page moodt_com
+     embed onload = "move_caret('one','xqty')"
+     //caption "Manufacturing Details for : "+globals(xmoord)
+	 caption "<span class=bl>Detais for <a href=/da/"+#servlet+"?page=moord&command=Show&xmoord="+xmoord+">" +xmoord+ "</a></span>"     
+	 sidebar list one
+     sections form one,text one, script myscript,~
+              method chkrec,method chk_access, method chk_command
+
+     text one
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+    list one
+    	caption "Added Item(s)"
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=moodt.zid and xitem=moodt.xitem) as itemdesc ~
+			from moodt) as tbl
+		
+        order xmoord,xmorlno
+        fixed xmoord
+        rows 20
+        objects xmorlno attrib(link #servlet+"?page=moodt_com&command=Show&xmoord=?&xmorlno=?"), ~
+                xitem,itemdesc,xqty,xunit
+
+        field itemdesc
+          caption Description
+          storage varchar
+        end field
+		
+	  totals ,,"Total",sum,,,	
+	  
+     end list
+
+     form one
+        //caption "<font color=black size=3>Manufacturing Details for : "+globals(xmoord)
+        table moodt
+        order xmoord,xmorlno
+        fixed xmoord
+        
+        layout 2
+        objects Complete, Update, Show,Clear,Add, Top, Previous, Delete, Next, Bottom,~
+                xmorlno attrib(row 0 10),"",xitem,xdum,xwh attrib(hidden),xqtyord display(const),xqty attrib(attach),~
+                xunit display(const),xrate display(const),xstype, ximtrnnum display(const),xcfiss display(hide),~
+                zemail display(hide),xemail display(hide)
+				
+		field xqtyord
+			caption BOM QTY
+		end field
+		
+		field xqty
+			caption Actual Qty
+		end field
+
+        field show
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+          	 if globals(ErrChk) .ne. "1"
+	           	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+	           	 set stype=#prop(xprops,"security")          	 
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                //set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Undo_Import.display) = "hide"
+		                set #field(Detail.display) = "hide"		  
+		                set #field(Confirm.display) = "hide"
+						set #field(Transfer.display) = "hide"		                                	                
+						set #field(Create.display) = "hide"	                
+						set #field(Sub.display) = "hide"		                
+						set #field(Post.display) = "hide"
+						set #field(Docs.display) = "hide"
+						set #field(Manual.display) = "hide"
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if           
+           end event
+           event after
+	         if globals(ErrChk) .ne. "1"
+	         	set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+	         	if #result .ne. "true"
+	                set #field(Details.display) = "hide"
+	                set #field(Top.display) = "hide"
+	                set #field(Bottom.display) = "hide"
+	                set #field(Next.display) = "hide"
+	                set #field(Previous.display) = "hide"
+	                set #field(Show.display) = "hide"
+	                set #field(Add.display) = "hide"
+	                //set #field(Update.display) = "hide"
+	                set #field(Delete.display) = "hide"
+	                set #field(Clear.display) = "hide"
+	                set #field(Create.display) = "hide"
+	                set #field(Import.display) = "hide"		                
+	                set #field(Undo_Import.display) = "hide"
+	                set #field(Detail.display) = "hide"		
+	                set #field(Confirm.display) = "hide"
+					set #field(Transfer.display) = "hide"		                                	                
+					set #field(Create.display) = "hide"	                
+					set #field(Sub.display) = "hide"
+					set #field(Post.display) = "hide"
+					set #field(Docs.display) = "hide"
+					set #field(Manual.display) = "hide"					
+	                class osbcustom(clear)                		                
+	         	end if
+	         end if             
+           end event           
+        end field
+
+        field Top
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+          	 if globals(ErrChk) .ne. "1"
+	           	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+	           	 set stype=#prop(xprops,"security")          	 
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                //set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Create.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Undo_Import.display) = "hide"
+		                set #field(Detail.display) = "hide"		
+		                set #field(Confirm.display) = "hide"
+						set #field(Transfer.display) = "hide"		                                	                
+						set #field(Create.display) = "hide"
+						set #field(Post.display) = "hide"
+						set #field(Docs.display) = "hide"
+						set #field(Manual.display) = "hide"						
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if           
+           end event
+           event after
+	         if globals(ErrChk) .ne. "1"
+	         	set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+	         	if #result .ne. "true"
+	                set #field(Details.display) = "hide"
+	                set #field(Top.display) = "hide"
+	                set #field(Bottom.display) = "hide"
+	                set #field(Next.display) = "hide"
+	                set #field(Previous.display) = "hide"
+	                set #field(Show.display) = "hide"
+	                set #field(Add.display) = "hide"
+	                //set #field(Update.display) = "hide"
+	                set #field(Delete.display) = "hide"
+	                set #field(Clear.display) = "hide"
+	                set #field(Import.display) = "hide"		                
+	                set #field(Undo_Import.display) = "hide"
+	                set #field(Detail.display) = "hide"		
+	                set #field(Confirm.display) = "hide"
+					set #field(Transfer.display) = "hide"		                                	                
+					set #field(Create.display) = "hide"	                
+					set #field(Sub.display) = "hide"
+					set #field(Post.display) = "hide"
+					set #field(Docs.display) = "hide"
+					set #field(Manual.display) = "hide"
+	                class osbcustom(clear)                		                
+	         	end if
+	         end if             
+           end event
+        end field
+
+        field Item_search
+          event before
+             class osbcustom(search(xitem,"s","caitem","xitem:xdesc","pickItem","xitem:xdesc:xcitem:xgitem","yes","Code:Name:Item Class:Item Group"))
+          end event
+        end field
+
+        field xmoord
+         event after
+          set globals(xmoord)=xmoord
+         end event
+        end field
+
+        field xmorlno
+           col 3
+           event after
+             set globals(xmorlno)=xmorlno
+             if globals(xstatusmor) .eq. "Released" .or. globals(xstatusmor) .eq. "Completed"
+                set #field(Add.display) = "hide"
+                set #field(Update.display) = "hide"
+                set #field(Delete.display) = "hide"
+             end if
+           end event
+        end field
+
+        field xitem
+          pick list xitem
+        end field
+
+        field xdum
+          attrib local
+          display constant
+          caption Description
+          event after
+            set xdum=#sql(str,"select xdesc from caitem where xitem='"+xitem+"'")
+          end event
+        end field
+
+        field xstype
+          pick
+          display constant
+        end field
+
+        field Add
+          event before
+            set globals(ErrChk) = ""
+			
+            call chk_access
+            
+            if globals(ErrChk) .ne. "1"
+	            call chkrec
+			end if
+            
+            if globals(ErrChk) .ne. "1"
+              buffer caitem
+              move caitem=caitem(xitem)
+              if xitem .eq. ""
+                set globals(ErrChk) = "1"
+                error "No Item Selected"
+              else
+                if caitem.xitem .ne. xitem
+                  set globals(ErrChk) = "1"
+                  error "Invalid Item"
+                else
+                  set xunit = caitem.xunitstk
+                  set xstype = caitem.xstype
+                end if
+              end if
+            end if
+          end event
+        end field
+
+        field Update
+          event before
+            set globals(ErrChk) = ""
+            
+            call chk_access
+            
+            if globals(ErrChk) .ne. "1"
+	            call chkrec
+			end if
+
+            if globals(ErrChk) .ne. "1"
+              buffer caitem
+              move caitem=caitem(xitem)
+              if xitem .eq. ""
+                set globals(ErrChk) = "1"
+                error "No Item Selected"
+              else
+                if caitem.xitem .ne. xitem
+                  set globals(ErrChk) = "1"
+                  error "Invalid Item"
+                else
+                  set xunit = caitem.xunitstk
+                  set xstype = caitem.xstype
+                end if
+              end if
+            end if
+          end event
+        end field
+
+        field Delete
+          event before
+            set globals(ErrChk)
+            call chk_access
+            if globals(ErrChk) .ne. "1"
+            	call chkrec
+            end if
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Complete
+          embed onclick="clicked(this)"
+        end field
+
+   end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+         var but=""
+        function clicked(b){
+          but="clicked"
+        }
+
+        function submitit(form){
+
+	    if (but=="clicked"){
+            form.page.value = "moord_com"
+            form.searchbutton.value = "Find xmoord=?"
+          }
+        }
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xitem.value=link.text
+          }else{
+            document.one.xitem.value=link.innerText
+          }
+          return false
+        }
+        
+        </script>
+     end script
+
+     method chkrec
+        if #command .ne. "Add" .and. xmorlno .ne. globals(xmorlno)
+          set globals(ErrChk) = "1"
+          error "Record pointer Mismatch, Try SHOW instead.<br>"
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          if globals(xstatusmor) .ne. "NEW" .and. globals(xstatusmor) .ne. "EXPLODED"
+            set globals(ErrChk) = "1"
+            error "Cannot "+#command+", Already "+globals(xstatusmor)+".<br>"
+          end if
+        end if
+     end method
+
+     method chk_access
+     	set stype = ""
+       	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+       	 set stype=#prop(xprops,"security")          	 
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          
+			  set myqry = "insert into xcriminal (zid,xwornum,xemail,xdate,xtime,xobject)"
+			  set myqry = myqry + " values('"+#id+"','"+mysql+"','"+#user+"','"+#date+"',~
+				'"+#time+"','"+page+"')"
+			  set tmpstr =#sql(myqry)		
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+     
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Undo"
+     		set #field(Undo.display) = "hide"
+     	else if excomm .eq. "Explode"
+     		set #field(Explode.display) = "hide"
+     	else if excomm .eq. "Release"
+     		set #field(Release.display) = "hide"
+     	else if excomm .eq. "Complete"
+     		set #field(Complete.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	end if    
+     end method
+     
+end page

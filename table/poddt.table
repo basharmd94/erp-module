@@ -1,0 +1,27 @@
+product ERP on the Net
+
+table poddt
+  caption "Debit Note Details"
+  
+  columns ztime,zutime,zid,xdrnnum,xgrnnum,xrow,xcode,xcodebasis,xitem,xlong, ~
+          xlinks,xstype, ~
+          xwh, xsup ,xqty,xqtydel,xqtyinv,xpornum,xsinnum,~
+          xunitpur,xcfpur,xwtunit,xunitwt,xcur,xrate,xratesys,xmargin,xmarginsys, ~
+          xdisc,xdiscsys,xdiscf,xcomm,xcommsys,xexch,xpricebasis,xcurprice,~
+          xexchsell,xprice,xdatedel,xstatuscdt,~
+          xcform,xtaxcat,xtaxcode1,xtaxrate1,xtaxcode2,xtaxrate2,xtaxcode3,xtaxrate3,~
+          xtaxcode4,xtaxrate4,xtaxcode5,xtaxrate5,xbatch,xaccret,xexpiry,xnote,~
+          xcurcost,xstdcost,xcost,xdttax,~
+          xenduser,xgitem,xmodel,xserialnum,xbin,xaltqty,xtypeserial
+
+  primary key zid, xdrnnum,xrow
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xdrnnum references podrn.zid,xdrnnum
+  end foreign key
+
+  field xcost
+        length 30.6
+  end field
+end table

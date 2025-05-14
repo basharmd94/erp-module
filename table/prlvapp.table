@@ -1,0 +1,21 @@
+product ERP on the Net
+
+table prlvapp
+  caption "Leave View"
+  columns zid,xemp,xname,xdesig,xdept,xleave,xfdate,xtdate,xdaysreq
+  
+  primary key zid,xemp
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+	sql create view prlvapp (zid,xemp,xname,xdesig,xdept,xleave,xfdate,xtdate,xdaysreq) ~
+    as SELECT zid, xemp,~
+            (select xname from prmst where prmst.xemp=prleave.xemp and prmst.zid=prleave.zid), ~
+            (select xdesig from prmst where prmst.xemp=prleave.xemp and prmst.zid=prleave.zid), ~
+            (select xdept from prmst where prmst.xemp=prleave.xemp and prmst.zid=prleave.zid), ~
+            xleave,xfdate,xtdate,xdaysreq ~
+	FROM prleave
+	
+ end table

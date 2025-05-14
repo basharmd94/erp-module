@@ -1,0 +1,155 @@
+
+page famstrv
+    caption "FA Revaluation Master"
+    sidebar list cur
+    sections  form one,list one,text top, script myscript
+
+    text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list cur
+      table xcur
+      order xcur
+      rows 20
+      objects xcur attrib(link "abc" embed onclick="return pickCur(this:xexch#)"), ~
+              xexch attrib(name xexch#)
+    end list
+
+   list one
+      table famstrv
+      order xvoucher
+      fixed xcode
+      navigators alpha// group xcode
+      row 20
+      object xvoucher attrib(link #servlet+"?page=famstrv&command=show&xvoucher=?"),~
+              xdate,xyear,xper,xcur,xprime,xbase
+   end list
+
+
+   form one
+      caption "Fixed Asset Revaluation Detail"
+      table famstrv
+      order xvoucher
+      fixed xcode
+      layout 2
+      
+      objects Back,Show,Clear,Add, Update, Delete, Top, Previous, Next, Bottom,~
+              xvoucher,xdate,xyear display(constant),xper display(constant),~
+              xcur,xexch,xprime,xbase
+
+
+        field xvoucher
+          caption Revaluation Voucher Number
+          display constant
+          event after
+            set globals(xvoucher)=xvoucher
+          end event
+        end field
+
+        field xdate
+          caption Revaluation Date
+	      end field
+
+        field xcur
+          display text
+          pick
+          default "BDT"
+        end field
+
+        field xexch
+          default "1.0000"
+        end field
+
+        field xbase
+          event before
+            set xbase=xprime*xexch
+          end event
+        end field
+
+        field add
+          event before
+              buffer xlocals
+              set globals(xtypelocal)="Module"
+              set globals(xname)="gl"
+              move xlocals=xlocals(xtypelocal,xname)
+              int offset
+              int per
+              int year=#sub(xdate,0,4)
+              set offset=#prop(xlocals.xprops,"offset")
+              set per=12+#sub(xdate,5,2)-offset
+              if per<=12
+                set xper=per
+                set xyear=year-1
+              else
+                set xper=per-12
+                set xyear=year
+              end if
+              set xdate=#sub(xdate,0,10)
+          end event
+        end field
+
+        field update
+          event before
+              buffer xlocals
+              set globals(xtypelocal)="Module"
+              set globals(xname)="gl"
+              move xlocals=xlocals(xtypelocal,xname)
+              int offset
+              int per
+              int year=#sub(xdate,0,4)
+              set offset=#prop(xlocals.xprops,"offset")
+              set per=12+#sub(xdate,5,2)-offset
+              if per<=12
+                set xper=per
+                set xyear=year-1
+              else
+                set xper=per-12
+                set xyear=year
+              end if
+              set xdate=#sub(xdate,0,10)
+          end event
+        end field
+
+        embed onsubmit="return submitit(this)"
+
+        field back
+          embed onclick="back()"
+        end field
+
+
+   end form
+
+   script myscript
+    <script language="javascript" type="text/javascript">
+
+      var flag=""
+
+      function back(){
+        flag="back"
+      }
+
+      function submitit(form){
+        if(flag=="back"){
+          form.page.value="famst"
+          form.searchbutton.value="Find xcode=?"
+        }
+      }
+
+      function pickCur(linkcur,linkexch){
+        if (navigator.appName.indexOf("Netscape")>=0){
+          document.one.xcur.value=linkcur.text
+          document.one.xexch.value=linkexch.text
+        }else{
+          document.one.xcur.value=linkcur.innerText
+          document.one.xexch.value=linkexch.innerText
+        }
+        return false
+      }
+    </script>
+   end script
+
+
+ end page
+
+

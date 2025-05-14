@@ -1,0 +1,356 @@
+page poreqdappim  //poreqdapp
+     caption "Item(s) for Requisition "+globals(xporeqnum)
+	 sidebar list order, list imstk
+	 dependent
+     sections list header,form detail,text top, script myscript
+                           
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+    list header
+        caption "Requisition "+globals(xporeqnum)
+        table poreq
+        order xporeqnum
+        fixed xporeqnum
+        select "zid='"+#id+"' and xtypepor='Local'"
+        rows 1 f
+        objects ~
+                xporeqnum,xdatereq,xref,xdept,xstatusreq
+                
+        field xporeqnum
+          caption Requisition No.
+        end field
+
+     end list
+
+     list order
+        caption "Added Item(s)"
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=poreqd.zid and xitem=poreqd.xitem) as itemdesc ~
+			from poreqd) as tbl
+
+		order xporeqnum,xrow
+        fixed xporeqnum
+        select "zid='"+#id+"'"
+        rows 20
+
+        objects xrow attrib(link #servlet+"?page=poreqdappim&command=Show&xporeqnum=?&xrow=?"), ~
+                xitem, itemdesc,xqtyreq,xunitpur,xporeq
+
+        field itemdesc
+            storage varchar
+            caption Description
+        end field
+
+        field xunitpur
+            caption Unit
+        end field
+
+        field xqtyreq
+            len 10.2
+        end field
+
+        field xporeq
+            len 10.2
+        	caption Approved Qty
+        end field
+
+     end list
+
+     form detail
+     	valid valid,access
+        table poreqd
+        order xporeqnum,xrow
+        fixed xporeqnum
+        select "zid='"+#id+"'"       
+		default Update
+		focus xporeq
+        layout 1
+        objects Show,Add attrib(hidden),Update, Clear,Delete attrib(hidden),Top, Previous, Next, Bottom,Return,~//
+                xrow attrib(row 0 1; search; attach), xstatusreqd display(const), xstatuspdt display(hide), ~
+                xitem attrib(submit;attach), itemdesc,~
+                xstype display(hide),xwh display(hide), xqtyreq attrib(attach),xunitpur,xporeq,~
+                xqtyord display(hide),xcfpur display(hide),~
+                xrate display(hide),xlineamt display(hide),xrem,zemail display(const),xemail display(const)
+
+        field show
+        	event before
+        		set globals(temp) = xrow
+        	end event
+        	event after
+        		set globals(temp) = xrow
+        	end event
+        end field
+
+        field Top
+        	event after
+        		set globals(temp) = xrow
+        	end event
+        end field
+
+        field xrow
+            event after
+                set statreq = poreq.xstatusreq("zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+                if statreq .ne. #status("xstatusreq",1)
+                    set #field(Add.display) = "hide"
+                    set #field(Update.display) = "disable"
+                    set #field(Delete.display) = "hide"
+                end if
+
+                set globals(xrow) = xrow
+                set #field(zemail.caption) = "Entered By"
+                set #field(xemail.caption) = "Last Updated By"
+                set #field(xporeq.caption) = "Approved Quantity"
+            end event
+        end field
+
+        field xitem
+            display const
+            event after
+                set globals(xitem)=xitem
+            end event
+        end field
+
+        field itemdesc
+            attrib local
+            display const
+            caption Description
+            event after
+                set itemdesc = #sql(str,"select xdesc from caitem where zid='"+#id+"' and xitem='"+globals(xitem)+"'")
+            end event
+        end field
+
+        field xqtyreq
+            len 10.2
+            display const
+            event after
+                set globals(xqtyreq) = poreqd.xqtyreq("zid='"+#id+"' and xporeqnum='"+globals(xporeqnum)+"' and xrow='"+globals(xrow)+"'")
+            end event
+        end field
+        
+        field xporeq
+            caption Approved Qty
+            len 10.2
+        end field
+
+        field xrem
+            width 50
+            height 2
+        end field
+
+        field xunitpur
+            caption Unit
+            display const
+        end field
+
+        field xstatuspdt
+            caption Status
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk) = ""
+
+                set globals(ErrChk) = "1"
+                error " "
+                if globals(ErrChk) .ne. "1"
+                  	set stat = poreq.xstatusreq(" zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+                  	if stat .ne. #status("xstatusreq",1)
+                        set globals(ErrChk)="1"
+                  		error "Cannot "+#command+" Status "+stat
+                  	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	call chk_code
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xqtyreq <= 0
+                  		set xqtyreq = 1
+                	end if
+                    set xwh = poreq.xwh(" zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                  set zemail = #user
+                  set xstatusreqd = #status("xstatusreqd",1)
+                end if
+            end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk) = ""
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(xrow)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(temp)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+                if globals(ErrChk) .ne. "1"
+                  	set stat = poreq.xstatusreq(" zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+                  	if stat .ne. #status("xstatusreq",1)
+                        set globals(ErrChk)="1"
+                  		error "Cannot "+#command+" Status "+stat
+                  	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_code
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xqtyreq <= 0
+                  		set xqtyreq = 1
+                	end if
+                    set xwh = poreq.xwh(" zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                  set xemail = #user
+                end if
+            end event
+        end field
+
+        field delete
+            event before
+                set globals(ErrChk) = ""
+
+                set globals(ErrChk) = "1"
+                error " "
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(xrow)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(temp)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+                if globals(ErrChk) .ne. "1"
+                  	set stat = poreq.xstatusreq(" zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+                  	if stat .ne. #status("xstatusreq",1)
+                        set globals(ErrChk)="1"
+                  		error "Cannot "+#command+" Status "+stat
+                  	end if
+                end if
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "poreqappim"
+            form.searchbutton.value = "Find xporeqnum=?"     
+          }
+        }
+
+        </script>
+     end script
+
+        method chk_code
+            set tmpcode=xitem
+            buffer caitem
+            move caitem=caitem(xitem)
+            if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Wrong Item Code"
+            else
+                set xitem = caitem.xitem
+                set xstype = caitem.xstype
+                set xunitpur = caitem.xunitpur
+                if caitem.xcfpur == 0.0
+                    set xcfpur = 1.0
+                else
+                    set xcfpur = 0.0+caitem.xcfpur
+                end if
+
+                set xstatuspdt = "Item Verified"
+            end if
+        end method
+
+     valid valid
+     	mandatory xitem
+     	config
+		 	set globals(pkey) = globals(xporeqnum)+" "+xrow    		
+
+            set statreq = poreq.xstatusreq("zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+            if statreq .ne. #status("xstatusreq",1)
+                set #field(Add.display) = "hide"
+                set #field(Update.display) = "disable"
+                set #field(Delete.display) = "hide"
+            end if
+            if xunitpur .eq. ""
+                set xunitpur=caitem.xunitpur("zid='"+#id+"' and xitem='"+xitem+"'")
+            end if
+     	end config
+     end valid
+
+#include access.valid
+     
+end page

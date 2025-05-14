@@ -1,0 +1,25 @@
+product ERP on the Net
+
+table glheader
+  caption "GL Header"
+  columns  ztime,zutime, zid, xvoucher,xref,xdate,xlong,xpostflag,~
+           xyear,xper,xstatusjv,xdatedue,xdesc01,xdesc02,xdesc03,xdesc04,xdesc05,~
+           xictrnno,dumzid,zemail,xemail,xaccdr,xsubdr,xnumofper,~
+           xcheque,xpaytype,xstatus,xtrngl,xnote,xteam,xmember,xmanager,xapproved,~
+           xaction,xcus,xaccar,xamount,xdateiss,xconuser,xconfirmt,xfailer,xfailedt
+
+  primary key zid, xvoucher
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+end table
+
+
+
+
+
+
+
+           

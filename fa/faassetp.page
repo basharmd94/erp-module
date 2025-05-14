@@ -1,0 +1,126 @@
+page faassetp
+
+	caption "Asset Type"
+    sidebar list detail
+    sections form one,list new,script myscript
+   
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+	
+	
+    list detail
+        caption "Asset Sub Type"
+		table faassetpdt
+		order xcode,xsub desc
+		fixed xcode
+		rows 10
+		
+        objects  xsub attrib(link #servlet+"?page=faassetdt&command=Show&xcode=?&xsub=?"),~
+                xdesc,zemail,xemail
+     end list	
+	
+    list new
+        caption "Asset Type"
+		table faassetp
+		order xcode desc
+		rows 10
+		
+        objects  xcode attrib(link #servlet+"?page=faassetp&command=Show&xcode=?"),~
+                xdesc,zemail,xemail
+     end list
+	
+
+
+    form one
+        valid valid,access
+        table faassetp
+        order xcode DESC
+        layout 2
+        objects Add,Update,Delete,Sub_Type,Show,Clear,~
+				~
+				xcode,xdesc,zemail,xemail
+
+		field xcode
+			caption Asset Type Code
+			len 2
+			pick list xast
+			event after
+				set globals(xcode)=xcode
+			end event
+		end field
+		
+		field xdesc
+			caption Asset Type Description
+		end field
+		
+		field zemail
+			caption Entry By
+			display const
+		end field
+		
+		field xemail
+			caption Updated By
+			display const
+		end field
+		
+		field Add
+			event before
+				set globals(ErrChk)=""
+				
+				if globals(ErrChk) .ne. "1"
+					set zemail=#user
+					set xemail=""
+				end if
+				
+			end event
+		end field
+
+		field Update
+			event before
+				set globals(ErrChk)=""
+				
+				if globals(ErrChk) .ne. "1"
+					set xemail=#user
+				end if
+				
+			end event
+		end field
+
+		
+
+
+        embed onsubmit="submitit(this)"
+      
+        field Sub_Type
+            embed onclick="clicked(this)"
+        end field
+		
+    end form
+
+    script myscript        
+        <script language="javascript" type="text/javascript">
+        var detail
+		
+        function clicked(b){
+          detail="clicked"
+        }
+		
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "faassetpdt"
+            form.searchbutton.value = "Top"
+            //return false
+			}        
+		  }
+        </script>
+    end script
+
+     valid valid
+     	config    		
+		
+		end config
+     end valid
+#include access.valid
+ 
+end page

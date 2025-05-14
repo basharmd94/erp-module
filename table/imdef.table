@@ -1,0 +1,13 @@
+product ERP on the Net
+
+table imdef
+  caption "IM Defaults"
+  columns ztime,zutime,zid,xcreditpotrn,xcashpotrn,xacccr,xsubcr,xreqapp
+          
+  primary key zid
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table

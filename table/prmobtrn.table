@@ -1,0 +1,14 @@
+product ERP on the Net
+table prmobtrn
+	caption "Employee Mobile Bill Transaction"
+	columns ztime,zutime,zid,xemp,xrow,xdate,xyear,xper,xremark,~
+			xmaxload,xdiscamt,xrcvamt,xmobcomp,xstatusps,zemail,xemail
+
+	primary key zid,xemp,xrow,xper
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xemp references prmst.zid,xemp
+	end foreign key
+
+end table

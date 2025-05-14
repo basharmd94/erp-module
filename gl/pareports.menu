@@ -1,0 +1,60 @@
+//PA Reports.menu
+caption "Project Accounting Reports" page
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+-Project
+
+Cash Flow Statement                |#classPath+"/"+#servlet+"?page=*crystal glbalcashf.rpt(xdate=From Date=#d,xdate=To Date=#d,xproj=Projct=)"
+-
+Daily Ledger                       |#classPath+"/"+#servlet+"?page=*crystal glledger_daily_prj(xproj=Projct=,xacc=Account=0,xdate=From Date=#d,xdate=To Date=#d)"
+-
+Monthly Ledger                     |#classPath+"/"+#servlet+"?page=*crystal glledger_monthly_prj(xproj=Project=,xacc=Account=,xyear=Year=,xper=Period=)"
+-
+Annual Ledger		               |#classPath+"/"+#servlet+"?page=*crystal glledger_annual_prj(xproj=Project=,xyear=Year=,xacc=Account=0)"
+-
+//Trial Balance                      |#classPath+"/"+#servlet+"?page=*crystal gltbal_prj(xproj=Project=,xyear=Year=,xper=Period=)"
+Trial Balance (Acc Sorted)                     |#classPath+"/"+#servlet+"?page=*crystal gltbalproj(xyear=Year=#glyear,xper=Period=#glper,xproj=Project=)"
+Trial Balance Datewise                         |#classPath+"/"+#servlet+"?page=*crystal gltbaldate_prj(xproj=Project=,xdate=From Date=#d,xdate=To date=#d)"
+-
+Income Statement                   |#classPath+"/"+#servlet+"?page=*crystal glpl_prj(xproj=Project,xyear=Year=#glyear,xper=Period=#glper,xhrc=Levels,xglrpt=Reoprt Type)"
+-
+Balance Sheet                      |#classPath+"/"+#servlet+"?page=*crystal glbalsht_prj(xproj=Project,xyear=Year=#glyear,xper=Period=#glper,xhrc=Levels,xglrpt=Reoprt Type)"
+-
+//-Section
+//Monthly Ledger                   |#classPath+"/"+#servlet+"?page=*crystal glledbmsec(xacc=From Account=0,xacc=To Account=zzz,~
+                                                           // xyear=Year=#glyear,xper=Period=#glper,xsec=Section)"
+//Annual Ledger                    |#classPath+"/"+#servlet+"?page=*crystal glledbsec(xacc=From Account=0,xacc=To Account=zzz,~
+                                                           // xyear=Year=#glyear,xper=Period=#glper,xsec=Section)"
+//Trial Balance                    |#classPath+"/"+#servlet+"?page=*crystal gltbbsec(xyear=Year=#glyear,xper=Period=#glper,xsec=Section)"
+-
+//Profit and Loss by Division      |#classPath+"/"+#servlet+"?page=*crystal papldivb(xyear=Year,xper=Period=,xhrc=Level=3,xdiv=Division=)"
+//Profit and Loss by Section       |#classPath+"/"+#servlet+"?page=*crystal paplsecb(xyear=Year=,xper=Period=,xhrc=Level,xsec=Section=)"
+//Profit and Loss by Project       |#classPath+"/"+#servlet+"?page=*crystal paplprjb(xyear=Year=,xper=Period=,xhrc=Level,xproj=Project)"
+//Profit and Loss by Div-Sec-Prj   |#classPath+"/"+#servlet+"?page=*crystal paplb(xyear=Year=,xper=Period=,xhrc=Level,xdiv=Division=,xsec=Section=,xproj=Project)"
+
+//-Division
+//Monthly Ledger                   |#classPath+"/"+#servlet+"?page=*crystal glledbmdiv(xacc=From Account=0,xacc=To Account=zzz,~
+                                                            //xyear=Year=#glyear,xper=Period=#glper,xdiv=Division)"
+//Annual Ledger                    |#classPath+"/"+#servlet+"?page=*crystal glledbdiv(xacc=From Account=0,xacc=To Account=zzz,~
+                                                            //xyear=Year=#glyear,xper=Period=#glper,xdiv=Division)"
+//Trial Balance                    |#classPath+"/"+#servlet+"?page=*crystal gltbbdiv(xyear=Year=#glyear,xper=Period=#glper,xdiv=Division)"
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+//Profit and Loss by Division      |#classPath+"/"+#servlet+"?page=*crystal @papldivb(xyear=Year=2001,xper=Period=,xhrc=Level,xdiv=Division=)"
+//Profit and Loss by Section       |#classPath+"/"+#servlet+"?page=*crystal @paplsecb(xyear=Year=2001,xper=Period=,xhrc=Level,xsec=Section=)"
+//Profit and Loss by Project       |#classPath+"/"+#servlet+"?page=*crystal @paplprjb(xyear=Year=2001,xper=Period=,xhrc=Level,xproj=Project=)"
+//Profit and Loss by Div-Sec-Prj   |#classPath+"/"+#servlet+"?page=*crystal @paplb(xyear=Year=2000,xper=Period=,xhrc=Level,xdiv=Division=,xsec=Section=,xproj=Project=)"
+//-Ledgers
+//Ledger by Division - Prime       |#classPath+"/"+#servlet+"?page=*crystal paleddivp(xacc=From Account=0,xacc=To Account=zzz,~
+//                                                            xyear=Year=2000,xper=Period=,xcur=Currency=,xdiv=Division=)"
+//Ledger by Division - Base        |#classPath+"/"+#servlet+"?page=*crystal paleddivbase(xacc=From Account=0,xacc=To Account=zzz,~
+//                                                            xyear=Year=2000,xper=From Period=,xper=To Period=,xdiv=Division=0,xdiv=Division=0)"
+//Trial Balance                    |#classPath+"/"+#servlet+"?page=*crystal gltbbprj(xyear=Year=#glyear,xper=Period=#glper,xproj=Project)"
+//Monthly Ledger                   |#classPath+"/"+#servlet+"?page=*crystal glledbmprj(xacc=From Account=0,xacc=To Account=zzz,~
+                                                           // xyear=Year=#glyear,xper=Period=#glper,xproj=Project)"
+//Annual Ledger                    |#classPath+"/"+#servlet+"?page=*crystal glledbprj(xacc=From Account=0,xacc=To Account=zzz,~
+                                                            //xyear=Year=#glyear,xper=Period=#glper,xproj=Project)"
+//-------------------------------------------------------------------
+

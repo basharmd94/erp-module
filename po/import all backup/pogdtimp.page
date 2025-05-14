@@ -1,0 +1,417 @@
+page pogdtimp
+    caption "<span class=bl>Details for MRR : <a href=/da/portal?page=pogrnimp&command=Show&xgrnnum="+xgrnnum+">" +xgrnnum+ "</a></span>"
+    //embed onload="move_caret('detail','xqty')"
+    sidebar list order
+    sections list pogrn, form detail, text top, script myscript
+
+    text top
+        "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list pogrn
+        caption "<font size=2>MRR Number "+globals(xgrnnum)
+        table pogrn
+        order xgrnnum
+        fixed xgrnnum
+        select "zid='"+#id+"' and xtypepor='Import'"
+        rows 1
+        objects xgrnnum attrib(link #servlet+"?page=pogrnimp&command=Show&xgrnnum=?"), ~
+                xsup,supdesc equals((select xorg from casup where zid=pogrn.zid and xsup=pogrn.xsup))
+
+        field xgrnnum
+            caption MRR No
+        end field
+        
+        field supdesc
+        	storage varchar
+        	caption Name
+        end field
+
+    end list
+     
+    list order
+        caption "Details for MRR "+xgrnnum
+        //table pogdt
+        table (select * , ~
+					(select xdesc from caitem where caitem.zid=pogdt.zid and caitem.xitem=pogdt.xitem) as Item_Name ~
+				 from pogdt) as tbl
+        order xgrnnum,xrow
+        fixed xgrnnum
+        select "zid='"+#id+"'"
+        rows 20
+        objects xrow attrib(link #servlet+"?page=pogdtimp&command=Show&xgrnnum=?&xrow=?"), ~
+                xitem,Item_Name,~
+                xqty
+
+        field desc
+            storage varchar
+            caption Description
+        end field
+        
+        field xqty
+            len 10.2
+        end field
+
+        field xstatusgdt
+            caption MRR Detail Status
+        end field
+
+        totals count,"","Totals",sum,"","",sum,""
+
+    end list
+
+    form detail
+        //caption "<font color=black size=3>Detail for : "+globals(xgrnnum)
+        valid valid,access
+        table pogdt
+        order xgrnnum,xrow
+        fixed xgrnnum
+        select "zid='"+#id+"'"
+        layout 1
+        objects Show,Add attrib(hidden),Update, Asset Details,Delete attrib(hidden),Return, Top, Previous, Next, Bottom,~
+                xrow attrib(search), xstatusgdt display(hide),~
+                xitem attrib(attach),desc,xqty attrib(attach),xunitpur display(const),xchgapply,~
+                xcode display(hide), xcodebasis attrib(hidden), xlong attrib(hidden), ~
+                xwh attrib(hidden), ~
+                xdropship attrib(hidden), xcur attrib(hidden),~
+                xcfpur attrib(hidden), xwtunit attrib(hidden),xunitwt attrib(hidden),~
+                xpricebasis attrib(hidden), ~
+                xrate display(const),xdisc display(hide),xdiscf display(hide), ~
+                xcomm attrib(hidden), xexch attrib(hidden),~
+                xcurprice attrib(hidden), xexchbuy attrib(hidden),xprice attrib(hidden),~
+                xtaxcat attrib(hidden), ~
+                xtaxcode1 attrib(hidden),xtaxrate1 attrib(hidden),~
+                xtaxcode2 attrib(hidden),xtaxrate2 attrib(hidden),~
+                xtaxcode3 attrib(hidden),xtaxrate3 attrib(hidden),~
+                xtaxcode4 attrib(hidden),xtaxrate4 attrib(hidden),~
+                xtaxcode5 attrib(hidden),xtaxrate5 attrib(hidden),xpornum display(const),~
+                xqtygrn display(hide),xlandcost display(hide),xdttax display(hide),~
+                xlineamt display(const),xdtdisc display(hide),~
+                xdtwotax display(hide),ximtrnnum display(const),xstype display(const), xqtycrn display(hide)
+
+		field show
+			event before
+				set globals(temp) = xrow
+				set globals(tempitem)=xitem
+			end event
+			event after
+				set globals(temp) = xrow
+				set globals(tempitem)=xitem
+			end event
+		end field
+
+		field Top
+			event before
+				set globals(temp) = xrow
+				set globals(tempitem)=xitem
+			end event
+			event after
+				set globals(temp) = xrow
+				set globals(tempitem)=xitem
+			end event
+		end field
+
+        field xrow
+            event before
+                set chkpartial=#sql(str, "select xpartial from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                if #result .eq. "true" .and. chkpartial .ne. "Allowed"
+                    set #field(update.display)="hidden"
+                end if
+            end event
+            event after
+                set globals(xrow) = xrow
+                set grnstatus=pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                if grnstatus .ne. #status("xstatusgrn",1)
+                    set #field(Update.display) = "disable"
+                    set #field(Delete.display) = "disable"
+                    set #field(xitem->.display) = "const"
+                end if
+                set xstatusgdt=pogdt.xstatusgdt("zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+                if xstatusgdt .eq. "LC Shipment"
+                    set #field(Update.display) = "disable"
+                    set #field(Delete.display) = "disable"
+                    set #field(xitem->.display) = "const"
+                end if
+                set xalias=caitem.xalias("zid='"+#id+"' and xitem=(select xitem from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"')")
+                if xalias .ne. "Fixed Asset"
+                    set #field(Asset.display) = "disable"
+                end if
+                set #field(xlineamt.caption) = "<font color=red>"+#field(xlineamt.caption)+"</font>"
+            end event
+        end field
+
+        field desc
+            attrib local
+            display constant
+            caption Description
+            event after
+                set desc=#sql("select xdesc from caitem where zid='"+#id+"' and  xitem='"+xitem+"'")
+            end event
+        end field
+
+        field xstatusgdt
+            caption MRR Detail Status
+        end field
+
+        field xrate
+            display const
+        end field
+
+        field xitem
+            event after
+            	set globals(xitem)=xitem
+            	set globals(xpornum)=xpornum
+            	set globals(xitem)=xitem
+            	set globals(xdesc)=xdesc
+            	set globals(xwh)=xwh
+            	set globals(xqty)=xqty*xcfpur
+            	set globals(returnpage)=page
+            	set globals(trnfield)="xgrnnum"
+            	set globals(xgrnnum)=xgrnnum
+            end event
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk) = "1"
+                error " "
+            end event
+        end field
+
+        field Delete
+            event before
+                set globals(ErrChk) = "1"
+                error " "
+            end event
+        end field
+
+        field update
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                	if xrow .ne. globals(xrow)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrow .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set grnstatus=pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if grnstatus .ne. #status("xstatusgrn",1)
+                    	set globals(ErrChk) = "1"
+                    	error "Cannot "+#command+"; Status "+grnstatus
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusgdt=pogdt.xstatusgdt("zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+                    if xstatusgdt .eq. "LC Shipment"
+                        set globals(ErrChk) = "1"
+                    	error "Cannot "+#command+"; Because "+xstatusgdt
+                    end if
+                end if
+                
+                if globals(ErrChk) .ne. "1"
+                    set globals(oldqty) = pogdt.xqty("zid='"+#id+"' and xpornum = '"+globals(xpornum)+"' and xrow='"+globals(xrow)+"'")
+                    string crosslimit=podef.xcrosslimit("1=1")
+                    if crosslimit .eq. "1"
+                    else
+                        if xqty > xqtygrn
+                          set globals(ErrChk) = "1"
+                          error "Qty can not be more than "+xqtygrn+".<br>"
+                        end if
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    double poordqty=0.00+poodt.xqtyord("zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")
+                    double grnqty=0.00+#sql(double,"select sum(xqty) from pogdt where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")
+                    double oldgrnqty=0.00+pogdt.xqty("zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+
+                    double zqty=0.00+poordqty-grnqty
+                    double chkqty=0.00+poordqty-grnqty+oldgrnqty
+
+                    string crosslimit=podef.xcrosslimit("1=1")
+                    if crosslimit .eq. "1"
+                    else
+                    	if zqty<>0
+                    		if xqty>chkqty
+                    			error "Quantity exceeds"
+                    		end if
+                    	else
+                    		if xqty>oldgrnqty
+                    			error "Quantity exceeds"
+                    		end if
+                    	end if
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xchgapply .eq. "Yes"
+                		set xdtwotax = 0.0+xprice*xqty
+                		set xrate = 0.0+xprice
+                	else
+                		set xdtwotax = 0.0+xprice*xqtygrn
+                		set xrate = 0.0+xdtwotax/xqty
+                	end if
+
+                  	if xtaxrate1 > 0.0
+                  		set xtaxrate1 = 0.00+xtaxrate1
+                  		set temprat=0.0+xtaxrate1/100
+                  		set xdttax = 0.0+xrate*xqty*temprat
+                  	end if
+                  	if xdisc > 0.0
+                  		set xdisc = 0.00+xdisc
+                  		set tempdis=0.0+xdisc/100
+                  		set xdtdisc = 0.0+xrate*xqty*tempdis
+                  	end if
+                  	set xlineamt = 0.0+xdtwotax+xdttax-xdtdisc
+                end if
+            end event
+            event after
+                if globals(ErrChk) .ne. "1"
+                	double oldgrnqty=0.00+oldgrnqty*xcfpur
+                	double qty=0.00+xqty*xcfpur
+                	double grnqty=0.00+#sql(double,"select sum(xqty) from pogdt where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")
+
+                	set test=#sql(int,"update poodt set xqtygrn="+grnqty+" where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")
+
+                	if poodt.xqtyord("zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")<>grnqty
+                		set temp=#sql(int,"update poord set xstatuspor='"+#status("xstatuspor",4)+"' where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                	else
+                		set temp=#sql(int,"update poord set xstatuspor='"+#status("xstatuspor",5)+"' where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                	end if
+
+                	call upd_stath
+                end if
+            end event
+        end field
+
+		embed onsubmit="submitit(this)"
+
+		field Return
+			embed onclick="clicked(this)"
+		end field
+		
+		field Batch
+			embed onclick="batch(this)"
+		end field
+		
+		field SerialNumbers
+			embed onclick="serial(this)"
+		end field          
+
+		field Asset
+			embed onclick="asset()"
+		end field
+
+    end form
+
+    script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+        $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+        });
+        $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+        });
+        $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+        });
+        $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+        });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+            detail="clicked"
+        }
+        function batch(b){
+            detail="batch"
+        }
+        function asset(){
+            detail="asset"
+        }
+        function serial(b){
+            detail="serial"
+        }
+
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "pogrnimp"
+            form.searchbutton.value = "Find xgrnnum=?"
+          }else if (detail=="batch"){
+            form.page.value = "pogdtimpbat"
+            form.searchbutton.value = "Top"
+          }else if (detail=="serial"){
+            form.page.value = "imserin"
+            form.searchbutton.value = "Top"
+          }
+          else if (detail=="asset"){
+            form.page.value = "pofatrnimp"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        </script>
+    end script
+
+    method upd_stath
+        set totdisc = 0.0+#sql(decimal,"select sum(xdtdisc) from pogdt where zid='"+#id+"' and xgrnnum='"+globals(xgrnnum)+"'")
+        set tottax = 0.0+#sql(decimal,"select sum(xdttax) from pogdt where zid='"+#id+"' and xgrnnum='"+globals(xgrnnum)+"'")
+        set totwotax = 0.0+#sql(decimal,"select sum(xdtwotax) from pogdt where zid='"+#id+"' and xgrnnum='"+globals(xgrnnum)+"'")
+        set totgamt = 0.0+#sql(decimal,"select sum(xdtwotax+xdttax) from pogdt where zid='"+#id+"' and xgrnnum='"+globals(xgrnnum)+"'")
+        set totamt = 0.0+#sql(decimal,"select sum(xlineamt) from pogdt where zid='"+#id+"' and xgrnnum='"+globals(xgrnnum)+"'")
+        str mysql = "update pogrn set xdttax="+tottax+",xdtdisc="+totdisc+",xdtwotax="+totwotax+",xval="+totgamt+",xtotamt="+totamt+" where zid='"+#id+"' and xgrnnum='"+globals(xgrnnum)+"'"
+        set tmpstr = #sql(str,mysql)
+    end method
+	 
+    valid valid
+        config
+        	set globals(pkey) = xgrnnum+" "+xrow
+
+            set grnstatus=pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+            if grnstatus .ne. #status("xstatusgrn",1)
+                set #field(Update.display) = "disable"
+                set #field(Delete.display) = "disable"
+                set #field(xitem->.display) = "const"
+            end if
+
+            set xalias=caitem.xalias("zid='"+#id+"' and xitem=(select xitem from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"')")
+            if xalias .ne. "Fixed Asset"
+                set #field(Asset.display) = "disable"
+            end if
+
+        end config
+    end valid
+
+#include access.valid
+
+end page

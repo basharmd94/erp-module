@@ -1,0 +1,28 @@
+//Customers.menu
+caption "Customers" page
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Customer Master                       |#classPath+"/"+#servlet+"?page=cacus"                   |common
+-
+Customer Groups                       |#classPath+"/"+#servlet+"?page=xcodes(xtype=Customer Group)" |common
+-Setup
+
+Zone                                  |#classPath+"/"+#servlet+"?page=casalshrc1"
+-
+Customer List                         |#classpath+"/"+#servlet+"?page=*crystal cacuslist(xcus=From Customer=,xcus=To Customer=zzz)"
+-
+Customer List  (Area Blank)                       |#classpath+"/"+#servlet+"?page=*crystal cacuslistare(xcus=From Customer=,xcus=To Customer=zzz)"
+-
+Area Wise Customer List                        |#classpath+"/"+#servlet+"?page=*crystal cacuslistarew(xarea=From Area==text=list xarea,xarea=To Area==text=list xarea,)"
+-
+Supplier List                         |#classpath+"/"+#servlet+"?page=*crystal casuplist(xsup=From Supplier=,xsup=To Supplier=zzz)"
+--
+Tax Category                     |#classPath+"/"+#servlet+"?page=xcodes(xtype=Tax Category)"
+Tax Scope                        |#classPath+"/"+#servlet+"?page=xcodes(xtype=Tax Scope)"
+Tax Code                         |#classPath+"/"+#servlet+"?page=xcodes(xtype=Tax Code)"
+Industry Segment                         |#classPath+"/"+#servlet+"?page=xcodes(xtype=Ind Segment)"
+
+
+
+

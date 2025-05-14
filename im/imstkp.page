@@ -1,0 +1,91 @@
+page imstkp
+     caption "Stock Parameters"     
+     sidebar list imstk
+     sections form detail,list stock, script myscript,imstk
+
+
+     list stock
+        caption "<br><center><b>Inventory Status for <font color=red >"+xitem+"</font>: "+xdesc+"</b><p>"
+        table imstock
+        order xitem,xwh
+        fixed xitem
+        select "xinhand+xopdor+xpoord+xpogrn>0"
+        rows 20
+        objects xwh, ~
+                xavail equals(xinhand-xopdor-xwoalc-xwokit-xtoout), ~
+                xinhand,xopord,xopdor,~
+                xpoord,xpogrn,xtoout,xaltqty
+
+        totals "Totals",sum,sum,sum,sum,sum,sum,sum,sum
+
+     end list
+     
+     list imstk
+     	caption "Stock Parameters"
+        table imstk
+        order xitem,xwh
+        rows 15
+        objects xitem,xwh attrib(link #servlet+"?page="+page+"&command=Show&xitem=?&xwh=?"), ~
+			xreordlvl,xreordqty,xlmin,xminordqty, xlsafe,xlmax
+			
+     end list     
+     
+     form detail
+        table imstk
+        order xitem,xwh
+        //select
+        
+        layout 2
+        objects Show, Clear,Add,Update, Delete,Previous, Next,~
+          xitem attrib(attach), itemdesc, xwh,xreordlvl,xreordqty,xlmin,xminordqty, xlsafe,xlmax
+                  
+		field itemdesc
+			caption Description
+			attrib local
+			width 50
+			display const
+			event after
+				set xtempstr1=caitem.xdesc("xitem='"+xitem+"'")
+			end event
+		end field
+    
+		field xitem
+			event after
+				set globals(xitem)=xitem
+			end event
+		end field
+		
+		field xlong
+			display text
+		end field
+
+        embed onsubmit="submitit(this)"
+
+	end form
+
+    script myscript
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "caext"
+            form.searchbutton.value = "Find xitem=?"
+          }
+        }
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.detail.xcode.value=link.text
+          }else{
+            document.detail.xcode.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+     
+end page

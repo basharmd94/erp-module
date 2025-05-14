@@ -1,0 +1,126 @@
+page prothskills
+     
+	 embed onload="move_caret('one','xemp')"
+     caption "Other Skills"
+     //sidebar text one
+     sections form one, list one, script myscript, text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        caption "List of Employee(s)"
+        table prmst
+        order xemp
+  	     navigators alpha
+        rows 5
+        objects xemp attrib(link #servlet+"?page="+page+"&command=Show&xemp=?"),~
+                xname,xdesig,xdept,xcostcent,xjoindate
+
+        field xcostcent
+           caption Location
+        end field
+
+        field xjoindate
+          caption DOJ
+        end field
+        
+        field xfirst
+            caption Name
+        end field
+
+     end list
+
+     form one
+        //caption "<font color=black size=4>Educational Background Info</font>"
+        table prmst
+        order xemp
+        layout 2
+        objects Show,Computer_skills,Languages_Course,Language_Ability,Clear, Top, Previous, Next, Bottom,~
+            xemp attrib(search),xname,xdesig,xdept,xcostcent,xjoindate
+
+           field xemp
+              event after
+                set globals(xemp)=xemp
+                set globals(xname)=xname
+                set globals(xfirst)=xfirst
+              end event
+           end field
+
+           field xcostcent
+              caption Location
+           end field
+           
+           field xname
+              width 30
+              display const
+           end field
+           
+        field xfirst
+            caption Name
+            display const
+        end field
+           
+           field xjoindate
+             caption Date of Joining
+           end field
+        
+           embed onsubmit="submitit(this)"
+
+           field Computer_skills
+            embed onclick="Details(this)"
+           end field
+           
+           field Languages_Course
+            embed onclick="Languages_Course(this)"
+           end field
+           
+           field Language_Ability
+            embed onclick="Language_Ability(this)"
+           end field
+           
+  end form
+
+     text one
+        //"<object border=0 data=images/"+xemp+".gif type=""text/images"" height=100% width=100% ></object>"
+        "<img border=1 src=html/images/"+xemp+".jpg>"
+        "<p><b>"+xname+"</b><br>"                
+     end text
+     
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function Details(b)
+        {
+          detail="details"
+        }
+        
+        function Languages_Course(b)
+        {
+          detail="Languages_Course"
+        }
+        function Language_Ability(b)
+        {
+          detail="Language_Ability"
+        }
+        function submitit(form){
+          if (detail=="details"){
+            form.page.value = "prcomskills"
+            form.searchbutton.value="Top"
+          }
+          if (detail=="Languages_Course"){
+            form.page.value = "prlanguage"
+            form.searchbutton.value="Top"
+          }
+          if (detail=="Language_Ability"){
+            form.page.value = "prlanguageable"
+            form.searchbutton.value="Top"
+          }
+         }
+        </script>
+     end script
+
+end page

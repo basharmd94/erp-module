@@ -1,0 +1,11 @@
+product ERP on the Net
+
+table pocnf
+  caption "CnF Information"
+  columns  ztime,zutime,zid,xpornum,xline,xdateesc,xdateund,xdatefrom,xdateto,xlong
+  primary key zid, xpornum,xline
+  foreign key
+        zid references zbusiness.zid
+        zid,xpornum references poilc.zid,xpornum        
+  end foreign key
+end table

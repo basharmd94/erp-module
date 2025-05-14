@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table imgli
+  caption "IM to GL Interface"
+  columns ztime,zutime,zid,ximtrn,xwh,xgitem,xaccdr,xsubdr
+  
+  primary key zid, ximtrn,xwh,xgitem
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  list xaccdr,xacccr
+
+end table

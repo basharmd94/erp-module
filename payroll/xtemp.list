@@ -1,0 +1,19 @@
+     list xtemp
+        table prmst
+        order xemp
+        select "(xemp like '%"+zvalue+"%' or xname like '%"+zvalue+"%')"
+        navigators alpha
+        rows 20
+        objects xemp attrib(link "abc" embed onclick="return updateParent(this:'xempt')"), ~
+                xname
+
+        field xemp
+          caption Employee Code
+        end field
+
+        field xname
+          caption Employee Name
+        end field
+     end list
+
+

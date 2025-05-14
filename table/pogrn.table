@@ -1,0 +1,20 @@
+product ERP on the Net
+
+table pogrn
+  caption "Goods Receipts Note"
+  columns ztime,zutime,zid,xgrnnum,xdate,xpornum,xshiplno,xrow,xsinnum,xsup,~
+          xsupref,xdatesupref,xdatedue,xdiv,xsec,xproj,~
+          xstatusgrn,xcur,xexch,xglref,xwh,xrem,xdisc,~
+          xdtwotax,xdtdisc,xdttax,xval,xdiscamt,xtotamt,zemail,xemail,~
+          xstatusqc,xref,xtwh,xtypepor,xwhoption,xteam,xmember,xmanager,xconuser,xconfirmt,~
+		  xfailer,xfailedt,xreviser,xreviset,xinvuser,xinvoicet,xdiscf
+
+  primary key zid, xgrnnum
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xsup references casup.zid,xsup
+        zid,xpornum references poord.zid,xpornum        
+  end foreign key
+
+end table

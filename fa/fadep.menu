@@ -1,0 +1,8 @@
+//Fixed Asset menu
+//-------------------------------------------------------------------
+caption "Depreciation" page 3
+option                           |action
+//-------------------------------------------------------------------
+//Monthly Depreciation             |#classPath+"/"+#servlet+"?page=fadpprocs_mth"
+Yearly Depreciation              |#classPath+"/"+#servlet+"?page=fadpprocs_year"
+//-------------------------------------------------------------------

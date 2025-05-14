@@ -1,0 +1,21 @@
+     list xemp1
+        caption "Employees containing: <font color=red>"+zvalue+"</font>"
+        
+        select #query(zvalue xemp,xname, xdept,xdesig)
+        
+        table prmst
+        order xemp
+        //select none
+        navigators alpha
+        rows 20
+        //objects  xcur attrib(link #servlet+"?page=xcur&command=Show&xcur=?"),
+        objects xemp attrib(link "javascript:void(0);" embed onclick="return updateParent(this:'$')"), ~
+                xname, xdept,xdesig
+
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

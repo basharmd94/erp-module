@@ -1,0 +1,13 @@
+list xsubrpt
+	caption "List of Accounts"
+	//table glsub
+	table (select *,~
+			(select xdesc from glmst where zid=glsub.zid and xacc=glsub.xacc) as name ~
+			 from glsub) as tbl
+	order xacc,xsub
+	//fixed xacc
+	//select "(xacc like '%"+zvalue+"%' or xsub like '%"+zvalue+"%' or xdesc like '%"+zvalue+"%')"
+	rows 500
+	objects name caption(Accounts Name),xsub attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+			xdesc
+end list

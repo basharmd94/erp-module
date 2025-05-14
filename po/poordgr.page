@@ -1,0 +1,36 @@
+page poordgr
+
+    caption "GRN Creation"
+    sections form imtrn,script myscript
+
+    form imtrn      
+      layout 1
+      objects ~
+              Create GRN,Show,Top,xpornum
+
+        field xpornum
+        	pick list xpornum
+        end field
+        
+#include pogrn_create.methods
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+          }
+        }
+        </script>
+    end script
+    
+end page

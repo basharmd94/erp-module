@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table cadef
+  caption "Cross Application Defaults"
+  columns ztime,zutime,zid,~
+        xwh,xcrlimitcus,xcrlimitsup,xnoautocus,xnoautosup,xbatchformat,xsuppressdesc inherits(xnoautosup),~
+		xautoemp,xappdiv,xappsec,xappproj,xsingaccsup,xsingacccus,xratehistory,xdatecheck,xaitp,xautoitem,xinvmenret,xdefwhpo,xdefwhop,~
+		xdefcus,xdefsup,xaccdupcheck//,xgstinc
+
+  primary key zid
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table
+
+

@@ -1,0 +1,11 @@
+//poreq.menu
+caption "Purchase Requisitions" page 3
+//-------------------------------------------------------------------
+option                |action
+//-------------------------------------------------------------------
+Requisition Entry     |#classPath+"/"+#servlet+"?page=poreqinter_entry&command=clear"
+Requisitions Approval |#classPath+"/"+#servlet+"?page=poreqappim_app&command=clear"
+
+//Requisitions Entry    |#classPath+"/"+#servlet+"?page=poreqim&command=clear"
+//Requisitions Approval |#classPath+"/"+#servlet+"?page=poreqappim&command=clear"
+//-------------------------------------------------------------------

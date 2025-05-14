@@ -1,0 +1,139 @@
+page casalshrc3
+     caption header
+     sidebar list dist
+     sections form one, list four, script myscript
+
+	list dist
+        caption "List of all Area in "+xdiv
+        table casalshrc3
+        order xstate,xdiv,xdistrict
+        fixed xstate,xdiv
+        rows 20
+        objects xdistrict caption(Area) attrib(link #servlet+"?page=casalshrc3&command=Show&xstate=?&xdiv=?&xdistrict=?"),~
+				xdiv,xname caption(Area Manager)
+     end list
+     
+	 list four
+        caption "List of all Sub Area in "+xdistrict
+        table casalshrc4
+        order xstate,xdiv,xdistrict,xthana
+        fixed xstate,xdiv,xdistrict
+
+        rows 20
+        objects xthana caption(Sub Area) attrib(link #servlet+"?page=casalshrc4&command=Show&xstate=?&xdiv=?&xdistrict=?&xthana=?"),xname caption(Sub Area Manager)
+     end list
+
+     form one
+		valid valid,access
+        table casalshrc3
+        order xstate,xdiv,xdistrict
+        fixed xstate,xdiv
+        layout 1
+        objects Sub Area,Show, ~//Back to Zone
+               Add, Update, Delete,Clear,Previous, Next,"" ,~
+               xdistrict display(text),xtype caption(Type) display(const),xdescdet,xcode,xemp caption(Area Manager) attrib(submit),~
+			   xname display(const),zactive,zemail display(const) caption(Added By)
+             
+        field xdistrict
+		   capption Area
+          event after
+            set globals(xdistrict)=xdistrict
+          end event
+        end field
+        
+		field xemp
+			//pick "select xemp from prmst where zid='"+#id+"'"
+			pick list xemp1
+		end field
+		
+        field add
+        	event before
+        		set globals(ErrChk) = ""
+        		
+				if globals(ErrChk) .ne. "1"
+					set chkemp = #sql(str,"select xemp from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+					//pick "select xemp from prmst where zid='"+#id+"'"
+					if #result .ne. "true"
+						set globals(ErrChk)=1
+						error "The Area Manager Does not Exist."
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+				    //set tmpstr = #sql(str,"select xcode from xcodes where zid='"+#id+"' and xtype='Warehouse' and xcode='"+xdistrict+"'")
+				    //if #result .ne. "true"
+						//set myqry = "insert into xcodes (ztime, zid, xtype, xcode, xdescdet, xprops,xcodealt,zactive)"
+						//set myqry = myqry + " values('"+#time+"','"+#id+"','Warehouse','"+xdistrict+"','','','','1')"
+						//set tmpstr =#sql(myqry)		
+					//end if 
+					set xname=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+					set zemail=#user
+					set xtype="Area"
+					set zactive="1"
+				end if
+			end event
+        end field
+
+        field update
+        	event before
+        		set globals(ErrChk) = ""
+        	end event
+        end field
+        
+        field delete
+        	event before
+        		set globals(ErrChk) = ""
+        	end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Back
+          embed onclick="clicked(this)"
+        end field
+
+        field Sub
+          embed onclick="grouped(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but = ""
+        function clicked(b){
+          but = "clicked"
+        }
+        function grouped(b){
+          but = "grouped"
+        }
+        function submitit(form){
+          if (but == "clicked"){
+            form.page.value = "casalshrc2"
+            form.searchbutton.value = "Find xstate=?&xdiv=?"
+
+          }
+          if (but == "grouped"){
+            form.page.value = "casalshrc4"
+            form.searchbutton.value = "Find xstate=?&xdiv=?&xdistrict=?"
+
+          }
+        }
+
+        </script>
+     end script
+
+     valid valid
+     	config
+     		set globals(pkey)=xstate+" "+xdiv+" "+xdistrict
+			set zactive="1"
+			set xname=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+			set header = "<font color=green size=4+>Area</font><br>"
+			
+     	end config
+     end valid
+
+#include access.valid
+          
+end page

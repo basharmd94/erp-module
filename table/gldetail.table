@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table gldetail
+  caption "GL Detail"
+  columns ztime,zutime, zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,xdiv,xsec,xproj,~
+           xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,xstatusrfp,~
+           xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,xstatus,xtypegl,~
+           xinvnum,xref,xoriginal,xdateapp,xpaycode,xexchval,xdateclr,xflag,xdatedue,xdoctype,xdocnum
+
+  primary key zid, xvoucher, xrow
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xvoucher references GLheader.zid,xvoucher
+        zid,xacc references glmst.zid,xacc        
+  end foreign key
+end table

@@ -1,0 +1,12 @@
+product ERP on the Net
+
+table prtada
+	caption "Employee TA/DA"
+	columns ztime, zutime, zid, xgrade,xholialw,xhltchg,xhltchgo,xdaholt,zemail,xemail
+	
+	primary key zid,xgrade 
+	
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+end table

@@ -1,0 +1,11 @@
+list xopqot
+	caption "Sales Quation List"
+	table opqot
+	order xopqot
+	
+	select "(xopqot like '%"+zvalue+"%')"
+	rows 50
+	objects xopqot attrib(link "abc" embed onclick="return updateParent(this:'')")
+		
+		
+end list

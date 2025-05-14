@@ -1,0 +1,526 @@
+page faaddaircn
+	 
+     caption "Addition Entry"
+     sections form one, list one,text top, script myscript
+     
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list one
+        table fatrn
+        caption "List of Transactions"
+        order xvoucher DESC
+        select "(xvoucher like 'AD%')"
+        rows 20
+        objects  xvoucher attrib(link #servlet+"?page="+page+"&command=Show&xvoucher=?"),~
+                 xcode,xastname,xdate,xdepmeth,xastcatg,xprime
+     end list
+
+     form one
+		valid valid
+        table fatrn
+        order xvoucher DESC
+        select "(xvoucher like 'AD%')"        
+        layout 2
+        objects Add,Show, Clear, Update, Top, Previous, Delete, Next, Bottom,~
+                xtrnfa,xvoucher display(text),xdate default(#d),~
+                xcode attrib(submit),asset_name,xastname,xyear display(constant),xper display(constant),~
+                xastcatg,xasttype,xastbr,xastunit,xastloc,xdiv,xsec,xproj display(hide),xdepmeth ,~
+                xdept display(const),xsubdept display(hide),~
+                xcur attrib(attach),xexch display(const),xprime attrib(attach),xbase,~
+                xdepfactor display(hide),xsup ,xinvno display(hide),~
+                xastbook,xnomlife display(hidden),xestlife display(hide),xslvval display(hide),~
+                xretdate default(#d)display(hidden),xglref,xpornum, xdateto, xcepno,xlong,xleasestat display(hide),~
+                xmortgstat display(hide),xassetstat display(hide),~
+                xpurdate display(hide),xprvunit display(hide),xprvbr display(hide),xprvloc display(hide),~
+                xprvdiv display(hide),xprvsec display(hide),xprvproj display(hide),xcus display(hide),~
+                xmodel display(hide),xcondition display(hide),xmaxload display(hide),xunitalt display(hide),~
+				xmfgyear display(hide),xorigin display(hide),xmanufacturer display(hide),xarea display(hide),~
+				xthana display(hide),xmouza display(hide),xareagovt display(hide),xareaphys display(hide),~
+				xaruntgovt display(hide),xaruntphys display(hide),xdistrict display(hide),~
+				xdateord display(hide),xname display(hide),xalias display(hide)
+				
+
+        field Asset_search
+          event before
+            class osbcustom(search(xastname,"s","famst","xcode:xastname","pickAsset","xcode:xastname:xastcatg:xasttype:xastbr","yes","Code:Name:Category:Type:Branch"))
+          end event
+        end field
+		
+		field asset_name
+			display const
+			attrib local
+			event after
+				set asset_name=#sql("select xastname from famst where zid='"+#id+"' and xcode='"+xcode+"'")
+			end event
+		end field
+
+       field xdiv
+       	display const
+       	caption Company
+       end field
+
+       field xsec
+         display hide
+       end field
+
+        field xvoucher
+         display text
+         caption Transaction Number         
+         event after
+          	set globals(xvoucher)=xvoucher
+          	set voulen = #lenght(xvoucher)
+          	if voulen .eq. "10"
+          		set #field(xcode.display) = "const"
+          		set #field(xastname.display) = "const"
+          	end if
+         end event
+        end field
+
+        field xcode
+          caption Asset Code
+          pick list famst
+        end field
+
+        field xastcatg
+          display const
+          width 20
+          event after
+          	set globals(xastcatg)=xastcatg
+          end event
+        end field
+
+        field xastbook
+          //pick list fabook
+          display hide
+        end field
+
+        field xasttype
+          display const
+          pick list fatype
+        end field
+
+        field xastbr
+          //pick list fabranch
+          display hide		
+        end field
+
+        field xastunit
+      		pick list faunit
+      		display hide
+        end field
+
+        field xastloc
+          //pick list falocation
+          display const
+        end field
+
+        field xcur
+          display combo
+          //pick
+          default "BDT"
+        end field
+
+        field xexch
+          default "1.0000"
+        end field
+
+        field xdepmeth
+//          display combo
+//          pick "SL - Straight Line,RB - Reducing Balance,DD - Double Declining Balance,SY - Sum of the Years Digit,SP - Special"
+          display hide
+          default "SL - Straight Line"
+        end field
+
+        field xbase
+          display constant
+          event before
+            //class osbcustom(#calc(xprime,xexch,"*",2,xbase))
+            set xbase = 0.0+xprime*xexch
+          end event
+        end field
+
+        field xsupplier
+          pick list xsup
+        end field
+
+        field xglref
+          display hide
+        end field
+
+        field xlong
+        	width 50
+        	height 2
+        	col 3
+        end field
+        
+        field xdateto
+        	caption Purchase Date
+        	default #d 
+        end field
+        
+        field xcepno
+        	attrib local
+        	display hide
+        	caption CEP No.
+        	event after
+        		set xcepno = #sql("select xref from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+        	end event
+        end field
+        
+        field xtrnfa
+        	default "AD--"
+			display const
+        end field        
+
+        field Add
+          event before
+            set globals(ErrChk) = ""
+            str vtype = ""
+            set trntype = #sub (xvoucher,0,2)
+            set astcode = #sub (xcode,0,4)
+            set xassetstat="In Use"
+         
+			if globals(ErrChk) .ne. "1"
+	            if xtrnfa .sw. "AD"
+	            else
+	              set globals(ErrChk)="1"
+	              error "<font color=red size=+1>Transaction Type mismatch<br>Use Addition Code only.</font>"
+	            end if
+			end if
+
+			if globals(ErrChk) .ne. "1"
+				set astchk = #sql("select xcode from famst where zid='"+#id+"' and xcode='"+xcode+"'")
+				if #result .ne. "true"
+					set globals(ErrChk)="1"
+					error "<font color=red size=+1>Invalid Asset Selected</font>"
+				end if
+			end if
+
+			if globals(ErrChk) .ne. "1"
+				if xpornum .ne. ""
+					set chkpo = #sql("select xpornum from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+						error "<font color=red size=+1>Wrong P.O. Number</font>"
+					else
+						set xsup = #sql("select xsup from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+						set xcur = #sql("select xcur from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+						set xexch = #sql(decimal,"select xexch from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+						set xprime = #sql(decimal,"select xtotamt from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+						set xdateto = #sql("select xdate from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+						set xbase = 0.0+xprime*xexch
+					end if
+				else
+					set xbase = 0.0+xprime*xexch
+				end if
+			end if
+			
+			if globals(ErrChk) .ne. "1"
+				set xdept = #sub(xcode,8,3)
+				set xsubdept = #sub(xcode,10,2)
+			end if
+			
+            if globals(ErrChk) .ne. "1"
+              buffer famst
+              move famst = famst(xcode)
+              if #result .ne. "true"
+                set globals(ErrChk)="1"
+                error "Asset code not found in Asset Master<br>Addition not allowed, Use <font color=blue>ADDITION</font>."
+              else
+                set xastname=famst.xastname
+                set xastcatg=famst.xastcatg
+                set xastbook=famst.xastbook
+                set xasttype=famst.xasttype
+                set xastunit=famst.xastunit
+                set xastbr=famst.xastbr
+                set xastloc=famst.xastloc
+                set xdiv=famst.xdiv
+                set xsec=famst.xsec
+                set xdept=famst.xdept
+                set xproj=famst.xproj
+              end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+                int offset
+                int per
+                int year=#sub(xdate,0,4)
+                int tempper
+                int tempyear
+                set offset=castatus.xinteger("zid='"+#id+"' and xtypestatus='GL Period Offset'")
+                set per=12+#sub(xdate,5,2)-offset
+                if per<=12
+                    set xper=per
+                    set xyear=year-1
+                else
+                    set xper=per-12
+                    set xyear=year
+                end if
+
+				str mysql = #sql(str,"select xvoucher from fatrn where zid='"+#id+"' and xvoucher like '"+xtrnfa+"%' order by xvoucher desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,6)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set xvoucher = xtrnfa + mysql                        
+            end if
+           end event
+           event after
+            if #result .eq. "true" .and. globals(ErrChk) .ne. "1"
+              call ast_ad
+            end if
+           end event
+        end field
+
+        field Update
+          event before
+            set globals(ErrChk)=""
+            set trntype=#sub (xvoucher,0,2)
+
+            if globals(ErrChk) .ne. "1"
+              if globals(xvoucher) .ne. xvoucher
+                set globals(ErrChk) = "1"
+                error "Cannot Update, Show First!"
+              end if
+            end if
+
+			if globals(ErrChk) .ne. "1"
+	            if xtrnfa .sw. "AD"
+	            else
+	              set globals(ErrChk)="1"
+	              error "<font color=red size=+1>Transaction Type mismatch<br>Use Addition Code only.</font>"
+	            end if
+			end if
+
+            if globals(ErrChk) .ne. "1"
+              set myqry = "select xcode from fatrn where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'"
+              set tmpchk = #sql(myqry)
+              if #result .ne. "true"
+                set globals(ErrChk)="1"
+                error "<font color=red size=+1>Invalid Voucher Number.</font>"
+              else
+                if tmpchk .ne. xcode
+                  set globals(ErrChk)="1"
+                  error "<font color=red size=+1>Cannot Change Asset Code.</font>"
+                end if
+              end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              set mysql="select xcode from famst where zid='"+#id+"' and xcode='"+xcode+"'"
+              set tmpchk=#sql(mysql)
+              if #result .ne. "true"
+                set globals(ErrChk)="1"
+                error "<font color=red size=+1>Asset Code Not found in Asset Master<br>Please Check Asset Code.</font>"
+              end if
+            end if
+
+			if globals(ErrChk) .ne. "1"
+				if xpornum .ne. ""
+					set chkpo = #sql("select xpornum from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+						error "<font color=red size=+1>Wrong P.O. Number</font>"
+					else
+						set xsup = #sql("select xsup from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+						set xcur = #sql("select xcur from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+						set xexch = #sql(decimal,"select xexch from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+						set xprime = #sql(decimal,"select xtotamt from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+						set xdateto = #sql("select xdate from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+						set xbase = 0.0+xprime*xexch
+					end if
+				else
+					set xbase = 0.0+xprime*xexch
+				end if
+			end if
+                        
+            if globals(ErrChk) .ne. "1"
+                int offset
+                int per
+                int year=#sub(xdate,0,4)
+                int tempper
+                int tempyear
+                set offset=castatus.xinteger("zid='"+#id+"' and xtypestatus='GL Period Offset'")
+                set per=12+#sub(xdate,5,2)-offset
+                if per<=12
+                    set xper=per
+                    set xyear=year-1
+                else
+                    set xper=per-12
+                    set xyear=year
+                end if
+
+            end if
+          end event
+
+          event after
+            if #result .eq. "true" .and. globals(ErrChk) .ne. "1"
+              call upd_ast_ad
+            end if
+          end event
+        end field
+
+        field Delete
+          event before
+            set globals(ErrChk) = ""
+            set trntype=#sub (xvoucher,0,2)
+         
+            if globals(ErrChk) .ne. "1"
+              if globals(xvoucher) .ne. xvoucher
+                set globals(ErrChk) = "1"
+                error "Cannot Delete, Show First!"
+              end if
+            end if
+
+            if xtrnfa .sw. "AD"
+            else
+              set globals(ErrChk)="1"
+              error "<font color=red size=+1>Transaction Type mismatch<br>Use ADDITION Code only.</font>"
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              set myqry = "select xcode from fatrn where zid='"+#id+"' and xvoucher='"+xvoucher+"'"
+              set tmpchk = #sql(myqry)
+              if #result .ne. "true"
+                set globals(ErrChk)="1"
+                error "<font color=red size=+1>Invalid Voucher Number.</font>"
+              else
+                if tmpchk .ne. xcode
+                  set globals(ErrChk)="1"
+                  error "<font color=red size=+1>Asset Code Mismatch.</font>"
+                end if
+              end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              if xglref .ne. ""
+                set globals(ErrChk) = "1"
+                error "<font color=red size=+1>Transaction already posted to Accounts<br>Cannot DELETE record.</font>"
+              end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              set mysql="select xcode from famst where zid='"+#id+"' and xcode='"+xcode+"'"
+              set tmpchk=#sql(mysql)
+              if #result .ne. "true"
+                set globals(ErrChk)="1"
+                error "<font color=red size=+1>Asset Code Not found in Asset Master<br>Please Check Asset Code.</font>"
+              end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              set mysql="select xvoucher from famstad where zid='"+#id+"' and xcode='"+xcode+"' and xvoucher='"+xvoucher+"'"
+              set tmpchk=#sql(mysql)
+              if #result .ne. "true"
+                set globals(ErrChk)="1"
+                error "<font color=red size=+1>Transaction not found in ADDITION Master<br>Cannot Delete.</font>"
+              end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              set oldastcode = xcode
+              set oldvoucher = xvoucher
+            end if
+          end event
+
+          event after
+            if #result .eq. "true" .and. globals(ErrChk) .ne. "1"
+              set tmpstat = #sql("delete famstad where zid = '"+#id+"' and xcode = '"+oldastcode+"' and xvoucher='"+oldvoucher+"'")
+              if #result .ne. "true"
+                print "<h2><font color=red>System was unable to delete the ADDITION Master<br>Please delete ADDITION Master manually.<font>"
+              end if
+            end if
+          end event
+
+        end field
+
+        embed onsubmit="submitit(this)"
+        field details
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+      <script language="javascript" type="text/javascript">
+        var detail="" 
+
+        function clicked(b){
+          detail="clicked"
+        }
+        
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "fadetAir Conditioner"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        function pickAsset(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcode_ONE.value=link.text.substring(0,4)
+            document.one.xcode_TWO.value=link.text.substring(4)
+          }else{
+            document.one.xcode_ONE.value=link.innerText.substring(0,4)
+            document.one.xcode_TWO.value=link.innerText.substring(4)
+          }
+          return false
+        }
+
+      </script>
+     end script
+
+	method ast_ad
+		buffer famstad
+		move famstad = famstad(xcode,xvoucher)
+		set famstad.zid = #id
+		set famstad.xcode = xcode
+		set famstad.xvoucher = xvoucher
+		set famstad.xdate = xdate
+		set famstad.xyear = xyear
+		set famstad.xper = xper
+		set famstad.xcuradd = xcur
+		set famstad.xexchadd = xexch
+		set famstad.xprimeadd = xprime
+		set famstad.xbaseadd = xbase
+		set famstad.xsup = xsup
+		set famstad.xinvno = xinvno
+		insert famstad
+
+		if #result .ne. "true"
+			set globals(ErrChk)="1"
+			print "Asset Addition Master not Updated properly<br>Delete this record and try again."
+		end if
+	end method
+
+	method upd_ast_ad
+		buffer famstad
+		move famstad=famstad(xcode,xvoucher)
+		set famstad.xdate = xdate
+		set famstad.xyear = xyear
+		set famstad.xper = xper
+		set famstad.xcuradd = xcur
+		set famstad.xexchadd = xexch
+		set famstad.xprimeadd = xprime
+		set famstad.xbaseadd = xbase
+		set famstad.xsup = xsup
+		set famstad.xinvno = xinvno
+		update famstad(xcode,xvoucher)
+
+		if #result .ne. "true"
+			set globals(ErrChk)="1"
+			print "Asset Addition Master not Updated properly<br>Please try again."
+		end if
+	end method
+
+
+	valid valid
+		config
+			set globals(xvoucher)=xvoucher
+		end config
+	end valid
+end page

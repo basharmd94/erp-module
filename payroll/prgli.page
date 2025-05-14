@@ -1,0 +1,173 @@
+page prgli
+     caption "Payroll To GL Interface"
+     sections form one,list one, text top, script myscript          
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list one
+      caption "<br><center><b>"Interface Table"</b>"
+      table (select prgli.* ~
+            ,(select xdesc from prpayhead where zid=prgli.zid and xpaycode=prgli.xpaycode) as paydesc ~
+            ,(select xdesc from glmst where zid=prgli.zid and xacc=prgli.xacc) as acc_desc ~
+            ,(select xdesc from glsub where zid=prgli.zid and xacc=prgli.xacc and xsub=prgli.xsub) as sub_desc ~
+            from prgli) tbl
+      order xpaycode
+      rows 30
+      objects xpaycode attrib(link #servlet+"?page=prgli&command=Show&xpaycode=?"),~
+              paydesc,xacc,acc_desc,xsub,sub_desc
+
+      field xsub
+         caption Sub Account
+      end field
+      
+      field acc_desc
+         caption Description
+         storage varchar
+      end field
+      
+      field sub_desc
+         caption Description
+         storage varchar
+      end field
+      
+    field paydesc
+        caption Description
+        storage varchar
+    end field
+
+     end list
+
+
+     form one
+        //caption "<br><center><b>"Payroll To GL Interface"</b>"
+        valid valid
+        table prgli
+        order xpaycode
+        layout 2
+        objects  Add,Show,Clear,Update, Delete, ~
+                 xpaycode,paydesc,xacc,xdum1,xsub,xdum2
+                
+
+    	field xpaycode
+          caption Paycode
+          display text
+          pick list xpaycode
+        end field
+		
+
+        field paydesc
+          attrib local
+          display constant
+          caption Description
+          event after
+            set paydesc=#sql(str,"select xdesc from prpayhead where zid='"+#id+"' and xpaycode='"+xpaycode+"'")
+          end event
+        end field
+
+        field xacc
+          display text
+          pick list xacc
+          event after
+            set globals(xacc) = xacc
+          end event
+        end field
+
+        field xdum1
+          attrib local
+          display constant
+          caption Description
+          event after
+            set xdum1=#sql(str,"select xdesc from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+          end event
+        end field
+
+        field xsub
+          pick list xsub
+        end field
+
+        field xdum2
+          attrib local
+          display constant
+          caption Description
+          event after
+            set xdum2=#sql(str,"select xdesc from glsub where zid='"+#id+"' and xacc='"+xacc+"' and xsub='"+xsub+"'")
+          end event
+        end field
+
+        field Add
+          event before
+            set globals(ErrChk) = ""
+
+            if globals(ErrChk) .ne. "1"
+                call chk_acc
+            end if
+            if globals(ErrChk) .ne. "1"
+              call chk_subacc
+            end if
+          end event
+        end field
+
+        field Update
+          event before
+            set globals(ErrChk) = ""
+
+            if globals(ErrChk) .ne. "1"
+                call chk_acc
+            end if
+            if globals(ErrChk) .ne. "1"
+              call chk_subacc
+            end if
+          end event
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        </script>
+     end script
+
+     method chk_acc
+        set xacc=xacc
+        buffer glmst
+        move glmst=glmst(xacc)
+        if #result .ne. "true"
+           set globals(ErrChk)="1"
+           error "Wrong Account Code Chosen"
+        else
+            if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+               if xsub .eq. ""
+                  print "<font color=blue size=4>Please update record with correct Sub Account"
+                end if
+            end if
+        end if
+     end method
+
+     method chk_subacc
+        set xacc=xacc
+        set xsub=xsub
+        if xsub .ne. ""
+          buffer glsub
+          move glsub=glsub(xacc,xsub)
+          if #result .ne. "true"
+             set globals(ErrChk)="1"
+             error "Wrong Sub Account Code Chosen"
+          end if   
+        end if
+     end method
+     
+     valid valid
+     	config
+     	end config
+     end valid
+
+     
+end page

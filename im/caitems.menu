@@ -1,0 +1,25 @@
+//Items.menu
+caption "Items" page
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Item Master                      |#classPath+"/"+#servlet+"?page=caitem&command=clear"
+-Codes
+Item Groups                      |#classPath+"/"+#servlet+"?page=xcodes(xtype=Item Group)"
+Item Group Parameters            |#classPath+"/"+#servlet+"?page=xcodesp(xtype=Item Group)"
+Item Class                       |#classPath+"/"+#servlet+"?page=xcodes(xtype=Item Class)"
+Item Categories               |#classPath+"/"+#servlet+"?page=xcodes(xtype=Item Category)"
+Brands               |#classPath+"/"+#servlet+"?page=xcodes(xtype=Brand)"
+Models               |#classPath+"/"+#servlet+"?page=xcodes(xtype=Model)"
+
+Price Category               |#classPath+"/"+#servlet+"?page=xcodes(xtype=Price Category)"
+Warehouses                       |#classPath+"/"+#servlet+"?page=cacodes&xtype=Warehouse"
+Units of Measure             |#classPath+"/"+#servlet+"?page=xcodes(xtype=Unit of Measure)"
+Vat Item Group             |#classPath+"/"+#servlet+"?page=xcodes(xtype=Vat Item)"
+-Reports
+Item List                     |#classpath+"/"+#servlet+"?page=*crystal itemlst(xitem=From Item=,xsup=To Item=zzz)"
+Special Price List                     |#classpath+"/"+#servlet+"?page=*crystal caitemsp(xitem=From Item=0,xsup=To Item=zzz)"
+MRP Price List                     |#classpath+"/"+#servlet+"?page=*crystal caitemspmrp(xitem=From Item=0,xsup=To Item=zzz)"
+
+//-------------------------------------------------------------------
+

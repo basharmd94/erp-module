@@ -1,0 +1,37 @@
+//Inventory Reports.menu
+caption "Reports" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+-Issue Entry
+Date Wise Issue Entry               |#classPath+"/"+#servlet+"?page=*crystal imsrdate(xdate=From Date=#d,xdate=To Date=#d)"
+
+Date Wise Issue Entry new              |#classPath+"/"+#servlet+"?page=*crystal imsrdate_isssu(xdate=From Date=#d,xdate=To Date=#d )"
+
+Date Wise Store Requisition Entry   |#classPath+"/"+#servlet+"?page=*crystal imsrdate_sre(xdate=From Date=#d,xdate=To Date=#d )"
+//Date,Item Wise Issue Entry          |#classPath+"/"+#servlet+"?page=*crystal imsrdateitem(xdate=From Date=#d,xdate=To Date=#d,xitem=From Item=0,xitem=To Item=zz)"
+-Receive Entry
+Date Wise Receive Entry             |#classPath+"/"+#servlet+"?page=*crystal imrcvdate(xdate=From Date=#d,xdate=To Date=#d)"
+-Stcok Status
+Stock Status By Item Group           |#classPath+"/"+#servlet+"?page=*crystal imstkg(xdate=From Date=#d,xdate=To Date=#d,xwh=Warehouse=,xgitem=From Item Group,xgitem=To Item Group)"
+Stock Status By Item Group Value          |#classPath+"/"+#servlet+"?page=*crystal imstkg_val(xdate=From Date=#d,xdate=To Date=#d,xwh=Warehouse=,xgitem=From Item Group,xgitem=To Item Group)"
+Present Stock Status By Item Group   |#classPath+"/"+#servlet+"?page=*crystal prestk(xdate=From Date=#d,xdate=To Date=#d,xwh=Warehouse=,xgitem=From Item Group,xgitem=To Item Group)"
+Vat Item Group   |#classPath+"/"+#servlet+"?page=*crystal vatitem(xdate=From Date=#d,xdate=To Date=#d,xduty=From Item Group==text=list xduty,xduty=To Item Group==text=list xduty)"
+Stock Vat Item Group   |#classPath+"/"+#servlet+"?page=*crystal imstkgvat(xdate=From Date=#d,xdate=To Date=#d,xduty=From Item Group==text=list xduty,xduty=To Item Group==text=list xduty)"
+-
+Item Ledger                      |#classPath+"/"+#servlet+"?page=*crystal imledw(xwh=Warehouse=,xdate=From Date=#d,xdate=To Date=#d,xitem=From Item=text,xitem=To Item=text)"
+Item Ledger1                      |#classPath+"/"+#servlet+"?page=*crystal imledwp(xwh=Warehouse=,xdate=From Date=#d,xdate=To Date=#d,xitem=From Item=text,xitem=To Item=text,xdoctype=Type=text)"
+Summary Stock Value                      |#classPath+"/"+#servlet+"?page=*crystal Imstkgsec_val(xdate=From Date=#d,xdate=To Date=#d,xwh=Warehouse=,xitem=From Item=text,xitem=To Item=text)"
+Cost of Sold                      |#classPath+"/"+#servlet+"?page=*crystal costofsol(xwh=Warehouse=,xdate=From Date=#d,xdate=To Date=#d,xitem=From Item=text,xitem=To Item=text)"
+-Transfer
+//Item Transfer Report By WH       |#classPath+"/"+#servlet+"?page=*crystal imtrwh(xwh=Warehouse=,xdate=From Date=#d,xdate=To Date=#d)"
+//Item Transfer Report             |#classPath+"/"+#servlet+"?page=*crystal imtrfwh(xwh=From Warehouse=,xwh=To Warehouse=,xdate=From Date=#d,xdate=To Date=#d)"
+Date Wise Item Transfer Report      |#classPath+"/"+#servlet+"?page=*crystal imtrnsdt(xdate=From Date=#d,xdate=To Date=#d,ximtor=From Transfer==text=list imtor,~
+                                                                                       ximtor=To Transfer==text=list imtor)"
+Date Wise Item Transfer Summary      |#classPath+"/"+#servlet+"?page=*crystal imtrnsdtsum(xdate=From Date=#d,xdate=To Date=#d,ximtor=From Item==text=list imtor,~
+                                                                                       ximtor=To Item==text=list imtor)"
+Transfer Order(Imamgonj)      |#classPath+"/"+#servlet+"?page=*crystal imtrnsdt_pr(xdate=From Date=#d,xdate=To Date=#d,ximtor=From Transfer==text=list imtor,~
+                                                                                       ximtor=To Transfer==text=list imtor)"
+Stock Analysis Report     |#classPath+"/"+#servlet+"?page=*crystal imstk_stkmovitm(xdate=From Date=#d,xdate=To Date=#d,xitem=From Item=0,xitem=To Item=zz)"
+Total Inventory Report                |#classPath+"/"+#servlet+"?page=*crystal imstck(xgitem=Item Group)"
+//-------------------------------------------------------------------

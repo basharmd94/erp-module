@@ -1,0 +1,378 @@
+ 
+ group amend 2 2 "Amendments"
+       form amend (1, 1)//(col,row,colspan,rowspan,width,height)       
+       //access " xordernum .ne. "+#char(34)+#char(34)
+	   list item_Details (2, 1)
+	   list item_Detailsop (2, 2)
+	   list amendlist (1,2)
+	    
+       keys "Top"
+     end group
+	 
+	 
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+    
+   list item_Details
+		caption "Items in: "+globals(xpornum)
+		empty " "
+        table poodt
+        order xpornum,xrowpor
+        //select "xpornum = '"+globals(xpornum)+"'"
+		
+        rows 5
+        objects xitem attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=itemshow&xitem=?"),~
+		xitemext,xdesc,xqtyord,xunitpur,xrate,xdisc,xmargin,xdiscf,xlineamt equals(xqtyord*xrate*(1-xdisc/100)/(1-xmargin/100)-xdiscf)
+     end list
+	 
+	  list item_Detailsop
+		caption "Items in: "+globals(xordernum)
+		empty " "
+        table opord
+        order xordernum,xroword
+        //select "xpornum = '"+globals(xpornum)+"'"
+		
+        rows 5
+        objects xroword,xitem attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=itemshow&xitem=?"),~
+		xitemext,xdesc caption(Desc),xqtyreq caption(Qty Req),xqtyord caption(Qty Ord),xunitsel caption(Unit),~
+		xcur caption(Cur),xrate caption(Unit Price),~
+		xcatful caption(F Cat),xlineamt caption(Line Amt)
+     end list
+        
+      list amendlist
+        caption "Amendments(s) Added"
+		empty " "
+        table lcamend
+        order xlctrnnum,xlcamno
+        fixed xlctrnnum        
+        rows 20
+        objects xlcamno attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xlctrnnum=?&xlcamno=?"),~
+                xitem,itemdesc  equals((select xdesc from caitem where zid=lcamend.zid and xitem=lcamend.xitem))~
+                xlcamdate,xaction,xprime,~
+                xqtyreq,xrate
+ 	//totals "Total","",sum,"",sum
+
+        field xcur
+          caption Cur
+        end field
+
+        field xmaxqty
+            caption Quantity Ordered
+        end field
+        
+        field itemdesc
+          storage varchar
+          //attrib local
+          caption Description
+        end field
+
+     end list
+	 
+	 
+
+   
+    form amend
+		caption "Amendments"
+        table lcamend
+        order xlctrnnum,xlcamno
+        fixed xlctrnnum
+        
+        layout 1
+             objects "<b>Amendment Information for LC No <font color=red size=+1>"+xlcno,"</font></b><p>",~
+            Add,Update, Clear, Show, Top, Previous, Next, Bottom,Delete,"",~
+            xlcamno attrib(row 0 10),xitem,xlcamdate default(#d) ,xshpdatenew ,xshipdate ,xaction,~
+            xsign display(const),xprime,xcur,xexch,xqtyreq,xrate,xcapused,~
+            xunit,xrem,zemail display(hide),xemail display(hide)
+
+
+        field xrem
+            col 3
+            width 80
+            height 2
+        end field
+
+        field xshpdatenew
+            caption Shipment Date
+        end field
+		
+		field itemshow
+			set xitem=xitem
+		end field
+        
+        field xitem
+            //pick ""
+        end field
+
+        field xshipdate
+            display hide
+        end field
+        
+        field xcapused
+            caption Conversion Qty
+            display hide
+        end field
+
+        field xqtyreq
+            caption Quantity
+            event after
+                set globals(xqtyreq) = xqtyreq
+            end event
+        end field
+        
+        field xcapused
+            event after
+                set globals(xcapused)=xcapused
+            end event
+        end field
+
+        field xprime
+            caption Amount
+            event after
+                set globals(xprime) = xprime
+            end event
+        end field
+
+        field xaction
+            display combo
+            pick "Increase,Decrease"
+            //pick "Increase"
+        end field
+        
+        field xunit
+            default "M.Ton"
+        end field
+
+//        field Add
+//            event before
+//                set globals(ErrChk) = ""
+//
+//
+////                if globals(ErrChk) .ne. "1"
+////                    call chk_duplicate
+////                end if
+//
+//                if globals(ErrChk) .ne. "1"
+//                    call chkrec
+//                end if
+//
+//                set cfpur=#sql(decima,"select xcfpur from poodt where zid='"+#id+"' and xpornum='"+globals(xpornum)+"' and xitem='"+xitem+"'")
+//
+//                if globals(ErrChk) .ne. "1"
+//                    if xaction .eq. "Increase"
+//                        set xsign = 1
+//                     else
+//                        set xsign = -1
+//                    end if
+//                    set zemail=#user
+//                    set xrate=0.0+xprime/xqtyreq
+//                    set xcapused=0.0+xqtyreq*cfpur
+//                    call upd_header
+//                end if
+//
+//
+////                if globals(ErrChk) .ne. "1"
+////                    if xshpdatenew .ne. "2999-12-31"
+////                        set xshipdate= #sql("select xshipdate from gmlcinfo where zid="+#id+" and xlcno = '"+globals(xlcno)+"'")
+//
+////                        str mysql="update gmlcinfo set xshipdate ='"+xshpdatenew+"' where zid="+#id+" and xlcno='"+globals(xlcno)+"'"
+////                        set updval=#sql(mysql)
+////                    end if
+// //               end if
+//            end event
+//        end field
+
+        field update
+            event before
+                set globals(ErrChk) = ""
+
+
+                if globals(ErrChk) .ne. "1"
+                  //  call chk_duplicate
+                end if
+
+
+                if globals(ErrChk) .ne. "1"
+                    call chkrec
+                end if
+                
+                set cfpur=#sql(decimal,"select xcfpur from poodt where zid='"+#id+"' and xpornum='"+globals(xpornum)+"' and xitem='"+xitem+"'")
+                
+                
+                if globals(ErrChk) .ne. "1"
+                    if xaction .eq. "Increase"
+                        set xsign = 1
+                        else
+                        set xsign = -1
+                    end if
+                    set xemail=#user
+                    set xrate=xprime/xqtyreq
+                    set xcapused=xqtyreq*cfpur
+                    call upd_header
+                end if
+            end event
+
+            event after
+                if globals(ErrChk) .ne. "1"
+                    call upd_log
+                end if
+            end event
+        end field
+
+        field delete
+            event before
+                set globals(ErrChk)=""
+
+
+                if globals(ErrChk) .ne. "1"
+                    call chkrec
+                end if
+              
+                if globals(ErrChk) .ne. "1"
+                    call upd_log
+                    call upd_header
+                end if
+            end event
+            event after
+                action clear
+            end event
+        end field
+
+        embed onsubmit="return submitit(this)"
+        field Complete
+            embed onclick="clicked(this)"
+        end field
+
+    end form
+
+    script myscript
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+        detail="clicked"
+        }
+        function submitit(form){
+        if (detail == "clicked"){
+        //form.page.value = "poodtq"
+        form.page.value = "poilcp"
+        form.searchbutton.value = "Find xpornum=?"
+        }
+        }
+        
+     function pickType(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xitem.value=link.text
+          }else{
+            document.one.xitem.value=link.innerText
+         }
+          return false
+        }
+
+
+
+        </script>
+    end script
+
+    method chk_duplicate
+        set chkrec = #sql("select xlcamno from poamend where xpornum='"+globals(xpornum)+"' and xlcamno='"+xlcamno+"'")
+        if #result .eq. "true"
+            set globals(ErrChk) = "1"
+            error "Duplicate LC Amendment Number</p>Cannot "+#command
+        end if
+    end method
+
+    method chkrec
+        if globals(ErrChk) .ne. "1"
+            if xitem .eq. ""
+                set globals(ErrChk) = "1"
+                error "Please Select "+#field(xitem.caption)
+            end if
+        end if
+
+        if xaction .eq. ""
+            set globals(ErrChk) = "1"
+            error "No action selected"
+        end if
+
+        if globals(ErrChk) .ne. "1"
+            if globals(xcur) .ne. xcur
+                set globals(ErrChk) = "1"
+                error "Currency mismatch with the header"
+            end if
+        end if
+    end method
+
+    method upd_header
+     //set cfpur=#sql(decimal,"select xcfpur from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+     set rate=#sql(decimal,"select xrate from poodt where zid='"+#id+"' and xpornum='"+globals(xpornum)+"' and xitem='"+xitem+"'")
+     set qty=#sql(decimal,"select xmaxqty from poodt where zid='"+#id+"' and xpornum='"+globals(xpornum)+"' and xitem='"+xitem+"'")
+     set lienamt=#sql(decimal,"select xlineamt from poodt where zid='"+#id+"' and xpornum='"+globals(xpornum)+"' and xitem='"+xitem+"'")
+     
+        if #command .eq. "Add"
+            set newamt = 0.0+xprime*xsign
+            set newqty = 0.0+xqtyreq*xsign
+            set newqty1 = 0.0+xcapused*xsign
+            set nqty=0.0+qty+newqty
+            set totamt=0.0+lienamt+newamt
+
+            str mysql="update poodt set xlineamt = xlineamt + '"+newamt+"',xdtwotax = xdtwotax + '"+newamt+"' where zid="+#id+" and xpornum='"+globals(xpornum)+"' and xitem='"+xitem+"'"
+            set updval=#sql(mysql)
+            
+            str mysql="update poodt set xmaxqty = xmaxqty + '"+newqty+"',xqtyord=xqtyord+'"+newqty1+"' where zid="+#id+" and xpornum='"+globals(xpornum)+"' and xitem='"+xitem+"'"
+            set updval=#sql(mysql)
+            
+            str mysql="update poord set xdtwotax =xdtwotax + '"+newamt+"',xval=xval+'"+newamt+"',xtotamt=xtotamt +'"+newamt+"'   where zid='"+#id+"' and xpornum='"+xpornum+"'"
+            set updval=#sql(mysql)
+            
+            else if #command .eq. "Update"
+             set newamt = 0.0+xprime - globals(xprime)
+             set newqty = 0.0+xqtyreq - globals(xqtyreq)
+             set newqty1 = 0.0+xcapused - globals(xcapused)
+             set newamt = 0.0+newamt*xsign
+             set newqty = 0.0+newqty*xsign
+             set newqty1 = 0.0+newqty1*xsign
+
+            str mysql="update poodt set xlineamt = xlineamt + '"+newamt+"',xdtwotax = xdtwotax + '"+newamt+"' where zid="+#id+" and xpornum='"+globals(xpornum)+"' and xitem='"+xitem+"'"
+            set updval=#sql(mysql)
+
+            str mysql="update poodt set xmaxqty = xmaxqty + '"+newqty+"',xqtyord=xqtyord+'"+newqty1+"' where zid="+#id+" and xpornum='"+globals(xpornum)+"' and xitem='"+xitem+"'"
+            set updval=#sql(mysql)
+
+            str mysql="update poord set xdtwotax =xdtwotax + '"+newamt+"',xval=xval+'"+newamt+"',xtotamt=xtotamt +'"+newamt+"'   where zid='"+#id+"' and xpornum='"+xpornum+"'"
+            set updval=#sql(mysql)
+            
+         else if #command .eq. "Delete"
+            set newamt = 0.0+xprime*xsign
+            set newqty = 0.0+xqtyreq*xsign
+            set newqty1 = 0.0+xcapused*xsign
+            
+            str mysql="update poodt set xlineamt = xlineamt- '"+newamt+"',xdtwotax =xdtwotax - '"+newamt+"' where zid="+#id+" and xpornum='"+globals(xpornum)+"' and xitem='"+xitem+"'"
+            set updval=#sql(mysql)
+
+            str mysql="update poodt set xmaxqty = xmaxqty - '"+newqty+"',xqtyord=xqtyord - '"+newqty1+"' where zid="+#id+" and xpornum='"+globals(xpornum)+"' and xitem='"+xitem+"'"
+            set updval=#sql(mysql)
+
+            str mysql="update poord set xdtwotax = xdtwotax- '"+newamt+"', xval= xval- '"+newamt+"', xtotamt= xtotamt- '"+newamt+"'   where zid='"+#id+"' and xpornum='"+xpornum+"'"
+            set updval=#sql(mysql)
+        end if
+    end method
+
+    method upd_log
+        set tmp = "LOG-"
+        str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+        if #result .eq. "true" .and. mysql .ne. ""
+            set last_num = 0+#sub(mysql,10)
+        end if
+        set last_num = 1+last_num
+        set mysql = #padl(""+last_num,10,"0")
+        set mysql=tmp+mysql
+
+        //str tmptime = ""
+        //class osbcustom(#time(tmptime))
+
+        set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+        set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(xlcno)+"','','"+#command+"','"+#user+"',~
+        '"+#date+"','"+#time+"','"+page+"','"+xlcamno+"')"
+        set tmpstr =#sql(myqry)
+    end method
+

@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table imtdt
+  caption "TO Detail"
+  columns  ztime,zutime, zid, ximtor,xtorlno,xitem,xqtyord,xunit,ximtrnnum,xdocnum,xbatch,zemail,xemail,~
+  		xbin,xqtycom,xqtyalc,xval,xtbin,xdtwotax,xrate,xstdprice,xlineamt
+  		
+  primary key zid, ximtor, xtorlno
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,ximtor references imtor.zid,ximtor
+        zid,xitem references caitem.zid,xitem
+  end foreign key
+  
+end table

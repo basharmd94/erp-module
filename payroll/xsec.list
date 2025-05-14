@@ -1,0 +1,15 @@
+     list xsec
+        table xcodes
+        order xcode
+        select "xtype='Section1'"
+        navigators alpha
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'')")
+                
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

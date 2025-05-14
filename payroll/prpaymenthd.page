@@ -1,0 +1,208 @@
+page prpaymenthd
+
+
+	caption "Pay Package Create"
+    sections form one, list one, script myscript
+
+	list pay
+		caption "Payment List"
+		table prpaymentdtview
+		fixed xemp
+		navigator alpha
+		objects xpaycode attrib(link #servlet+"?page=prpaymentdt&command=Show&xpaycode=?"),~
+				emp_name,xamount
+		totals "Totals",,sum
+
+	end list
+
+	list one
+		caption "List of Employee(s)"
+		table prmst
+		order xemp		
+		rows 15
+		select "xstatusemp ='A-Active'"
+		objects xemp attrib(link #servlet+"?page="+page+"&command=Show&xemp=?"),~
+				xname,xdesig,xdept,xlocation,xdtwotax,xjoindate,xstatusemp,xempcat
+
+		field xdtwotax
+			caption Gross Salary
+		end field
+
+		field xjoindate
+			//caption DOJ
+		end field
+	end list
+
+    form one
+        valid valid 
+        table prmst
+        order xemp
+        layout 1
+        select "xstatusemp ='A-Active'"
+        objects Show,Details,Clear,Previous, Next,Create Pay Package,~
+				xemp attrib(search),xname display(const),xdesig display(const),xdept display(const),~
+				xjoindate display(const),xlocation display(const),xdtwotax display(constant),xstatusemp display(const),xempcat 
+				
+
+		field xemp
+			event after
+				set globals(xemp)=xemp
+				set globals(xname)=xname
+			end event
+		end field
+           
+		field xdtwotax
+			caption Gross Salary
+		end field
+
+		field xcostcent
+			caption Location
+		end field
+		
+		field xempcat
+			caption Employee Type
+			display const
+		end field
+
+		field xfirst
+			width 30
+			display const
+		end field
+
+		field xjoindate
+			caption Date of Joining
+		end field
+           
+		field Create Pay Package
+			event before
+				set globals(ErrChk)=""
+				if globals(ErrChk) .ne. "1"
+					if xemp .ne. globals(xemp)
+						set globals(ErrChk) = "1"
+						error "Wrong Employee"
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set xdtwotax = #sql(decimal,"select xdtwotax from prmst where xemp='"+globals(xemp)+"'")
+					if xdtwotax <= 0.0
+						set globals(ErrChk) = "1"
+						error "Gross Salary not entered"
+					end if
+				end if
+							
+				if globals(ErrChk) .ne. "1"
+					set basic_code = #sql("select xprbasic from prdef where zid='"+#id+"' and xprbasicapp='Yes'")
+					if #result .eq. "true"
+						set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+basic_code+"'")
+						if #result .eq. "false"
+							set globals(ErrChk) = "1"
+							error "<font color=red>Basic Code ("+basic_code +") not found in Payment Head Table</font>"
+						end if
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					set hrent_code = #sql("select xprhrent from prdef where zid='"+#id+"' and xprhrentapp='Yes'")
+					if #result .eq. "true"
+						set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+hrent_code+"'")
+						if #result .eq. "false"
+							set globals(ErrChk) = "1"
+							error "<font color=red>House Rent Code ("+hrent_code +") not found in Payment Head Table</font>"
+						end if
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set conv_code = #sql("select xprconv from prdef where zid='"+#id+"' and xprconvapp='Yes'")
+					if #result .eq. "true"
+						set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+conv_code+"'")
+						if #result .eq. "false"
+							set globals(ErrChk) = "1"
+							error "<font color=red>Conveyance Allowance Code ("+conv_code +") not found in Payment Head Table</font>"
+						end if
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					set med_code = #sql("select xprmed from prdef where zid='"+#id+"' and xprmedapp='Yes'")
+					if #result .eq. "true"
+						set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+med_code+"'")
+						if #result .eq. "false"
+							set globals(ErrChk) = "1"
+							error "<font color=red>Medical Allowance Code ("+med_code +") not found in Payment Head Table</font>"
+						end if
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set xpaycode=""
+					set gross_amt = #sql(decimal,"select xdtwotax from prmst where zid='"+#id+"' and xemp='"+globals(xemp)+"'")
+					set xempcat = #sql(str,"select xempcat from prmst where zid='"+#id+"' and xemp='"+globals(xemp)+"'")
+					set mysql = "select xpaycode from prsalslab where zid='"+#id+"' and xempcat='"+xempcat+"' and xpaycode>'"+globals(xpaycode)+"' order by zid,xempcat"
+					set globals(xpaycode) = #sql(str,mysql)
+					while #result .eq. "true" .and. globals(xpaycode) .ne. ""
+					
+					
+						set amt_percent=#sql(decimal,"select xpercent from prsalslab where zid='"+#id+"' and xempcat='"+xempcat+"' and xpaycode='"+globals(xpaycode)+"'")
+						compute amt = 0.00+(gross_amt*amt_percent)/100
+						//print globals(xemp)+" ; "+globals(xpaycode) +" ; "+ amt +" ; "+gross_amt
+						
+						set paycode=#sql(str,"select xpaycode from prpaymentdt where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"'")
+						if #result .ne. "true"
+							set myqry = "insert into prpaymentdt (zid,xemp,xpaycode,xamount,zemail,xemail)"
+							set myqry = myqry + " values('"+#id+"','"+globals(xemp)+"','"+globals(xpaycode)+"','"+amt+"','"+#user+"','')"
+							set tmpstr =#sql(myqry)
+						else
+							str mysql = "update prpaymentdt set xamount='"+amt+"' where zid='"+#id+"' and xpaycode='"+globals(xpaycode)+"' and xemp='"+globals(xemp)+"'"
+							set tmpstr = #sql(str,mysql)
+						end if
+
+					set mysql = "select xpaycode from prsalslab where zid='"+#id+"' and xempcat='"+xempcat+"' and xpaycode>'"+globals(xpaycode)+"' order by zid,xempcat"
+					set globals(xpaycode) = #sql(str,mysql)
+				  end while
+				end if
+				
+				Print "<font size=+1>Pay Package Created</font>"
+			end event
+		end field
+                   
+        embed onsubmit="submitit(this)"
+
+		field Details
+			embed onclick="Details(this)"
+		end field
+	end form
+		text one
+			//"<object border=0 data=images/"+xemp+".gif type=""text/images"" height=100% width=100% ></object>"
+			"<img border=1 src=html/images/"+xemp+".jpg>"
+			"<p><b>"+xfirst+"</b><br>"
+		end text
+     
+    script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function Details(b)
+        {
+          detail="details"
+        }
+
+        function submitit(form){
+          if (detail=="details"){
+            form.page.value = "prpaymentdt"
+          }
+         }
+        </script>
+     end script
+	 
+	valid valid
+		config
+		
+			if xdtwotax ==0
+				set #field(Create.display)="disable"
+			end if 
+		end config
+	end valid
+end page

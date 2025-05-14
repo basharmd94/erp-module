@@ -1,0 +1,10 @@
+Product ERP on The Net
+
+list xpaycode1
+  caption "Paycode"
+  table prpayhead
+  order xpaycode
+  navigators alpha
+  objects xpaycode attrib(link "abc" embed onclick="return updateParent(this:'xpcode')"), ~
+          xdesc
+end list

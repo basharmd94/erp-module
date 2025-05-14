@@ -1,0 +1,8 @@
+//poinreq.menu
+caption "International Requisition" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+
+International Requisition             |#classPath+"/"+#servlet+"?page=poreqinter&command=clear"
+

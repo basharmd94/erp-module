@@ -1,0 +1,333 @@
+
+page prroll
+
+     caption header //+"year="+#cyear(xdatepay)+"*"+#cper(xdatepay)+"*"+#fyear(xdatepay)+"*"+#fper(xdatepay)
+
+
+     layout mylayout 1 1 1//columns rows
+       group sch,run,emp,processed,open(1,1)
+       script pick, ~//myscript, ~
+       valid valid (0,0)
+     end layout
+
+     group sch 2 2 "Schedule" //columns rows caption select
+       form sch  (1, 1,2)//(col,row,colspan,rowspan,width,height)
+       list open  (1, 2)//(col,row,colspan,rowspan,width,height)
+       list processed  (2, 2)//(col,row,colspan,rowspan,width,height)
+       keys "Find xcyclepay=?&xdatepay=?"
+     end group
+     
+     
+     group run 2 1 "Run Details" //columns rows caption select
+       form run, list run  (1, 1)//(col,row,colspan,rowspan,width,height)
+       keys "Top"
+       access " xcyclepay .ne. "+#chr(34)+#chr(34)+" .and. xdatepay .ne. #max "
+     end group
+
+     group emp 3 1 "Employee Pay" //columns rows caption select
+       text emp  (1, 1)//(col,row,colspan,rowspan,width,height)
+       list income,ded,tot,dedcom (2, 1)//(col,row,colspan,rowspan,width,height)
+       form emp,list attrn,list emp  (3, 1)//(col,row,colspan,rowspan,width,height)
+       keys "Top"
+       access " xcyclepay .ne. "+#chr(34)+#chr(34)+" .and. xdatepay .ne. #max .and. xpayrun>0 "
+     end group
+     group roll 2 1 "Roll" //columns rows caption select
+       list roll,form roll  (1, 1)//(col,row,colspan,rowspan,width,height)
+       keys "Top"
+       access " xcyclepay .ne. "+#chr(34)+#chr(34)+" .and. xdatepay .ne. #max .and. xpayrun>0 .and. xempnum .ne. "+#chr(34)+#chr(34)
+     end group
+
+
+     group processed 2 1 "Processed" //columns rows caption select
+       list processed,form processed  (1, 1)//(col,row,colspan,rowspan,width,height)
+     end group
+     group open 2 1 "Open" //columns rows caption select
+       list open,form open  (1, 1)//(col,row,colspan,rowspan,width,height)
+     end group
+
+
+
+//ACC LIST*********************************************************************************
+		form processed
+			caption "Processed"
+			valid valid
+		end form
+
+     list processed
+      caption "Payroll Schedules that had Already been Processed"
+      table prsch
+      order xdatepay, xcyclepay desc
+      select " (select count(*) from prrun where zid=prsch.zid and xcyclepay=prsch.xcyclepay and xdatepay=prsch.xdatepay)>0 "
+      navigators alpha
+        rows 30
+        objects  ~
+          xdatepay,xcyclepay attrib(link #servlet+"?page="+page+"&nexttab=Schedule&command=Show&xcyclepay=?&xdatepay=?"),~
+          xdateeff,xdateexp,xstatussch
+
+     end list
+		form open
+			caption "Open"
+			valid valid
+		end form
+
+     list open
+      caption "Open Payroll Schedules"
+      table prsch
+      order xdatepay, xcyclepay
+      select " (select count(*) from prrun where zid=prsch.zid and xcyclepay=prsch.xcyclepay and xdatepay=prsch.xdatepay)=0 "
+      navigators alpha
+        rows 30
+        objects  ~
+          xdatepay,xcyclepay attrib(link #servlet+"?page="+page+"&nexttab=Schedule&command=Show&xcyclepay=?&xdatepay=?"),~
+          xdateeff,xdateexp,xstatussch
+
+     end list
+
+		 
+		 
+//HEADERS*************************************************************************
+    text act
+      "<table bgcolor=#9999ff width=100%><tr><td align=center><span class=bl>Activities for Lead: <font color=brown>"+globals(xsmleadnum)+"</font> - Org: <font color=brown>"+smacc.xorg("xshort='"+globals(xshort)+"'")+"</font></span></td></tr></table>"
+    end text
+    text opp
+      "<table bgcolor=#9999ff width=100%><tr><td align=center><span class=bl><a href='"+#servlet+"?page=smsenddoc&embeddedpage=1&command=Top&xsmleadnum="+xsmleadnum+"&xshort="+xshort+"&xopp="+xopp+"' target='popup' onClick=''>Send Documents</a></font></span></td></tr></table>"
+
+    end text
+    text cont
+      "<table bgcolor=#9999ff width=100%><tr><td align=center><span class=bl>Contacts for Org: <font color=brown>"+smacc.xorg("xshort='"+globals(xshort)+"'")+"</font></span></td></tr></table>"
+    end text
+
+//SCH
+    form sch
+			valid valid
+			caption "Schedule"
+      
+      table prsch
+      order xcyclepay,xdatepay
+      layout 3
+      objects Show,Clear,Add,Update,Delete,Top,Previous,Next,Bottom,Run Payroll,~
+              xcyclepay columns(3),xdatepay,xdateeff,xdateexp,xstatussch display(const)
+      field xcyclepay
+        event after 
+					set zemail=#user
+          set globals(xcyclepay)=xcyclepay
+          set globals(xdatepay)=xdatepay
+          int count=#sql(int,"select count(*) from prrun where xcyclepay='"+xcyclepay+"' and xdatepay='"+xdatepay+"' and xtyperun like '2%'")
+          if count > 0
+            set #fields(Run.display)="disable"
+          end if
+          //print "Testing"
+        end event
+      end field
+      field Run
+        event before 
+          call prrun
+          action Show
+        end event
+      end field
+      field Add
+        event before 
+          set xstatussch=#status("xstatussch",2)
+        end event
+      end field
+
+    end form
+
+//***RUN********************************************************************
+    list run
+      table prrun
+      order xcyclepay,xdatepay,xpayrun desc
+      fixed xcyclepay,xdatepay
+      rows 10
+      objects xpayrun attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xpayrun=?"),~
+              xtyperun,xstatusrun,ztime
+    end list
+    form run
+			valid valid
+			caption "Run Details"
+      
+      table prrun
+      order xcyclepay,xdatepay,xpayrun desc
+      fixed xcyclepay,xdatepay
+      layout 3
+      objects Show,Clear,Update,Generate Report,Top,Previous,Next,Bottom,~
+              xpayrun,xtyperun,xstatusrun display(const),xtotinc attrib(local),xtotded attrib(local),xtotconemp attrib(local),xtotnet attrib(local),xtotconcom attrib(local),xtotout attrib(local)
+
+      field Generate
+        event before
+          call prreport
+        end event
+      end field
+      field xpayrun
+        event after 
+					set zemail=#user
+          set globals(xpayrun)=xpayrun
+          set globals(xtyperun)=xtyperun
+
+          set #fields(xtotinc->xtotout.display)="const"
+          set #fields(xtotinc->xtotout.storage)="decimal"
+          set #fields(xtotinc.caption)="Total Incomes"
+          set #fields(xtotded.caption)="Total Deductions"
+          set #fields(xtotconemp.caption)="Employee Contributions"
+          set #fields(xtotconcom.caption)="Company Contributions"
+          set #fields(xtotnet.caption)="Net Pay"
+          set #fields(xtotout.caption)="Total Outgoings"
+
+          set xtotinc=#sql(decimal,"select sum(xamt) from prroll where xcyclepay='"+xcyclepay+"' ~
+                                                                and xdatepay='"+xdatepay+"' ~
+                                                                and xpayrun="+xpayrun+" ~
+                                                                and xgpay like '1%' ~
+                                                                ")
+          
+          set xtotded=#sql(decimal,"select sum(xamt) from prroll where xcyclepay='"+xcyclepay+"' ~
+                                                                and xdatepay='"+xdatepay+"' ~
+                                                                and xpayrun="+xpayrun+" ~
+                                                                and xgpay like '2%' ~
+                                                                ")
+          set xtotconemp=#sql(decimal,"select sum(xamt) from prroll where xcyclepay='"+xcyclepay+"' ~
+                                                                and xdatepay='"+xdatepay+"' ~
+                                                                and xpayrun="+xpayrun+" ~
+                                                                and xgpay like '3%' ~
+                                                                ")
+          set xtotconcom=#sql(decimal,"select sum(xamt) from prroll where xcyclepay='"+xcyclepay+"' ~
+                                                                and xdatepay='"+xdatepay+"' ~
+                                                                and xpayrun="+xpayrun+" ~
+                                                                and xgpay like '4%' ~
+                                                                ")
+console "xtotinc="+xtotinc          
+          double net
+          comp net=xtotinc-xtotded-xtotconemp
+          set xtotnet=net
+          double tot
+          comp tot=xtotinc-xtotded+xtotconcom
+          set xtotout=tot
+        end event
+      end field
+
+    end form
+
+//***EMP********************************************************************
+
+//xattnum,xcodeat,xcyclepay,xdatepay,xempnum,xunitat,xtypeat,xformulaat,xvalueat,xstatusat
+    list attrn
+      //table (select zid,xopp,cast('Open' as varchar) as xrating, count(*) as zcount,sum(xbudget) as xbudget from smoppview where xrating='Live' or xrating='Hot' or xrating='Warm' group by zid,xopp) as tbl
+      caption "Attendance"
+      table attrn
+      order xcyclepay,xdatepay,xempnum,xcodeat
+      fixed xcyclepay,xdatepay,xempnum
+      rows 50
+      objects xcodeat,~
+              xvalueat,xunitat//,xtypeat,xformulaat //,xstatusat
+    end list
+
+      text emp
+         "<iframe border=0 src='"+xlink+"' height='520' width='380' ></iframe>"
+
+				end text
+    list emp
+      //table (select zid,xopp,cast('Open' as varchar) as xrating, count(*) as zcount,sum(xbudget) as xbudget from smoppview where xrating='Live' or xrating='Hot' or xrating='Warm' group by zid,xopp) as tbl
+      table (select zid,xcyclepay,xdatepay,xpayrun,xempnum, (select xfirst||' '||xmiddle||' '||xlast from hrmst where zid=prroll.zid and xempnum=prroll.xempnum) as xname from prroll group by zid,xcyclepay,xdatepay,xpayrun,xempnum) as tbl
+      order xcyclepay,xdatepay,xpayrun,xempnum
+      fixed xcyclepay,xdatepay,xpayrun
+      rows 50
+      objects xempnum attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xempnum=?"),~
+              xname
+    end list
+    list income
+      caption "Income"
+      table prroll
+      order xcyclepay,xdatepay,xpayrun,xempnum,xseqdisp
+      fixed xcyclepay,xdatepay,xpayrun,xempnum
+      select " xgpay like '1%' "
+      rows 50 f
+      objects xcodepay, xamt
+    end list
+    list ded
+      caption "Deductions & Contributions"
+      table prroll
+      order xcyclepay,xdatepay,xpayrun,xempnum,xseqdisp
+      fixed xcyclepay,xdatepay,xpayrun,xempnum
+      select " ((xgpay like '2%') or ( xgpay like '3%'))"
+      rows 50 f
+      objects xcodepay, xamt
+    end list
+    list tot
+      caption "Totals"
+      table prroll
+      order xcyclepay,xdatepay,xpayrun,xempnum,xseqdisp
+      fixed xcyclepay,xdatepay,xpayrun,xempnum
+      select " (xgpay like '5%')"
+      rows 50 f
+      objects xcodepay, xamt
+    end list
+    list dedcom
+      caption "Company Contributions"
+      table prroll
+      order xcyclepay,xdatepay,xpayrun,xempnum,xseqdisp
+      fixed xcyclepay,xdatepay,xpayrun,xempnum
+      select " (xgpay like '4%')"
+      rows 50 f
+      objects xcodepay, xamt
+    end list
+    form emp
+			valid valid
+			caption "Employee Pay"
+      
+      command Top
+      //fillzid
+      table (select zid,xcyclepay,xdatepay,xpayrun,xempnum, (select xfirst||' '||xmiddle||' '||xlast  from hrmst where zid=prroll.zid and xempnum=prroll.xempnum) as xname  from prroll  group by zid,xcyclepay,xdatepay,xpayrun,xempnum) as tbl
+      order xcyclepay,xdatepay,xpayrun,xempnum
+      fixed xcyclepay,xdatepay,xpayrun
+      layout 3
+      objects Show,Clear,Top,Previous,Next,Bottom,~
+      xlink attrib(hide),xempnum,xname display(const)
+      field xempnum
+        pick list xempnumpr
+        event after
+          set globals(xempnum)=xempnum
+          set globals(xlink)=xlink
+        end event
+      end field
+				field xlink
+          attrib local
+          //default "docs\"+#dir(#id)+"\"+xempnum+".GIF"
+					//attrib local
+					event after
+						//if xlink .eq. ""
+							set xlink="docs"+#sep+""+#dir(#id)+#sep+xempnum+"_Portrait.gif"
+						//end if
+					end event
+				end field
+
+    end form
+
+
+	valid valid
+      config
+        str header= "<span class=bl>"+#sub(xtyperun,2)+" Payroll"
+        if xcyclepay .eq. ""
+          //set header=header+"s"
+        else
+          set header=header+" <font color=red>"+xcyclepay+"</font> Cycle" 
+        end if
+        
+        if xdatepay .ne. ""
+          set header=header+" -- Pay Date: <font color=red>"+xdatepay+"</font>" 
+        end if
+        if xpayrun .ne. ""
+          set header=header+" -- Pay Run: <font color=red>"+xpayrun+"</font>" 
+        end if
+				set header=header+"</span>"
+				
+        set globals(header)=header
+      end config
+    end valid
+
+#include prrun.methods
+
+
+end page
+
+//
+//*****************************************************************************
+

@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table cacuscrdlmt
+  caption "Customer Credit Limit History"
+  columns ztime,zutime,zid,xcus,xrow,xdatefrom,xdateto,zemail,xemail,xcrlimit,xapprover,xtime
+
+   primary key zid, xcus,xrow
+ 
+   foreign key
+        zid references zbusiness.zid
+        zid,xcus references cacus.zid,xcus
+   end foreign key
+ 
+end table

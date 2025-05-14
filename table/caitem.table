@@ -1,0 +1,43 @@
+product ERP on the Net
+
+table caitem
+  caption "Products and Items Master"
+
+  columns ztime,zutime,zid, xitem, xalias, xitemnew, xitemold, xdrawing, ~
+          xscode, xdesc, xlong, xlinks, ~
+          xgitem, xcitem, xcat,xpricecat,xtaxcat, xduty, xorigin, xdiv, xwh, xsup, ~
+          xtypeserial, xbatchman,xabc, xlife, xwtunit, xunitwt,xminordqty, xminordval, xordmult, xyield, ~
+          xdtf, xptf, xleadf, xleadv, xleadt, ~
+          xstdcost, xstdprice,~//xcurprice, xcurcost, ~
+          xunitstk, xunitalt, ~
+		~//xunitpur, xunitsel, ~
+		xunitiss, xunitpck, xunitsta, ~
+          ~//xcfpur, xcfsel, ~
+		xcfiss,xcfpck, xcfsta, xtypestk,xhide,~
+    xwtnet,xunitlen,xl,xw,xh,xdateeff,xdateexp,xnote,xexcisecat,xbrand,xstoporder,xsplprice,xcatful,xmatrix,~
+	xcutpcs,xtypedim,xminprice,xmargincost,xbarcode,~
+    xmultisel,xmultipur,xstrip,xloc,xcurcost,xcurprice,xdisc,xcomm,xstype,xunitpur, xunitsel,xcfpur, xcfsel,zemail,xemail,xbin,~
+	xmanufacturer,xtitem,xwarranty,xmethserial,xcostmeth,xbinman
+    
+
+
+  primary key zid, xitem
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  index zid,xgitem,xitem
+  index zid,xalias,xitem
+  
+  check
+    xcatful is not null and xcatful <> ''
+  end check
+
+  list xdesc,xtypestk,xwtunit, xunitwt,xcat
+
+  field xcat
+    pick select xcat from epcats
+  end field
+  //sql
+end table

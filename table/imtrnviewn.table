@@ -1,0 +1,21 @@
+product ERP on the Net
+
+table imtrnviewn
+
+  caption "Transaction Detail View"
+  
+  columns  zid,ximtrnnum,xdate,xyear,xper,xwh,xitem,xqty,xsign,xval,xvalpost,xgitem,xstdcost
+  primary key zid,ximtrnnum
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  sql create view imtrnviewn (zid,ximtrnnum,xdate,xyear,xper,xwh,xitem,xqty,xsign,xval,xvalpost, ~		   
+			coalesce((select xgitem from caitem where zid=imtrn.zid and xitem=imtrn.xitem),''), ~
+			coalesce((select xstdcost from caitem where zid=imtrn.zid and xitem=imtrn.xitem),0) ~
+		FROM imtrn
+			
+ end table
+
+//ztime,

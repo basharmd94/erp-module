@@ -1,0 +1,11 @@
+     list xlcno
+        table poilc
+        order xpornum desc
+        navigators alpha
+        rows 15
+        objects xlcno attrib(link "abc" embed onclick="return updateParent(this:'xlcno')"), ~
+                xpornum
+
+     end list
+
+

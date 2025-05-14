@@ -1,0 +1,404 @@
+page opgli
+
+     caption "OP to GL Interface"
+     sections form one,list one, text top, script myscript
+     
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list one
+      caption "<br><center><b>"Interface Table"</b>"
+      table opgli
+      order xoptrn,xwh,xgitem
+      rows 10
+      objects xoptrn attrib(link #servlet+"?page=opgli&command=Show&xoptrn=?&xwh=?&xgitem=?"),~
+				xwh,xgitem,xaccsales,xsalessub,xdiscacc,xdiscsub,xacccomm,xtaxacc,xtaxsub,xaccret,xretsub
+		  
+     end list
+
+     form one
+        //caption "<font color=black size=4>OP to GL Interface"
+        valid valid
+        table opgli
+		order xoptrn,xwh,xgitem
+		default Add
+        layout 2
+        objects  Add,Show,Clear,Update, Delete, ~
+                 xoptrn,"",xwh,xgitem,~
+				 xaccsales attrib(submit),salesdesc,xsalessub attrib(submit),subdesc,~
+                 xtaxacc attrib(submit),taxdesc,xtaxsub attrib(submit),tsdesc,~
+                 xdiscacc attrib(submit),discdesc,xdiscsub attrib(submit),dsdesc,~
+                 xacccomm attrib(submit),commdesc,~
+                 xaitacc attrib(submit),aitdesc,xaitsub display(hide),~
+				 xaccret attrib(submit),retdesc,xretsub ,retsub
+                 
+          field xoptrn
+          	caption Order Prefix
+			col 3
+          	pick select xtrn from xtrn where xtypetrn='Customer Order'
+          end field
+          
+		  field xsubdr
+		  	caption Return Sub Account
+		  end field
+
+		  field xaccsales
+		      display text
+		      //pick list xsalesacc
+		      pick list xacc
+		      event after
+		        set globals(xaccsales)=xaccsales
+		      end event
+		  end field
+
+		   field xtaxacc
+		   // pick list xtaxacc
+		    pick list xacc
+		    width 20
+		   end field
+
+			field xtaxsub
+				//pick list xtaxsub
+				pick list xsub
+				event after
+					set globals(xsub)=xsub
+				end event
+			end field
+
+		   field xdiscacc
+		    pick list xacc
+		    width 20
+			event after
+				set globals(xdiscacc)=xdiscacc
+			end event
+		   end field
+		   
+		   field xacccomm
+		   	pick list xacc
+		   end field
+		   
+		   field xaccret
+		   	pick list xacc
+		   end field
+
+		   field salesdesc
+		      attrib local
+		      caption Description
+		      display constant
+		      event after
+		        set salesdesc=#sql("select xdesc from glmst where xacc='"+xaccsales+"'")
+		      end event
+		   end field
+
+		   field commdesc
+		      attrib local
+		      caption Description
+		      display constant
+		      event after
+		        set commdesc=#sql("select xdesc from glmst where xacc='"+xacccomm+"'")
+		      end event
+		   end field
+		   		   
+		   field subdesc
+		      attrib local
+		      caption Description
+		      display constant
+		      event after
+		        set subdesc=#sql("select xdesc from glsub where xacc='"+xaccsales+"' and xsub='"+xsalesub+"'")
+		      end event
+		   end field
+		   
+		   field taxdesc
+		    attrib local
+		    display constant
+		    caption Description
+		    event after
+		      set taxdesc=#sql(str,"select xdesc from glmst where xacc='"+xtaxacc+"'")
+		    end event
+		   end field
+
+		   field tsdesc
+		      attrib local
+		      caption Description
+		      display constant
+		      event after
+		        set tsdesc=#sql("select xdesc from glsub where xacc='"+xtaxacc+"' and xsub='"+xtaxsub+"'")
+		      end event
+		   end field
+		   
+		   field discdesc
+		    attrib local
+		    display constant
+		    caption Description
+		    event after
+		      set discdesc=#sql(str,"select xdesc from glmst where xacc='"+xdiscacc+"'")
+		    end event
+		   end field
+
+		   field dsdesc
+		      attrib local
+		      caption Description
+		      display constant
+		      event after
+		        set dsdesc=#sql("select xdesc from glsub where xacc='"+xdiscacc+"' and xsub='"+xdiscsub+"'")
+		      end event
+		   end field
+		   
+		   field aitdesc
+		      attrib local
+		      caption Description
+		      display constant
+		      event after
+		        set aitdesc=#sql("select xdesc from glmst where xacc='"+xaitacc+"'")
+		      end event
+		   end field
+		   
+		   field retdesc
+		    attrib local
+		    display constant
+		    caption Description
+		    event after
+		      set retdesc=#sql(str,"select xdesc from glmst where xacc='"+xaccret+"'")
+		    end event
+		   end field
+
+		   field retsub
+		      attrib local
+		      caption Description
+		      display constant
+		      event after
+		        set retsub=#sql("select xdesc from glsub where xacc='"+xaccret+"' and xsub='"+xretsub+"'")
+		      end event
+		   end field
+		   
+		   field Add
+		     event before
+		        set globals(ErrChk) = ""
+		        
+	             if globals(ErrChk) .ne. "1"
+	                set chktrn = #sql(str,"select xtrn from xtrn where xtypetrn='Customer Order' and xtrn='"+xoptrn+"'")
+	                if #result .eq. "false"
+	                   set globals(ErrChk) = "1"
+	                   error "Invalid Order Prefix"
+	                end if
+	             end if
+             		        
+				//if globals(ErrChk) .ne. "1"
+				//	set chkgrp = #sql("select xcode from xcodes where xtype='Item Group' and xcode='"+xgitem+"'")
+				//	if #result .ne. "true"
+				//		set globals(ErrChk)="1"
+				//		error "Wrong Item Group</p>Cannot "+#command
+				//	end if
+				//end if		        
+		        
+				if globals(ErrChk) .ne. "1"
+		        	if xaccsales .ne. ""
+			        	set saleacc = #sql("select xacc from glmst where xacc='"+xaccsales+"'")
+			        	if #result .eq. "false"
+			        		set globals(ErrChk)="1"
+			        		error "Wrong Sales Account Selected"
+			        	end if
+			        end if
+			    end if
+			    
+		        if globals(ErrChk) .ne. "1"
+		        	if xtaxacc .ne. ""
+		        		set taxacc = #sql("select xacc from glmst where xacc='"+xtaxacc+"'")
+			        	if #result .eq. "false"
+			        		set globals(ErrChk)="1"
+			        		error "Wrong VAT Account Selected "+#field(xtaxacc.display)
+			        	end if
+			        end if
+		        end if
+		        
+		        if globals(ErrChk) .ne. "1"
+		        	if xdiscacc .ne. ""
+		        		set discacc = #sql("select xacc from glmst where xacc='"+xdiscacc+"'")
+			        	if #result .eq. "false"
+			        		set globals(ErrChk)="1"
+			        		error "Wrong Discount Account Selected"
+			        	end if
+			        end if
+		        end if
+		        
+		        if globals(ErrChk) .ne. "1"
+		        	if xacccomm .ne. ""
+		        		set commacc = #sql("select xacc from glmst where xacc='"+xacccomm+"'")
+			        	if #result .eq. "false"
+			        		set globals(ErrChk)="1"
+			        		error "Wrong Commission Account Selected"
+			        	end if
+			        end if
+		        end if	        
+		        
+		        if globals(ErrChk) .ne. "1"
+		        	if xaitacc .ne. ""
+		        		set aitacc = #sql("select xacc from glmst where xacc='"+xaitacc+"'")
+			        	if #result .eq. "false"
+			        		set globals(ErrChk)="1"
+			        		error "Wrong Commission Account Selected"
+			        	end if
+			        end if
+		        end if	        
+		        
+		     end event
+		   end field
+
+		   field Update
+		     event before
+		        set globals(ErrChk) = ""
+		        
+		        if globals(ErrChk) .ne. "1"
+		        	if xaccsales .ne. ""
+			        	set saleacc = #sql("select xacc from glmst where xacc='"+xaccsales+"'")
+			        	if #result .eq. "false"
+			        		set globals(ErrChk)="1"
+			        		error "Wrong Sales Account Selected"
+			        	end if
+			        end if
+			    end if
+			    
+		        if globals(ErrChk) .ne. "1"
+		        	if xtaxacc .ne. ""
+		        		set taxacc = #sql("select xacc from glmst where xacc='"+xtaxacc+"'")
+			        	if #result .eq. "false"
+			        		set globals(ErrChk)="1"
+			        		error "Wrong VAT Account Selected "+#field(xtaxacc.display)
+			        	end if
+			        end if
+		        end if
+		        
+		        if globals(ErrChk) .ne. "1"
+		        	if xdiscacc .ne. ""
+		        		set discacc = #sql("select xacc from glmst where xacc='"+xdiscacc+"'")
+			        	if #result .eq. "false"
+			        		set globals(ErrChk)="1"
+			        		error "Wrong Discount Account Selected"
+			        	end if
+			        end if
+		        end if
+		        
+		        if globals(ErrChk) .ne. "1"
+		        	if xacccomm .ne. ""
+		        		set commacc = #sql("select xacc from glmst where xacc='"+xacccomm+"'")
+			        	if #result .eq. "false"
+			        		set globals(ErrChk)="1"
+			        		error "Wrong Commission Account Selected"
+			        	end if
+			        end if
+		        end if	        
+		     end event
+		   end field
+
+		   field Delete
+		     event before
+		        set globals(ErrChk) = ""	        
+	        
+		     end event
+		   end field
+		   		   
+   end form
+
+     script myscript
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        </script>
+     end script     
+
+     
+	valid valid         
+		config		       
+			set salesdesc = #sql(str,"select xdesc from glmst where xacc='"+xaccsales+"'")
+			set xaccusage = #sql(str,"select xaccusage from glmst where xacc='"+xaccsales+"'")
+			set xaccsource = #sql(str,"select xaccsource from glmst where xacc='"+xaccsales+"'")
+            if xaccusage .eq. "Ledger" .and. xaccsource .eq. "Subaccount"
+                set #field(xsalessub.pick)="list xsalessub"
+                set subdesc=#sql(str,"select xdesc from glsub where xacc='"+xaccsales+"' and xsub='"+xsalessub+"'")
+            else
+            	set #field(xsalessub.display) = "hide"
+            	set #field(subdesc.display) = "hide"
+              	set xsalessub = ""
+              	set subdesc = ""
+            end if
+                       
+			set taxdesc = #sql(str,"select xdesc from glmst where xacc='"+xtaxacc+"'")
+			set taccusage = #sql(str,"select xaccusage from glmst where xacc='"+xtaxacc+"'")
+			set taccsource = #sql(str,"select xaccsource from glmst where xacc='"+xtaxacc+"'")
+            if taccusage .eq. "Ledger" .and. taccsource .eq. "Subaccount"
+                set #field(xtaxsub.pick)="list xtaxsub"
+                set tsdesc=#sql(str,"select xdesc from glsub where xacc='"+xtaxacc+"' and xsub='"+xtaxsub+"'")
+            else
+            	set #field(xtaxsub.display) = "hide"
+            	set #field(tsdesc.display) = "hide"
+              	set xtaxsub = ""
+              	set tsdesc = ""
+            end if
+                        
+			set discdesc = #sql(str,"select xdesc from glmst where xacc='"+xdiscacc+"'")
+			set daccusage = #sql(str,"select xaccusage from glmst where xacc='"+xdiscacc+"'")
+			set daccsource = #sql(str,"select xaccsource from glmst where xacc='"+xdiscacc+"'")
+            if daccusage .eq. "Ledger" .and. daccsource .eq. "Subaccount"
+                set #field(xdiscsub.pick)="list xdiscsub"
+                set dsdesc=#sql(str,"select xdesc from glsub where xacc='"+xdiscacc+"' and xsub='"+xdiscsub+"'")
+            else
+            	set #field(xdiscsub.display) = "hide"
+            	set #field(dsdesc.display) = "hide"
+              	set xdiscsub = ""
+              	set dsdesc = ""
+            end if
+            
+			set retdesc = #sql(str,"select xdesc from glmst where xacc='"+xaccret+"'")
+			set raccusage = #sql(str,"select xaccusage from glmst where xacc='"+xaccret+"'")
+			set raccsource = #sql(str,"select xaccsource from glmst where xacc='"+xaccret+"'")
+            if raccusage .eq. "Ledger" .and. raccsource .eq. "Subaccount"
+                set #field(xretsub.pick)="list xretsub"
+                set retsub=#sql(str,"select xdesc from glsub where xacc='"+xaccret+"' and xsub='"+xretsub+"'")
+            else
+            	set #field(xretsub.display) = "hide"
+            	set #field(retsub.display) = "hide"
+              	set xretsub = ""
+              	set retsub = ""
+            end if
+        
+            set attax = #sql("select xattribtax from cadefp where zid='"+#id+"' and zobject='"+page+"'")
+            if attax .eq. "Show"
+            else if attax .eq. "Constant"
+            	set #field(xtaxacc.display) = "const"
+            	set #field(xtaxsub.display) = "const"
+            else if attax .eq. "Hide"
+            	set #field(xtaxacc.display) = "hide"
+            	set #field(taxdesc.display) = "hide"
+            	set #field(xtaxsub.display) = "hide"
+            	set #field(tsdesc.display) = "hide"
+            end if   
+            
+            set atdisc = #sql("select xattribdisc from cadefp where zid='"+#id+"' and zobject='"+page+"'")
+            if atdisc .eq. "Show"
+            else if atdisc .eq. "Constant"
+            	set #field(xdiscacc.display) = "const"
+            	set #field(xdiscsub.display) = "const"
+            else if atdisc .eq. "Hide"
+            	set #field(xdiscacc.display) = "hide"
+            	set #field(discdesc.display) = "hide"
+            	set #field(xdiscsub.display) = "hide"
+            	set #field(dsdesc.display) = "hide"
+            end if   
+                                  
+            set atcomm = #sql("select xattribcomm from cadefp where zid='"+#id+"' and zobject='"+page+"'")
+            if atcomm .eq. "Show"
+            else if atcomm .eq. "Constant"
+            	set #field(xacccomm.display) = "const"
+            else if atcomm .eq. "Hide"
+            	set #field(xacccomm.display) = "hide"
+            end if               
+                                     
+		end config  
+					
+	end valid   
+     
+end page

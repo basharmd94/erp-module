@@ -1,0 +1,13 @@
+Product ERP on the Net
+
+table prmonthst
+   caption "One Month Status Entry"
+   column ztime,zutime,zid,xyear,xper,xday,xhour,xgvholyd,xweekend,zemail,xemail,xpaydate
+
+   primary key zid,xyear,xper
+
+   foreign key
+      zid references zbusiness.zid
+   end foreign key
+end table
+

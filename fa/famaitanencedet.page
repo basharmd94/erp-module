@@ -1,0 +1,158 @@
+page famaitanencedet
+      embed onload = "move_caret('one','xitem')"
+      caption "<span class=bl>Details for: <a href=/da/main?page=famaitanence&command=Show&xvoucher="+xvoucher+">" +xvoucher+ "</a></span>"
+      sections form one,list one, script myscript
+
+      list one
+        caption "Item List"
+        table famaitanencedet
+        order xvoucher,xrow
+        select "xvoucher='"+globals(xvoucher)+"'"
+        row 50
+        object xrow attrib(link #servlet+"?page="+page+"&command=show&xvoucher=?&xrow=?"),~
+      	       xitem,itemdesc equals((select xdesc from caitem where zid=famaitanencedet.zid and xitem=famaitanencedet.xitem)),xprime
+      	       
+        field xprime
+            caption Amount
+        end field
+        
+        field itemdesc
+            caption Item Description
+        end field
+
+      end list
+
+      form one
+        valid valid
+        table famaitanencedet
+        order xvoucher,xrow
+        fixed xvoucher        
+        layout 2
+        objects Add,Update,Show,Clear,  Delete, Top, Previous, Next, Bottom,Return,~
+                xrow attrib(row 0 1),xitem attrib(submit), itemdesc,xprime,xqty,xcode display(hide),xrem
+
+        field xprime
+            caption Amount
+        end field
+        
+        field xrem
+            width 30
+            height 2
+        end field
+        
+        field itemdesc
+          attrib local
+          display const
+          caption Description
+          event after
+            set itemdesc = #sql(str,"select xdesc from caitem where xitem='"+globals(xitem)+"'")
+          end event
+        end field
+
+        field add
+            event before
+                set globals(ErrChk) = ""
+                set xcode=globals(xcode)
+                
+                if globals(ErrChk) .ne. "1"
+                    set glref =#sql(str,"select xglref from famaitanence where zid='"+#id+"' and  xvoucher='"+xvoucher+"'")
+                    if glref .ne. ""
+                        set globals(ErrChk)="1"
+                        error "Already Posted. Cannot "+#command
+                    end if
+                end if
+                
+                if globals(ErrChk) .ne. "1"
+                    set item =#sql(str,"select xitem from caitem where zid='"+#id+"' and  xitem='"+xitem+"'")
+                    if #result .ne. "true"
+                        set globals(ErrChk)="1"
+                        error "Wrong Item Code"
+                    end if
+                end if
+                
+                if xprime == 0.0
+                    set globals(ErrChk) = "1"
+                    error "Amount cannot be zero "
+                end if
+
+            end event
+        end field
+        
+        field update
+            event before
+                set globals(ErrChk) = ""
+                
+                if globals(ErrChk) .ne. "1"
+                    set glref =#sql(str,"select xglref from famaitanence where zid='"+#id+"' and  xvoucher='"+xvoucher+"'")
+                    if glref .ne. ""
+                        set globals(ErrChk)="1"
+                        error "Already Posted. Cannot "+#command
+                    end if
+                end if
+                
+                if globals(ErrChk) .ne. "1"
+                    set item =#sql(str,"select xitem from caitem where zid='"+#id+"' and  xitem='"+xitem+"'")
+                    if #result .ne. "true"
+                        set globals(ErrChk)="1"
+                        error "Wrong Item Code"
+                    end if
+                end if
+
+                if xprime == 0.0
+                    set globals(ErrChk) = "1"
+                    error "Amount cannot be zero "
+                end if
+
+            end event
+        end field
+        
+        field delete
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    set glref =#sql(str,"select xglref from famaitanence where zid='"+#id+"' and  xvoucher='"+xvoucher+"'")
+                    if glref .ne. ""
+                        set globals(ErrChk)="1"
+                        error "Already Posted. Cannot "+#command
+                    end if
+                end if
+            end event
+        end field
+
+        //embed onsubmit="return submitit(this)"
+        embed onsubmit="submitit(this)"
+        
+        field return
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+          script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+
+          if (detail=="clicked"){
+            form.page.value = "famaitanence"
+            form.searchbutton.value = "Find xvoucher=?"
+            //return false
+          }
+       }
+
+        </script>
+     end script
+     
+	valid valid
+
+		config
+			set itemdesc = #sql(str,"select xdesc from caitem where xitem='"+xitem+"'")
+		end config
+
+	end valid
+
+  end page

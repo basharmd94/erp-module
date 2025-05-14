@@ -1,0 +1,8 @@
+//Fixed Asset menu
+//-------------------------------------------------------------------
+caption "Individual Asset" page 3
+option                       |action
+//-------------------------------------------------------------------
+By Individual Asset          |#classPath+"/"+#servlet+"?page=fatransfer"	|
+//By Asset Category          	 |#classPath+"/"+#servlet+"?page=fatranscat"	|
+//-------------------------------------------------------------------

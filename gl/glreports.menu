@@ -1,0 +1,72 @@
+//GL Reports.menu
+caption "Reports" page 3
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+option                           |action
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-GL Reports
+Daily Ledger(Details)                                 |#classPath+"/"+#servlet+"?page=*crystal glledger_daily_det(xacc=Account=0,xdate=From Date=#d,xdate=To Date=#d)"
+Daily Transaction                            |#classPath+"/"+#servlet+"?page=*crystal gltrnsaction(xdate=From Date=#d,xdate=To Date=#d,xacc=From Account=0,xacc=To Account=Zzz)"
+Daily Ledger                                 |#classPath+"/"+#servlet+"?page=*crystal glledger_daily(xacc=From Account=0,xacc=To Account=Zzz,xdate=From Date=#d,xdate=To Date=#d)"
+-
+Monthly Ledger                               |#classPath+"/"+#servlet+"?page=*crystal glledger_monthly(xacc=Account=,xyear=Year=#glyear,xper=Period=#glper)"
+-
+Annual Ledger                                |#classPath+"/"+#servlet+"?page=*crystal glledger_annual(xyear=Year=#glyear,xacc=Account=0)"
+-
+Sub Code Ledger                     	 	 |#classPath+"/"+#servlet+"?page=*crystal glledger_daily_sub(xacc=Account=0,xsub=Sub Account==text=list xsubrpt,xdate=From Date=#d,xdate=To Date=#d)"
+Sub Account Ledger 							|#classPath+"/"+#servlet+"?page=glsubrpt" 
+-
+Statement By Supplier 			   			 |#classPath+"/"+#servlet+"?page=*crystal glsupstm(xsup=From Supplier=,xsup=To Supplier=,xdate=From Date=#d,xdate=To Date=#d)"
+-
+Summary Supplier Ledger          			 |#classPath+"/"+#servlet+"?page=*crystal glsupstms(xsup=From Supplier,xsup=To Supplier,xdate=From Date=#d,xdate=To Date=#d)"
+-
+Statement By Customer		   				 |#classPath+"/"+#servlet+"?page=*crystal glcusstm(xcus=From Customer=,xcus=To Customer=,xdate=From Date=#d,xdate=To Date=#d)"
+-
+Summary Customer Ledger		   				 |#classPath+"/"+#servlet+"?page=*crystal glcusstms(xcus=From Customer=,xcus=To Customer=,xdate=From Date=#d,xdate=To Date=#d)"
+-
+Cheque Register                      |#classPath+"/"+#servlet+"?page=*crystal glchqreg_hand(xdate=From Date=#d,xdate=To Date=#d,xchqstat=Cheque Status)"
+-<font color=blue>Transaction Listing</font>
+Day Book/Daily Transaction 	 				 |#classPath+"/"+#servlet+"?page=*crystal gltrndtype(xdate=From Date=#d,xdate=To Date=#d,xvoucher=From No=0=text,xvoucher=To No=zzz=text,xtrngl=From Voucher Trn, xtrngl= To Voucher Trn)"
+
+//By Voucher No            		 			 |#classPath+"/"+#servlet+"?page=*crystal gltrn(xvoucher=From No=0=text,xvoucher=To No=zzz=text)"
+//By Date-Voucher No     					 	 |#classPath+"/"+#servlet+"?page=*crystal gltrnd(xdate=From Date=#d,xdate=To Date=#d,xvoucher=From No=0=text,xvoucher=To No=zzz=text)"
+Out of Balance                      		 |#classPath+"/"+#servlet+"?page=*crystal gltrnoub(xdate=From Date=#d,xdate=To Date=#d,xvoucher=From No=0=text,xvoucher=To No=zzz=text)"
+Voucher Print                                |#classPath+"/"+#servlet+"?page=*crystal glvoucher(xvoucher=From Voucher No=0=text,xvoucher=To Voucher=zzz=text,xdate=Date=#d)"
+Chart of Accounts                            |#classPath+"/"+#servlet+"?page=*crystal glmst(xacc=From Account=0,xacc=To Account=zzz,xpfflag=Show Subaccount?=)"
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//Account Balance	                       		 |#classPath+"/"+#servlet+"?page=*crystal glbal_mth(xyear=Year=#glyear)"
+//Chart of Accounts New                          |#classPath+"/"+#servlet+"?page=*crystal glmstnew(xacc=From Account=0,xacc=To Account=zzz,exportformat)"
+//Chart of Accounts Test                         |#classPath+"/"+#servlet+"?page=*crystal gltest(xacc=From Account=0,xacc=To Account=zzz)"
+//Chart of ACC w/barcode                  	     |#classPath+"/"+#servlet+"?page=*crystal gltest1(xacc=From Account=0,xacc=To Account=zzz)"
+//Chart					                  	     |#classPath+"/"+#servlet+"?page=*crystal glchart(xacc=From Account=0,xacc=To Account=zzz)"
+//Voucher Listing            		 			 |#classPath+"/"+#servlet+"?page=*crystal glvoucher(xvoucher=From No=0=text,xvoucher=To No=zzz=text,xdate=Date=#d)"
+//Chart of Accounts                			     |#classPath+"/"+#servlet+"?page=*crystal glmsts(xacc=From Account=0,xacc=To Account=zzz,zemail=User ID=#user=const,xpassword=Password=)"
+//Bank Book                                      |#classPath+"/"+#servlet+"?page=*crystal glbank(xacc=Account="+glmst.xacc("xaccusage like 'Bank'")+"=text=list xbank,~
+//Cash Book                                      |#classPath+"/"+#servlet+"?page=*crystal glcash(xacc=Account="+glmst.xacc("xaccusage like 'Cash'")+"=text=list xcash,~
+												 //xdate=From Date=#d,xdate=To Date=#d)"												xdate=From Date=#d,xdate=To Date=#d)"
+Special Discount Report		       |#classPath+"/"+#servlet+"?page=*crystal cacuscolach(xyear=Year,xper=Period=,xcus=From Customer=0,xcus=To Customer=z)"
+-Projectwise GL Reports
+Daily Ledger(Details)                                 |#classPath+"/"+#servlet+"?page=*crystal glledger_daily_det_proj(xacc=Account=0,xproj=Project,xdate=From Date=#d,xdate=To Date=#d)"
+Daily Transaction                            |#classPath+"/"+#servlet+"?page=*crystal gltrnsaction_proj(xproj=Project,xdate=From Date=#d,xdate=To Date=#d,xacc=From Account=0,xacc=To Account=Zzz)"
+Daily Ledger                                 |#classPath+"/"+#servlet+"?page=*crystal glledger_daily_proj(xproj=Project,xacc=From Account=0,xacc=To Account=Zzz,xdate=From Date=#d,xdate=To Date=#d)"
+Monthly Ledger                               |#classPath+"/"+#servlet+"?page=*crystal glledger_monthly_proj(xacc=Account=,xproj=Project,xyear=Year=#glyear,xper=Period=#glper)"
+Annual Ledger                                |#classPath+"/"+#servlet+"?page=*crystal glledger_annual_proj(xproj=Project,xyear=Year=#glyear,xacc=Account=0)"
+Sub Code Ledger                     	 	 |#classPath+"/"+#servlet+"?page=*crystal glledger_daily_sub_proj(xacc=Account=0,xsub=Sub Account==text=list xsubrpt,xproj=Project,xdate=From Date=#d,xdate=To Date=#d)"
+Sub Code Ledger Section                     	 	 |#classPath+"/"+#servlet+"?page=*crystal glledger_daily_sub_projsec(xacc=Account=0,xsub=Sub Account==text=list xsubrpt,xproj=Project,xsec=Section==text=,xdate=From Date=#d,xdate=To Date=#d)"
+Sub Code Ledger Summary                     	 	 |#classPath+"/"+#servlet+"?page=*crystal glledger_Sub_sum(xacc=Account=0,xproj=Project,xsub=Sub Account==text=list xsubrpt,xsub=Sub Account==text=list xsubrpt,xdate=From Date=#d,xdate=To Date=#d)"
+Sub Account Ledger 							|#classPath+"/"+#servlet+"?page=glsubrptproj"
+Sub Account Ledger11 							|#classPath+"/"+#servlet+"?page=glrptproj"
+Sub Code Ledger-Car                        |#classPath+"/"+#servlet+"?page=*crystal glrsled(xacc=Control Account=0,xsub=From Sub Code=0=text=list xsub,xsub=To Sub Code=zzz=text=list xsub,xproj=Project,xsec=Section=0=text=,xsec=Section=zZz=text=,xdate=From Date=#d,xdate=To Date=#d)"
+Statement By Supplier 			   			 |#classPath+"/"+#servlet+"?page=*crystal glsupstm_proj(xproj=Project,xsup=From Supplier=,xsup=To Supplier=,xdate=From Date=#d,xdate=To Date=#d)"
+Summary Supplier Ledger          			 |#classPath+"/"+#servlet+"?page=*crystal glsupstms_proj(xproj=Project,xsup=From Supplier,xsup=To Supplier,xdate=From Date=#d,xdate=To Date=#d)"
+Statement By Customer		   				 |#classPath+"/"+#servlet+"?page=*crystal glcusstm_proj(xproj=Project,xcus=From Customer=,xcus=To Customer=,xdate=From Date=#d,xdate=To Date=#d)"
+Summary Customer Ledger		   				 |#classPath+"/"+#servlet+"?page=*crystal glcusstms_proj(xproj=Project,xcus=From Customer=,xcus=To Customer=,xdate=From Date=#d,xdate=To Date=#d,xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea)"
+Cheque Register                      |#classPath+"/"+#servlet+"?page=*crystal glchqreg_hand_proj(xproj=Project,xdate=From Date=#d,xdate=To Date=#d,xchqstat=Cheque Status)"
+Day Book/Daily Transaction 	 				 |#classPath+"/"+#servlet+"?page=*crystal gltrndtype_proj(xproj=Project,xdate=From Date=#d,xdate=To Date=#d,xvoucher=From No=0=text,xvoucher=To No=zzz=text,xtrngl=From Voucher Trn, xtrngl= To Voucher Trn)"
+Out of Balance                      		 |#classPath+"/"+#servlet+"?page=*crystal gltrnoub_proj(xproj=Project,xdate=From Date=#d,xdate=To Date=#d,xvoucher=From No=0=text,xvoucher=To No=zzz=text)"
+Voucher Print                                |#classPath+"/"+#servlet+"?page=*crystal glvoucher_proj(xvoucher=From Voucher No=0=text,xvoucher=To Voucher=zzz=text,xdate=Date=#d,xproj=Project)"
+Customer Wise Total Collection Report		  |#classPath+"/"+#servlet+"?page=*crystal glcusstot(xcus=From Customer=,xcus=To Customer=,xdate=From Date=#d,xdate=To Date=#d)"
+Employee Wise Confirm DO					|#classPath+"/"+#servlet+"?page=*crystal opdor_ac(xdate=From Date=#d,xdate=To Date=#d,xcus=From Customer=0,xcus=To Customer=z,xsp=From Employee==text=list xsp,xsp=To Employee==text=list xsp)"
+Date Wise Total DO Collection	   				 |#classPath+"/"+#servlet+"?page=*crystal glcusstmsemp(xcus=From Customer=,xcus=To Customer=,xdate=From Date=#d,xdate=To Date=#d,xsp=Employee==text=list xsp)"
+Date Wise DO Collection	   				 |#classPath+"/"+#servlet+"?page=*crystal glcusstmsem(xcus=From Customer=,xcus=To Customer=,xdate=From Date=#d,xdate=To Date=#d,xsp=Employee==text=list xsp)"
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+

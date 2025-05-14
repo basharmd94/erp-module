@@ -1,0 +1,40 @@
+//Set up for PD
+//---------------------------------------------------------------------------------------
+capiton "HR Setup"
+caption "Employee Setup" page 3
+option                  |action                                      	   		|modules|models
+//---------------------------------------------------------------------------------------
+Employee Number         |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Employee Number)" |
+Department              |#classPath+"/"+#servlet+"?page=xcodes(xtype=Department1)"
+Designation             |#classPath+"/"+#servlet+"?page=xcodes(xtype=Designation1)"
+Localtion               |#classPath+"/"+#servlet+"?page=xcodes(xtype=Location1)"
+-
+Employee Grade          |#classPath+"/"+#servlet+"?page=xcodes(xtype=Employee Grade1)"
+Grade Step              |#classPath+"/"+#servlet+"?page=xcodes(xtype=Job Weight1)"
+Name of Office          |#classPath+"/"+#servlet+"?page=xcodes(xtype=Division1)"
+Section                 |#classPath+"/"+#servlet+"?page=xcodes(xtype=Section1)"
+Cost Center             |#classPath+"/"+#servlet+"?page=xcodes(xtype=Cost Center1)"
+Employee Type           |#classPath+"/"+#servlet+"?page=xcodes(xtype=Employee Category1)"
+
+Bank            		|#classPath+"/"+#servlet+"?page=xcodes(xtype=Bank1)"
+-
+Courses 		        |#classPath+"/"+#servlet+"?page=xcodes(xtype=Course1)"
+Grade                   |#classPath+"/"+#servlet+"?page=xcodes(xtype=Grade1)"
+-
+Relationship            |#classPath+"/"+#servlet+"?page=xcodes(xtype=Relationship1)"
+Religion                |#classPath+"/"+#servlet+"?page=xcodes(xtype=Religion1)"
+Blood Group             |#classPath+"/"+#servlet+"?page=xcodes(xtype=Blood Group1)"
+-
+Training Type            |#classPath+"/"+#servlet+"?page=xcodes(xtype=Training Type1)"
+Membership Type          |#classPath+"/"+#servlet+"?page=xcodes(xtype=Membership Type1)"
+-
+Disciplinary Method      |#classPath+"/"+#servlet+"?page=xcodes(xtype=Discipline1)"
+-
+Location Hierarchy		 |#classPath+"/"+#servlet+"?page=prlochier"       	   		|
+-
+Benefit Payable Code          |#classPath+"/"+#servlet+"?page=xcodes(xtype=Benefit Payable)"
+Salary Slab             |#classPath+"/"+#servlet+"?page=prsalslab"
+//Increment Process		 		|#classPath+"/"+#servlet+"?page=princprocess"       	   		|
+//Bonus Activation Process 		|#classPath+"/"+#servlet+"?page=prbonprocess"       	   		|
+//Welfare Fund            		|#classPath+"/"+#servlet+"?page=xcodes(xtype=Welfare1)"
+//---------------------------------------------------------------------------------------

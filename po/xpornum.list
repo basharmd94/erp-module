@@ -1,0 +1,9 @@
+     list xpornum
+        table poord
+        order xpornum
+        select "(xstatuspor<>'Received' and xstatuspor<>'Completed')"
+        rows 10
+        objects xpornum attrib(link "abc" embed onclick="return updateParent(this:'xpornum')"), ~
+                xdate,xsup,xwh,xstatuspor
+
+     end list

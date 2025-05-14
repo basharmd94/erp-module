@@ -1,0 +1,9 @@
+//MO Setup.menu
+//---------------------------------------------------------------------------------------
+option                  |action                                          |modules|models
+//---------------------------------------------------------------------------------------
+//MO to GL Interface Table for Non-Stock Items|#classPath+"/main?page=mogli" |
+Manufacturing Order Codes             |#classPath+"/main?page=xtrn(xtypetrn=MO Number)"
+Manufacturing Order Parameters        |#classPath+"/main?page=xtrnp(xtypetrn=MO Number)"
+//-------------------------------------------------------------------
+

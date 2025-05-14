@@ -1,0 +1,18 @@
+     list xaprstype
+        table praprstype
+        order xaprstype,xmgtgrade
+        navigators alpha
+        rows 20
+        objects xaprstype attrib(link "abc" embed onclick="return updateParent(this:'xaprstype')"), ~
+                xmgtgrade,xscore,xrate,xstataprs
+
+        field xscore
+          caption Score >=
+        end field
+
+        field xrate
+          caption Score <=
+          scale 2
+        end field
+
+     end list

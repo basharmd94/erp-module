@@ -1,0 +1,297 @@
+page pogrqc
+     caption "Q.C. Details for "+xgrnnum
+     sidebar list Item_Details
+	 dependent
+     sections form detail,list order, script myscript,~
+              method chkrec,~
+    	   	  method chk_access, method chk_command          
+              
+
+     list Item_Details
+        caption "<br><center><b><font size=3>"GRN Details"</b></font>"
+        table pogdt
+        order xgrnnum,xrow
+        select "xgrnnum ='"+globals(xgrnnum)+"'"
+        rows 5
+        objects xrow attrib(link #servlet+"?page=pogrqc&command=ShowLoad&xitem=?&xrow=?&xqty=?"), ~
+                xitem ,item_desc equals((select xdesc from caitem where caitem.zid=pogdt.zid and caitem.xitem=pogdt.xitem)),~
+                xqty,xunitpur
+
+        field item_desc
+            caption Description
+    //        storage varchar
+        end field  
+
+     end list
+
+     list order
+        caption "<b>Added Item(s) for Q.C. for <font color=red >"+xgrnnum+"</font></b><p>"
+        table pogrqc
+        order xgrnnum,xrow
+        fixed xgrnnum
+        rows 20 f
+        objects xrow attrib(link #servlet+"?page=pogrqc&command=Show&xgrnnum=?&xrow=?"), ~
+                xitem,xqtyord,xqtycrn,xaction
+                
+        field xqtycrn
+        	caption Qty Returnable
+        end field
+
+     end list
+
+     form detail
+        //caption "<font color=black size=3>Q.C. Details for "+xgrnnum
+		valid valid,access
+        table pogrqc
+        order xgrnnum,xrow
+        fixed xgrnnum
+        
+        layout 2
+        objects Add, Complete, Update, Show, Delete,Top, Previous, Next, Bottom,Clear,ShowLoad display(hide),~
+                xrow,xitem attrib(attach),item_desc,xqtyord,xaction,xqtycrn,xprime,xrem
+
+        
+        field xrow
+          event after
+             set globals(xrow) = xrow
+             if globals(xstatusqc) .ne. "1-New"
+                set #field(Add.display) = "hide"
+                set #field(Update.display) = "hide"
+                set #field(Delete.display) = "hide"
+             end if             
+          end event
+        end field
+		
+		field ShowLoad
+			event before
+				set xqtyord=xqty
+				set xaction="Cleared"
+			end event
+		end field
+        
+        field xitem
+          //attrib readonly
+          pick
+        end field
+
+        field xqtyord
+          attrib readonly
+        end field
+                 
+        field item_desc
+          display const
+          attrib local
+          caption Description
+          event after
+            set item_desc=#sql(str,"select xdesc from caitem where xitem='"+xitem+"'")
+          end event
+        end field
+        
+        field xqtycrn
+          caption Qty Returnable
+        end field
+        
+        field xprime
+          caption Chargable Amount
+        end field
+        
+        field xrem
+          col 3
+          width 75
+          height 2
+        end field
+        
+        field xaction
+          display combo
+		  default "Cleared"
+          pick "Cleared,Return,DN,Return and DN"
+           
+        end field
+        
+        field Add
+          event before
+            set globals(err_chk) = ""
+            set globals(err_msg) = ""
+            
+            if globals(ErrChk) .ne. "1"
+	            str tmprow = pogrqc.xrow("xgrnnum='"+globals(xgrnnum)+"' and xrow='"+xrow+"'")
+	            if tmprow .eq. "null"
+	            else if tmprow .eq. ""
+	            else if tmprow .eq. "0"
+	            else
+	              set globals(err_chk) = "1"
+	              set globals(err_msg) = globals(err_msg)+"<br>Duplicate Record, Cannot Insert" // +tmprow
+	            end if
+	            
+	            if xaction = ""
+	              set globals(ErrChk) = "1"
+				  error "Action filup"
+	         //    set globals(err_msg) = globals(err_msg)+"<br>Action not found</p>Cannot "+#command
+	            end if            
+	        end if
+			
+			if xaction .eq. ""
+				set globals(ErrChk) = "1"
+				error "Action undefined"
+			end if        
+	
+            if globals(err_chk) .ne. "1"
+              str mysql = "select xitem from pogdt where xgrnnum = '"+globals(xgrnnum)+"' and xrow='"+xrow+"' and xitem='"+xitem+"'"
+              set chkval = #sql(mysql)
+              if #result .ne. "true"
+                 set globals(err_chk) = "1"
+                 set globals(err_msg) = globals(err_msg)+"<br>Please Pick From The Sidebar"
+              end if
+            end if
+            
+            if globals(err_chk) .ne. "1"
+               set xqtycrn=0.0
+               set xprime=0.0               
+            end if
+
+            if globals(err_chk) .ne. ""
+              error "<h2>"+globals(err_msg)+"</h2>"
+            end if
+          end event
+        end field
+        
+        field Update
+          event before
+            set globals(err_chk)=""
+            set globals(err_msg) = ""
+
+            if globals(err_chk) .ne. "1"
+              str mysql = "select xrow from pogdt where xgrnnum='"+globals(xgrnnum)+"' and xrow='"+xrow+"'"
+              set chkrow = #sql(mysql)
+              if #result .ne. "true"
+                 set globals(err_chk) = "1"
+                 error "Record not found</p>Cannot "+#command
+              end if
+            end if
+
+            if globals(err_chk) .ne. "1"
+              call chkrec
+            end if
+
+            if globals(err_chk) .ne. "1"
+              set xqtygrn=#sql(double,"select xqty from pogdt where xgrnnum='"+globals(xgrnnum)+"' and xrow='"+globals(xrow)+"'")
+              if xqtycrn > xqtygrn
+                 set globals(err_chk) = "1"
+                 set globals(err_msg) = globals(err_msg)+"<br>Return Qty more than Original Qty "+xqtygrn
+              end if
+            end if
+            
+            if globals(err_chk) .ne. "1"               
+               if xaction .eq. "Return"
+               	  set xprime = 0.0
+                  if xqtycrn == 0.0 .or. xqtycrn < 0.0                  
+                     set globals(err_chk) = "1"
+                     set globals(err_msg) = globals(err_msg)+"<br>Reject Qty not entered "
+                  else if xqtycrn > xqtyord
+                     set globals(err_chk) = "1"
+                     set globals(err_msg) = globals(err_msg)+"<br>Reject Qty cannot be more than Actual Qty "                       
+                  end if
+               else if xaction .eq. "DN"
+                  set xqtycrn=0.0   
+               else if xaction .eq. "Cleared"
+                  set xqtycrn=0.0 
+                  set xprime=0.0  
+               end if
+            end if
+
+            if globals(err_chk) .ne. ""
+              error "<h2>"+globals(err_msg)+"</h2>"
+              action show
+            end if
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Details
+          embed onclick="Details(this)"
+        end field
+
+        field Batch
+          embed onclick="batch(this)"
+        end field
+
+        field SerialNumber
+          embed onclick="serial(this)"
+        end field
+
+        field Complete
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function Details(b){
+          detail="Details"
+        }
+        function batch(b){
+          detail="batch"
+        }
+        function serial(b){
+          detail="serial"
+        }
+
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "pogrnq"
+            form.searchbutton.value = "Find xgrnnum=?"
+            //return false
+          }
+          if (detail=="Details"){
+            form.page.value = "pogrqcd"
+            form.searchbutton.value = "Top"
+          }
+          if (detail=="batch"){
+            form.page.value = "pogdtbat"
+            form.searchbutton.value = "Top"
+          }
+          if (detail=="serial"){
+            form.page.value = "imserpdt"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        function pickItem(link,item,qty){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.detail.xrow.value=link.text
+            document.detail.xitem.value=item.text
+            document.detail.xqtyord.value=qty.text
+          }else{
+            document.detail.xrow.value=link.innerText
+            document.detail.xitem.value=item.innerText
+            document.detail.xqtyord.value=qty.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+     method chkrec
+        if #command .eq. "Update" .or. #command .eq. "Delete"
+          if xrow .ne. globals(xrow)
+            set globals(err_chk) = "1"
+            set globals(err_msg) = globals(err_msg)+"<br>Record pointer mismatch, Click SHOW instead"
+          end if
+        end if
+     end method
+
+#include access.valid
+
+		valid valid
+			config
+			end config
+		end valid
+end page

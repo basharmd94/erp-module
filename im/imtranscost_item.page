@@ -1,0 +1,151 @@
+page imtranscost_item
+
+    caption "Synchronization  the value of Transfer Entry"
+    sections form imtrn,script myscript
+
+    form imtrn
+      caption "<font color=cyan>Synchronization  the value of Transfer Entry</font>"
+      
+      
+      layout 1
+      objects ~
+              Process,"<p>",~
+              xwh,xfdate default(#date),xtdate default(#date),xitem
+
+      field xwh
+        caption WareHouse
+      end field
+      
+
+   
+
+      field process
+        event before
+            set globals(ErrChk)=""
+            
+            
+            
+            
+            if globals(ErrChk) .ne. "1"
+                
+            end if
+
+            if globals(ErrChk) .ne. "1"
+                if xwh .eq. ""
+                    set globals(ErrChk)="1"
+                    error "Cannot "+#command +". Warehouse is Blank"
+                else
+                    set chk_wh=#sql("select xcode from xcodes where zid='"+#id+"' and xcode='"+xwh+"' and xtype='Warehouse'")
+                    if #result .eq. "false"
+                        set globals(ErrChk)="1"
+                        error "Wrong Warehouse selected from List"
+                    end if
+                end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+                if xitem .eq. ""
+                    set globals(ErrChk)="1"
+                    error "Cannot "+#command +". Item is Blank"
+                else
+                    set chk_gitem=#sql("select xitem from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+                    if #result .eq. "false"
+                        set globals(ErrChk)="1"
+                        error "Wrong Item selected from List"
+                    end if
+                    
+                end if
+            end if
+            if globals(ErrChk) .ne. "1"
+                if xfdate .eq. #maxdate
+                    set globals(ErrChk)="1"
+                    error "Wrong Date Range Entered."
+                end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+                if xtdate .eq. #maxdate
+                    set globals(ErrChk)="1"
+                    error "Wrong Date Range Entered."
+                end if
+            end if
+            if globals(ErrChk) .ne. "1"
+                set ximtor=""
+                set mysql="select ximtor from imtdtvw where zid='"+#id+"' and ximtor>'"+ximtor+"' and xdate>='"+xfdate+"' and xdate<='"+xtdate+"' and xitem='"+xitem+"' order by ximtor"
+                set ximtor=#sql(str,mysql)
+                while #result .eq. "true"
+                        set xtorlno=""
+                        set mysql="select xtorlno from imtdtvw where zid='"+#id+"' and ximtor='"+ximtor+"' and xitem='"+xitem+"' and xtorlno>'"+xtorlno+"' order by xtorlno"
+                        set xtorlno=#sql(mysql)
+                        while #result .eq. "true"
+                            set issval=0.0+#sql("select issval from imtdtvw where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+xtorlno+"'")
+                            set xdocnum=#sql("select xdocnum from imtdtvw where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+xtorlno+"'")
+                            //print issval
+                            set upd_imtrn=#sql("update imtrn set xval="+issval+" where zid='"+#id+"' and ximtrnnum='"+xdocnum+"'")
+                            //print #result
+                        set mysql="select xtorlno from imtdtvw where zid='"+#id+"' and ximtor='"+ximtor+"' and xitem='"+xitem+"' and xtorlno>'"+xtorlno+"' order by xtorlno"
+                        set xtorlno=#sql(mysql)
+                        end while
+                    set mysql="select ximtor from imtdtvw where zid='"+#id+"' and ximtor>'"+ximtor+"' and xdate>='"+xfdate+"' and xdate<='"+xtdate+"' and xitem='"+xitem+"' order by ximtor"
+                    set ximtor=#sql(str,mysql)
+                    end while
+                //print ximtor+"test"
+            end if
+        end event
+        even after
+        if globals(ErrChk) .ne. "1"
+            print "<font color=blue size=+1><strong>Processing Completed</strong></font>"
+        end if
+        end event
+      end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = ""
+//            form.searchbutton.value = "Find xvoucher=?"
+            //return false
+          }
+        }
+
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.imtrn.xitem.value=link.text
+          }else{
+            document.imtrn.xitem.value=link.innerText
+          }
+          return false
+        }
+
+
+        function pickBatch(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.imtrn.xbatch.value=link.text
+          }else{
+            document.imtrn.xbatch.value=link.innerText
+          }
+          return false
+        }
+
+        //function keeplastkey(){
+        //document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        //document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        //}
+
+        </script>
+    end script
+    
+    
+
+end page

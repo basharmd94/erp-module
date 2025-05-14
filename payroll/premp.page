@@ -1,0 +1,96 @@
+page premp
+     caption "Employee Master "+xempnum+": <font color=red>"+hrmst.xfirst(xempnum)+" "+hrmst.xlast(xempnum)+"</font>"
+
+     layout mylayout 3 1  //columns rows
+       form emp  (1, 1) //(col,row,colspan,rowspan,width,height)
+       list rates (2, 1)
+			 list emp (3, 1)
+       script myscript (0, 0)
+     end layout
+     
+     list rates
+        caption "Pay Rates<br><font color=red>"+hrmst.xfirst(xempnum)+" "+hrmst.xlast(xempnum)+"</font>"
+        //table prrate
+        table (select prrate.*,prcode.xtyperatepay from prrate,prcode where prrate.zid=prcode.zid and prrate.xcodepay=prcode.xcodepay) as tbl
+        order xempnum,xdateeff,xcodepay
+        fixed xempnum,xdateeff
+        //select none
+        //navigators alpha
+        //rows 20
+        objects  xcodepay attrib(link #servlet+"?page=prrate&command=Show&xempnum=?&xdateeff=?&xcodepay=?"), ~
+                xrate,xtyperatepay
+
+                field xrate
+                  caption Pay Rate
+                end field
+
+
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+     
+     list emp
+        table premp
+        order xempnum,xdateeff
+        //fixed 
+        //select none
+        //navigators alpha
+        //rows 20
+        objects  xempnum,xdateeff attrib(link #servlet+"?page="+page+"&command=Show&xempnum=?&xdateeff=?"), ~
+                xdateexp,xcyclepay,xgbenefit,xmodepay,zactive
+
+//xbasicpay,xpayhra,xpayconv,xpaymed,xpaylta,xpayedu,xpaymisc,xdedtds,xdedloan,xdedconv,xdedfood,
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+     form emp
+        caption "Employee Master"
+        table premp
+        order xempnum,xdateeff
+        //select
+        
+        layout 2
+        objects ~
+                ~
+                Rates,Show,Add, Update, Delete, Top, Previous, Next, Bottom,~
+                xempnum attrib(search),xdateeff,xdateexp,xcyclepay,xgbenefit,xmodepay,xbank,xbankto,xpayaba,xpayname,xpayact,zactive
+
+                field xempnum
+                  event after
+                    set globals(xempnum)=xempnum
+                    set globals(xdateeff)=xdateeff
+                    
+                  end event
+                end field
+
+        embed onsubmit="submitit(this)"
+        field Rates
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Rates"){
+            form.page.value = "prrate"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+end page

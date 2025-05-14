@@ -1,0 +1,17 @@
+//op.module
+module op
+     caption "Order Processing"
+     description "You need to process and fulfil customer orders, take care of ~
+                  back orders and bill the customers for services rendered or ~
+                  products supplied."
+
+     transactions Quotation (table:opqot:xopqot;default:QT--;Customer Order), ~
+				  Customer Order (table:opord:xordernum;default:CO--;Delivery Order;Invoice), ~
+				  Delivery Order(table:opdor:xdornum;default:DO--;Invoice;GL Voucher;Inventory Transaction), ~
+                  Invoice(table:opinv:xinvnum;default:INV-;GL Voucher), ~
+                  Sales Returns (table:opcrn:xcrnnum;default:SR--:CN--;GL Voucher;Inventory Transaction)(Returns;Credits), ~
+				  Secondary Sales (table:opordsec:xordernums;default:SCSL)                  
+
+     codes        Quotation Title, Customer Order Title, Delivery Order Title, Invoice Title, Sales Returns
+          
+end module

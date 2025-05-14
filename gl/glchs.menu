@@ -1,0 +1,13 @@
+//glchs.menu
+caption "Cash/ Cheque Received Register" page 3
+//-----------------------------------------------------------------------------------------------------
+option                             |action
+//-----------------------------------------------------------------------------------------------------
+Cheque Receive                      |#classPath+"/"+#servlet+"?page=glhcsreg" 
+Submit to Bank                      |#classPath+"/"+#servlet+"?page=glsubbnk" 
+Search Cheque                      |#classPath+"/"+#servlet+"?page=glhcsregsec" 
+-Setup
+Bank Name             		 |#classPath+"/"+#servlet+"?page=xcodes(xtype=Bank)"
+Bank Branch Name             		 |#classPath+"/"+#servlet+"?page=xcodes(xtype=Bank Branch Name)"
+Payment Type             		 |#classPath+"/"+#servlet+"?page=xcodes(xtype=Payment Type)"
+

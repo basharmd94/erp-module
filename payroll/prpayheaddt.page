@@ -1,0 +1,127 @@
+page prpayheaddt
+
+  embed onload="move_caret('one','xpsclcode')"
+     caption "<span class=bl>Details for Payment Head: <a href=/da/"+#servlet+"?page=prpayhead&command=Show&xpaycode="+xpaycode+">" +xpaycode+ "</a></span>"+" ("+globals(xdesc)+")"
+     sections form one,list one,text top,script myscript
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        table prpayheaddt
+        order xpaycode,xpsclcode
+        fixed xpaycode
+  	    navigators alpha
+        rows 20
+        objects xpsclcode attrib(link #servlet+"?page=prpayheaddt&command=Show&xpaycode=?&xpsclcode=?"),~
+                xpcode,xpercent,xamount,xminpay,xmaxpay
+
+     end list
+
+     form one
+        table prpayheaddt
+        order xpaycode,xpsclcode
+        fixed xpaycode
+        layout 1
+        objects Add,Back, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+                xpsclcode attrib(attach),tmpdesc,xpcode attrib(attach),tmpdesc1,~
+                xpercent attrib(attach),ddesc,xamount,xminpay,xmaxpay,zemail display(hide),xemail display(hide)
+
+
+          field xpsclcode
+            width 10
+            pick list scalecode
+          end field
+
+          field xpcode
+           caption Dependent Pay Code
+           display text
+           pick list xpcode
+           event after
+            set globals(xpcode)=xpcode
+           end event
+          end field
+
+          field tmpdesc
+            attrib local
+            display constant
+            caption Pay Scale
+            event after
+               set tmpdesc=#sql(str,"select xdesc from prpayscal where xpsclcode='"+xpsclcode+"'")
+            end event
+          end field
+
+          field tmpdesc1
+            attrib local
+            display constant
+            caption Pay Description
+            event after
+              set tmpdesc1=#sql(str,"select xdesc from prpayhead where xpaycode='"+xpcode+"'")
+            end event
+          end field
+
+          field xpercent
+            caption Percentage Rate
+          end field
+
+          field ddesc
+            attrib local
+            display constant
+            caption
+            event after
+              set ddesc = "<center>OR</center>"
+            end event
+          end field
+
+          field xamount
+            caption Fixed Amount
+          end field
+
+          field add
+            event before
+              if xpcode .ne. ""
+                set tmpchk=#sql(str,"select xpaycode from prpayhead where xpaycode='"+xpcode+"'")
+                if #result .ne. "true"
+                  error "Not a valid Paycode"
+                end if
+              end if
+            set zemail=#user
+            set xemail=""
+            end event
+          end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+          embed onsubmit="submitit(this)"
+
+          field Back
+            embed onclick="Details(this)"
+          end field
+
+      end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function Details(b)
+        {
+          detail="Others"
+        }
+        function submitit(form)
+        {
+          if (detail=="Others")
+          {
+            form.page.value = "prpayhead"
+            form.searchbutton.value="Find xpaycode=?"
+          }
+        }
+        </script>
+     end script
+end page

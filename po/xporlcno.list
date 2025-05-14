@@ -1,0 +1,28 @@
+list xporlcno
+table poilc
+	order xpornum desc
+	rows 10
+	objects xpornum attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+			xdate,xsup,supdesc equals((select xorg from casup where zid=poilc.zid and xsup=poilc.xsup)),~
+			typepor equals((select xtypepor from poord where zid=poilc.zid and xpornum=poilc.xpornum)),~
+			statuspor equals((select xstatuspor from poord where zid=poilc.zid and xpornum=poilc.xpornum))
+
+	field xpornum
+		caption P.I. No
+	end field
+
+	field typepor
+		storage varchar
+		caption Purchase Type
+	end field
+
+	field statuspor
+		storage varchar
+		caption Status
+	end field
+
+	field supdesc
+		caption Name
+	end field
+
+end list

@@ -1,0 +1,587 @@
+page pofatrnimp
+
+     embed onload="move_caret('one','xastloc')"
+     caption "GL FA Trn"
+     sections  form one, list one,script myscript
+
+     list one
+        caption "<br><center><b>"Added Record(s)"</b>"
+        table pofatrn
+        order xgrnnum,xrow,xline desc
+        fixed xgrnnum,xrow
+        select "zid='"+#id+"'"
+        rows 20
+        objects xline attrib(link #servlet+"?page=pofatrnimp&command=Show&xgrnnum=?&xrow=?&xline=?"), ~
+                xdiv,xastloc,xdept,xastcatg,xasttype,xastname,xprime
+
+        field xdiv
+            caption Unit
+        end field
+        
+        field xastcatg
+           caption Asset Type
+        end field
+        
+        field xasttype
+        	caption Sub Type
+        end field
+
+        field xprime
+            caption Asset Value
+            len 10.2
+        end field
+        
+     end list
+
+     form one
+        valid valid,access
+        table pofatrn
+        order xgrnnum,xrow,xline desc
+        fixed xgrnnum,xrow
+        select "zid='"+#id+"'"
+        layout 2
+        objects Show,Add, Update, Clear, Delete,Top, Previous, Next, Bottom,Return,~
+                xline attrib(row 0 10),xsornum display(const),~
+                xdiv,xdept,xastloc,xsubdept,xastcatg,xasttype,xastname,~
+                xastunit,xastbr,xdepmeth,xdepfactor,~
+                xslvval default(1),xprime,xbase display(hide),xinvno display(hide),~
+                xastbook display(hide),xestlife,xnomlife display(hide),xcode display(const),~
+				xmodel display(hide),xcondition display(hide),xmaxload display(hide),~
+                xunitalt display(hide),xmfgyear display(hide),~
+                xorigin display(hide),xmanufacturer display(hide),~
+				xleasestat display(hide),xmortgstat display(hide),xassetstat display(const),~
+                xstatusdor display(hide),xdistrict display(hide),~
+                xretdate display(hide),xlong display(hide),xcur display(hide),xexch display(hide),~
+                xdateord display(hide),xname display(hide),xalias display(hide)
+
+		field show
+			event before
+				set globals(temp) = xline
+				set globals(tempdiv)=xdiv
+				set globals(tempdept)=xdept
+				set globals(tempastloc)=xastloc
+				set globals(tempastcatg)=xastcatg
+				set globals(tempasttype)=xasttype
+			end event
+			event after
+				set globals(temp) = xline
+				set globals(tempdiv)=xdiv
+				set globals(tempdept)=xdept
+				set globals(tempastloc)=xastloc
+				set globals(tempastcatg)=xastcatg
+				set globals(tempasttype)=xasttype
+			end event
+		end field
+
+		field Top
+			event before
+				set globals(temp) = xline
+				set globals(tempdiv)=xdiv
+				set globals(tempdept)=xdept
+				set globals(tempastloc)=xastloc
+				set globals(tempastcatg)=xastcatg
+				set globals(tempasttype)=xasttype
+			end event
+			event after
+				set globals(temp) = xline
+				set globals(tempdiv)=xdiv
+				set globals(tempdept)=xdept
+				set globals(tempastloc)=xastloc
+				set globals(tempastcatg)=xastcatg
+				set globals(tempasttype)=xasttype
+			end event
+		end field
+
+        field Asset_search
+            event before
+                class osbcustom(search(xastname,"s","famst","xcode:xastname","pickAsset","xcode:xastname:xastcatg:xasttype:xastbr","yes","Code:Name:Category:Type:Branch"))
+            end event
+        end field
+
+        field xline
+            event after
+                set globals(xline) = xline
+                set grnstatus=pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                if grnstatus .ne. #status("xstatusgrn",1)
+                    set #field(Add.display) = "disable"
+                    set #field(Update.display) = "disable"
+                    set #field(Delete.display) = "disable"
+                    set #field(xsornum->.display) = "const"
+                    set #field(xslvval.display) = "text"
+                end if
+            end event
+        end field
+        
+        field xsornum
+            caption Fixed Asset Voucher Code
+        end field
+        
+        field xdept
+            display ocombo
+        	pick "select xcode from xcodes where zid='"+#id+"' and xtype='Department'"
+        	width 20
+        end field
+        
+        field xsubdept
+        	display hide
+        	pick list xsubdept
+        	width 20
+        end field
+        
+        field xlong
+            width 50
+            height 2
+        end field
+        
+        field xcode
+            width 20
+            caption Asset Code
+        end field
+
+        field xastcatg
+            width 20
+          	caption Asset Type
+          	display text
+          	pick list xastcatg
+        end field
+
+        field xastbook
+            width 20
+            caption Voucher No.
+        end field
+
+        field xasttype
+            width 20
+            caption Sub Type
+            pick list fatype
+        end field
+
+        field xastbr
+            width 20
+            display hide
+        end field
+
+        field xastunit
+            width 20
+      		display const
+        end field
+
+        field xastloc
+            width 20
+            pick list falocation
+        end field
+
+        field xdepmeth
+            //display combo
+            //pick "SL - Straight Line,RB - Reducing Balance,DD - Double Declining Balance,SY - Sum of the Years Digit,SP - Special"
+            display text
+            default "SL - Straight Line"
+            attrib readonly
+        end field
+        
+        field xprime
+            caption Asset Value
+            width 20
+            display const
+            event after
+                set globals(xprime) = xprime
+            end event
+        end field
+        
+        field xdiv
+            width 20
+        	caption Unit
+        	display const
+        	event after
+        		set globals(xdiv)=xdiv
+        	end event
+        end field
+        
+        field xstatusdor
+            caption Status
+            display hide
+        end field
+
+        field xunitalt
+        	caption Unit of Capacity
+        end field
+        
+        field xmaxload
+        	caption Capacity
+        end field
+        
+        field xdateord
+        	caption Date
+        	default #d
+        end field
+        
+        field xname
+        	caption Mapics Code
+        end field
+        
+        field xalias
+        	caption Manual Voucher No.
+        end field
+        
+        field Add
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    set grnstatus=pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if grnstatus .ne. #status("xstatusgrn",1)
+                    	set globals(ErrChk) = "1"
+                    	error "Cannot "+#command+"; Status "+grnstatus
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set totqty=0.0+#sql(dec,"select xqty from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+                    set cntrow=0+#sql(int,"select count(xline) from pofatrn where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+                    if cntrow>=totqty
+                        set globals(ErrChk)="1"
+                        error "Can not exceed GRN Qty"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    str mysql="select xcode from famst where zid='"+#id+"' and xcode='"+xcode+"'"
+                    str codechk=#sql(mysql)
+                    if #result .eq. "true"
+                        set globals(ErrChk)="1"
+                        error "Asset code Already Exist, Acquisition not allowed<br>Use <font color=blue>Addition</font>."
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xitem=#sql(str,"select xitem from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+                    set xcode = ""
+                    set xastunit = #sql("select xunitstk from caitem where zid='"+#id+"' and  xitem='"+xitem+"'")
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xdiv = #sql("select xshort from zbusiness where zid='"+#id+"'")
+                    if #result .ne. "true"
+                    	set globals(ErrChk)="1"
+                    	error "Unit not Found in Business</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chk_loc = #sql("select xcode from xcodes where zid='"+#id+"' and  xtype='FA Location' and xcode='"+xastloc+"'")
+                    if #result .ne. "true"
+                    	set globals(ErrChk)="1"
+                    	error "Location Code not Found</p>Cannot "+#command
+                    else
+                        int len_loc=0+#length(chk_loc)
+                        if len_loc<>3
+                            set globals(ErrChk)="1"
+                            error "Location Length should be 3"
+                        end if
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chk_dept = #sql("select xcode from xcodes where zid='"+#id+"' and  xtype='Department' and xcode='"+xdept+"'")
+                    if #result .ne. "true"
+                    	set globals(ErrChk)="1"
+                    	error "Department Code not Found</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chk_catg = #sql("select xcode from xcodes where zid='"+#id+"' and  xtype='FA Category' and xcode='"+xastcatg+"'")
+                    if #result .ne. "true"
+                    	set globals(ErrChk)="1"
+                    	error "Asset Type not Found</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xprops = #sql("select xprops from xcodes where  zid='"+#id+"' and xtype='FA Category' and xcode='"+xastcatg+"'")
+                    set vtype = #prop(xprops,"Short Code")
+                    set mysql = "select xtrn from xtrn where  zid='"+#id+"' and xtypetrn='Short Code' and xtrn='"+vtype+"' and zactive='1'"
+                    set tmpstr = #sql(str,mysql)
+                    if vtype .eq. ""
+                        set globals(ErrChk) = "1"
+                        error "Short Code for ("+xastcatg+ ") not found</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chk_subtype = #sql("select xcode from xcodes where zid='"+#id+"' and  xtype='FA Type' and xcode='"+xasttype+"'")
+                    if #result .ne. "true"
+                    	set globals(ErrChk)="1"
+                    	error "Asset Sub Type not Found</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chk_unit = #sql("select xcode from xcodes where zid='"+#id+"' and  xtype='Unit of Measure' and xcode='"+xastunit+"'")
+                    if #result .ne. "true"
+                    	set globals(ErrChk)="1"
+                    	error "Unit Code not Found</p>Cannot "+#command
+                    end if
+                end if
+             
+                if globals(ErrChk) .ne. "1" .and. xdepmeth .sw. "SL"
+                    if xestlife <= 0
+                        set globals(ErrChk) = "1"
+                        error "Please Enter Estimated Life."
+                    end if
+                else
+                    set xestlife = 0
+                end if
+
+                if globals(ErrChk) .ne. "1" .and. xdepmeth .sw. "SL"
+                    if xslvval <= 0
+                        set globals(ErrChk) = "1"
+                        error "Please Enter Salvage Value"
+                    end if
+                else
+                    set xslvval = 0
+                end if
+                if globals(ErrChk) .ne. "1"
+                    set xprime=0.0+#sql(dec,"select xrate from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+                    set xexch=0.0+#sql(dec,"select xexch from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+                    set xbase=0.0+xprime*xexch
+                    set xassetstat="In Use"
+                end if
+            end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                	if xline .ne. globals(xline)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xline .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set grnstatus=pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if grnstatus .ne. #status("xstatusgrn",1)
+                    	set globals(ErrChk) = "1"
+                    	error "Cannot "+#command+"; Status "+grnstatus
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    str mysql="select xcode from famst where zid='"+#id+"' and  xcode='"+xcode+"'"
+                    str codechk=#sql(mysql)
+                    if #result .eq. "true"
+                        //set globals(ErrChk)="1"
+                        //error "Asset code Already Exist, Acquisition not allowed<br>Use <font color=blue>Addition</font>."
+                    end if
+                end if
+             
+                if globals(ErrChk) .ne. "1"
+                    set xdiv = #sql("select xshort from zbusiness where zid='"+#id+"'")
+                    if #result .ne. "true"
+                    	set globals(ErrChk)="1"
+                    	error "Unit not Found in Business</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chk_loc = #sql("select xcode from xcodes where zid='"+#id+"' and  xtype='FA Location' and xcode='"+xastloc+"'")
+                    if #result .ne. "true"
+                    	set globals(ErrChk)="1"
+                    	error "Location Code not Found</p>Cannot "+#command
+                    else
+                        int len_loc=0+#length(chk_loc)
+                        if len_loc<>3
+                            set globals(ErrChk)="1"
+                            error "Location Length should be 3"
+                        end if
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chk_dept = #sql("select xcode from xcodes where zid='"+#id+"' and  xtype='Department' and xcode='"+xdept+"'")
+                    if #result .ne. "true"
+                    	set globals(ErrChk)="1"
+                    	error "Department Code not Found</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chk_catg = #sql("select xcode from xcodes where zid='"+#id+"' and  xtype='FA Category' and xcode='"+xastcatg+"'")
+                    if #result .ne. "true"
+                        set globals(ErrChk)="1"
+                        error "Asset Type not Found</p>Cannot "+#command
+                    end if
+                end if
+             
+                if globals(ErrChk) .ne. "1"
+                    set chk_subtype = #sql("select xcode from xcodes where zid='"+#id+"' and  xtype='FA Type' and xcode='"+xasttype+"'")
+                    if #result .ne. "true"
+                    	set globals(ErrChk)="1"
+                    	error "Asset Sub Type not Found</p>Cannot "+#command
+                    end if
+                end if
+            
+                if globals(ErrChk) .ne. "1" .and. xdepmeth .sw. "SL"
+                    if xestlife <= 0
+                        set globals(ErrChk) = "1"
+                        error "Please Enter Estimated Life."
+                    end if
+                else
+                    set xestlife = 0
+                end if
+
+                if globals(ErrChk) .ne. "1" .and. xdepmeth .sw. "SL"
+                    if xslvval <= 0
+                        set globals(ErrChk) = "1"
+                        error "Please Enter Salvage Value"
+                    end if
+                else
+                    set xslvval = 0
+                end if
+                if globals(ErrChk) .ne. "1"
+                    set xprime=0.0+#sql(dec,"select xrate from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+                    set xexch=0.0+#sql(dec,"select xexch from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+                    set xbase=0.0+xprime*xexch
+                    set xassetstat="In Use"
+                end if
+            end event
+        end field
+        
+        field Delete
+        	event before
+        		set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                	if xline .ne. globals(xline)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xline .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set grnstatus=pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if grnstatus .ne. #status("xstatusgrn",1)
+                    	set globals(ErrChk) = "1"
+                    	error "Cannot "+#command+"; Status "+grnstatus
+                    end if
+                end if
+
+        	end event
+        end field
+        
+        embed onsubmit="submitit(this)"
+
+        field Return
+          embed onclick="back()"
+        end field
+        
+     end form
+
+     script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+        $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+        });
+        $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+        });
+        $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+        });
+        $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+        });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function back(){
+          detail="back"
+        }        
+        
+        function submitit(form){
+			if (detail=="clicked"){
+            	form.page.value = "pogrnimp"
+            	form.searchbutton.value = "Find xgrnnum=?"
+          	}else if (detail=="back"){
+            	form.page.value = "pogdtimp"
+            	form.searchbutton.value = "Find xgrnnum=? & xrow=?"
+          	}
+        }
+
+        function pickDetail(link, row,primebal){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xalcnum.value=link.text
+            document.one.xalcrow.value=row.text
+            document.one.xtotamt.value=primebal.text
+          }else{
+            document.one.xalcnum.value=link.innerText
+            document.one.xalcrow.value=row.innerText
+            document.one.xtotamt.value=primebal.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+    valid valid
+        mendatory xdept,xastloc,xastcatg,xasttype,xastname,xestlife
+        config
+        	set globals(pkey) = xgrnnum+" "+xrow+" "+xline
+
+            set grnstatus=pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+            if grnstatus .ne. #status("xstatusgrn",1)
+                set #field(Add.display) = "disable"
+                set #field(Update.display) = "disable"
+                set #field(Delete.display) = "disable"
+                set #field(xsornum->.display) = "const"
+                set #field(xslvval.display) = "text"
+            end if
+
+        end config
+    end valid
+
+#include access.valid
+
+end page

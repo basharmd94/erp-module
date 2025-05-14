@@ -1,0 +1,12 @@
+list falocation
+        table xcodes
+        order xcode
+        select "xtype='FA Location'"
+        navigators alpha
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xastloc')"), ~
+                xdescdet
+
+
+     end list
+

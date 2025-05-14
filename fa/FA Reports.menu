@@ -1,0 +1,64 @@
+//OP Reports.menu
+//-------------------------------------------------------------------
+caption "Reports" page 3
+option                                  |action
+//-------------------------------------------------------------------
+
+Fixed Asset Register                   |#classPath+"/"+#servlet+"?page=*crystal fatrn(xcode=From Code="+famst.xcode+"=text=list famst,xcode=To Code="+famst.xcode+"=text=list famst)"
+//Fixed Asset Register                   |#classPath+"/"+#servlet+"?page=*crystal famst(xcode=From Code="+famst.xcode+"=text=list famst,xcode=To Code="+famst.xcode+"=text=list famst)"
+Additional Report                    |#classPath+"/"+#servlet+"?page=*crystal faastadd(xcode=From Code="+famst.xcode+"=text=list famst,xcode=To Code="+famst.xcode+"=text=list famst)"
+Depritiation Report                    |#classPath+"/"+#servlet+"?page=*crystal fadepadd(xcode=From Code="+famst.xcode+"=text=list famst,xcode=To Code="+famst.xcode+"=text=list famst)"
+Fixed Asset Register                     |#classPath+"/"+#servlet+"?page=*crystal fatrn(xyear=Year,xcode=From Code="+famst.xcode+"=text=list famst,xcode=To Code="+famst.xcode+"=text=list famst)"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Depreciation Schedule                   |#classPath+"/"+#servlet+"?page=*crystal faass_schedule(xyear=Year)"
+//Depreciation Schedule(Department)                   |#classPath+"/"+#servlet+"?page=*crystal faass_schedule_department(xyear=Year,xper=Month,xdept=Department)"
+//Depreciation Schedule(Location)                   |#classPath+"/"+#servlet+"?page=*crystal faass_schedule_location(xyear=Year,xper=Month,xastloc=Location)"
+//-
+//FA Summary Report                   |#classPath+"/"+#servlet+"?page=*crystal faass_schedule_all_sum(xyear=Year,xper=Month)"
+//FA Summary (Department Wise)                   |#classPath+"/"+#servlet+"?page=*crystal faass_schedule_all_dept(xyear=Year,xper=Month,xdept=Department)"
+//FA Summary (Location Wise)                   |#classPath+"/"+#servlet+"?page=*crystal faass_schedule_all_loc(xyear=Year,xper=Month,xastloc=Location)"
+-
+
+//Fixed Asset Details(Location Wise)                   |#classPath+"/"+#servlet+"?page=*crystal facodeloc(xcode=From Code="+famst.xcode+"=text=list famst,xcode=To Code="+famst.xcode+"=text=list famst,xastloc=Location="+xcodes.xcode("xtype like 'FA Location'")+"=text=list falocation)"
+//Fixed Asset Details(Category Wise)                   |#classPath+"/"+#servlet+"?page=*crystal facodedet(xcode=From Code="+famst.xcode+"=text=list famst,xcode=To Code="+famst.xcode+"=text=list famst,xastcatg=Asset Category="+xcodes.xcode("xtype like 'FA Category'")+"=text=list facat)"
+//FA Register (Department Wise)                  |#classPath+"/"+#servlet+"?page=*crystal faass_regis_dept(xyear=Year,xper=Month,xdept=Department)"
+//FA Register (Category Wise)                  |#classPath+"/"+#servlet+"?page=*crystal faass_regis_categ(xyear=Year,xper=Month,xcode=Category="+xcodes.xcode("xtype like 'FA Category'")+"=text)"
+//FA Register (Category & Sub Cat Wise)                  |#classPath+"/"+#servlet+"?page=*crystal faass_regis_cat_subcat(xyear=Year,xper=Month,xastcatg=Category,xasttype=Sub Category)"
+//FA Register (Dept & Category Wise)                  |#classPath+"/"+#servlet+"?page=*crystal faass_regis_cat_dept(xyear=Year,xper=Month,xdept=Department,xastcatg=Category)"
+//FA Register (Dept & Subdept)                  |#classPath+"/"+#servlet+"?page=*crystal faass_regis_dept_sub(xyear=Year,xper=Month,xdept=Department,xsubdept=Sub Department)"
+//FA Register (Location Wise)                  |#classPath+"/"+#servlet+"?page=*crystal faass_regis_loc(xyear=Year,xper=Month,xastloc=Location)"
+//-Old Procurement
+//FA Procurement Report                   |#classPath+"/"+#servlet+"?page=*crystal faass_procurement(xyear=Year,xper=From Month,xper=To Month)"
+//FA Procurement (Type)                  |#classPath+"/"+#servlet+"?page=*crystal faass_procurement_type(xyear=Year,xper=From Month,xper=To Month,xastcatg=Category)"
+//FA Procurement (Location)                  |#classPath+"/"+#servlet+"?page=*crystal faass_procurement_loc(xyear=Year,xper=From Month,xper=To Month,xastloc=Location)"
+//FA Procurement (Department)                  |#classPath+"/"+#servlet+"?page=*crystal faass_procurement_dept(xyear=Year,xper=From Month,xper=To Month,xdept=Department)"
+//-New Procurement
+//FA Procurement Report                   |#classPath+"/"+#servlet+"?page=*crystal faass_procurement_new(xyear=Year,xper=From Month,xper=To Month)"
+//FA Procurement (Type)                  |#classPath+"/"+#servlet+"?page=*crystal faass_procurement_type_new1(xyear=Year,xper=From Month,xper=To Month,xastcatg=Category)"
+//FA Procurement (Location)                  |#classPath+"/"+#servlet+"?page=*crystal faass_procurement_loc_new1(xyear=Year,xper=From Month,xper=To Month,xastloc=Location)"
+//FA Procurement (Department)                  |#classPath+"/"+#servlet+"?page=*crystal faass_procurement_dept_new1(xyear=Year,xper=From Month,xper=To Month,xdept=Department)"
+//-
+//Ownership(Freehold)                   |#classPath+"/"+#servlet+"?page=*crystal faass_ownership(xyear=Year,xper=Month,xastcatg=Category,xastloc=Location)"
+//Ownership(Leasehold)                   |#classPath+"/"+#servlet+"?page=*crystal faass_ownership_lease(xyear=Year,xper=Month,xastcatg=Category,xastloc=Location)"
+//Ownership(Mortgage)                   |#classPath+"/"+#servlet+"?page=*crystal faass_ownership_mort(xyear=Year,xper=Month,xastcatg=Category,xastloc=Location)"
+//-
+//Maitenance Report                  |#classPath+"/"+#servlet+"?page=*crystal faass_"+#servlet+"tenance(xyear=Year,xper=Month,xastcatg= From Category,xastcatg=To Category)"
+//FA At Manager's Residence                  |#classPath+"/"+#servlet+"?page=*crystal faass_manager(xyear=Year,xper=Month,xdept=From Department,xdept=To Department)"
+//Depreciation Schedule(Leased Assets)  |#classPath+"/"+#servlet+"?page=*crystal fadepsch_lease(xyear=Year)"
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,20 @@
+    list xmoord
+    caption "Menufacturing Order"
+    table moord
+    order xmoord
+    rows 10
+    objects xmoord attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+            xdatemo,xitem,itemdesc equals((select xdesc from caitem where zid=moord.zid and xitem=moord.xitem)),~
+            xqtyprd,xstatusmor
+    
+        field itemdesc
+            caption Description
+            storage varchar
+        end field
+        
+        field xqtyprd
+            len 10.3
+        end field
+    
+    end list
+     

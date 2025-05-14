@@ -1,0 +1,218 @@
+//#include pogrn_create.methods
+        field Create
+          event before
+              set globals(ErrChk) = ""
+              set globals(Flag) = ""
+              
+              if globals(ErrChk) .eq. ""
+              	if page .ne. "poordgr"
+              		if xpornum .ne. globals(xpornum)
+              			set globals(ErrChk) = "1"
+              			error "Record pointer mismatch"
+              		end if
+				end if   
+              end if
+              
+              if globals(ErrChk) .ne. "1"
+              	set statuspor = poord.xstatuspor("zid='"+#id+"' and xpornum='"+xpornum+"'")
+              	if statuspor .ge. #status("statuspor",5)
+              		set globals(ErrChk) = "1"
+              		error "Cannot Create GRN; Status: "+statuspor
+              	end if
+              end if
+      
+              if globals(ErrChk) .eq. ""
+                 set globals(trncode)=#sub(xpornum,0,4)
+                 set xtrncode=#sub(xpornum,0,4)
+                  
+                 if xtrncode .sw. "IP" .and. xcoststat .eq. "LC Opened"
+                    set globals(ErrChk) = "1"
+                    error "LC Costing not yet Completed"
+                 end if
+
+                 if globals(ErrChk) .ne. "1"
+                	set detqty = #sql(decimal,"select sum(xqtyord) from poodt where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                	if detqty <= 0.0
+                		set globals(ErrChk)="1"
+                		error "Detail has no record</p>Cannot "+#command
+                	end if
+                 end if
+                 
+                 if globals(ErrChk) .ne. "1"
+					double tempnum=#sql(numeric,"select sum(poodt.xqtyord-poodt.xqtygrn) from poodt where zid='"+#id+"' and xpornum='"+xpornum+"'")
+					if tempnum <= 0
+						set globals(ErrChk) = "1"
+						error "Nothing to Receive!"+tempnum
+					end if
+                 end if
+
+                 if globals(ErrChk) .eq. ""
+                    set xtrncode=xtrnp.xrel("xtypetrn='Purchase Order' and xtrn='"+xtrncode+"' and xtyperel='Goods Receipt Note'")
+                    if #result .ne. "true"
+                       set globals(ErrChk) = "1"
+                       error "Related GRN code not found</p>Cannot "+#command
+                    end if   
+                 end if
+               
+                 if globals(ErrChk) .eq. ""
+                     set grncode = xtrn.xtrn("xtypetrn='Goods Receipt Note' and xtrn='"+xtrncode+"'")
+                     if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "GRN code("+grncode+") not found</p>Cannot "+#command
+                     end if
+                 end if 
+              end if
+          
+              if globals(ErrChk) .eq. ""
+                 //set xgrnnum = #trn("Goods Receipt Note",grncode)
+				 str dategrn=#date
+				 str sysnot=opdef.xsysnot()
+				 if sysnot .eq. "1"
+				 	set dategrn=poord.xdate(xpornum)
+				 end if
+                 
+				 //str mysql = #sql(str,"select xgrnnum from pogrn where xgrnnum like '"+grncode+"%' order by xgrnnum desc")
+				 //if #result .eq. "true" .and. mysql .ne. ""
+				 //	set last_num = 0+#sub(mysql,4,6)
+				 //end if
+				 //set last_num = 0+1+last_num
+				 //set mysql = #padl(""+last_num,6,"0")
+				 //set xgrnnum = grncode + mysql                                  
+				 
+                 set xgrnnum = #trn("Goods Receipt Note",grncode)                 
+                 
+                 buffer pogrn
+                 move pogrn=poord(xpornum)
+                 set pogrn.xgrnnum=xgrnnum
+                 set pogrn.xdate=dategrn
+                 set pogrn.xdatedue=dategrn
+                 set pogrn.xstatusgrn=#status("xstatusgrn",1)
+                 set pogrn.xcur=xcur
+                 set pogrn.xexch=xexch
+                 set pogrn.xstatusqc="1-New"
+                 set pogrn.xref=""
+				 set pogrn.xconfirmt=#time
+				 set pogrn.xfailedt=#time
+				 set pogrn.xreviset=#time
+				 set pogrn.xinvoicet=#time
+                 insert pogrn				 
+                 if #result .ne. "true"
+                   set globals(ErrChk) = "1"
+                   error "Error in creating GRN Header</p>Cannot proceed"
+                 else
+                   set globals(Flag) = "1" 
+                 end if
+              end if            
+
+              if globals(ErrChk) .eq. ""
+                  decimal ordqty=0.0
+                  decimal grnqty=0.0
+                  decimal balqty=0.0
+                  decimal totval=0.0
+                  int xrow=0
+                  
+                  set mysql = "select xrow from poodt where zid='"+#id+"' and xpornum = '"+xpornum+"' and xrow >'"+xrow+"' order by xrow "
+                  set xrow=#sql(str, mysql)
+				  //error xrow
+                  while #result .eq. "true"
+					
+                     set grnqty = #sql(decimal,"select sum(xqtygrn) from poodt where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")
+                     set ordqty = #sql(decimal,"select sum(xqtyord) from poodt where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")
+                     set rate = #sql(decimal,"select xrate from poodt where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")
+                     set xtaxrate1 = #sql(decimal,"select xtaxrate1 from poodt where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")
+					 set xdtdisc=#sql(decimal,"select sum(xdtdisc) from poodt where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")
+					 set xdiscf=#sql(decimal,"select sum(xdiscf) from poodt where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")
+					 
+                     set landcost = #sql(decimal,"select xlandcost from poodt where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")
+                     set balqty = 0.00+ordqty-grnqty                     
+                     if ordqty > grnqty
+                        buffer pogdt
+                        move pogdt=poodt(xpornum,xrow)
+                        set pogdt.xgrnnum=pogrn.xgrnnum
+                        set pogdt.xqty = 0.00+ordqty-grnqty
+                        set pogdt.xqtygrn = 0.00+ordqty-grnqty
+                        set pogdt.xcur="BDT"
+                        set pogdt.xexch=0.0+1
+                        set pogdt.xchgapply="Yes"
+                        set pogdt.xprice=0.0+rate
+                        if globals(trncode) .sw. "IP"
+                           decimal tmpval = 0.0
+                           set tmpval = 0.00+balqty*landcost
+                           set pogdt.xdtwotax = 0.0+balqty*landcost
+                           set pogdt.xlineamt = 0.0+balqty*landcost
+                           set totval = 0.0+totval+tmpval
+                        else
+                           decimal tmpval = 0.00
+                           decimal tmp = 0.00
+                           decimal taxamt = 0.00
+                           set tmpval = 0.00+balqty*rate
+                           set xdtwotax = 0.00+balqty*rate
+						   set pogdt.xdtwotax = 0.00+xdtwotax
+						   set discfR=0.0+xdiscf/ordqty
+						   set discf=0.0+discfR*balqty
+                           if xtaxrate1 > 0.0
+								set xdttax = 0.00+(xtaxrate1/100)*tmpval
+                           end if	
+						   
+						   set pogdt.xdttax=0.0+xdttax
+						   set pogdt.xdiscf=0.0+discf
+                           set pogdt.xlineamt = 0.00+xdtwotax+xdttax-xdtdisc-discf
+						   
+                           set totval = 0.00+totval+tmpval+taxamt
+                           set tottempv = 0.00+tottempv+tmpval 
+                        end if
+						
+                        insert pogdt
+	                    if #result .ne. "true"
+	                        set globals(ErrChk) = "1"
+	                        error "Error in creating GRN Details</p>Cannot proceed"
+	                    else
+							buffer pogdtbat
+							set pogdtbat.xgrnnum=pogrn.xgrnnum
+							set pogdtbat.xrow=xrow
+							set pogdtbat.xline=10
+							set pogdtbat.xbatch=""
+							set pogdtbat.xdaterec=#sub(pogrn.xdate,0,10)
+							set pogdtbat.xqty=pogdt.xqty
+							insert pogdtbat
+							
+							//check serial number
+							set checkserial=#sql(string,"select xtypeserial from caitem where zid='"+#id+"' and xitem='"+pogdt.xitem+"'")
+							if checkserial .sw. "1"
+								set tempstr=#sql(string,"update pogrn set xstatusgrn='"+#status("xstatusgrn",7)+"' where zid='"+#id+"' xgrnnum='"+pogdt.xgrnnum+"'")
+							end if
+							             
+							//set poodt.xqtygrn=poodt.xqtygrn+pogdt.xqty
+							
+							str mysql = "update poodt set xqtygrn=xqtygrn+"+pogdt.xqty+" where zid='"+#id+"' and xpornum = '"+xpornum+"' and xrow = '"+xrow+"'"
+							set tmpstr = #sql(str,mysql)
+					  									         
+	                        set globals(globals(Flag) = "1"   
+	                    end if
+                     end if
+                  set mysql = "select xrow from poodt where zid='"+#id+"' and xpornum = '"+xpornum+"' and xrow > '"+xrow+"' order by xrow"
+                  set xrow=#sql(str, mysql)
+                end while
+              end if
+              
+              if globals(ErrChk) .eq. ""
+                  if globals(Flag) .eq. "1"
+					 set totgross = #sql(decimal,"select sum(xdtwotax) from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+					 set totdisc = #sql(decimal,"select sum(xdtdisc) from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+					 set tottax = #sql(decimal,"select sum(xdttax) from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+					 set totval = #sql(decimal,"select sum(xlineamt) from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+					
+					 str mysql = "update pogrn set xdtwotax="+totgross+",xdtdisc="+totdisc+",xdttax="+tottax+",xtotamt="+totval+" where zid='"+#id+"' and xgrnnum='"+xgrnnum+"'"
+					 set tmpstr = #sql(str,mysql)
+                  	 //print #result+" "+totgross+" "+totdisc+" "+tottax+" "+totval+" "+xgrnnum   
+                  	 set xstatuspor = #status("xstatuspor",5)
+                     set mysql = "update poord set xstatuspor='"+#status("xstatuspor",5)+"' where zid='"+#id+"' and xpornum='"+xpornum+"'"
+                     set updval = #sql(str,mysql)
+                     action show
+                     //print "<span class=bl>GRN No <a href=/da/portal?page=pogrn&command=Show&xgrnnum="+xgrnnum+">" +xgrnnum+ "</a> Created.</span>"
+                     print "<span class=bl>GRN No " +xgrnnum+ " Created.</span>"
+                  end if
+              end if 
+          end event
+        end field							 
+

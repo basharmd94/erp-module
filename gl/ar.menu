@@ -1,0 +1,10 @@
+//ar.menu
+caption "Accounts Receivable"
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Transactions                      |#classPath+"/"+#servlet+"?menu=artrn"|ar,gl
+Reports               |#classPath+"/"+#servlet+"?menu=arreports"|ar,gl
+//Settings                 |#classPath+"/"+#servlet+"?menu=arcodes"|ar,gl
+//-------------------------------------------------------------------
+

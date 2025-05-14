@@ -1,0 +1,1228 @@
+page opdorbill	//opdor
+     caption header
+     sidebar list opddt 
+     sections list cdt,form one, list open,list confirm, script myscript
+
+     list cdt
+        caption "All Sales Returns Against DO No: <font color=red>"+xdornum+"</font>"
+		table (select * ~
+			,(select xdesc from caitem where zid=opcdt.zid and xitem=opcdt.xitem) as itemdesc ~
+			,(xqty*xrate) as xlineamt ~
+			from opcdt) as tbl
+			
+        order xdornum,xcrnnum,xrow
+        fixed xdornum
+        rows 5
+        objects xcrnnum,xrow attrib(link #servlet+"?page=opcdt&command=Show&xcrnnum=?&xrow=?"), ~
+                xitem,itemdesc,xqty,xunitsel,xrate,xdornum,xlineamt,xbin
+
+        totals "","","","Totals","","","","",sum
+
+     end list
+                      
+     list open
+        caption "D.O.(s) to be Confirmed"
+		table (select *,~
+			(select xorg from cacus ~
+			where zid=opdor.zid and xcus=opdor.xcus) as xdesc ~
+			from opdor) as tbl
+
+		order xdornum DESC
+        select "(xstatusdor='1-Open') and (xsalescat='Local')"
+        rows 5
+        objects xdornum attrib(link #servlet+"?page="+page+"&command=Show&xdornum=?"), ~
+                xcus,xdesc,xdate,xordernum
+
+        field xdesc
+          caption Name
+          storage varchar
+        end field
+
+     end list
+
+     list problem
+        caption "D.O.(s) Pending"
+		
+		table (select *,~
+			(select xorg from cacus ~
+			where zid=opdor.zid and xcus=opdor.xcus) as xdesc ~
+			from opdor) as tbl
+
+
+		order xdornum DESC
+        select "(xstatusdor like '7%' or xstatusdor like '6%') and (xsalescat='Local')"
+        rows 5
+        objects xdornum attrib(link #servlet+"?page="+page+"&command=Show&xdornum=?"), ~
+                xdate,xcus,xdesc,xordernum,xstatusdor
+
+        field xdesc
+          caption Name
+          storage varchar
+        end field
+
+     end list
+
+     list confirm
+        caption "D.O.(s) to be Invoiced"
+		table (select *,~
+			(select xorg from cacus ~
+			where zid=opdor.zid and xcus=opdor.xcus) as xdesc ~
+			from opdor) as tbl
+		
+        order xdornum DESC
+        select "(xstatusdor='2-Confirmed') and (xsalescat='Local')"
+        rows 5
+        objects xdornum attrib(link #servlet+"?page="+page+"&command=Show&xdornum=?"), ~
+                xcus,xdesc,xdate,xordernum
+
+        field xdesc
+          caption Name
+          storage varchar
+        end field
+
+     end list
+     
+     list opddt
+        caption "<font size=2>Item(s) Added</font>"
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=opddt.zid and xitem=opddt.xitem) as itemdesc ~
+			from opddt) as tbl
+		
+        order xdornum,xrow
+        fixed xdornum
+        rows 10
+        objects xrow attrib(link #servlet+"?page=opddt&command=Show&xordernum=?&xrow=?"), ~
+                xitem,itemdesc,xqty scale(2),xunitsel
+
+        totals count,"Totals","",sum,""
+        
+        field itemdesc
+        	caption Description
+        end field
+
+     end list
+     
+     form one
+        //caption "<font color=black size=4>Delivery Order (Local)"
+        valid valid
+        table opdor
+        order xdornum DESC
+        select "xsalescat='Local'"
+        focus xdornum
+        layout 2
+		default Show
+        objects ~
+                Show,Clear,Update,Details, Delivery Address display(hide),Confirm DO display(hide), Add display(hide),Previous, Next,~//Correction,
+                xdornum , xdate,~
+                xcus display(const),cus_name display(const),xcuspo attrib(hidden),xdatecuspo attrib(hidden),~
+                xcur attrib(hidden),xexch attrib(hidden), ~
+				xdtwotax display(const),xdtcomm display(const),xdttax display(const),~
+                xdtdisc display(const),xdiscf display(const),xdiscamt display(hide),xval attrib(hidden),xtotamt display(constant),~                
+                xdisc display(hide),ordqty display(constant) attrib(local), delqty display(constant) attrib(local),~
+                balqty display(constant) attrib(local),detqty display(const) attrib(local),xdateord display(constant), ~
+                xordernum display(constant),xwh display(constant),xinvnum display(hide),xvoucher display(hide),xvoucherlink attrib(local) display(const) caption(GL Voucher),~
+                xshipcode,del_name display(const),xvehicle,xpacktype display(hide),~
+                xdateto display(hide),xdatecom display(hide),xstatusdor display(constant),~
+                zemail display(const),xemail display(const),xteam display(hide),xmember display(hide),~
+				xmanager display(hide),xinvrule display(const),xquoteby display(hide),xwhoption display(const),~
+				xsp display(const)
+                
+		field xdornum
+        	attrib search
+			event after
+				set globals(xdornum)=xdornum
+				set globals(xordernum)=xordernum
+				set globals(xcus)=xcus
+				if xstatusdor .ne. "2-Confirmed" .and. xstatusdor .ne. "3-Invoiced"
+					call checkserial
+					if err==0
+						call checkbatch
+					end if
+				end if	
+	          	if xinvrule .ge. #status("xinvrule",5)
+	            	set #field(Invoice.display) = "disable"
+	          	else if xinvrule .sw. "2" .and. xinvrule .ct. "Completed"
+	            	double outstanding=#sql(decimal,"select sum(xqtyord-xqtydel) from opodt where zid="+#id+" and xordernum='"+xordernum+"'")
+	            	//print "outstanding="+outstanding
+	            	if outstanding > 0
+	              		set #field(Invoice.display) = "disable"
+	            	end if
+	            	set chkinv = #sql(str,"select xvoucher from glheader where zid="+#id+" and xdesc05='"+xordernum+"' and xstatusjv='Balanced'")
+					if #result .eq. "true"
+						set #field(Invoice.display) = "disable" 
+					end if
+					//print chkinv
+	          	end if
+								
+				if xinvnum .ne. ""
+					set #field(Invoice.display) = "disable"
+				end if                
+				
+				str header="<font color=green>"+xstatusdor+"</font> Delivery Order <br>"
+				str print=opdef.xprintdor()
+				if print .ne. "0"            
+					set header=header+"<a href='"+#report(opdorbill.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xdornum+"&prompt2="+xdornum+"&prompt3="+opdef.xtitledor()+"' target='_new'> Bill Print</a>"
+				end if
+
+				set globals(xdttax) = xdttax
+				set globals(xval) = xval
+				set globals(xdtwotax) = xdtwotax
+				set globals(xdtcomm) = xdtcomm
+				set globals(xdtdisc) = xdtdisc
+				set #field(zemail.caption) = "Entered By"
+				set #field(xemail.caption) = "Last Updated By"      			          
+			end event
+		end field
+
+        field xcus
+        	attrib attach
+        end field
+
+        field xshipcode
+        	attrib attach
+			caption Delivery Man
+			display text
+			pick list xemp
+        end field
+        
+        field cus_name
+          attrib local
+          caption Company
+          display constant
+          event after
+            set cus_name=#sql(string,"select xorg from cacus where xcus = '"+xcus+"'")
+          end event
+        end field
+
+        field del_name
+        	attrib local
+        	display const
+        	caption 
+        	event after
+        		set del_name=#sql("select xname from prmst where zid='"+#id+"' and xemp='"+xshipcode+"'")
+        	end event
+        end field
+
+    	  field detqty
+    	    caption Detail Qty
+    	    event after
+    	      set detqty=0.0+#sql("select sum(xqty) from opddt where xdornum='"+xdornum+"'")
+            end event
+    	  end field
+	 
+	     field xwh
+    	    caption  Warehouse 
+    	 end field
+        
+        field xstatusdor
+          event after
+            set globals(xstatusdor)=xstatusdor
+          end event
+        end field
+
+        field xdate
+          caption D.O. Date
+          display constant
+          event after
+            set globals(xdate) = xdate
+          end event
+        end field
+        
+        field ordqty
+          caption Order Qty
+          event after
+            str mysql="select sum(xqtyord) from opodt where xordernum='"+xordernum+"'"
+            set ordqty=#sql(double,mysql)
+            set ordqty=#round(ordqty,0)
+          end event
+        end field
+
+        field delqty
+          caption Delivery Qty
+          event after
+            str mysql="select sum(xqtydel) from opodt where xordernum='"+xordernum+"'"
+            set delqty=#sql(double,mysql)
+            set delqty=#round(delqty,0)
+          end event
+        end field
+
+        field xdateto
+          caption Invoice Date
+          default #d
+          event after
+          	set globals(xdateto) = xdateto
+          end event
+        end field
+
+        field xdatecom
+          caption DO Confirm Date
+          default #d
+          event after
+            set globals(xdatecom) = xdatecom
+          end event
+        end field
+
+        field balqty
+          caption Balance Qty
+          event after
+            double balqty=0.00
+            set balqty=0.00+ordqty-delqty
+          end event
+        end field
+
+        field xvoucher
+          caption Invoice Number
+        end field
+
+        field xdtwotax
+        	caption Gross Amount
+        end field
+        
+        field xdttax
+        	caption Tax
+        end field      
+        
+        field xdtdisc
+        	caption Discount
+        end field  
+        
+        field xdtcomm
+        	caption Commission
+        end field
+                
+        field xtotamt
+          caption Total Amount
+          len 20.2
+        end field
+        
+		field Add
+			event before
+				set globals(ErrChk) = "1"
+				error "Cannot "+#command
+			end event
+		end field        
+        
+        field Update
+          event before
+            set globals(ErrChk) = ""
+            
+            if globals(ErrChk) .ne. "1"
+            	if globals(xdornum) .ne. xdornum
+                	set globals(ErrChk) = "1"
+                	error "Cannot Change DO Number"
+              	end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+            	if globals(xdate) .ne. xdate
+                	set globals(ErrChk) = "1"
+                	error "Cannot Change DO Date"
+              	end if
+            end if 
+            
+            if globals(ErrChk) .ne. "1"            	
+            	if xdiscf > xtotamt
+            		set globals(ErrChk) = "1"
+            		error "Discount cannot be more than the Invoice Amount"
+            	end if
+			end if
+            
+            if globals(ErrChk) .ne. "1"
+            	set fixdisc = opdor.xdiscf("xdornum='"+xdornum+"'")
+            	set chngamt = 0.0+xdiscf-fixdisc
+            	if xdiscf != fixdisc
+            		set xtotamt = 0.0+xtotamt-chngamt
+            	end if
+            end if
+            
+          end event
+        end field
+
+       
+     field Confirm
+       event before
+         set globals(ErrChk) = ""
+         
+         decimal totord=0.0
+         decimal totdo=0.0
+         int xyear = 0
+         int xper = 0
+         set xsign = 0-1
+
+         if globals(ErrChk) .ne. "1"
+           if globals(xdornum) .ne. xdornum
+             set globals(ErrChk) = "1"
+             error "Record pointer mismatch</p>Cannot "+#command
+           end if
+         end if
+
+		 if globals(ErrChk) .ne. "1"
+		 	set detrec = #sql(decimal,"select sum(xqty) from opddt where xdornum='"+globals(xdornum)+"'")
+		 	if detrec > 0.0
+		 	else
+		 		set globals(ErrChk)="1"
+		 		error "No record exists in details</p>Cannot "+#command
+		 	end if
+		 end if
+		 
+		 if globals(ErrChk) .ne. "1"
+			call checkserial						
+			if err==1
+				print "<span class=br>Serial Number Mismatch -- Cannot Confirm</span>"
+				action Show
+			else
+				call checkbatch						
+				if err==1
+					print "<span class=br>Batch Quantity Mismatch -- Cannot Confirm</span>"
+					action Show
+				end if
+			end if		 
+		 end if
+		 
+         if globals(ErrChk) .ne. "1"
+           str xtrn=#sub(xdornum,0,4)
+           set statusdo = #sql(str,"select xstatusdor from opdor where xdornum = '"+globals(xdornum)+"'")
+           if statusdo .ne. "1-Open"
+              set globals(ErrChk) = "1"
+              error "Cannot "+#command+"</p>Status is : "+xstatusdor
+           end if
+         end if
+         
+         if globals(ErrChk) .eq. ""
+            set xtrncode=#sub(xdornum,0,4)
+            set xtrncode=xtrnp.xrel("xtypetrn='Delivery Order' and xtrn='"+xtrncode+"' and xtyperel='Inventory Transaction'")
+            if #result .ne. "true"
+               set globals(ErrChk) = "1"
+               error "Related Inventory Transaction code not found</p>Cannot "+#command
+            end if
+         end if
+         
+         if globals(ErrChk) .eq. ""
+             set imtrncode = xtrn.xtrn("xtypetrn='Inventory Transaction' and xtrn='"+xtrncode+"'")
+             if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Inventory Transaction code("+xtrncode+") not found</p>Cannot "+#command
+             end if
+         end if
+         
+         if globals(ErrChk) .ne. "1"
+         	call chk_stock
+         	//error "Process aborted"
+		 end if
+         
+		if globals(ErrChk) .eq. ""
+            int offset
+            int per
+            int year
+            
+            if atcdt .eq. "Show"
+            	set date = globals(xdatecom)
+            else
+            	set date = globals(xdate)
+            end if
+
+            int tempper
+            int tempyear	            
+            set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+			int year=#sub(date,0,4)
+            set per=12+#sub(date,5,2)-offset
+            if per<=12
+                set tempper=per
+                set tempyear=year-1
+            else
+                set tempper=per-12
+                set tempyear=year
+            end if
+
+			int xrow = 0
+			set mysql = "select xrow from opddt where xdornum='"+globals(xdornum)+"' and xrow>'"+xrow+"'"
+			set xrow = #sql(int,mysql)
+			while #result .eq. "true"
+				decimal value = 0.0
+                double batchqty=0.00
+                double batchval=0.00
+									
+				set xitem = opddt.xitem("zid='"+#id+"' and xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+				set xbin = opddt.xbin("zid='"+#id+"' and xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+				double quantity = 0.00+opddt.xqty("zid='"+#id+"' and xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+	            string batch=opddt.xbatch("zid='"+#id+"' and xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+
+				set costing=caitem.xcostmeth("zid='"+#id+"' and xitem='"+xitem+"'")
+							               
+	     		if costing .eq. "FIFO"
+                      set batchqty=0.00+imffview.xqty("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xwh+"'")
+                      set batchval=0.00+imffview.xval("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xwh+"'")	     		
+	     		else if costing .eq. "Batch"
+					set batchqty=0.00+imbatview.xqty("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xwh+"' and xbatch= '"+batch+"'")
+					set batchval=0.00+imbatview.xval("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xwh+"' and xbatch= '"+batch+"'")
+	     		else 
+                    set batchqty=0.00+imwtview.xqty("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xwh+"'")
+                    set batchval=0.00+imwtview.xval("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xwh+"'")
+	     		end if
+
+                if value == 0.00
+                    set value=batchval/batchqty*quantity
+                end if
+                    
+				set xsign = 0-1
+
+                //string imtrnit=#trn("Inventory Transaction",imtrncode)           
+				//error imtrncode+" "+xtrncode
+				set xisscode=xtrncode
+				str mysql = #sql(str,"select ximtrnnum from imtrn where ximtrnnum like '"+xisscode+"%' order by ximtrnnum desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,6)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set ximtrnnum = xisscode + mysql            
+				//error ximtrnnum
+				
+				str mysql = "delete from imtrndt where zid='"+#id+"' and ximtrnnum in (select ximtrnnum from imtrn where zid='"+#id+"' and xdocnum='"+globals(xdornum)+"' and xdocrow='"+xrow+"' and xaction='Issue')"
+				set tmpstr = #sql(str,mysql)
+
+				str mysql = "delete from imtrn where zid='"+#id+"' and xdocnum='"+globals(xdornum)+"' and xdocrow='"+xrow+"' and xaction='Issue'"
+				set tmpstr = #sql(str,mysql)
+
+				set mysql = "insert into imtrn (zid,ximtrnnum, xitem,xitemrow,xitemcol, xwh,xdate,xyear, xper,~
+						xqty,xval,xvalpost,xdoctype,xdocnum,xdocrow,xnote,xaltqty,xdiv,xsec,xproj,~
+						xbatch,xdateexp,xdaterec, xlicense,xcus,xsup,xaction,xsign,xtime,zemail,xemail,~
+						xteam,xmember,xmanager,xbin)"
+				set mysql = mysql + " values("+#id+",'"+ximtrnnum+"','"+xitem+"','','','"+xwh+"',~
+					'"+xdate+"','"+tempyear+"','"+tempper+"',"+quantity+","+value+","0",'DO--',~
+					'"+globals(xdornum)+"','"+xrow+"','',"0",'"+xdiv+"','"+xsec+"','"+xproj+"','"+batch+"',~
+					'"+globals(xdate)+"','"+globals(xdate)+"','','"+xcus+"','','Issue','"+xsign+"',~
+					'"+#time+"','"+#user+"','','"+xteam+"','"+xmember+"','"+xmanager+"','"+xbin+"')"
+					
+				set tmpstr =#sql(mysql)
+				
+				
+				if #result .eq. "true"				
+					str mysql = "update opddt set ximtrnnum='"+ximtrnnum+"' where zid='"+#id+"' and xdornum='"+globals(xdornum)+"' and xrow='"+xrow+"'"
+					set updval = #sql(str,mysql)
+					
+					str mysql1 = "select count(*) from opddtbar where zid='"+#id+"' and xdornum='"+globals(xdornum)+"' and xrow='"+xrow+"'"
+					set chrec = 0+#sql(int,mysql1)
+					if chrec>0
+						set mysql = "insert into imtrndt(ztime,zid,ximtrnnum,xbarcode, xitem,xwh,xqty,xsign,xentst,zemail)"
+						set mysql = mysql + "select '"+#time+"','"+#id+"','"+ximtrnnum+"',xbarcode,xitem,'"+xwh+"',xqty,'"+xsign+"',xentst,'"+#user+"' ~
+											from opddtbar where  zid='"+#id+"' and xdornum='"+globals(xdornum)+"' and xrow='"+xrow+"'"
+						set insql = #sql(str,mysql)
+		//error #result +" "+ mysql						
+						if #result .ne. "true"
+							set globals(ErrChk) = "1"
+							error "Error in creating Serial Issuing"
+						end if
+					end if
+
+				else
+					set globals(ErrChk) = "1"
+					error "Error in Creating Inventory Trn: "+imtrnit+"<br>Row="+xrow+"; Item="+xitem
+				end if             	             	
+
+				set mysql = "select xrow from opddt where xdornum='"+globals(xdornum)+"' and xrow>'"+xrow+"'"
+				set xrow = #sql(int,mysql)
+			end while
+		end if
+
+         if globals(ErrChk) .eq. ""
+
+            set totord=#sql(decimal,"select sum(xqtyord) from opodt where  zid="+#id+" and xordernum='"+xordernum+"'")
+            set totdel=#sql(decimal,"select sum(xqtydel) from opodt where  zid="+#id+" and xordernum='"+xordernum+"'")
+
+            if totord > totdel
+              str mysql="update opord set xstatusord='4-Partially Delivered' where zid="+#id+" and xordernum='"+xordernum+"'"
+              set updval=#sql(str,mysql)
+            else
+              str mysql="update opord set xstatusord='5-Delivered' where zid="+#id+" and xordernum='"+xordernum+"'"
+              set updval=#sql(str,mysql)
+            end if
+
+			set myqry = "update opdor set xstatusdor='2-Confirmed' where zid="+#id+" and xdornum='"+xdornum+"'"
+			set tmpstr = #sql(str,myqry)
+
+         end if
+
+         if globals(ErrChk) .eq. ""
+			print "<font color=blue size=2> Delivery Order "+globals(xdornum)+" Confirmed"
+			action show
+         end if         
+       end event
+     end field
+
+        field Invoice
+          event before
+            set globals(ErrChk) = ""
+            set globals(tmpchk) = ""
+
+            if globals(ErrChk) .ne. "1"
+              if globals(xdornum) .ne. xdornum
+                set globals(ErrChk) = "1"
+                error "Record pointer mismatch</p>Cannot "+#command
+              end if
+            end if
+
+	         if globals(ErrChk) .ne. "1"
+	           str xtrn=#sub(xdornum,0,4)
+	           set statusdo = #sql(str,"select xstatusdor from opdor where xdornum = '"+globals(xdornum)+"'")
+	           if statusdo .ne. #status("xstatusdor",2)
+	              set globals(ErrChk) = "1"
+	              error "Cannot "+#command+"</p>Status is : "+xstatusdor
+	           end if
+	         end if
+         
+			if globals(ErrChk) .ne. "1"
+			 	set detrec = #sql(decimal,"select sum(xqty) from opddt where xdornum='"+globals(xdornum)+"'")
+			 	if detrec > 0.0
+			 	else
+			 		set globals(ErrChk)="1"
+			 		error "No record exists in details</p>Cannot "+#command
+				end if
+			end if        
+			
+            if globals(ErrChk) .ne. "1"
+	             set chk_voucher = #sql("select xvoucher from glheader where xdesc05='"+globals(xdornum)+"'")
+	             
+	             str mysql = "delete from glalc where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+	             set updval = #sql(mysql)
+
+                 str mysql = "delete from gldetail where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+                 set updval = #sql(mysql)
+                 
+                 str mysql = "delete from glheader where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+                 set updval = #sql(mysql)
+                 if globals(ErrChk) .eq. "1"
+                     error "Invoice for this D.O. exists in GL : "+chk_voucher
+                 end if
+            end if
+
+             if globals(ErrChk) .ne. "1"
+             	set chkrel = #sub(xdornum,0,4)
+                set chkgl = #sql(str,"select xrel from xtrnp where xtypetrn='Delivery Order' and xtrn='"+chkrel+"' and xtyperel='GL Voucher'")
+                if #result .eq. "false"
+                   set globals(ErrChk) = "1"
+                   error "Related Code not found for "+chkrel
+                end if
+             end if
+
+             if globals(ErrChk) .ne. "1"
+                set chktrn = #sql(str,"select xtrn from xtrn where xtypetrn='GL Voucher' and xtrn='"+chkgl+"'")
+                if #result .eq. "false"
+                   set globals(ErrChk) = "1"
+                   error chkgl+" not found in GL Setup"
+                end if
+             end if
+
+             if globals(ErrChk) .ne. "1"
+                call dor_interface
+             end if
+                       
+             if globals(ErrChk) .eq. ""
+	             int tempper
+	             int tempyear	            
+	
+	             int year         	 
+	             int offset
+	             int per
+	             str date
+	             
+	             set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+				 set atidt = #sql("select xattribidt from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+				 if atidt .eq. "Show"             
+				 	set date = #sub(globals(xdateto),0,10)
+				 	int year = #sub(globals(xdateto),0,4)
+				 	int per = 12+#sub(globals(xdateto),5,2)-offset
+				 else 
+				 	set date = #sub(globals(xdate),0,10)
+				 	int year = #sub(globals(xdate),0,4)
+				 	int per = 12+#sub(globals(xdate),5,2)-offset
+				 end if             
+				 
+	             if per<=12
+	                set tempper=per
+	                set tempyear=year-1
+	             else
+	                set tempper=per-12
+	                set tempyear=year
+	             end if
+                 set xglcode=chkgl
+             
+				 set xvoucher = #trn("GL Voucher",xglcode)
+             
+                set myqry = "insert into glheader (ztime,zid, xvoucher,xref,xdate,xlong,xpostflag,~
+           			xyear,xper,xstatusjv,xdatedue,xdesc01,xdesc02,xdesc03,xdesc04,xdesc05,xictrnno,dumzid,~
+           			zemail,xemail,xaccdr,xsubdr,xnumofper,xcheque,xpaytype,xstatus,xtrngl,xnote,xteam,xmember,~
+           			xmanager,xapproved,xaction)"
+				set myqry = myqry + " values('"+#time+"','"+#id+"','"+xvoucher+"','"+xdornum+"','"+date+"',~
+					'System Generated Invoice from OP','','"+tempyear+"','"+tempper+"','Balanced','"+xdate+"',~
+					'','','','','"+xdornum+"','',"0",'"+#user+"','','','',"0",'','','','"+xglcode+"','System Generated Invoice from OP',~
+					'"+xteam+"','"+xmember+"','"+xmanager+"','','Journal')"
+				set tmpstr =#sql(myqry) 
+				
+				
+				
+                if #result .ne. "true"
+                  set globals(ErrChk) = "1"
+                end if
+             end if
+
+            if globals(ErrChk) .eq. ""
+            	 set detdisc = #sql(double,"select sum(xdtdisc) from opddt where zid='"+#id+"' and xdornum='"+xdornum+"'")
+				 set totdisc = 0.0+xdiscf+detdisc
+                 set tot_base = 0.00+totdisc*xexch
+                 set discacc = opgli.xdiscacc("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")
+                 set discsub = opgli.xdiscsub("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")                      
+                 set xaccusage=#sql(str,"select xaccusage from glmst where xacc='"+discacc+"'")
+                 set xaccsource=#sql(str,"select xaccsource from glmst where xacc='"+discacc+"'")
+                 set xacctype=#sql(str,"select xacctype from glmst where xacc='"+discacc+"'")
+                 
+                 if detdisc > 0.0
+                 	set rownum = 0+1+rownum
+                 	set mysql = "insert into gldetail (ztime,zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+                		xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+                		xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+                		xstatus,xtypegl,xinvnum,xref,xoriginal,xdateapp,xpaycode,xexchval,xdateclr,xflag,xdatedue)"							
+                 	set mysql = mysql + " values('"+#time+"','"+#id+"','"+xvoucher+"',"+rownum+",'"+discacc+"','"+xaccusage+"',~
+                		'"+xaccsource+"','"+discsub+"','"+xdiv+"','"+xsec+"','"+xproj+"','"+xcur+"','"+xexch+"',~
+                		"+totdisc+","+tot_base+",'','','','"+xacctype+"','"+#user+"','','','','','','',"0",'',"0",~
+                		'','','','','"+xinvnum+"','"+xdornum+"','"+xordernum+"','"+#date+"','',"+xexch+",'"+#date+"','','"+#date+"')"        
+                 	set tmpstr = #sql(mysql)          
+					print #result +" "+"2"
+					
+                 	if #result .ne. "true"
+                   		set globals(ErrChk) = "1"
+                 	end if
+                 end if
+             end if
+
+			 if globals(ErrChk) .ne. "1"
+					set tottax = #sql(decimal,"select sum(xdttax) from opddt where zid='"#id+"' and xdornum='"+xdornum+"'")
+					if tottax > 0.0
+						set rownum = 0+1+rownum
+
+						set taxacc = opgli.xtaxacc("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")
+						set taxsub = opgli.xtaxsub("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")                      
+						set xaccusage=#sql(str,"select xaccusage from glmst where xacc='"+taxacc+"'")
+						set xaccsource=#sql(str,"select xaccsource from glmst where xacc='"+taxacc+"'")
+						set xacctype=#sql(str,"select xacctype from glmst where xacc='"+taxacc+"'")
+						set tot_base = 0.00+tottax*xexch
+						set tot_tax=0.0+taxamt+tot_tax
+
+						set mysql = "insert into gldetail (ztime,zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+							xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+							xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+							xstatus,xtypegl,xinvnum,xref,xoriginal,xdateapp,xpaycode,xexchval,xdateclr,xflag,xdatedue)"							
+						set mysql = mysql + " values('"+#time+"','"+#id+"','"+xvoucher+"','"+rownum+"','"+taxacc+"','"+xaccusage+"',~
+							'"+xaccsource+"','"+taxsub+"','"+xdiv+"','"+xsec+"','"+xproj+"','"+xcur+"','"+xexch+"',~
+							"+0.00-tottax+","+0.00-tot_base+",'','','','"+xacctype+"','"+#user+"','','','','','','',"0",'',"0",~
+							'','','','','"+xinvnum+"','"+xdornum+"','"+xordernum+"','"+#date+"','',"+xexch+",'"+#date+"','','"+#date+"')"
+						set tmpstr = #sql(mysql) 
+						
+						print #result +" "+"3"
+						
+						if #result .ne. "true"
+							set globals(ErrChk) = "1"
+						end if
+					end if
+			end if
+
+            if globals(ErrChk) .eq. ""
+                 set dtwotax = #sql(double,"select sum(xdtwotax) from opddt where zid='"+#id+"' and xdornum='"+xdornum+"'")
+
+                 set rownum = 0+1+rownum
+                 set tot_base = 0.00+dtwotax*xexch
+
+                 set salesacc = opgli.xaccsales("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")
+                 set salessub = opgli.xsalessub("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")
+	             
+	             set xaccusage=#sql(str,"select xaccusage from glmst where xacc='"+salesacc+"'")
+	             set xaccsource=#sql(str,"select xaccsource from glmst where xacc='"+salesacc+"'")
+	             set xacctype=#sql(str,"select xacctype from glmst where xacc='"+salesacc+"'")
+				 
+	             set mysql = "insert into gldetail (ztime,zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+	             	xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+	             	xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+	             	xstatus,xtypegl,xinvnum,xref,xoriginal,xdateapp,xpaycode,xexchval,xdateclr,xflag,xdatedue)"							
+	             set mysql = mysql + " values('"+#time+"','"+#id+"','"+xvoucher+"','"+rownum+"','"+salesacc+"','"+xaccusage+"',~
+	             	'"+xaccsource+"','"+salessub+"','"+xdiv+"','"+xsec+"','"+xproj+"','"+xcur+"','"+xexch+"',~
+	             	"+0.00-dtwotax+","+0.00-tot_base+",'','','','"+xacctype+"','"+#user+"','','','','','','',"0",'',"0",~
+	             	'','','','','"+xinvnum+"','"+xdornum+"','"+xordernum+"','"+#date+"','',"+xexch+",'"+#date+"','','"+#date+"')"
+	             set tmpstr = #sql(mysql) 
+				 
+				 print #result +" "+"4"
+				 
+                 if #result .ne. "true"
+                   set globals(ErrChk) = "1"
+                 end if
+             end if
+
+            if globals(ErrChk) .eq. ""
+				 set tot_net = #sql(double,"select sum(xlineamt) from opddt where zid='"+#id+"' and xdornum='"+xdornum+"'")
+                 set xacctype=#sql(str,"select xacctype from glmst where xacc='"+xaccar+"'")
+                 set rownum = 0+1+rownum
+                 set tot_base = 0.00+tot_net*xexch
+                 
+                 set mysql = "insert into gldetail (ztime,zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+                	xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+                	xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+                	xstatus,xtypegl,xinvnum,xref,xoriginal,xdateapp,xpaycode,xexchval,xdateclr,xflag,xdatedue)"							
+                 set mysql = mysql + " values('"+#time+"','"+#id+"','"+xvoucher+"',"+rownum+",'"+xaccar+"','AR',~
+                	'Customer','"+xcus+"','"+xdiv+"','"+xsec+"','"+xproj+"','"+xcur+"','"+xexch+"',~
+                	"+tot_net+","+tot_base+",'','','','"+xacctype+"','"+#user+"','','','','','','',"0",'',"0",~
+                	'','','','','"+xinvnum+"','"+xdornum+"','"+xordernum+"','"+#date+"','',"+xexch+",'"+#date+"','','"+#date+"')"        
+                 set tmpstr = #sql(mysql)  
+print #result +" "+"5"				 
+                 if #result .ne. "true"
+                   set globals(ErrChk) = "1"
+                 end if
+             end if
+
+            if globals(ErrChk) .eq. ""
+                 set mysql = "insert into glalc (zid, xvoucher,xrow,xalcnum,xalcrow,xdate,xtotamt,xlong)"
+                 set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+rownum+"','"+xvoucher+"','"+rownum+"',~
+                 	'"+globals(xdatecom)+"',"0",'Dummy Allocation')"
+                 set tmpstr = #sql(mysql)    
+
+				 
+                 if #result .ne. "true"
+                   set globals(ErrChk) = "1"
+                 end if
+             end if
+
+             if globals(ErrChk) .eq. "1" .or. globals(ErrChk) .eq. ""
+                set tot_prime = #sql(decimal,"select sum(xprime) from gldetail where  zid="+#id+" and xvoucher='"+xvoucher+"'")
+                if tot_prime <> 0.0
+                  set globals(ErrChk) = "1"
+                  str mysql = "update glheader set xstatusjv = 'Out of Balance' where  zid="+#id+" and xref = '"+globals(xdornum)+"'"
+                  set tmpstr = #sql(str,mysql)
+                  error "Cannot Update("+xvoucher+")Out of Balance</p>Check Error Logs "
+                end if
+             end if
+
+             if globals(ErrChk) .eq. ""
+             	str mysql = "update opdor set xvoucher='"+xvoucher+"',xinvnum='"+xinvnum+"',xstatusdor='3-Invoiced' where zid="+#id+" and xdornum='"+globals(xdornum)+"'"
+             	set tmpstr = #sql(str,mysql)
+             	               
+                print "<font color=blue size=2>Invoice No. "+xvoucher+" Created"
+                
+                action show
+             end if
+           end event
+         end field
+         
+        embed onsubmit="submitit(this)"
+        field Details
+          embed onclick="clicked(this)"
+        end field
+
+        field Delivery
+          embed onclick="clicked(this)"
+        end field
+        
+     end form
+
+     script myscript
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Details"){
+            form.page.value = "opddt"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (button=="Delivery Address"){
+            form.page.value = "opdordel"
+            form.searchbutton.value = "Find xdornum=?"
+          }        
+		}
+
+        </script>
+     end script
+     
+     method chk_stock
+     	set globals(ErrChk) = ""
+        int xrow = 0
+        set mysql = "select xrow from opddt where zid='"+#id+"' and xdornum='"+globals(xdornum)+"' and xrow>'"+xrow+"'"
+        set xrow = #sql(int,mysql)
+        while #result .eq. "true"
+            set xitem = #sql(str,"select xitem from opddt where zid='"+#id+"' and xdornum='"+globals(xdornum)+"' and xrow='"+xrow+"'")
+            set xwh = opdor.xwh("zid="+#id+" and xdornum='"+xdornum+"'")
+            set xstype = #sql("select xstype from caitem where xitem='"+xitem+"'")
+            set xdesc = caitem.xdesc("zid="+#id+" and xitem='"+xitem+"'")
+            set xbatch=""
+            set itemqty=#sql(double,"select sum(xqty*xcfsel) from opddt where zid="+#id+" and xdornum='"+globals(xdornum)+"' and xrow='"+xrow+"'")
+            
+            if xstype .ne. "Non-Stock"
+                set avlqty = #sql(double,"select sum(xinhand-xwoalc-xwokit-xtoout-xaltqty) from imstock where zid="+#id+" and xitem='"+xitem+"' and xwh='"+xwh+"'")
+		        if avlqty < 0.0
+		       		set globals(ErrChk) = "1"
+		       		error "Minus Stock</p>Cannot "+#command
+		        end if
+                if globals(ErrChk) .ne. "1"
+                	if avlqty<itemqty
+                    	set globals(ErrChk) = "1"
+                    	print "Not enough stock for Item: "+xitem+" ("+xdesc+")<font color=red> Available : "+avlqty+" Req. : "+itemqty+"</font>"
+                    end if
+                end if
+            end if
+
+            set mysql = "select xrow from opddt where zid='"+#id+"' and  xdornum='"+globals(xdornum)+"' and xrow>'"+xrow+"'"
+            set xrow = #sql(int,mysql)
+        end while
+     end method
+     
+    
+		method checkserial
+			int err=0
+			int xrow=-1
+			str sql="select xrow from opddt where zid="+#id+" and xdornum='"+xdornum+"' and (select xtypeserial from caitem where zid=opddt.zid and xitem=opddt.xitem)>='1' and xrow>"+xrow
+			set xrow=#sql(int,sql)
+			if xrow == 0
+				if xstatusdor .eq. "7-Serial Number Mismatch"
+					set xstatusdor="1-Open"
+					set tempstr=#sql(int,"update opdor set xstatusdor='1-Open' where xdornum='"+xdornum+"'")
+					set tempstr=#sql(int,"update opddt set xstatusddt='1-Open' where xdornum='"+xdornum+"' ")
+				end if
+			end if
+			
+			while xrow>0 
+				set sql="select xqty*xcfsel from opddt where zid="+#id+" and xdornum='"+xdornum+"' and xrow="+xrow
+				int qty=#sql(int,sql)
+				int cqty=#sql(int,"select count(*) from opddtbar where zid='"+#id+"' and xdornum='"+xdornum+"' and xrow="+xrow+"")
+				//print "qty="+qty+" cqty="+cqty
+				if qty<>cqty
+					set err=1
+					set tempstr=#sql(int,"update opdor set xstatusdor='7-Serial Number Mismatch' where xdornum='"+xdornum+"'")
+					set tempstr=#sql(int,"update opddt set xstatusddt='7-Serial Number Mismatch' where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+					set xstatusdor="7-Serial Number Mismatch"
+				else if xstatusdor .eq. "7-Serial Number Mismatch"
+					set xstatusdor="1-Open"
+					set tempstr=#sql(int,"update opdor set xstatusdor='1-Open' where xdornum='"+xdornum+"'")
+					set tempstr=#sql(int,"update opddt set xstatusddt='1-Open' where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+				end if
+				str sql="select xrow from opddt where zid="+#id+" and xdornum='"+xdornum+"' and (select xtypeserial from caitem where zid=opddt.zid and xitem=opddt.xitem)>='1' and xrow>"+xrow
+
+				set xrow=#sql(int,sql)
+			end while
+		end method
+		 
+		method checkbatch
+			//check for all items
+			int err=0
+			int row = 0	
+			set row=#sql(int,"select xrow from opddt where zid="+#id+" and xdornum='"+xdornum+"' and xrow > "+row)
+			while row>0
+				double blankcount=#sql(double,"select sum(xqty) from opddtbat where xdornum='"+xdornum+"' and xrow="+row+" and xbatch = ''")
+				double batchcount=#sql(double,"select sum(xqty) from opddtbat where xdornum='"+xdornum+"' and xrow="+row+" and xbatch <> ''")
+				double totcount=blankcount+batchcount
+				double qtydor=#sql(double,"select xqty from opddt where xdornum='"+xdornum+"' and xrow='"+row+"'")
+				console "blank,batch,ddt="+blankcount+"*"+batchcount+"*"+qtydor
+				if qtydor <> totcount
+					set err=1
+				end if
+				if err==0 .and. blankcount > 0
+					//for mandatory batch numbers
+					str batchman =#sql(string,"select (select xbatchman from caitem where zid=opddt.zid and xitem=opddt.xitem) from opddt ~
+						where zid="+#id+" and xdornum='"+xdornum+"' and xrow= "+row)
+					if batchman .eq. "1"
+						set err=1
+					end if
+				end if
+				if err==1
+					set tempstr=#sql(int,"update opddt set xstatusddt='6-Batch Quantity Mismatch' where xdornum='"+xdornum+"' and xrow='"+row+"'")
+				else
+					set tempstr=#sql(int,"update opddt set xstatusddt='1-Open' where xdornum='"+xdornum+"' and xrow='"+row+"'")
+				end if
+				set row=#sql(int,"select xrow from opddt where zid="+#id+" and xdornum='"+xdornum+"' and xrow > "+row)
+			end while
+			if err==1
+				set tempstr=#sql(int,"update opdor set xstatusdor='6-Batch Quantity Mismatch' where xdornum='"+xdornum+"'")
+				set xstatusdor="6-Batch Quantity Mismatch"
+			else if xstatusdor .eq. "6-Batch Quantity Mismatch"
+				set xstatusdor="1-Open"
+				set tempstr=#sql(int,"update opdor set xstatusdor='1-Open' where xdornum='"+xdornum+"'")
+			end if
+		end method
+		
+	     method dor_interface
+				str xoptrn = #sub(xordernum,0,4)
+				
+				set xitem = opddt.xitem("zid='"+#id+"' and xdornum='"+xdornum+"'")	          
+				set xgitem = caitem.xgitem("zid='"+#id+"' and xitem='"+xitem+"'")	          
+				
+				set xqty = #sql(double,"select sum(xqty) from opddt where zid='"+#id+"' and xdornum='"+xdornum+"'")
+				set dttax = #sql(double,"select sum(xdttax) from opddt where zid='"+#id+"' and xdornum='"+xdornum+"'")
+				set dtcomm = #sql(double,"select sum(xdtcomm) from opddt where zid='"+#id+"' and xdornum='"+xdornum+"')
+				set dtdisc = #sql(double,"select sum(xdtdisc) from opddt where zid='"+#id+"' and xdornum='"+xdornum+"'")
+				set totdisc = 0.0+didisc+dtdisc
+				set lineamt = #sql(double,"select xlineamt from opddt where zid='"+#id+"' and xdornum='"+xdornum+"'")
+
+				set xwh=opdor.xwh("zid='"+#id+"' and xdornum='"+xdornum+"'")
+
+				if xqty != 0.0
+	                set salesacc = opgli.xaccsales("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")
+	                set salessub = opgli.xsalessub("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")
+				
+					set salesacc=#sql(str,"select xacc from glmst where zid='"+#id+"' and xacc='"+salesacc+"'")
+					
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+						error "Sales Account not found</br>Process Aborted"
+					else   
+						set globals(chk_source)=#sql("select xaccsource from glmst where zid='"+#id+"' and xacc='"+salesacc+"'")
+						if globals(chk_source) .eq. "Subaccount"
+							set chk_subacc=#sql("select xsub from glsub where zid='"+#id+"' and xacc='"+salesacc+"' and xsub='"+salessub+"'")
+							if #result .ne. "true"
+								set globals(ErrChk) = "1"
+								error "Subaccount not found for A/C Code "+salesacc+"</p>Process Aborted"
+							end if
+						end if   
+					end if
+				end if
+	
+				if globals(ErrChk) .ne. "1"   
+					if dttax > 0.0
+						set taxacc = opgli.xtaxacc("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")
+						set taxsub = opgli.xtaxsub("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")
+					
+						set taxacc=#sql(str,"select xacc from glmst where zid='"+#id+"' and xacc='"+taxacc+"'")
+						if #result .ne. "true"
+							set globals(ErrChk) = "1"
+							error "VAT Account not found</p>Process Aborted"
+						else   
+							set globals(chk_source)=#sql("select xaccsource from glmst where zid='"+#id+"' and xacc='"+taxacc+"'")
+							if globals(chk_source) .eq. "Subaccount"
+								set chk_subacc=#sql("select xsub from glsub where zid='"+#id+"' and xacc='"+taxacc+"' and xsub='"+taxsub+"'")
+								if #result .ne. "true"
+									set globals(ErrChk) = "1"
+									error "Subaccount not found for VAT A/C Code "+taxacc+"</p>Process Aborted"
+								end if
+							end if
+						end if
+					end if                      
+				end if
+
+				if globals(ErrChk) .ne. "1"   
+					if totdisc > 0.0
+						set discacc = opgli.xdiscacc("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")
+						set discsub = opgli.xdiscsub("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")
+					
+						set discacc=#sql(str,"select xacc from glmst where zid='"+#id+"' and xacc='"+discacc+"'")
+						if #result .ne. "true"
+							set globals(ErrChk) = "1"
+							error "Discount Account not found</p>Process Aborted"
+						else   
+							set globals(chk_source)=#sql("select xaccsource from glmst where xacc='"+discacc+"'")
+							if globals(chk_source) .eq. "Subaccount"
+								set chk_subacc=#sql("select xsub from glsub where zid='"+#id+"' and xacc='"+discacc+"' and xsub='"+discsub+"'")
+								if #result .ne. "true"
+									set globals(ErrChk) = "1"
+									error "Subaccount not found for Discount A/C Code "+discacc+"</p>Process Aborted"
+								end if
+							end if
+						end if
+					end if                      
+				end if
+	          
+				if globals(ErrChk) .ne. "1"   
+					if dtcomm > 0.0
+						set commacc = opgli.xacccomm("zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")
+						set commacc=#sql(str,"select xacc from glmst where zid='"+#id+"' and xacc='"+commacc+"'")
+						if #result .ne. "true"
+							set globals(ErrChk) = "1"
+							error "Commission Account not found</p>Process Aborted"
+						end if
+					end if                      
+				end if          
+	          
+	        if globals(ErrChk) .ne. "1"
+	           set xaccar = #sql("select xaccar from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+	           set chkacc = #sql("select xacc from glmst where zid='"+#id+"' and xacc='"+xaccar+"'")
+	           if #result .ne. "true"
+	              set globals(ErrChk) = "1"
+	              error "Wrong Receivable Account Selected in Customer Table"
+	           end if
+	        end if
+	     end method
+		
+     valid valid
+     	mandatory xshipcode,xvehicle
+     	config
+     		set globals(pkey) = xdornum
+     		set cus_name = #sql("select xorg from cacus where xcus='"+xcus+"'")
+     		
+            set whselect=opdef.xwhselect()
+            if whselect .eq. "0"
+            else
+            	set #field(xwh.display) = "hide"
+            	set xwh = ""
+            end if
+
+				if xstatusdor .eq. "3-Invoiced"
+					set #field(xcur.display) = "constant"
+					set #field(xexch.display) = "constant"
+				end if
+				
+				if xstatusdor .eq. "3-Invoiced"
+					set #field(Confirm.display) = "disable"
+					set #field(Invoice.display) = "disable"
+					set #field(Update.display) = "disable"
+					set #field(Delete.display) = "disable"
+					set #field(xdate->.display) = "constant"
+				end if
+				if xstatusdor .eq. "2-Confirmed"
+					set #field(Confirm.display) = "disable"
+					set #field(xdate->.display) = "constant"
+					set #field(Update.display) = "disable"
+					set #field(Delete.display) = "disable"
+				end if
+				if xstatusdor .eq. "1-Open"
+					set #field(Invoice.display) = "disable"
+				end if
+				if xstatusdor .eq. "6-Batch Quantity Mismatch"
+					set #field(Invoice.display) = "disable"
+					set #field(Confirm.display) = "disable"
+				end if
+				if xstatusdor .eq. "7-Serial Number Mismatch"
+					set #field(Invoice.display) = "disable"
+					set #field(Confirm.display) = "disable"
+				end if
+				if xinvrule .ge. #status("xinvrule",5)
+					set #field(Invoice.display) = "disable"
+				end if
+     		
+            set xsinglecur = #sql("select xsinglecur from cadef where zid='"+#id+"'")
+            if xsinglecur .eq. "1"
+            	set #field(xcur.display) = "hide"
+            	set #field(xexch.display) = "hide"
+            end if
+     		
+            set xappdiv = #sql("select xappdiv from cadef where zid='"+#id+"'")
+            if xappdiv .eq. "0"
+            	set #field(xdiv.display) = "hide"
+            end if
+            
+            set xappsec = #sql("select xappsec from cadef where zid='"+#id+"'")
+            if xappsec .eq. "0"
+            	set #field(xsec.display) = "hide"
+            end if
+            
+            set xappproj = #sql("select xappproj from cadef where zid='"+#id+"'")
+            if xappproj .eq. "0"
+            	set #field(xproj.display) = "hide"
+            end if            
+
+            set attax = #sql("select xattribtax from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if attax .eq. "Show"
+            else if attax .eq. "Constant"
+            	set #field(xdttax.display) = "const"
+            else if attax .eq. "Hide"
+            	set #field(xdttax.display) = "hide"
+            end if   
+            
+            set atdisc = #sql("select xattribdisc from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atdisc .eq. "Show"
+            else if atdisc .eq. "Constant"
+            	set #field(xdtdisc.display) = "const"
+            	set #field(xdiscf.display) = "const"
+            else if atdisc .eq. "Hide"
+            	set #field(xdtdisc.display) = "hide"
+            	set #field(xdiscf.display) = "hide"
+            end if   
+                                  
+            set atcomm = #sql("select xattribcomm from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atcomm .eq. "Show"
+            else if atcomm .eq. "Constant"
+            	set #field(xdtcomm.display) = "const"
+            else if atcomm .eq. "Hide"
+            	set #field(xdtcomm.display) = "hide"
+            end if   
+            
+            set atrate = #sql("select xattribrate from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atrate .eq. "Show"
+            else if atrate .eq. "Constant"
+            	set #field(xrate.display) = "const"
+            else if atrate .eq. "Hide"
+            	set #field(xrate.display) = "hide"
+            end if   
+
+            set atval = #sql("select xattribval from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atval .eq. "Show"
+            else if atval .eq. "Constant"
+            	set #field(xdtwotax.display) = "const"
+            	set #field(xtotamt.display) = "const"
+            else if atval .eq. "Hide"
+            	set #field(xdtwotax.display) = "hide"
+            	set #field(xtotamt.display) = "hide"
+            end if   
+            
+            set atsp = #sql("select xattribsp from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atsp .eq. "Show"
+            else if atsp .eq. "Constant"
+            	set #field(xsp.display) = "const"
+            else if atsp .eq. "hide"
+            	set #field(xsp.display) = "hide"
+            	set #field(sp_name.display) = "hide"
+            end if       	
+                     
+            set atcdt = #sql("select xattribcdt from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atcdt .eq. "Show"
+            else if atcdt .eq. "Constant"
+            	set #field(xdatecom.display) = "const"
+            else if atcdt .eq. "hide"
+            	set #field(xdatecom.display) = "hide"
+            end if                    
+            
+            set atidt = #sql("select xattribidt from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atidt .eq. "Show"
+            else if atidt .eq. "Constant"
+            	set #field(xdateto.display) = "const"
+            else if atidt .eq. "hide"
+            	set #field(xdateto.display) = "hide"
+            end if                    
+
+            set atglref = #sql("select xattribglref from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atglref .eq. "Show"
+            else if atglref .eq. "Constant"
+            	set #field(xvoucher.display) = "const"
+            else if atglref .eq. "Hide"
+            	set #field(xvoucher.display) = "hide"
+            end if   
+        
+            set atwh = #sql("select xattribwh from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atwh .eq. "Show"
+            else if atwh .eq. "Constant"
+            	set #field(xwh.display) = "const"
+            else if atwh .eq. "Hide"
+            	set #field(xwh.display) = "hide"
+            end if   
+
+            set atzemail = #sql("select xattribzemail from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atzemail .eq. "Show"
+            else if atzemail .eq. "Constant"
+            	set #field(zemail.display) = "const"
+            else if atzemail .eq. "Hide"
+            	set #field(zemail.display) = "hide"
+            end if   
+            
+            set atxemail = #sql("select xattribxemail from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atxemail .eq. "Show"
+            else if atxemail .eq. "Constant"
+            	set #field(xemail.display) = "const"
+            else if atxemail .eq. "Hide"
+            	set #field(xemail.display) = "hide"
+            end if
+
+		  set xvoucherlink="<font color=blue size=+2>"+opdor.xvoucher("zid='"+#id+"' and xdornum='"+xdornum+"'")+"</font>"		  	
+          set xvoucherlink="<a href='"+#servlet+"?page=glheader&xvoucher="+xvoucher+"&command=Show&embeddedpage=1' target='Voucher'>"+xvoucher+"</a>"
+
+     	end config
+     end valid
+     
+
+end page

@@ -1,0 +1,759 @@
+page prmst
+
+	 embed onload="move_caret('one','xemp')"
+     caption "Employee Master"
+     sidebar text one
+     sections form one, list one,method chk_kin, script myscript, text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        caption "List of Employee(s)"
+        table prmst
+        order xemp
+  	    //navigators alpha
+        rows 20
+        objects xemp attrib(link #servlet+"?page=prmst&command=Show&xemp=?"),~
+                xfirst,xdesig,xdept,xjoindate,xlocation//,name equals((select xfirst from prmst where xemp=(select xrepto from prmst where xemp=prmst.xemp)))
+
+        field xfirst
+        	caption Employee Name
+        end field
+        
+        field name
+              caption Reporting To
+        end field
+        
+        field dumzid
+        	caption Employee Grade
+        end field
+        
+        field xcat
+        	caption Job Weight
+        end field
+        
+        field xgrade
+        	caption Grade
+        end field
+                
+     end list
+
+     list two
+        table prmst
+        Caption "Search Result List"
+        order xemp
+        rows 5
+        objects  xemp attrib(link #servlet+"?page=prmst&command=Show&xemp=?"),xname
+     end list
+
+     form one
+        //caption "<font color=black size=4>Employee Master File</font>"
+        table prmst
+        order xemp
+        layout 2
+        objects Show,Add,Update, Clear, Delete, Top, Previous, Next, Bottom, Family Info,Employment Info,Advance Info,Educational Info,Working Experience,Training Info,Docs,~
+          dum3,xemp ,xid,xfirst,xmiddle display(hide),xlast display(hide),xfather,xmother,xdtbirth,xspppno,xbloodgrp,xreligi,xcat,xmstatus,~
+          xdtmarr,xremarks,xadd,~
+          xpadd,xphonec,xmobile,xmobile1,xemaila,xemailb,xsex,xcitizen,xfadd,dum5,xkin,xkinadd,xcontactd,xfax,xoffice1,xoffice,xphoneb,~
+          xtype display(hide),xtinno display(hide),xtasks display(hide),~
+          xproj display(hide),xdiv display(hide),xpayscl display(hide),xpaytyp display(hide),xsec display(hide),~
+          xbank display(hide),zemail display(hide),xemail display(hide),~
+          xexpiry display(hide),xjoindate display(hide),xempnature display(hide),~
+          xcondate display(hide),xgrade display(hide),xobjective display(hide),xkeyarea display(hide),xrepto display(hide),~
+          xempnew display(hide),xnewdept display(hide),xnewdesig display(hide),xlocation display(hide),dumzid display(hide),xdateto display(hide),~
+          xpfflag display(hide),xstatusemp display(hide),xpsclcode display(hide),xdtwotax display(hide),xunionmem display(hide),~
+          xwelfund display(hide),xquarter display(hide),xspouse display(hide),xspocc display(hide),~
+          xshift display(hide),xspitno display(hide),xfphone display(hide),xwpno display(hide),xwptype display(hide),~
+          xwpeffect display(hide),xwpexpire display(hide),xkinpho display(hide),xmargin display(hide),xyield display(hide),~
+          xcardno,xpostflag  display(hide),xname display(hide)
+          
+        field show
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+          	 if globals(ErrChk) .ne. "1"
+	           	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+	           	 set stype=#prop(xprops,"security")          	 
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Undo_Import.display) = "hide"
+		                set #field(Detail.display) = "hide"		  
+		                set #field(Confirm.display) = "hide"
+						set #field(Transfer.display) = "hide"		                                	                
+						set #field(Create.display) = "hide"	                
+						set #field(Sub.display) = "hide"		                
+						set #field(Post.display) = "hide"
+						set #field(Docs.display) = "hide"
+						set #field(Manual.display) = "hide"
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if           
+           end event
+           event after
+	         if globals(ErrChk) .ne. "1"
+	         	set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+	         	if #result .ne. "true"
+	                set #field(Details.display) = "hide"
+	                set #field(Top.display) = "hide"
+	                set #field(Bottom.display) = "hide"
+	                set #field(Next.display) = "hide"
+	                set #field(Previous.display) = "hide"
+	                set #field(Show.display) = "hide"
+	                set #field(Add.display) = "hide"
+	                set #field(Update.display) = "hide"
+	                set #field(Delete.display) = "hide"
+	                set #field(Clear.display) = "hide"
+	                set #field(Create.display) = "hide"
+	                set #field(Import.display) = "hide"		                
+	                set #field(Undo_Import.display) = "hide"
+	                set #field(Detail.display) = "hide"		
+	                set #field(Confirm.display) = "hide"
+					set #field(Transfer.display) = "hide"		                                	                
+					set #field(Create.display) = "hide"	                
+					set #field(Sub.display) = "hide"
+					set #field(Post.display) = "hide"
+					set #field(Docs.display) = "hide"
+					set #field(Manual.display) = "hide"					
+	                class osbcustom(clear)                		                
+	         	end if
+	         end if             
+           end event           
+        end field
+
+        field Top
+        	display hide
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+          	 if globals(ErrChk) .ne. "1"
+	           	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+	           	 set stype=#prop(xprops,"security")          	 
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Create.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Undo_Import.display) = "hide"
+		                set #field(Detail.display) = "hide"		
+		                set #field(Confirm.display) = "hide"
+						set #field(Transfer.display) = "hide"		                                	                
+						set #field(Create.display) = "hide"
+						set #field(Post.display) = "hide"
+						set #field(Docs.display) = "hide"
+						set #field(Manual.display) = "hide"						
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if           
+           end event
+           event after
+	         if globals(ErrChk) .ne. "1"
+	         	set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+	         	if #result .ne. "true"
+	                set #field(Details.display) = "hide"
+	                set #field(Top.display) = "hide"
+	                set #field(Bottom.display) = "hide"
+	                set #field(Next.display) = "hide"
+	                set #field(Previous.display) = "hide"
+	                set #field(Show.display) = "hide"
+	                set #field(Add.display) = "hide"
+	                set #field(Update.display) = "hide"
+	                set #field(Delete.display) = "hide"
+	                set #field(Clear.display) = "hide"
+	                set #field(Import.display) = "hide"		                
+	                set #field(Undo_Import.display) = "hide"
+	                set #field(Detail.display) = "hide"		
+	                set #field(Confirm.display) = "hide"
+					set #field(Transfer.display) = "hide"		                                	                
+					set #field(Create.display) = "hide"	                
+					set #field(Sub.display) = "hide"
+					set #field(Post.display) = "hide"
+					set #field(Docs.display) = "hide"
+					set #field(Manual.display) = "hide"
+	                class osbcustom(clear)                		                
+	         	end if
+	         end if             
+           end event
+        end field
+        
+        field xfadd
+              caption Disease History
+              col 3
+              width 35
+              height 3
+        end field
+        
+        field xemaila
+              caption Personal Email
+        end field
+        
+        field xcontactd
+              caption Relation With Employee
+              col 3
+        end field
+        
+        field xemailb
+              caption Official Email
+              //col 3
+        end field
+					
+        field dum1
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum1 = "<font color=red>_____________________________________ Passport Information _______________________________________</font>"
+         end event
+        end field
+        
+        field xid
+              caption Card id
+        end field
+        
+        field xcat
+            caption Section
+            display hide
+            pick select xcode from xcodes where xtype='Religion Section'
+        end field
+        
+        field xfax
+              caption Phone No.1
+              width 20
+              //col 3
+        end field
+        
+        field xoffice1
+              caption Phone No.2
+        end field
+        
+        field xoffice
+              caption Phone No.3
+              col 3
+        end field
+        
+        field xphoneb
+              caption Phone No.4
+              display hide
+        end field
+        
+        field xspppno
+            caption Place of Birth
+            width 20
+        end field
+        
+        feild xremarks
+              caption Mailing Address
+              width 35
+              height 3
+        end field
+
+        field xphonec
+              caption Phone
+              width 20
+        end field
+        
+      field xcardno
+            caption CV Code
+            display hide
+            col 3
+            display const
+      end field
+      
+      field xmobile
+            caption Personal Mobile
+      end field
+      
+      field xmobile1
+            caption Official Mobile
+      end field
+        
+        field xkin
+            caption Name
+            //display hide
+            width 40
+            //len 3
+        end field
+        
+        field xkinadd
+              caption Contact Address
+              width 35
+              height 3
+        end field
+        
+          field xemp
+            caption Employee Master
+            width 10
+            event after
+               set globals(xemp)=xemp
+               set globals(xfirst)=xfirst
+             //class osbcustom(osb2crystal("","w","prempdetail","Print Employee File",xemp))
+	          set globals(returnpage)="prmst"
+	          set globals(trnfield)="xemp"
+	          set globals(xtypetrn)="Employee Info"
+            end event
+          end field
+        
+        field xfather
+            width 40
+        end field
+        
+        field xbloodgrp
+            display combo
+            pick select xcode from xcodes where xtype='Blood Group'
+        end field
+        
+        field xreligi
+            width 20
+            pick select xcode from xcodes where xtype='Religion'
+        end field
+        
+        field xsex
+            width 20
+            caption Gender
+        end field
+        
+        field xcitizen
+            width 20
+            col 3
+        end field
+        
+        field xmstatus
+            width 20
+        end field
+        
+        field xmother
+            width 40
+        end field
+
+        field xtasks
+            caption Name of Nominee
+            display hide
+            width 20
+            col 3
+        end field
+        
+        field dum3
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum3 = "<font color=red>_______________________________________ Personal Information (Basic) ______________________________________</font>"
+         end event
+        end field
+        
+        field dum5
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum5 = "<font color=red>_______________________________________ Emergency Contact Information ______________________________________</font>"
+         end event
+        end field
+
+
+        field dum4
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum4 = "<font size=2 color=red>________________________________Advance Information________________________________</font>"
+         end event
+        end field
+
+        field xtype
+           caption License Type
+           display hide
+           width 30
+           pick
+        end field
+
+        field xadd
+           width 35
+           height 3
+        end field
+        
+        field xpadd
+           width 35
+           height 3
+        end field
+        
+        field xpaytyp
+           col 3
+        end field
+        
+        field xcondate
+          caption Date of Confirmation
+        end field
+
+        field Name_&_Code_Search
+         event before
+          class osbcustom(search(xemp,"a","prmst","xemp:xname","PickName","xemp:xname:xdesig","yes","Emp Code:Emp Name:Emp Designation"))
+         end event
+        end field
+  
+		field xdesig
+			display text
+			pick list xdesig
+			//pick select xcode from xcodes where xtype='Designation'
+		end field
+
+        field xdesigdesc
+          attrib local
+          display constant
+          event after
+          set xdesigdesc=#sql("select xlong from xcodes where xtype='Designation' and xcode='"+xdesig+"'")
+          end event
+        end field
+
+        field xdeptdesc
+          attrib local
+          display constant
+          event after
+          set xdeptdesc=#sql("select xlong from xcodes where xtype='Department' and xcode='"+xdept+"'")
+          end event
+        end field
+
+        field xcatdesc
+          attrib local
+          display constant
+          event after
+          set xcatdesc=#sql("select xlong from xcodes where xtype='Category' and xcode='"+xcat+"'")
+          end event
+        end field
+
+        field code_search
+            event before
+              set #list(two.select) = #char(34)+"xemp like '"+xemp+"%'"+#char(34)
+              set #list(two.order) = "xemp"
+            end event
+          end field
+
+          field name_search
+            event before
+              set #list(two.select) = #char(34)+"xname like '%"+xname+"%'"+#char(34)
+              set #list(two.order) = "xname"
+            end event
+          end field
+
+          field xfirst
+            width 40
+            caption Name
+            event after
+              //set globals(xname)=xname
+            end event
+          end field
+          
+          field xpayscl
+            width 10
+            default "General"
+            pick list payscal
+          end field
+
+          embed onsubmit="submitit(this)"
+
+          field Family
+            embed onclick="Family(this)"
+          end field
+          
+           field Educational
+            embed onclick="Educational(this)"
+           end field
+           
+           field Training
+            embed onclick="Training(this)"
+           end field
+           
+           field Working
+            embed onclick="Working(this)"
+           end field
+
+          field Leave
+            embed onclick="Leave(this)"
+          end field
+
+          field Allocate
+            embed onclick="Allocate(this)"
+          end field
+
+          field Employment
+            embed onclick="Employment(this)"
+          end field
+          
+          field Advance
+            embed onclick="Advance(this)"
+          end field
+          
+        field Docs
+          embed onclick="docs(this)"
+        end field
+          
+        field add
+          event before
+          	set globals(ErrChk) = "1"
+          	
+          	call chk_access
+          	
+          	if globals(ErrChk) .ne. "1"
+	  		    if xemp .eq. ""
+	  		    	set globals(ErrChk) = "1"
+			        error "Blank Employee Code ?"
+	                     end if
+          	end if
+          	
+          	if globals(ErrChk) .ne. "1"
+          		//call chk_kin
+          	end if
+          	
+          	if globals(ErrChk) .ne. "1"
+	            set zemail=#user
+	            set xemail=""
+	            //set xfirst=xname+" "+xmiddle+" "+xlast
+          	end if
+          end event
+        end field
+
+        field update
+        	event before
+        		set globals(ErrChk) = ""
+
+        		call chk_access
+
+        		if globals(ErrChk) .ne. "1"
+        			if globals(xemp) .ne. xemp
+        				set globals(ErrChk) = "1"
+        			error "Record pointer mismatch"
+               		end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			//call chk_kin
+        		end if
+
+        	    if globals(ErrChk) .ne. "1"
+                        //set xfirst=xname+" "+xmiddle+" "+xlast
+        		set xemail=#user
+        	    end if
+        	end event
+        end field
+
+        field delete
+        	event before
+        		set globals(ErrChk) = ""
+
+        		call chk_access
+
+        		if globals(ErrChk) .ne. "1"
+        			if globals(xemp) .ne. xemp
+        				set globals(ErrChk) = "1"
+        			error "Record pointer mismatch"
+               		end if
+        		end if
+        	end event
+        end field
+		
+  end form
+
+     text one
+        "<img border=1 src=html/images/"+xemp+".jpg>"
+        "<p><b>"+xfirst+"</b><br>"
+        //"<img border=1 src='"+xlink+"'>"        
+     end text
+     
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function Family(b)
+        {
+          detail="Family"
+        }
+        function Educational(b)
+        {
+          detail="Educational"
+        }
+        function Training(b)
+        {
+          detail="Training"
+        }
+        function Working(b)
+        {
+          detail="Working"
+        }
+        function Leave(b)
+        {
+          detail="Leave"
+        }
+
+        function Employment(b)
+        {
+          detail="Employment"
+        }
+        function Advance(b)
+        {
+          detail="Advance"
+        }
+        function docs(b){
+          detail="docs"
+        }
+      	function PickName(link)
+        {
+    	  if (navigator.appName.indexOf("Netscape")>=0){
+    	    document.one.xemp.value=link.text
+    	  }else{
+    	    document.one.xemp.value=link.innerText
+      	  }
+    	  return false
+      	}
+
+        function submitit(form){
+          if (detail=="Family"){
+            //form.page.value = "prothdt"
+            form.page.value = "prfamily"
+          }else if (detail=="Educational"){
+            form.page.value="predubacdet"
+            form.searchbutton.value = "Top"
+           }else if (detail=="Training"){
+            form.page.value="prtraingdet"
+            form.searchbutton.value = "Top"
+           }else if (detail=="Working"){
+            form.page.value="prwrkexpdet"
+            form.searchbutton.value = "Top"
+           }else if (detail=="Employment"){
+            form.page.value="prmstcon"
+            form.searchbutton.value = "Top"
+           }else if (detail=="Advance"){
+            form.page.value="pradvance"
+            form.searchbutton.value = "Top"
+           }else if (detail=="docs"){
+            form.page.value = "xdocs"
+            form.searchbutton.value = "Top"
+           }
+         }
+        </script>
+     end script
+     
+     method chk_access
+     	set stype = ""
+       	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+       	 set stype=#prop(xprops,"security")          	 
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          
+			  set myqry = "insert into xcriminal (zid,xwornum,xemail,xdate,xtime,xobject)"
+			  set myqry = myqry + " values('"+#id+"','"+mysql+"','"+#user+"','"+#date+"',~
+				'"+#time+"','"+page+"')"
+			  set tmpstr =#sql(myqry)		
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+     
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	else if excomm .eq. "Approve"
+     		set #field(Approve.display) = "hide"
+     	end if    
+     end method
+     
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql     
+				
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(xemp)+"','','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+#time+"','"+page+"','')"
+		set tmpstr =#sql(myqry)		
+     end method
+     
+end page

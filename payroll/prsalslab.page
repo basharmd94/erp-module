@@ -1,0 +1,221 @@
+page prsalslab
+
+	sidebars  list onee
+	sections  form one, script myscript
+
+	list onee
+		caption "Available Entries"
+		table prsalslabview
+		order xempcat,xpaycode
+		rows 20
+		object xempcat attrib(link #servlet+"?page=prsalslab&command=Show&xempcat=?&xpaycode=?"),~
+			   xpaycode,paycode_desc,xpercent
+		totals "Total","","",sum
+
+		field paycode_desc
+			caption Description
+			storage varchar
+		end field
+
+		field xempcat 
+			caption Employee Category
+		end field
+	end list
+
+	form one
+		valid valid,access
+		caption "Salary Slab Setup Table"
+		table prsalslab
+		order xempcat,xpaycode
+		layout 1
+		objects Show, Add, Update, Clear, Previous,Next, Top, Delete, Bottom,~
+				xempcat,xpaycode attrib(submit;attach),tmpdesc,xpcode display(hide),xpercent,~
+				xremark,zemail,xemail
+
+		field xpercent
+			scale 4
+		end field
+				
+		field xempcat
+			caption Employee Category
+			//display constant
+			attrib mandatory
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Employee Category1'"
+			default "Parmanent"
+			event after
+				set globals(xempcat)=xempcat
+			end event
+		end field
+		
+		       
+
+
+		field xpaycode
+			attrib mandatory
+			caption Pay Code
+			width 10
+			display text
+			pick list xpaycode
+		end field
+
+		field xpcode
+			caption Dependent Code
+			width 10
+			//display text
+			pick list xpaycode1
+		end field
+
+		field tmpdesc
+			attrib local
+			display constant
+			caption Pay Description
+			event after
+				set tmpdesc=#sql(str,"select xdesc from prpayhead where zid='"+#id+"' and xpaycode='"+xpaycode+"'")
+			end event
+		end field
+
+		field tmpdesc1
+			attrib local
+			display constant
+			caption Dependent Code Description
+			event after
+			set tmpdesc1=#sql(str,"select xdesc from prpayhead where zid='"+#id+"' and xpaycode='"+xpcode+"'")
+			end event
+		end field
+
+		field xremark
+			height 3
+			width 50
+		end field
+
+		field xamt
+			col 3
+		end field
+
+		field zemail
+			caption Created By
+			disp const
+		end field
+
+		field xemail
+			caption Last Updated By
+			disp const
+		end field
+
+		field Add
+			event before
+				set globals(ErrChk) = ""
+				//set xempcat="Employee"
+				if globals(ErrChk) .ne. "1"
+					set chkcode = #sql("select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+xpaycode+"'")
+					if #result .eq. "false"
+						set globals(ErrChk) = "1"
+						error "<font color=red>Wrong "+#field(xpaycode.caption)+"</font>"
+					end if
+				end if
+
+				if xpercent <= 0.00
+					set globals(ErrChk) = "1"
+					error "Percent cannot be Zero."
+				end if
+				if globals(ErrChk) .ne. "1"
+					set zemail=#user
+					set xemail=""
+				end if
+			end event
+		end field
+
+		field Update
+			event before
+				set globals(ErrChk) = ""
+
+				if globals(ErrChk) .ne. "1"
+					set chkcode = #sql("select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+xpaycode+"'")
+					if #result .eq. "false"
+						set globals(ErrChk) = "1"
+						error "<font color=red>Wrong "+#field(xpaycode.caption)+"</font>"
+					end if
+				end if
+
+				if xpercent <= 0.00
+					set globals(ErrChk) = "1"
+					error "Percent cannot be Zero."
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set xemail=#user
+				end if
+			end event
+		end field
+
+		embed onsubmit="submitit(this)"
+
+		field Back
+			embed onclick = "back()"
+		end field
+
+	end form
+
+	script myscript
+		//************NEW LINES ADDED**************
+		<script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+		<script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+		<script language="javascript" type="text/javascript">
+		$.hotkeys.add('Ctrl+s',function(){
+		//alert('Pressed Ctrl+s');
+		var form=document.forms[0];
+		form.searchbutton.value="Add";
+		form.submit();
+		});
+		$.hotkeys.add('Ctrl+e',function(){
+		//alert('Pressed Ctrl+e');
+		var form=document.forms[0];
+		form.searchbutton.value="Update";
+		form.submit();
+		});
+		$.hotkeys.add('Ctrl+d',function(){
+		//alert('Pressed Ctrl+d');
+		var form=document.forms[0];
+		form.searchbutton.value="Delete";
+		form.submit();
+		});
+		$.hotkeys.add('Ctrl+r',function(){
+		//alert('Pressed Ctrl+r');
+		var form=document.forms[0];
+		form.searchbutton.value="Clear";
+		form.submit();
+		});
+	</script>
+	//*********END OF NEW LINES******************
+
+
+	<script language="javascript" type="text/javascript">
+		var detail
+
+		function back(){
+		detail = "back"
+		}
+
+		function submitit(form){
+		if (detail=='back'){
+		form.page.value = "prpayhead"
+		form.searchbutton.value= "Find xpaycode=?"
+		}
+		return true
+		}
+
+		</script>
+	end script
+
+	valid valid
+		config
+			set tmpdesc=#sql(str,"select xdesc from prpayhead where zid='"+#id+"' and xpaycode='"+xpaycode+"'")
+			set tmpdesc1=#sql(str,"select xdesc from prpayhead where zid='"+#id+"' and xpaycode='"+xpcode+"'")
+		end config
+	end valid
+
+	#include access.valid
+
+
+end page

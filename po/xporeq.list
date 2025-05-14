@@ -1,0 +1,16 @@
+list xporeqnum
+caption "List of Requisition(s)"
+table poreqview
+	order xporeqnum desc
+	select "(select count(zemail) from xusers where zemail='"+#user+"') <> 0 and ~
+	xitem='"+globals(xitem)+"' and xstatusreq<>'"+#status("xstatusreq",1)+"' and xstatusreqd='"+#status("xstatusreqd",6)+"'"
+	rows 10
+	objects xporeqnum attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+			xitem,xref,xdatereq,xporeq,xstatusreq
+
+	field xporeq
+		len 10.3
+		caption Required Qty
+	end field
+
+end list

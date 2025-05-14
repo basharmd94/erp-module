@@ -1,0 +1,10 @@
+//Attendance Menu
+//---------------------------------------------------------------------------------------
+caption "Attendance Menu" page
+option                  |action                                          |modules|models
+//---------------------------------------------------------------------------------------
+Attendance Entry                  |#classPath+"/"+#servlet+"?page=prath"                   |
+Attendance Entry -Supervisor      |#classPath+"/"+#servlet+"?page=praths"                  |   
+Reports                           |#classPath+"/"+#servlet+"?menu=pratdrep"                |
+Setup                             |#classPath+"/"+#servlet+"?menu=pratdset"                |
+//---------------------------------------------------------------------------------------

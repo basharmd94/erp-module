@@ -1,0 +1,11 @@
+list xisprno
+	caption "International Requisition"
+	table poreqinter
+	order xcounterno
+	
+	select "(xcounterno like '%"+zvalue+"%')"
+	rows 50
+	objects xcounterno attrib(link "abc" embed onclick="return updateParent(this:'')"),~
+		xdate
+		
+end list

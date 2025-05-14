@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table opqotdel
+  caption "Quotation Delivery Details"
+  columns ztime,zutime,zid,xopqot,xcus,xrow,xorg,xadd1, xadd2, xcity, xstate,xzip,xcountry,~
+          xsalute, xfirst,xmiddle,xlast, xtitle, xemail, xphone, xfax, xurl, ~
+          xcur, xwh, xmr,xrg,xtr,xsp
+          
+  primary key zid, xopqot
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xopqot references opqot.zid,xopqot
+  end foreign key
+  
+end table

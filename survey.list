@@ -1,0 +1,14 @@
+     list survey
+        table prsurveycode
+        order xrow
+        navigators alpha
+        rows 20
+        objects xrow attrib(link "abc" embed onclick="return updateParent(this:'')"),~
+                xremarks
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

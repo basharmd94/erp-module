@@ -1,0 +1,169 @@
+page prwrkexpdet
+  	caption "<span class=bl>Working Experience(s) of Employee <a href=/da/"+#servlet+"?page=prmst&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+  	
+	section form one,list one,script one
+
+  list one
+   table prwrkexp
+   order xemp,xrow
+   fixed xemp
+   row 60
+   object xrow attrib(link #servlet+"?page="+page+"&command=Show&xrow=?"),~
+         xfdate,xtdate,xcompany,xoccu,xsalary
+         
+    field xcompany
+      caption Company
+    end field
+
+    field xoccu
+        caption Designation
+    end field
+    
+    field xsalary
+      caption Salary
+    end field
+
+  end list
+
+  form one
+    //caption "<font color=black size=4>Working Experience of <font color=white></p>"+globals(xname)+"</font></font>"
+    table prwrkexp
+    order xemp,xrow
+    fixed xemp
+    layout 2
+    object Add,Show,Update,Delete,Clear,Previous,Next,Top,Bottom,Back,~
+          xrow,xfdate,xtdate,xdayab,xcompany,xoccu,xcountry,xsalary,xpartial,xadd,xdegcom,~
+          xleftre,xremarks,zemail display(hide),xemail display(hide)
+
+    field xrow
+      atrrib row 0 1
+      columns 3
+      caption Exp No
+      display const
+      event after
+        set globals(xrow)=xrow
+      end event
+    end field
+    
+    field xdegcom
+          display hide
+    end field
+
+    field xcompany
+      caption Company
+    end field
+    
+    field xdayab
+      caption Duration of Work(Days)
+      display const
+    end field
+    
+    field xpartial
+        caption Job Type
+        //pick "Part Time,Full Time"
+        pick "select xcode from xcodes where zid='"+#id+"' and xtype='Job'"
+    end field
+    
+    field xleftre
+      caption Reason to Change
+      //columns 3
+      width 50
+      display area
+      height 2
+    end field
+    
+    field xcountry
+      //col 3
+      default "Bangladesh"
+    end field
+    
+    field xoccu
+        caption Designation
+        pick select xcode from xcodes where xtype='Designation'
+    end field
+
+    field xsalary
+      //columns 3
+      caption Salary
+    end field
+    
+    field next
+    	event before
+    		int nrow = 0
+    		set nrow = 0+xrow+1
+    		set xrow = 0+nrow
+    		action show
+    		//print xrow+" "+nrow
+    	end event
+    end field
+
+    field previous
+    	event before
+    		int nrow = 0
+    		set nrow = 0+xrow-1
+    		set xrow = 0+nrow
+    		action show
+    		//print xrow+" "+nrow
+    	end event
+    end field
+
+
+    field xadd
+      caption Address
+      height 2
+      width 50
+//      col 3
+    end field
+
+    field xremarks
+      caption Responsibilities
+      col 3
+      width 50
+      display area
+      height 2
+    end field
+
+     field add
+       event before
+         set zemail=#user
+         set xemail=""
+         class osbcustom(#days(xfdate,xtdate,xdayab,"i"))
+       end event
+     end field
+
+     field Update
+       event before
+         set globals(ErrChk)=""
+         if xrow .ne. globals(xrow)
+           set globals(ErrChk)="1"
+           error "Record pointer mismatch</p>Cannot "+#command
+         else
+           set xemail=#user
+         class osbcustom(#days(xfdate,xtdate,xdayab,"i"))
+         end if
+       end event
+     end field
+
+    embed onsubmit="submitit(this)"
+    field Back
+      embed onclick="clicked(this)"
+    end field
+
+  end form
+
+  script one
+  <script language="javascript" type="text/javascript">
+  var detail
+  function clicked(b){
+    detail="Back"
+  }
+  function submitit(form){
+    if (detail=="Back"){
+      form.page.value="prmst"
+      form.searchbutton.value="Find xemp=?"
+    }
+  }
+  </script>
+  end script
+
+end page

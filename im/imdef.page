@@ -1,0 +1,184 @@
+page imdef
+     caption "IM Defaults"
+     sections form one,script myscript
+
+     form one
+     	valid valid,access
+	    table imdef
+        layout 1
+        objects Clear,Show,Add, Update, Delete,~
+        		xcashpotrn,xcreditpotrn,xacccr attrib(submit; attach),acccrdesc,xsubcr attrib(attach),subcrdesc,~
+				xreqapp
+
+        field xcreditpotrn
+          event after
+            string xcreditpotrn=imdef.xcreditpotrn("zid='"+#id+"'")
+            if #result .eq. "true"
+               set #field(Add.display)="disable"
+               set #field(Clear.display)="disable"
+            else
+               set #field(Update.display)="disable"
+               set #field(Delete.display)="disable"
+            end if
+          end event
+        end field
+        
+		   field acccrdesc
+		      attrib local
+		      caption Description
+		      display constant
+		      event after
+		        set acccrdesc=#sql("select xdesc from glmst where xacc='"+xacccr+"'")
+		      end event
+		   end field
+
+		   field subcrdesc
+		      attrib local
+		      caption Description
+		      display constant
+		      event after
+		        set subcrdesc=#sql("select xdesc from glsub where xacc='"+xacccr+"' and xsub='"+xsubcr+"'")
+		      end event
+		   end field
+		   		   		   	           
+		   field Add
+		     event before
+		        set globals(ErrChk) = ""
+		        
+		        call chk_access
+
+	            //if globals(ErrChk) .ne. "1"
+	            //  set xacc=xacccr
+	            //  buffer glmst
+	            //  move glmst=glmst(xacc)
+	            //  if #result .ne. "true"
+	            //    set globals(ErrChk) = "1"
+	            //    set #list(account.select)=#char(34)+"xacc like '"+xacccr+"%'"+#char(34)
+	            //    set #list(account.navigator)=""
+	            //    Error "Wrong account -- pick from the list"
+	            //  else
+	            //  	if glmst.zactive .eq. "1"
+		        //        set #list(account.select)=""
+		        //        set #list(account.navigator)="alpha"
+		        //        set accusage=glmst.xaccusage
+		        //        set accsource=glmst.xaccsource
+		        //    else
+		        //    	set globals(ErrChk) = "1"
+		        //    	error "Account "+xacc+" Inactive; Cannot use"
+		        //    end if
+	            //  end if
+	            //end if
+	            
+	            if globals(ErrChk) .ne. "1"
+	                if accusage .eq. "Ledger" .or. accusage .eq. "Bank" .or. accusage .eq. "Cash" .and. accsource .eq. "Subaccount"
+	                  set myqry = "select xsub from glsub where xacc='"+xacccr+"' and xsub='"+xsubcr+"'"
+	                  set tmpret = #sql(str,myqry)
+	                  if #result .ne. "true"
+	                    set globals(ErrChk) = "1"
+	                    set #field(xsubcr.pick)="list xsub"
+	                    error "Not a valid Sub-Account<br>Pick from the list"
+	                  end if
+	                else
+	                  set xsubcr = ""
+	                end if
+	            end if
+		     end event
+		   end field
+
+		   field Update
+		     event before
+		        set globals(ErrChk) = ""
+		        
+		        call chk_access
+
+	            if globals(ErrChk) .ne. "1"
+	              set xacc=xacccr
+	              buffer glmst
+	              move glmst=glmst(xacc)
+	              if #result .ne. "true"
+	                set globals(ErrChk) = "1"
+	                set #list(account.select)=#char(34)+"xacc like '"+xacccr+"%'"+#char(34)
+	                set #list(account.navigator)=""
+	                Error "Wrong account -- pick from the list"
+	              else
+	              	if glmst.zactive .eq. "1"
+		                set #list(account.select)=""
+		                set #list(account.navigator)="alpha"
+		                set accusage=glmst.xaccusage
+		                set accsource=glmst.xaccsource
+		            else
+		            	set globals(ErrChk) = "1"
+		            	error "Account "+xacc+" Inactive; Cannot use"
+		            end if
+	              end if
+	            end if
+	            
+	            if globals(ErrChk) .ne. "1"
+	                if accusage .eq. "Ledger" .or. accusage .eq. "Bank" .or. accusage .eq. "Cash" .and. accsource .eq. "Subaccount"
+	                  set myqry = "select xsub from glsub where xacc='"+xacccr+"' and xsub='"+xsubcr+"'"
+	                  set tmpret = #sql(str,myqry)
+	                  if #result .ne. "true"
+	                    set globals(ErrChk) = "1"
+	                    set #field(xsubcr.pick)="list xsub"
+	                    error "Not a valid Sub-Account<br>Pick from the list"
+	                  end if
+	                else
+	                  set xsubcr = ""
+	                end if
+	            end if
+		     end event
+		   end field		   		   
+        
+     end form
+
+	 script myscript     
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+      end script
+          
+	valid valid         
+		config		        
+			set craccusage = #sql(str,"select xaccusage from glmst where xacc='"+xacccr+"'")
+			set craccsource = #sql(str,"select xaccsource from glmst where xacc='"+xacccr+"'")
+            if craccusage .eq. "Ledger" .or. craccusage .eq. "Bank" .or. craccusage .eq. "Cash" .and. craccsource .eq. "Subaccount"
+                set #field(xsubcr.pick)="list xsubcr"
+                set subcrdesc=#sql(str,"select xdesc from glsub where xacc='"+xacccr+"' and xsub='"+xsubcr+"'")
+            else
+            	set #field(xsubcr.display) = "hide"
+            	set #field(subcrdesc.display) = "hide"
+              	set xsubcr = ""
+              	set subcrdesc = ""
+            end if
+		end config  
+	end valid   
+
+#include access.valid
+
+end page

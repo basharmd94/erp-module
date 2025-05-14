@@ -1,0 +1,163 @@
+//bk.fields
+//-------------------------------------------------------------------------------------------------------------------
+name        |caption              |storage |length|scale|display|hei|w|form|def|help|doc|det|valid|attrib|font|calc|pick
+//----------|---------------------|--------|------|-----|--------|-|--|----|---|----|---|---|-----|------|----|----|----
+//Bank Fields
+xcustype    |Customer Type         |varchar |    100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xbcode      |Branch Code           |varchar |   100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xbkacc      |Account Number        |varchar |   100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |list bkacc
+xmadd       |Mailing Address       |varchar|   250|    0|area    |4|40|    |   |    |   |   |     |      |    |    |
+xprofession |Profession            |varchar|    100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xresphone   |Residence Phone       |varchar|    100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xoffphone   |Office Phone          |varchar|    100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xintroname  |Introducer's Name     |varchar|   100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xintroacc   |Introducer's Account  |varchar|   100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xintroadd   |Introducer's Address  |varchar|   250|    0|area    |4|40|    |   |    |   |   |     |      |    |    |
+xbirthdate  |Birth Date            |datetime|   -1|    0|text    |1|10|    |   |    |   |   |     |      |    |    |
+xbktrnref   |Bktrn reference       |varchar |   100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xstatement  |Staement Frequency    |varchar |   100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xfchequeno  |From Cheque Number    |varchar |   100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xtchequeno  |To Cheque Number      |varchar |   100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xchqbook    |Cheque Book Number    |varchar |   100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xchqtrn     |Cheque Issue          |varchar |  100|    0|text    |1|10|    |   |    |   |   |     |      |    |    |
+xchequeno   |Cheque Number         |varchar |  100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xtrnchqno   |Trn Cheque No         |varchar |   100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xbktrn      |Bank Transaction      |varchar |  100|    0|text    |1|10|    |   |    |   |   |     |      |    |    |
+xbktrnno    |Bank Transaction No   |varchar |  100|    0|text    |1|10|    |   |    |   |   |     |      |    |    |
+xchqstatus  |Cheque Status         |varchar |  100|    0|text   |1|20|    |"Unused"   |    |   |   |     |      |    |    |
+xbkserial   |Transaction Serial    |varchar |   100|    0|text   |1|20|    |           |    |   |   |     |      |    |    |
+xsuffix     |Suffix                |varchar |   100|    0|text   |1|20|    |           |    |   |   |     |      |    |    |
+xprefix     |Prefix                |varchar |   100|    0|text   |1|20|    |           |    |   |   |     |      |    |    |
+xintrocheck |Introduce Check       |varchar |   100|    0|radio  |1|20|    |           |    |   |   |     |      |    |    |"Yes,No"
+xterm       |Terms                 |varchar |   100|    0|combo  |1|10|    |           |    |   |   |     |      |    |    |
+xopname     |Account Operator Detail|varchar|  500|    0|area   |2|20|    |           |    |   |   |     |      |    |    |
+xpassexp    |Passport Expiry Date  |datetime|   -1|    0|text   |1|10|    |           |    |   |   |     |      |    |    |
+xacccat     |Account Category      |varchar |   100|    0|combo  |1|10|    |           |    |   |   |     |      |    |    |code
+xaccopndate |Account Opening Date  |datetime|   -1|    0|text   |1|10|    |           |    |   |   |     |      |    |    |
+xtrnflag    |Transaction Flag      |varchar |  100|    0|text   |1|10|    |           |    |   |   |     |      |    |    |
+xinterest   |Interest              |decimal |   20|    4|text   |1|20|    |           |    |   |   |     |      |    |    |
+xcurinterest|Current Interest      |decimal |   20|    4|text   |1|20|    |           |    |   |   |     |      |    |    |
+xshare      |Share                 |int 	|   -1|    0|text   |1| 4|    |           |    |   |   |     |      |    |    |
+xinterim    |Interim Profit        |decimal |   20|    4|text   |1|20|    |           |    |   |   |     |      |    |    |
+xstatusde   |Status Day End Flag   |varchar |   100|    0|text   |1|10|    |           |    |   |   |     |      |    |    |
+xaccclsdate |Account Closing Date  |datetime|   -1|    0|text   |1|10|    |           |    |   |   |     |      |    |    |
+xinstalment |Instalments           |decimal |   20|    2|text   |1|10|    |           |    |   |   |     |      |    |    |code
+xprodtype   |Calculate Product     |varchar |   100|    0|text   |1|10|    |           |    |   |   |     |      |    |    |
+xpayorder   |Instrument No.        |varchar |   100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xissuebank  |Issuing Bank         |varchar |    100|    0|text    |1|20|    |   |    |   |   |     |      |    |    |
+xminbal     |Minimum Balance       |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xmaxbal     |Maximum Balance       |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xdebittrn   |Debit Trn No          |int     |   -1|    0|text   |1| 4|    |           |    |   |   |     |      |    |    |
+xcredittrn  |Credit Trn No         |int     |   -1|    0|text   |1| 4|    |           |    |   |   |     |      |    |    |
+xlsttrndate |Last Trn Date         |datetime|   -1|    0|text    |1|10|    |   |    |   |   |     |      |    |    |
+xprdcalc    |Product Calculation   |varchar |    100|    0|text    |1|10|    |   |    |   |   |     |      |    |    |//list xvoucher
+xmlcno      |Master L/C Number     |varchar |    100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xapplicant  |Applicant             |varchar |    100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xbeneficiary|Beneficiary           |varchar |    100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xloanno     |Loan Serial No        |varchar |   100|    0|text    |1|10|    |   |    |   |   |     |      |    |    |
+xinvsttype  |Investment Type       |varchar |    100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xeconcode   |Economic Purpose      |varchar |    100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xadviseno   |Advise No             |varchar |    100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xsecurity   |Security Code         |varchar |    100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xsector     |Sector Code           |varchar |    100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xsubsector  |Sub Sector Code       |varchar |    100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xmarketval  |Market Value          |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xassessval  |Assessed Value        |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+
+//Profit & Loss Fields for loan
+xgrprofit   |GROSS PROFIT          |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xexpense    |Expense               |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xoppl       |OPERATING PROFIT & LOSS|decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xoincome    |Other Income          |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xoexpense   |Other Expenses        |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xnplaitax   |NET PROFIT/LOSS After Income Tax |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xreceivable |Receivables           |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xocuassets  |Other Current Assets  |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xtotcuassets|TOTAL CURRENT ASSETS  |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xnoncuassets|Non Current Assets    |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xfassets    |Fixed Assets          |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xtotassets  |TOTAL ASSETS          |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xpayable    |Trade Payables        |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xocul       |Other Current Assets  |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xtotcul     |TOTAL CURRENT LIABILITIES|decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xtotl       |TOTAL LIABILITIES     |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xequity     |EQUITY                |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xcuratio    |CURRENT RATIO         |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xqratio     |QUICK RATIO           |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xleverage   |LEVERAGE              |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xdebtassets |DEBT TO ASSETS        |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xiturnindays|INVENTORY TURNOVER IN DAYS |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xtotaturn   |TOTAL ASSETS TURNOVER |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xgptosales  |GROSS PROFIT TO SALES |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xnptosales  |NET PROFIT TO SALES   |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xrequity    |RETURN ON EQUITY      |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+
+//Profit & Loss Fields for loan - ends
+
+xprinciple  |Principle Amount      |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xacapital   |Authorized Capital    |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xpcapital   |Paid-up Capital       |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xbkloan     |Bank Loan             |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xdoc        |Description           |varchar | 1000|    0|area   |5|20|    |   |    |   |   |     |      |    |    |
+xloancat    |Loan Category         |varchar |   100|    0|combo  |1|10|    |           |    |   |   |     |      |    |    |Code
+xtotdr      |Debit Summation       |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xtotcr      |Credit Summation      |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xlcamt      |Total L/C Opened      |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xlgamt      |Total L/G Opened      |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xfbpamt     |Total Foreign Bills Handled|decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xlbpamt     |Total Local Bills Handled|decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xdepmode    |Debit Account         |varchar |    100|    0|check|1|25|    |   |    |   |   |     |      |    |    |
+xlccat      |L/C Category          |varchar |    100|    0|combo   |1|25|    |   |    |   |   |     |      |    |    |
+                                                                   "Held, Open, Confirmed,Completed, Cancelled"
+xmonth      |Period                |int     |    -1|    0|text    |1| 4|    |   |    |   |   |     |      |    |    |
+xdue        |Due Amount           |decimal |    20|    2|text    |1|20|    | 0 |    |   |   |     |      |    |    |
+xpaid       |Paid Amount           |decimal |    20|    2|text    |1|20|    | 0 |    |   |   |     |      |    |    |
+xbalance    |Balance              |decimal |    20|    2|text    |1|20|    | 0 |    |   |   |     |      |    |    |
+xallocation |Amt Allocated     |decimal |    20|    2|text    |1|20|    | 0 |    |   |   |     |      |    |    |
+xbcus       |Member Code      		|varchar |    100|    0|text   |  1|10|    |   |    |   |   |     ||||list xbcus
+xnominee01  |Nominee Name           |varchar |   100|    0|text   |	 1|20|    |   |    |   |   |     |      |    |    |
+xnominee02  |Nominee Name           |varchar |   100|    0|text   |	 1|20|    |   |    |   |   |     |      |    |    |
+xnominee03  |Nominee Name           |varchar |   100|    0|text   |	 1|20|    |   |    |   |   |     |      |    |    |
+xage01      |Age                    |int     |    -1|    0|text   |  1| 4|    |   |    |   |   |     |      |    |    |
+xage02      |Age                    |int     |    -1|    0|text   |  1| 4|    |   |    |   |   |     |      |    |    |
+xage03      |Age                    |int     |    -1|    0|text   |  1| 4|    |   |    |   |   |     |      |    |    |
+xshare01    |Share                  |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xshare02    |Share                  |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xshare03    |Share                  |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xnomadd1   |Nominee's Address  |varchar|   250|    0|area    |4|40|    |   |    |   |   |     |      |    |    |
+xnomadd2   |Nominee's Address  |varchar|   250|    0|area    |4|40|    |   |    |   |   |     |      |    |    |
+xnomadd3   |Nominee's Address  |varchar|   250|    0|area    |4|40|    |   |    |   |   |     |      |    |    |
+xname1    	  |Name                 				|varchar |   100|    0|text       |	 1|30|    |   |    |   |   |     |      |    |    |
+xname2    	  |Name                 				|varchar |   100|    0|text       |	 1|30|    |   |    |   |   |     |      |    |    |
+xname3    	  |Name                 				|varchar |   100|    0|text       |	 1|30|    |   |    |   |   |     |      |    |    |
+xname4    	  |Name                 				|varchar |   100|    0|text       |	 1|30|    |   |    |   |   |     |      |    |    |
+xfather1       |Father's Name                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |		|	 |    |
+xmother1       |Mother's Name                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |		|	 |    |
+xfather2       |Father's Name                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |		|	 |    |
+xmother2       |Mother's Name                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |		|	 |    |
+xfather3       |Father's Name                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |		|	 |    |
+xmother3       |Mother's Name                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |		|	 |    |
+xfather4       |Father's Name                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |		|	 |    |
+xmother4       |Mother's Name                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |		|	 |    |
+xshareqty  |Share Quantity        |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xshareamt  |Share Amount          |decimal |   20|    2|text   |1|20|    |           |    |   |   |     |      |    |    |
+xsharedate |Share Date         |datetime|   -1|    0|text    |1|10|    |   |    |   |   |     |      |    |    |
+xexbkacc      |Existing Account Number        |varchar |   100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xexbkmem      |Existing Member Number        |varchar |   100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xexbkbrn      |Existing Branch Code        |varchar |   100|    0|text    |1|25|    |   |    |   |   |     |      |    |    |
+xaccstatus  |Account Status         |varchar |  100|    0|text   |1|20|    |"Live"   |    |   |   |     |      |    |    |"Live,Dormant"
+xsoentry  	  |Source of Entry 		|int     |    -1|   0|text  	  |	 1| 4|    |   |		| | | |   |    |    |
+xtoentry  	  |Type of Entry 		|int     |    -1|   0|text  	  |	 1| 4|    |   |		| | | |   |    |    |
+xstatcon  	  |Confirmation Status	|int     |    -1|   0|text  	  |	 1| 4|    |   |		| | | |   |    |    |
+xsupchg  	  |Loan Supervision Charge 	|int     |    -1|   0|text  	  |	 1| 4|    |   |		| | | |   |    |    |
+xprocessfee   |Loan Processing Fee     	|int     |    -1|   0|text  	  |	 1| 4|    |   |		| | | |   |    |    |
+xchqisschg    |Cheque Issue Charge     	|int     |    -1|   0|text  	  |	 1| 4|    |   |		| | | |   |    |    |
+xstmisschg    |Statement Issue Charge     	|int     |    -1|   0|text  	  |	 1| 4|    |   |		| | | |   |    |    |
+xminbalsav    |Minimum Balance-Savings Account     	|int     |    -1|   0|text  	  |	 1| 4|    |   |		| | | |   |    |    |
+xminbalcur    |Minimum Balance-Current Account     	|int     |    -1|   0|text  	  |	 1| 4|    |   |		| | | |   |    |    |
+xlprocapp     |Loan Processing Applicable?          |varchar |    10|    0|combo       |  1|10|    |"Yes"   |    |   |   |     |		|	 |    |"Yes,No"
+xlschgapp     |Loan Supervision Charge Applicable?  |varchar |    10|    0|combo       |  1|10|    |"Yes"   |    |   |   |     |		|	 |    |"Yes,No"
+xloandisb     |Loan Disbursement Method             |varchar |    50|    0|combo       |  1|10|    |"Balance Transfer"   |    |   |   |     |		|	 |    |"Cash,Balance Transfer"
+xacccat1      |Account Category      |varchar |   100|    0|combo  |1|10|    |           |    |   |   |     |      |    |    |"Savings,DIS/MPS/TDS,Current,MSS,CC Loan"
+xpaytype1  	  |Payment Type         				|varchar |   100|    0|combo   	  |  1|20|    |   |    |   |   |     |      |    |    |"Cash,Bank,Cheque,Others,Salary"
+xstatuschk 	  |Cheque Status        				|varchar |   100|    0|combo   	  |  1|20|    |   |    |   |   |     |      |    |    |"Not Cleared,Deposite,Bounced,Cash,Clear"

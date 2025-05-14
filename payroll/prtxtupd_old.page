@@ -1,0 +1,117 @@
+page prtxtupd
+
+    caption "Attendance Posting(In)"
+    sections form imtrn,script myscript
+
+    form imtrn            
+      layout 1
+      objects ~
+      		xdate,Process,Show,"<p>"
+
+      field xname
+      	caption Date (DD-MM-YYYY)
+      	width 10
+      end field
+      
+      field process
+        event before
+          set rawdate = ""
+          set globals(ErrChk) = ""      
+          set In_time = ""
+          set Out_time = ""    
+          //set actdate = #sub(xname,6,4)+"-"+#sub(xname,3,2)+"-"+#sub(xname,0,2)           
+			
+				
+		  str xemp = ""
+		  str mysql = "select xemp from pratdummy where zid='"+#id+"' and xdate = '"+xdate+"' and xemp>'"+xemp+"' order by xemp"
+		  set xemp = #sql(str,mysql)
+//		  print xemp+mysql
+		  while #result .eq. "true"
+
+		    set emp_code = #sql(str,"select xemp from prmst where zid='"+#id+"' and xid='"+xemp+"'")
+			print emp_code+" "+xemp
+			set shift_code = #sql(str,"select xshift from prmst where zid='"+#id+"' and xemp='"+emp_code+"'")
+			
+		  	set chkdate = #sql(date,"select xdate from prath where zid='"+#id+"' and xdate='"+xdate+"' and xshift='"+shift_code+"'")
+		  
+		  if #result .ne. "true"
+            set mysql = "insert into prath (zid,xyear,xper,xday,xdate,xshift,xatdrem,zemail,xemail)"
+            set mysql = mysql + " values('"+#id+"','"+#sub(xdate,0,4)+"','"+#sub(xdate,5,2)+"','"+#sub(xdate,8,2)+"','"+xdate+"','"+shift_code+"','','"+#user+"','')"
+            set insdata =#sql(mysql) 
+				//print #result+xdate			+" "+mysql
+ 		  end if  
+			
+			set In_time = #sql("select xdate from pratdummy where xref= '"+xdate+"'  and xemp='"+xemp+"' order by xdate")
+		  	set In_time = #sub(In_time,11,2)+":"+#sub(In_time,14,2)+":"+#sub(In_time,17,2)
+			print In_time
+		    //set Out_time = #sql("select xdate from pratdummy where xref= '"+xdate+"' and xemp='"+xemp+"' order by xdate desc")
+		    //set Out_time = #sub(Out_time,11,2)+":"+#sub(Out_time,14,2)+":"+#sub(Out_time,17,2)
+			//print xemp+" "+In_time+" "+Out_time+" "+emp_code
+			
+			set def_time = #sql("select xintime from pratdt where zid='"+#id+"' and xshift='"+shift_code+"'")
+			set def_time =#sub(def_time,11,8)
+			
+			set penalty_time = #sql("select xpnlttime from pratdt where zid='"+#id+"' and xshift='"+shift_code+"'")
+			
+			
+            if In_time .eq. ""
+              set stat = ""
+			end if
+			if In_time <= def_time
+              set stat = "Present"			  
+			end if
+			if In_time > def_time
+				if In_time > penalty_time
+					set stat = "Absent"
+				else
+					set stat = "Late"
+				end if
+			end if
+			//print  emp_code+" "+In_time+" "+def_time+" "+penalty_time+" "+stat
+			
+			set intime=xdate+" "+In_time
+			set outtime=xdate+" "+Out_time
+			
+			set chkrec=#sql(#str,select xemp from pratd where zid='"+#id+"' and xemp='"+emp_code+"' and xdate='"+xdate+"' and xshift='"+shift_code+"'")
+			if #result .ne. "true"
+				set mysql = "insert into pratd (ztime,zid,xyear,xper,xday,xdate,xshift,xemp,~
+							xintime,xouttime,xlotime,xlitime,xatdstat,xpflag,zemail,xemail,xrem)"
+				set mysql = mysql + " values('"+#time+"','"+#id+"','"+#sub(xdate,0,4)+"','"+#sub(xdate,5,2)+"','"+#sub(xdate,8,2)+"','"+xdate+"','"+shift_code+"', ~
+					'"+emp_code+"','"+intime+"','','"+#time+"','"+#time+"','"+stat+"','','"+#user+"','','')"
+				set insdata =#sql(mysql)
+				//print #result	+" ok "		+mysql
+			//else
+				//str mysql = "update pratd set xouttime='"+outtime+"' where zid='"+#id+"' and xemp='"+emp_code+"' and xdate='"+xdate+"'"
+				//set updval = #sql(str,mysql)
+			end if
+		  	str mysql = "select xemp from pratdummy where zid='"+#id+"' and xdate = '"+xdate+"' and xemp>'"+xemp+"' order by xemp"
+		  	set xemp = #sql(str,mysql)
+  		  end while        
+  		  print "<font color=blue size=4>Processing Completed"
+        end event
+      end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+          }
+        }
+        function keeplastkey(){
+        document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        }
+        </script>
+    end script
+
+end page

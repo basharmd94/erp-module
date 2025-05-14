@@ -1,0 +1,951 @@
+page poshipcost
+
+    caption "Cost Details for : "+xpornum+" "+xshiplno
+
+    //embed onload="move_caret('one','xpocode')"
+
+    sidebar list one
+
+    sections form one, text top,script myscript
+
+    text top
+        "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list one
+        caption "Shipment Wise Cost Details"
+        table poshipcost
+        order xpornum,xshiplno,xrowin
+        fixed xpornum,xshiplno
+        select "zid='"+#id+"'"
+        rows 30
+        objects  xrowin attrib(link #servlet+"?page=poshipcost&command=Show&xrowin=?"), ~
+                 xpocode, costdesc equals((select xdesc from pocharge where zid=poshipcost.zid and xpocode=poshipcost.xpocode)),~
+             	 xdaterel,xcur,xcost,xexch,xbase,xbeno
+
+        field xrowin
+            caption SL No
+        end field
+        
+        field costdesc
+            storage varchar
+            caption Description
+        end field
+        
+        field xcost
+            caption Cost
+            len 10.2
+        end field
+        
+        field xexch
+            len 10.4
+        end field
+
+        field xbase
+            len 10.2
+            caption Base Cost
+        end field
+
+        totals "Totals","","",,,,,sum
+
+        field xdaterel
+          caption Payment Date
+        end field
+
+    end list
+
+     form one
+        valid valid,access
+        table poshipcost
+        order xpornum,xshiplno,xrowin
+        fixed xpornum,xshiplno
+        select "zid='"+#id+"'"
+        layout 2
+        objects Show,Add, Update,Clear, Top, Previous, Delete, Next, Bottom,Return,Transfer to GL,~
+                xrowin attrib(row 0 10),xbeno,xpocode attrib(submit),dummy,~
+                xcur,xexch,xcost,xbase, xdaterel default(#d),xglref display(const),xacccat display(hide),xstatusresp display(hide),~
+                xaccusage attrib(local) display(hide),xaccsource attrib(local) display(hide),~
+                zactive display(hide),xlcno display(hide),zemail display(hide),xemail display(hide),~
+                xcostacc attrib(submit),dummy1,xsubdr,dummy2,~
+                xpocracc attrib(submit),dummy3,xsubcr,dummy4
+
+		field show
+			event before
+				set globals(temp) = xrowin
+			end event
+			event after
+				set globals(temp) = xrowin
+			end event
+		end field
+
+		field Top
+			event before
+				set globals(temp) = xrowin
+			end event
+			event after
+				set globals(temp) = xrowin
+			end event
+		end field
+
+        field xrowin
+            caption SL No
+            event after
+                set globals(xrowin)=xrowin
+                set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                if xstatusord .ne. "Open"
+                    set #field(add.display)="disable"
+                    set #field(update.display)="disable"
+                    set #field(delete.display)="disable"
+                end if
+                set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                if xstatussrn .ne. #status("xstatussrn",1)
+                    set #field(add.display)="disable"
+                    //set #field(update.display)="disable"
+                    set #field(delete.display)="disable"
+                    set #field(xpocode->xcost.display)="const"
+                end if
+                set xglref = poshipcost.xglref("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+                if xglref .ne. ""
+                    set #field(add.display)="disable"
+                    set #field(update.display)="disable"
+                    set #field(delete.display)="disable"
+                    set #field(transfer.display)="disable"
+                end if
+            end event
+        end field
+        
+        field xbeno
+            width 20
+        end field
+
+        field xaccusage
+            default ""
+        end field
+
+        field xaccsource
+            default ""
+        end field
+
+        field xpocode
+            pick list xcostcode
+            event after
+                set globals(xpocode)=xpocode
+            end event
+        end field
+
+        field dummy
+            attrib local
+            display constant
+            caption Description
+            event after
+                set dummy= #sql(str,"select xdesc from pocharge where zid='"+#id+"' and xpocode='"+xpocode+"'")
+            end event
+        end field
+
+        field dummy1
+            attrib local
+            display constant
+            caption Description
+            event after
+                set dummy1= #sql(str,"select xdesc from glmst where zid='"+#id+"' and xacc='"+xcostacc+"'")
+            end event
+        end field
+
+        field dummy2
+            attrib local
+            display constant
+            caption Description
+            event after
+                set dummy2= #sql(str,"select xdesc from glsub where zid='"+#id+"' and xacc='"+xcostacc+"' and xsub='"+xsubdr+"'")
+            end event
+        end field
+
+        field dummy3
+            attrib local
+            display constant
+            caption Description
+            event after
+                set dummy3= #sql(str,"select xdesc from glmst where zid='"+#id+"' and xacc='"+xpocracc+"'")
+            end event
+        end field
+
+        field dummy4
+            attrib local
+            display constant
+            caption Description
+            event after
+                str acc_usage = #sql(str,"select xaccusage from glmst where zid='"+#id+"' and xacc='"+xpocracc+"'")
+                str acc_source = #sql(str,"select xaccsource from glmst where zid='"+#id+"' and xacc='"+xpocracc+"'")
+                //print acc_usage
+                if acc_usage .eq. "AP" .and. acc_source .eq. "Supplier"
+                set dummy4= #sql(str,"select xorg from casup where zid='"+#id+"' and xsup='"+xsubcr+"'")
+                else if acc_usage .eq. "Ledger" .and. acc_source .eq. "Subaccount"
+                set dummy4= #sql(str,"select xdesc from glsub where zid='"+#id+"' and xacc='"+xpocracc+"' and xsub='"+xsubcr+"'")
+                end if
+            end event
+        end field
+
+        field xcostacc
+            display text
+            pick list xacc
+            caption Debit Account
+            event after
+                set globals(xcostacc) = xcostacc
+            end event
+        end field
+
+        field xsubdr
+            pick list xcostsub
+            event after
+                set globals(xsubdr) = xsubdr
+            end event
+        end field
+
+        field xpocracc
+            pick list xacc
+            event after
+                set globals(xpocracc)=xpocracc
+                set globals(xacc)=xpocracc
+            end event
+        end field
+
+        field xsubcr
+            display text
+            event after
+                if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+                    set #field(xsubcr.display)="text"
+                    set #field(xsubcr.pick)="list pocus"
+                else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+                    set #field(xsubcr.display)="text"
+                    set #field(xsubcr.pick)="list posup"
+                else
+                    set #field(xsubcr.pick)="list xcostcr"
+                end if
+                set globals(xsubcr)=xcostcr
+            end event
+
+        end field
+
+        field xacccat
+            attrib hidden
+            display text
+            pick
+            width 20
+        end field
+        
+        field xcost
+            caption Cost
+            len 10.2
+        end field
+
+        field xdaterel
+            caption Payment Date
+            event after
+                set globals(xdaterel)=xdaterel
+            end event
+        end field
+
+        field xcur
+            display ocombo
+            default "BDT"
+        end field
+
+        field xstatusresp
+            display const
+            caption Status
+        end field
+
+        field add
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatusord
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    if xstatussrn .ne. #status("xstatussrn",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Shipment Already "+xstatussrn
+                    end if
+                end if
+                
+                if globals(ErrChk) .ne. "1"
+                    set chkcost=#sql(str,"select xpocode from pocharge where zid='"+#id+"' and xpocode='"+xpocode+"'")
+                    if #result .ne. "true"
+                        set globals(ErrChk)="1"
+                        error "Invalid Import Cost Code"
+                    else
+                        //set xexch = #exch(xcur)
+                        set xcostacc = #sql(str,"select xcostacc from pocharge where zid='"+#id+"' and xpocode='"+xpocode+"'")
+                        set xsubdr = #sql(str,"select xsubdr from pocharge where zid='"+#id+"' and xpocode='"+xpocode+"'")
+                        set xacccat = #sql(str,"select xpotype from pocharge where zid='"+#id+"' and xpocode='"+xpocode+"'")
+                        set zactive = #sql(str,"select zactive from pocharge where zid='"+#id+"' and xpocode='"+xpocode+"'")
+                        set zemail=#user
+                        set xglref=""
+                        if xpocode .ne. "B11002"
+                            set xbase=0.0+xcost*xexch
+                        end if
+                        set xlcno = poship.xlcno("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    end if
+                end if
+            end event
+        end field
+
+        field update
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                	if xrowin .ne. globals(xrowin)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrowin .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatusord
+                    end if
+                end if
+                
+                if globals(ErrChk) .ne. "1"
+                    set xglref = poshipcost.xglref("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+                    if xglref .ne. ""
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already Transferred"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    if xstatussrn .ne. #status("xstatussrn",1)
+                        set globals(ErrChk) = "1"
+                        set updsql=#sql(str,"update poshipcost set xcostacc='"+xcostacc+"',xsubdr='"+xsubdr+"',xpocracc='"+xpocracc+"',xsubcr='"+xsubcr+"',xdaterel='"+xdaterel+"' where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+                        set #command = "show"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chkcost=#sql(str,"select xpocode from pocharge where zid='"+#id+"' and xpocode='"+xpocode+"'")
+                    if #result .ne. "true"
+                        set globals(ErrChk)="1"
+                        error "Invalid Import Cost Code"
+                    else
+                        //set xexch = #exch(xcur)
+                        //set xcostacc = #sql(str,"select xcostacc from pocharge where zid='"+#id+"' and xpocode='"+xpocode+"'")
+                        //set xsubdr = #sql(str,"select xsubdr from pocharge where zid='"+#id+"' and xpocode='"+xpocode+"'")
+                        set xacccat = #sql(str,"select xpotype from pocharge where zid='"+#id+"' and xpocode='"+xpocode+"'")
+                        set zactive = #sql(str,"select zactive from pocharge where zid='"+#id+"' and xpocode='"+xpocode+"'")
+                        set xemail=#user
+                        if xpocode .ne. "B11002"
+                            set xbase=0.0+xcost*xexch
+                        end if
+                        set xlcno = poship.xlcno("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    end if
+                end if
+            end event
+        end field
+
+        field delete
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                	if xrowin .ne. globals(xrowin)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrowin .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatusord
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    if xstatussrn .ne. #status("xstatussrn",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Shipment Already "+xstatussrn
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xglref = poshipcost.xglref("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+                    if xglref .ne. ""
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already Transferred"
+                    end if
+                end if
+
+            end event
+            event after
+                if globals(ErrChk) .ne. "1"
+                    set updsql=#sql(str,"update pocostlc set xshiplno='0',xstatusresp='' where zid='"+#id+"' and xpornum='"+xpornum+"' and xline='"+xshiplno+"' and xpocode='"+xpocode+"'")
+                end if
+            end event
+        end field
+
+        field Transfer
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                	if xrowin .ne. globals(xrowin)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrowin .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatusord
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xglref = poshipcost.xglref("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+                    if xglref .ne. ""
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command +" ; Already Transferred"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set globals(xgltrn)="JV--"
+                    set mysql = "select xtrn from xtrn where  zid = "+#id+" and xtypetrn='GL Voucher' and xtrn='"+globals(xgltrn)+"'"
+                    set tmptrn = #sql(str,mysql)
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "<h3>GL Trn Code <font color=blue>"+globals(xgltrn)+"</font> not found</h3>"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xcostacc = poshipcost.xcostacc("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+                    set xsubdr = poshipcost.xsubdr("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+                    set xpocracc = poshipcost.xpocracc("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+                    set xsubcr = poshipcost.xsubcr("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+                    if xcostacc .eq. ""
+                        set globals(ErrChk) = "1"
+                        error "Debit Account Not Found"
+                    else
+                        set xacc=xcostacc
+                        buffer glmst
+                        move glmst=glmst(xacc)
+                        if glmst.xaccsource .eq. "Subaccount"
+                            if xsubdr .eq. ""
+                                set globals(ErrChk) = "1"
+                                error "Debit Sub Account Not Found"
+                            else
+                                set chksubdr=#sql(str,"select xsub from glsub where zid='"+#id+"' and xacc='"+xacc+"' and xsub='"+xsubdr+"'")
+                                if #result .ne. "true"
+                                    set globals(ErrChk) = "1"
+                                    set #field(xsubdr.pick)="list xsub"
+                                    error "Debit Sub Account Not Found"
+                                end if
+                            end if
+                            
+                        else if glmst.xaccsource .eq. "Customer"
+                        	set xsingacccus = #sql("select xsingacccus from cadef where zid='"+#id+"'")
+                        	if xsingacccus .eq. "1"
+                          		set myqry = "select xcus from cacus where zid='"+#id+"' and xaccar='"+xacc+"' and xcus='"+xsubdr+"'"
+                          		set tmpret = #sql(str,myqry)
+                          		if #result .ne. "true"
+                            		set globals(ErrChk) = "1"
+                            		set #field(xsubdr.pick)="list glcus"
+                            		error "Not a valid Sub-Account<br>Pick from the list"
+                          		end if
+                          	else
+                          		set myqry = "select xcus from cacus where zid='"+#id+"' and xcus='"+xsubdr+"'"
+                          		set tmpret = #sql(str,myqry)
+                          		if #result .ne. "true"
+                            		set globals(ErrChk) = "1"
+                            		set #field(xsubdr.pick)="list glcus"
+                            		error "Not a valid Sub-Account<br>Pick from the list"
+                          		end if
+                          	end if
+
+                        else if glmst.xaccsource .eq. "Supplier"
+                        	set xsingaccsup = #sql("select xsingaccsup from cadef where zid='"+#id+"'")
+                        	if xsingaccsup .eq. "1"
+        						set myqry = "select xsup from casup where zid='"+#id+"' and xaccap='"+xacc+"' and xsup='"+xsubdr+"'"
+        						set tmpret = #sql(str,myqry)
+        						if #result .ne. "true"
+        							set globals(ErrChk) = "1"
+        							set #field(xsubdr.pick)="list glsup"
+        							error "Not a valid Sub-Account<br>Pick from the list"
+        						end if
+        					else
+        						set myqry = "select xsup from casup where zid='"+#id+"' and xsup='"+xsubdr+"'"
+        						set tmpret = #sql(str,myqry)
+        						if #result .ne. "true"
+        							set globals(ErrChk) = "1"
+        							set #field(xsubdr.pick)="list glsup"
+        							error "Not a valid Sub-Account<br>Pick from the list"
+        						end if
+        					end if
+                        else if glmst.xaccsource .eq. "Employee"
+                            set myqry = "select xemp from prmst where zid='"+#id+"' and xemp='"+xsubdr+"'"
+                            set tmpret = #sql(str,myqry)
+                            if #result .ne. "true"
+                                set globals(ErrChk) = "1"
+                                set #field(xsubdr.pick)="list glemp"
+                                error "Not a valid Employee<br>Pick from the list"
+                            end if
+                        else
+                            set xsubdr = ""
+                        end if
+                    end if
+
+                    if xpocracc .eq. ""
+                        set globals(ErrChk) = "1"
+                        error "Credit Account Not Found"
+                    else
+                        set xacc=xpocracc
+                        buffer glmst
+                        move glmst=glmst(xacc)
+                        if glmst.xaccsource .eq. "Subaccount"
+                            if xsubcr .eq. ""
+                                set globals(ErrChk) = "1"
+                                set #field(xsubcr.pick)="list xsub"
+                                error "Credit Sub Account Not Found"
+                            else
+                                set chksubcr=#sql(str,"select xsub from glsub where zid='"+#id+"' and xacc='"+xacc+"' and xsub='"+xsubcr+"'")
+                                if #result .ne. "true"
+                                    set globals(ErrChk) = "1"
+                                    error "Credit Sub Account Not Found"
+                                end if
+                            end if
+                        else if glmst.xaccsource .eq. "Customer"
+                        	set xsingacccus = #sql("select xsingacccus from cadef where zid='"+#id+"'")
+                        	if xsingacccus .eq. "1"
+                          		set myqry = "select xcus from cacus where zid='"+#id+"' and xaccar='"+xacc+"' and xcus='"+xsubcr+"'"
+                          		set tmpret = #sql(str,myqry)
+                          		if #result .ne. "true"
+                            		set globals(ErrChk) = "1"
+                            		set #field(xsubcr.pick)="list glcus"
+                            		error "Not a valid Sub-Account<br>Pick from the list"
+                          		end if
+                          	else
+                          		set myqry = "select xcus from cacus where zid='"+#id+"' and xcus='"+xsubcr+"'"
+                          		set tmpret = #sql(str,myqry)
+                          		if #result .ne. "true"
+                            		set globals(ErrChk) = "1"
+                            		set #field(xsubcr.pick)="list glcus"
+                            		error "Not a valid Sub-Account<br>Pick from the list"
+                          		end if
+                          	end if
+
+                        else if glmst.xaccsource .eq. "Supplier"
+                        	set xsingaccsup = #sql("select xsingaccsup from cadef where zid='"+#id+"'")
+                        	if xsingaccsup .eq. "1"
+        						set myqry = "select xsup from casup where zid='"+#id+"' and xaccap='"+xacc+"' and xsup='"+xsubcr+"'"
+        						set tmpret = #sql(str,myqry)
+        						if #result .ne. "true"
+        							set globals(ErrChk) = "1"
+        							set #field(xsubcr.pick)="list glsup"
+        							error "Not a valid Sub-Account<br>Pick from the list"
+        						end if
+        					else
+        						set myqry = "select xsup from casup where zid='"+#id+"' and xsup='"+xsubcr+"'"
+        						set tmpret = #sql(str,myqry)
+        						if #result .ne. "true"
+        							set globals(ErrChk) = "1"
+        							set #field(xsubcr.pick)="list glsup"
+        							error "Not a valid Sub-Account<br>Pick from the list"
+        						end if
+        					end if
+                        else if glmst.xaccsource .eq. "Employee"
+                            set myqry = "select xemp from prmst where zid='"+#id+"' and xemp='"+xsubcr+"'"
+                            set tmpret = #sql(str,myqry)
+                            if #result .ne. "true"
+                                set globals(ErrChk) = "1"
+                                set #field(xsubcr.pick)="list glemp"
+                                error "Not a valid Employee<br>Pick from the list"
+                            end if
+                        else
+                            set xsubcr = ""
+                        end if
+                    end if
+                end if
+
+	            if globals(ErrChk) .ne. "1"
+                    set desc05=xpornum+"-"+xshiplno+"-"+xrowin
+                    set chk_voucher = #sql("select xvoucher from glheader where zid='"+#id+"' and  xdesc05='"+desc05+"'")
+                    if #result .eq. "true"
+                    	str mysql = "delete from glgrn where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+                    	set updval = #sql(mysql)
+
+                    	str mysql = "delete from gldetail where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+                    	set updval = #sql(mysql)
+
+                    	str mysql = "delete from glheader where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+                    	set updval = #sql(mysql)
+                    end if
+	            end if
+
+                if globals(ErrChk) .ne. "1"
+
+                    set xglcode="JV--"
+                    int offset
+                    int per
+                    int year=#sub(globals(xdaterel),0,4)
+
+                    int tempper
+                    int tempyear
+                    set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+                    set per=12+#sub(globals(xdaterel),5,2)-offset
+                    if per<=12
+                        set tempper=per
+                        set tempyear=year-1
+                    else
+                        set tempper=per-12
+                        set tempyear=year
+                    end if
+
+			    	set sinvcode=xglcode
+
+			    	set note = "**System generated Voucher for Shipment Cost of ** Number: "+desc05
+
+                    if globals(ErrChk) .ne. "1"
+                        set shortbus=#sql(str,"select xshort from zbusiness where zid='"+#id+"'")
+                        int shortlen=0+#length(shortbus)
+                        if shortlen<4
+                            set globals(ErrChk)="1"
+                            error "Business Short Name is not defined"
+                        end if
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+                        set xdate=globals(xdaterel)
+                        set sinvper=#sub(xdate,5,2)
+                        set sinvyr=#sub(xdate,2,2)
+                        set sinvcode = #sub(sinvcode,0,4)
+                        set shortbus=#sub(shortbus,0,4)
+                        set sinvprefix=shortbus+sinvcode+sinvper+sinvyr+"-"
+
+                    	str mysql = #sql(str,"select xvoucher from glheader where zid='"+#id+"' and xvoucher like '"+sinvprefix+"%' order by xvoucher desc")
+                    	if #result .eq. "true" .and. mysql .ne. ""
+                    		set last_num = 0+#sub(mysql,13,6)
+                    	end if
+                    	set last_num = 0+1+last_num
+                    	set mysql = #padl(""+last_num,6,"0")
+                    	set xvoucher = sinvprefix + mysql
+
+                        set conmember = #user
+                        set conteam = #sql(string,"select xteam from cateam where zid='"+#id+"' and  xmember = '"+conmember+"' and xrole='Member'")
+                        set conmanager = #sql(string,"select xmanager from caman where zid='"+#id+"' and  xteam = '"+conteam+"'")
+
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+                        buffer glheader
+                        set glheader.xvoucher=xvoucher
+                        set glheader.xref=desc05
+                        set glheader.xdate=globals(xdaterel)
+                        set glheader.xlong=note
+                        set glheader.xyear=tempyear
+                        set glheader.xper=tempper
+                        set glheader.xstatusjv="Out of Balance"
+                        set glheader.xpostflag=""
+                        set glheader.xdatedue=#date
+                        set glheader.xdesc05=desc05
+                        set glheader.xtrngl=xglcode
+                        set glheader.xnote=note
+                        set glheader.xaction="Journal"
+                        set glheader.zemail=#user
+                        set glheader.xemail=""
+                        set glheader.xmember=#user
+                        set glheader.xteam=conteam
+                        set glheader.xmanager=conmanager
+                        insert glheader
+                        if #result .ne. "true"
+                            set globals(ErrChk) = "1"
+                            error "Error in Creating Voucher"
+                        end if
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xtot=0.0D+xbase
+                    set xaccusage=#sql(str,"select xaccusage from glmst where zid='"+#id+"' and xacc='"+xcostacc+"'")
+                    set xaccsource=#sql(str,"select xaccsource from glmst where zid='"+#id+"' and xacc='"+xcostacc+"'")
+                    set xacctype=#sql(str,"select xacctype from glmst where zid='"+#id+"' and xacc='"+xcostacc+"'")
+
+                    int linenum=0+1
+
+                    buffer gldetail
+                    set gldetail.xvoucher=xvoucher
+                    set gldetail.xrow=0+linenum
+                    set gldetail.xacc=xcostacc
+                    set gldetail.xaccusage=xaccusage
+                    set gldetail.xaccsource=xaccsource
+                    set gldetail.xsub=xsubdr
+                    set gldetail.xdiv=#sql(str,"select xdiv from poord where  zid = "+#id+" and xpornum = '"+xpornum+"'")
+                    set gldetail.xsec=#sql(str,"select xsec from poord where  zid = "+#id+" and xpornum = '"+xpornum+"'")
+                    set gldetail.xproj=#sql(str,"select xproj from poord where  zid = "+#id+" and xpornum = '"+xpornum+"'")
+                    set gldetail.xcur="BDT"
+                    set gldetail.xexch=0.0+1
+                    set gldetail.xprime=xtot
+                    set gldetail.xbase=xtot
+                    set gldetail.xamount=xtot
+                    set gldetail.xallocation=0.0
+                    set gldetail.zemail=#user
+                    insert gldetail
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Error in Creating Cost"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xaccusage=#sql(str,"select xaccusage from glmst where zid='"+#id+"' and xacc='"+xpocracc+"'")
+                    set xaccsource=#sql(str,"select xaccsource from glmst where zid='"+#id+"' and xacc='"+xpocracc+"'")
+                    set xacctype=#sql(str,"select xacctype from glmst where zid='"+#id+"' and xacc='"+xpocracc+"'")
+
+                    set linenum=0+linenum+1
+                    buffer gldetail
+                    set gldetail.xvoucher=xvoucher
+                    set gldetail.xrow=0+linenum
+                    set gldetail.xacc=xpocracc
+                    set gldetail.xaccusage=xaccusage
+                    set gldetail.xaccsource=xaccsource
+                    set gldetail.xsub=xsubcr
+                    set gldetail.xdiv=#sql(str,"select xdiv from poord where  zid = "+#id+" and xpornum = '"+xpornum+"'")
+                    set gldetail.xsec=#sql(str,"select xsec from poord where  zid = "+#id+" and xpornum = '"+xpornum+"'")
+                    set gldetail.xproj=#sql(str,"select xproj from poord where  zid = "+#id+" and xpornum = '"+xpornum+"'")
+                    set gldetail.xcur="BDT"
+                    set gldetail.xexch=0.0+1
+                    set gldetail.xprime=0.0-xtot
+                    set gldetail.xbase=0.0-xtot
+                    set gldetail.xamount=xtot
+                    set gldetail.xallocation=0.0
+                    set gldetail.zemail=#user
+                    insert gldetail
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Error in Creating Cost"
+                    end if
+                end if
+
+             	if globals(ErrChk) .ne. "1"
+                	set tot_prime = #sql(decimal,"select sum(xprime) from gldetail where zid='"+#id+"' and xvoucher='"+xvoucher+"'")
+                	if tot_prime <> 0.0
+                  		set globals(ErrChk) = "1"
+                  		set glheader.xstatusjv="Out of Balance"
+                  		update glheader(xvoucher)
+                  		error "Cannot Update; Out of Balance; Check Error Logs; Voucher No "+xvoucher
+                    else
+                        str mysql = "update glheader set xstatusjv ='Balanced',xpostflag='Posted' where  zid="+#id+"  and xvoucher='"+xvoucher+"'"
+                        set tmpstr = #sql(str,mysql)
+                	end if
+             	end if
+             	if globals(ErrChk) .ne. "1"
+                	str mysql = "update poshipcost set xglref='"+xvoucher+"' where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'"
+                	set updval = #sql(mysql)
+
+                	action show
+                	print "Voucher "+xvoucher+" Created"
+             	end if
+
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+            embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+            $.hotkeys.add('Ctrl+s',function(){
+                //alert('Pressed Ctrl+s');
+                var form=document.forms[0];
+                form.searchbutton.value="Add";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+e',function(){
+                //alert('Pressed Ctrl+e');
+                var form=document.forms[0];
+                form.searchbutton.value="Update";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+d',function(){
+                //alert('Pressed Ctrl+d');
+                var form=document.forms[0];
+                form.searchbutton.value="Delete";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+r',function(){
+                //alert('Pressed Ctrl+r');
+                var form=document.forms[0];
+                form.searchbutton.value="Clear";
+                form.submit();
+            });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail=""
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+
+	    if (detail=="clicked"){
+            form.page.value = "poship"
+            form.searchbutton.value= "Find xpornum=?&xshiplno=?"
+            //return false
+          }
+        }
+
+        function picktype(link, potype, costacc,subdr)
+        {
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xpocode.value=link.text
+            document.one.xacccat.value=potype.text
+            document.one.xcostacc.value=costacc.text
+            document.one.xsubdr.value=subdr.text
+          }else{
+            document.one.xpocode.value=link.innerText
+            document.one.xacccat.value=potype.innerText
+            document.one.xcostacc.value=costacc.innerText
+            document.one.xsubdr.value=subdr.innerText
+          }
+          return false
+        }
+        function picksub(test)
+        {
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xsub.value=link.text
+          }
+          else{
+            document.one.xsub.value=link.innerText
+          }
+          return false
+        }
+
+        function pickCode(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xpocode.xvalue=link.text
+          }else{
+            document.one.xpocode.value=link.innerText
+          }
+          return false
+        }
+        
+        </script>
+     end script
+
+    valid valid
+        config
+            set globals(pkey) = xpornum+" "+xshiplno+" "+xrowin
+
+            set page = "poshipcost"
+
+            set xlcno = poship.xlcno("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+
+			set xaccusage = #sql(str,"select xaccusage from glmst where zid='"+#id+"' and xacc='"+xcostacc+"'")
+			set xaccsource = #sql(str,"select xaccsource from glmst where zid='"+#id+"' and xacc='"+xcostacc+"'")
+            if xaccusage .eq. "Ledger" .or. xaccusage .eq. "Bank" .or. xaccusage .eq. "Cash" .and. xaccsource .eq. "Subaccount"
+                set globals(xacc)=xcostacc
+                set #field(xsubdr.pick)="list xsub"
+                set dummy2=#sql(str,"select xdesc from glsub where zid='"+#id+"' and xacc='"+xcostacc+"' and xsub='"+xsubdr+"'")
+            else if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+                set #field(xsubdr.pick)="list glcus"
+                set dummy2=#sql(str,"select xorg from cacus where zid='"+#id+"' and xcus='"+xsubdr+"'")
+            else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+                set #field(xsubdr.pick)="list glsup"
+                set dummy2=#sql(str,"select xorg from casup where zid='"+#id+"' and xsup='"+xsubdr+"'")
+            else if xaccusage .eq. "Ledger" .and. xaccsource .eq. "Employee"
+                set #field(xsubdr.pick)="list glemp"
+                set dummy2=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xsubdr+"'")
+            else
+            	set #field(xsubdr.display) = "hide"
+            	set #field(dummy2.display) = "hide"
+              	set xsubdr = ""
+              	set dummy2 = ""
+            end if
+
+			set xaccusage1 = #sql(str,"select xaccusage from glmst where zid='"+#id+"' and xacc='"+xpocracc+"'")
+			set xaccsource1 = #sql(str,"select xaccsource from glmst where zid='"+#id+"' and xacc='"+xpocracc+"'")
+            if xaccusage1 .eq. "Ledger" .or. xaccusage1 .eq. "Bank" .or. xaccusage1 .eq. "Cash" .and. xaccsource1 .eq. "Subaccount"
+                set globals(xacc)=xpocracc
+                set #field(xsubcr.pick)="list xsub"
+                set dummy4=#sql(str,"select xdesc from glsub where zid='"+#id+"' and xacc='"+xpocracc+"' and xsub='"+xsubcr+"'")
+            else if xaccusage1 .eq. "AR" .and. xaccsource1 .eq. "Customer"
+                set #field(xsubcr.pick)="list glcus"
+                set dummy4=#sql(str,"select xorg from cacus where zid='"+#id+"' and xcus='"+xsubcr+"'")
+            else if xaccusage1 .eq. "AP" .and. xaccsource1 .eq. "Supplier"
+                set #field(xsubcr.pick)="list glsup"
+                set dummy4=#sql(str,"select xorg from casup where zid='"+#id+"' and xsup='"+xsubcr+"'")
+            else if xaccusage1 .eq. "Ledger" .and. xaccsource1 .eq. "Employee"
+                set #field(xsubcr.pick)="list glemp"
+                set dummy4=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xsubcr+"'")
+            else
+            	set #field(xsubcr.display) = "hide"
+            	set #field(dummy4.display) = "hide"
+              	set xsubcr = ""
+              	set dummy4 = ""
+            end if
+            
+            if xpocode .eq. "B11002"
+                set #field(xcost.display)="const"
+                set xcost=0.0+#sql(dec,"select sum(poshipitem.xqty*poodt.xrate) from poodt inner join poshipitem on poodt.zid=poshipitem.zid and poodt.xpornum=poshipitem.xpornum and poodt.xrow=poshipitem.xrowin where poshipitem.zid='"+#id+"' and poshipitem.xpornum='"+xpornum+"' and poshipitem.xshiplno='"+xshiplno+"'")
+            else
+                set #field(xbase.display)="const"
+            end if
+
+        end config
+    end valid
+
+#include access.valid
+     
+end page

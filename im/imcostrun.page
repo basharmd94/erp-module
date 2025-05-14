@@ -1,0 +1,164 @@
+page imcostrun
+	caption "Costing Run"
+	sections form imtrn
+	
+	form imtrn
+		table 
+		order
+		layout 1
+		objects Process,Clear,~
+				xwh,xitem,xitemnew,xgitem
+				
+		field xwh
+			caption Warehouse
+			display ocombo
+		end field
+		
+		field xitem
+			caption Item Code
+			pick list xitem
+			width 20
+		end field
+		
+		field xitemnew
+			caption Item Code
+			pick list xitem
+			width 20
+		end field
+		
+		field xgitem
+			caption Item Group
+			display ocombo
+			width 20
+		end field
+	
+		field Process
+			event before
+				set globals(ErrChk)=""
+				
+				if globals(ErrChk) .ne. "1"
+					set xitemfrom=xitem
+					set xitem = ""
+					set ximtrnnum = ""
+					decimal trate = 0.0
+					decimal lrate = 0.0
+					decimal tqty = 0.0
+					decimal tval = 0.0
+					int xsign = 0
+					decimal cval = 0.0
+					
+					str clist="xitem,xstdcost"
+					str sql="select "+clist+" from caitem where zid="+#id+" and xgitem='"+xgitem+"' and xitem>='"+xitemfrom+"' and xitem<='"+xitemnew+"' order by zid,xitem"
+					int count=#sqlfill(sql)
+					if count > 0
+						int i = 0
+						while i < count
+							set ximtrnnum = ""
+							decimal trate = 0.0
+							decimal lrate = 0.0
+							decimal tqty = 0.0
+							decimal tval = 0.0
+							int xsign = 0
+							decimal cval = 0.0
+							
+							array get(i,clist)	
+							set i = i + 1
+							
+							str clist1="ximtrnnum,xqty,xval,xsign"
+							str sql="select "+clist1+" from imtrn where zid="+#id+" and xwh='"+xwh+"' and xitem='"+xitem+"' order by zid,xdate,xsign desc"
+							int count1=#sqlfill(sql)
+							if count1 > 0 
+								int j = 0
+								while j < count1
+									array get(j,clist1)
+									set j = j + 1 
+
+									if xsign > 0 .and. xqty > 0 .and. trate == 0
+										compute trate = 0.0 + xval / xqty
+
+									end if
+
+									if xsign <> 1 .and. xsign <> -1
+										set globals(ErrChk) = "1"
+										error "Invalid Sign Found; Sign= " + xsign
+									end if
+
+									if globals(ErrChk) .ne. "1"
+										if trate > 0			 
+											set lrate = 0.0+trate
+										else
+											if xstdcost > 0
+												set lrate = 0.0+xstdcost
+											else
+												if trate < 0 .or. xstdcost < 0
+													set globals(ErrChk) = "1"
+													error "Negative Rate found, Rate= " + trate
+												else
+													set globals(ErrChk) = "1"
+													error "Neither Standard Cost nor Rate found"
+												end if
+											end if
+										end if
+									end if
+
+									if globals(ErrChk) .ne. "1"
+										if xsign < 0
+											set cval = 0.0 + xqty * lrate
+											set mysql="update imtrn set xval="+cval+" where zid="+#id+" and ximtrnnum='"+ximtrnnum+"'"
+											set updsql=#sql(str,mysql)
+										end if
+
+										if #sub(ximtrnnum,0,4) .eq. "TORE" .and. xval <= 0
+											set cval = 0.0 + xqty * lrate
+											set mysql="update imtrn set xval="+cval+" where zid="+#id+" and ximtrnnum='"+ximtrnnum+"'"
+											set updsql=#sql(str,mysql)				
+										end if
+
+										if #sub(ximtrnnum,0,2) .eq. "RT"
+											set cval = 0.0 + xqty * lrate
+											set mysql="update imtrn set xval="+cval+" where zid="+#id+" and ximtrnnum='"+ximtrnnum+"'"
+											set updsql=#sql(str,mysql)							
+										end if
+									end if
+
+									if globals(ErrChk) .ne. "1"
+										set tempqty = 0.0 + xqty * xsign
+										set tqty = 0.0 + tqty + tempqty
+
+										if xsign < 0
+											set tval = 0.0+tval - cval
+
+										else
+											if xsign > 0 .and. #sub(ximtrnnum,0,2) .eq. "TO" .and. xval <= 0
+												set tval = 0.0 + tval + cval
+
+											else 
+												if xsign > 0 .and. Left(ximtrnnum,0,2) .eq. "RT" .and. xval <= 0
+													set tval = 0.0 + tval + cval
+												else
+													set tval = 0.0 + tval + xval
+												end if
+											end if
+										end if
+
+										if tqty == 0 .and. tval == 0
+
+										else
+											if tqty == 0
+
+											else
+												set trate = 0.0 + tval / tqty
+											end if
+										end if
+
+									end if
+								
+								end while
+							end if
+						end while
+					end if
+				end if
+			end event
+		end field
+	end form
+end page

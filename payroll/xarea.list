@@ -1,0 +1,10 @@
+list xarea
+	caption "Area"
+	table casalshrc3
+	order xdistrict
+	
+	select "(xdistrict like '%"+zvalue+"%')"
+	rows 50
+	objects xdistrict attrib(link "abc" embed onclick="return updateParent(this:'')")
+		
+end list

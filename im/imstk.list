@@ -1,0 +1,141 @@
+     list imstk
+        caption "<center><b>Inventory Status for <font color=red >"+xitem+"</font>: "+caitem.xdesc("xitem='"+xitem+"'")+"</b>"
+        table imstocknew
+        order xitem,xwh
+        fixed xitem
+        rows 100
+        objects xwh ,xavail attrib(force),~
+                xinhand attrib(force),xopord attrib(force),xopdor attrib(force),~
+                xpoord attrib(force),xpogrn attrib(force),xtogin attrib(force),xtoout attrib(force),~
+				xwoalc attrib(force),xaltqty attrib(force),~
+				xpocon attrib(force)
+				
+        field xavail
+          event after
+            //set xbin=" <a href='javascript:void(0);' onclick='showBin(this);return false;' value='"+xwh+"'>Bins</a> "
+            //set xbatch=" <a href='javascript:void(0);' onclick='showBatch(this);return false;' value='"+xwh+"'>Batches</a> "
+            string s=xavail
+            set s=#format(s,de,3)
+            set xavail=" <a href='javascript:void(0);' onclick='showBin(this);return false;' value='"+xwh+"'>"+s+"</a> "
+
+            string s=xinhand
+            set s=#format(s,de,3)
+            set xinhand=" <a href='javascript:void(0);' onclick='showBatch(this);return false;' value='"+xwh+"'>"+s+"</a> "
+
+            string s=xopord
+            set s=#format(s,de,3)
+            set xopord=" <a href='javascript:void(0);' onclick='showDetails(this,""xopord"");return false;' value='"+xwh+"'>"+s+"</a> "
+
+            string s=xopdor
+            set s=#format(s,de,3)
+            set xopdor=" <a href='javascript:void(0);' onclick='showDetails(this,""xopdor"");return false;' value='"+xwh+"'>"+s+"</a> "
+
+            string s=xpoord
+            set s=#format(s,de,3)
+            set xpoord=" <a href='javascript:void(0);' onclick='showDetails(this,""xpoord"");return false;' value='"+xwh+"'>"+s+"</a> "
+
+            string s=xpogrn
+            set s=#format(s,de,3)
+            set xpogrn=" <a href='javascript:void(0);' onclick='showDetails(this,""xpogrn"");return false;' value='"+xwh+"'>"+s+"</a> "
+
+            string s=xtogin
+            set s=#format(s,de,3)
+            set xtogin=" <a href='javascript:void(0);' onclick='showDetails(this,""xtogin"");return false;' value='"+xwh+"'>"+s+"</a> "
+
+            string s=xtoout
+            set s=#format(s,de,3)
+            set xtoout=" <a href='javascript:void(0);' onclick='showDetails(this,""xtoout"");return false;' value='"+xwh+"'>"+s+"</a> "
+
+            string s=xwoalc
+            set s=#format(s,de,3)
+            set xwoalc=" <a href='javascript:void(0);' onclick='showDetails(this,""xwoalc"");return false;' value='"+xwh+"'>"+s+"</a> "
+
+            string s=xwoord
+            set s=#format(s,de,3)
+            set xwoord=" <a href='javascript:void(0);' onclick='showDetails(this,""xwoord"");return false;' value='"+xwh+"'>"+s+"</a> "
+
+            string s=xaltqty
+            set s=#format(s,de,3)
+            set xaltqty=" <a href='javascript:void(0);' onclick='showDetails(this,""xaltqty"");return false;' value='"+xwh+"'>"+s+"</a> "
+
+            string s=xpocon
+            set s=#format(s,de,3)
+            set xpocon=" <a href='javascript:void(0);' onclick='showDetails(this,""xpocon"");return false;' value='"+xwh+"'>"+s+"</a> "
+
+          end event
+        end field
+        
+
+        totals "Totals",sum,sum,sum,sum,sum,sum,sum,sum,sum,sum,sum,sum,sum
+
+        field xinhand
+          caption Actual Qty in Hand
+          len 20.2
+        end field
+                
+        field xpoord
+          len 20.2
+        end field
+                
+        field xpogrn
+          len 20.2
+        end field
+                
+        field xwokit
+          caption W.I.P
+          len 20.2
+        end field
+                
+        field xtoout
+          len 20.2
+        end field
+                
+        field xtogin
+          len 20.2
+        end field
+                
+        field xopord
+          caption On Sales
+          len 20.2
+        end field
+        
+        field xopalc
+          display hide
+        end field
+                                
+        field xqtyissue
+          caption On Unsold Bundle
+          len 20.2
+        end field
+        
+        field xqtyreq
+          caption On Sold Bundle
+          len 20.2
+        end field
+        
+        field xqtycrn
+          caption On Sales Return
+          len 20.2
+        end field
+        
+        field xexpected
+          caption On Bundle Sales Return
+          len 20.2
+        end field
+        
+        field xaltqty
+          caption Qty to Issue
+          len 20.2
+        end field
+
+        field xpocon
+          caption Qty to Receive
+          len 20.2
+        end field
+
+        field xwoalc
+          caption On MO
+          len 20.2
+        end field
+
+     end list

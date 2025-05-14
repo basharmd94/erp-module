@@ -1,0 +1,77 @@
+page pobank
+     caption "Bank Information"
+     sections form one, list one,text top,script myscript
+
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list one
+        table pobank
+        order xpornum,xrow
+        fixed xpornum
+        rows 20
+        objects  xrow attrib(link "Main?page=pobank&command=Show&xrow=?"), ~
+                 xbankref,xbeno,xbedate
+
+     end list
+
+     form one
+        //caption "<br><center><b>"Bank Information for LC No "+xlcno</b>"
+        table pobank
+        order xpornum,xrow
+        fixed xpornum
+        return "Main"
+        layout 1
+        objects "<b>Bank Information for LC No <font color=red>"+xlcno,"</font></b><p>",~
+                Add,Exit,Show,Clear,Update, Delete, Top, Previous, Next, Bottom,"" ,~
+                xrow attrib(row 0 10;search),xdaterel default(#d),xbankref,xbrefdate default(#d),xorgdate default(#d),~
+                xdemqty,xbeno,xbedate default(#d),xrem
+
+        field xrem
+          display area
+          with 60
+          height 3
+        end field
+
+        field xdaterel
+          caption Letter Date
+        end field
+
+        field xdemqty
+          caption Invoice Value
+        end field
+
+        field xrem
+          width 80
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Exit
+          embed onclick="clicked(this)"
+        end field
+
+end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+
+	    if (detail=="clicked"){
+            form.page.value = "poilc"
+           form.searchbutton.value = "Find xpornum=?"
+          }
+        }
+
+        </script>
+     end script
+
+end page

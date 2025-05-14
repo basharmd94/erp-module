@@ -1,0 +1,12 @@
+product ERP on the Net
+
+table lcbillset
+  caption "BOE Setup"
+  columns  ztime,zutime,zid,xdateeco,xicno,xrcvamt,xinhand,xopord,xporeq,xpogrn,xwoord,~
+                xwodem,xlong,zemail,xemail 
+            
+  primary key zid, xdateeco,xicno
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+end table

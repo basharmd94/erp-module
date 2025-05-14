@@ -1,0 +1,56 @@
+     script imstk
+
+        <script language="javascript" type="text/javascript">
+        function showBin(a){
+          width=250;
+          if (screen){
+            height=screen.height/2;
+            left=screen.width-width;
+          }
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            window.open("main?menu=*none*&page=xbin&xitem="+document.forms(0).xitem.value+"&xwh="+a.value, "Bins", "toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,center=0,alwaysRaised=yes,resizable=yes,width=250,top=0,left=500");
+          }else{
+            openWindow=window.open("main?menu=*none*&page=xbin&xitem="+document.forms(0).xitem.value+"&xwh="+a.value, "Bins", "toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,center=0,alwaysRaised=yes,resizable=yes,width="+width+",height="+height+",top=0,left="+left);
+            openWindow.focus();
+          }
+          return false ;
+        }
+        function showBatch(a){
+          width=500;
+          if (screen){
+            height=screen.height/2;
+            left=screen.width-2*width;
+          }
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            window.open("main?menu=*none*&page=xbatch&xitem="+document.forms(0).xitem.value+"&xwh="+a.value, "Batches", "toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,center=0,alwaysRaised=yes,resizable=yes,width=400,top=0,left=800");
+          }else{
+            openWindow=window.open("main?menu=*none*&page=xbatch&xitem="+document.forms(0).xitem.value+"&xwh="+a.value, "Batches", "toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,center=0,alwaysRaised=yes,resizable=yes,width="+width+",height="+height+",top=0,left="+left);
+            openWindow.focus();
+
+          }
+          return false ;
+        }
+        function showDetails(a,b){
+          width=500;
+          if (screen){
+            height=screen.height/2;
+            left=screen.width-2*width;
+          }
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            window.open("main?menu=*none*&page=xbatch&xitem="+document.forms(0).xitem.value+"&xwh="+a.value, "Batches", "toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,center=0,alwaysRaised=yes,resizable=yes,width=400,top=0,left=800");
+          }else{
+            //alert(a.value);
+            //alert(b);
+            //var page="";
+            var url="main?menu=*none*&page="+b+"&xitem="+document.forms(0).xitem.value+"&xwh="+a.value;
+            //alert("url="+url);
+            //openWindow=window.open("main?menu=*none*&page=xbatch&xitem="+document.forms(0).xitem.value+"&xwh="+a.value, "Batches", "toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,center=0,alwaysRaised=yes,resizable=yes,width="+width+",height="+height+",top=0,left="+left);
+            openWindow=window.open(url, "Batches", "toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,center=0,alwaysRaised=yes,resizable=yes,width="+width+",height="+height+",top=0,left="+left);
+            openWindow.focus();
+
+          }
+          return false ;
+        }
+        </script>
+     end script
+

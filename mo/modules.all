@@ -1,0 +1,320 @@
+//ca.module
+module CA
+     caption "Cross Application"
+     description "This is a mandatory module that provides the general ~
+                  infrastructure for all other modules. It covers general setup, ~
+                  system security, maintenance of essential master data for ~
+                  customers, suppliers and products."
+
+     transactions *Job Id* (table:zxjob:xjob), *Activity Id* (table:zact:zactid),*Error Id* (table:zlogs:zerrorid),*History Id* (table:zhistory:zhistoryid),~
+                  Customer Number (table:cacus:xcus;default:CUS-), Supplier Number (table:casup:xsup;default:SUP-)
+     codes ABC Code, Buyer, Item Class, Country, Import Duty, Customer Group, ~
+           Item Group(Costing Method; Rows; Columns), Supplier Group, Price Group, Materials Manager, Market, ~
+           Payment Code, Project Manager, Item Category,Price Category, Division,Project, Region, ~
+           Section, Supercession Code, Shipping Code, Shipping Product, SIC Code, Salesperson, ~
+           Customer Status, Supplier Status, Tax Code, Tax Category, Tax Scope, ~
+           Territory, Unit of Measure, Warehouse, Team Role,Project Milestone, Credit Rating, Industry,Role
+     properties base=US$
+end module
+
+//gl.module
+module GL
+     caption "General Ledger"
+     description "You want to ensure that all your transactions from various ~
+                  modules to be reflected in your accounts. You want to maintain ~
+                  the books and generate financial statements."
+
+     transactions GL Voucher (table:glheader:xvoucher;default:JV--)
+     codes Analysis Code 1,Analysis Code 2,Analysis Code 3,Analysis Code 4,Analysis Code 5
+     //codes Account Group,Accounting Role
+     properties offset=0;bs=20;pl=60;placcount="Profit & Loss Appropriation Account"
+end module
+
+//fa.module
+module FA
+     caption "Fixed Assets"
+     description "You need to manage your fixed assets, account for their wear ~
+                  and tear, procurement, disposals and replacements."
+
+     transactions
+     codes
+end module
+
+//op.module
+module OP
+     caption "Order Processing"
+     description "You need to process and fulfil customer orders, take care of ~
+                  back orders and bill the customers for services rendered or ~
+                  products supplied."
+
+     //transactions Quotation (table:opqot:xopqotnum;default:QT--;Customer Order;Requisition), ~
+     //             Customer Order (table:opord:xordernum;default:CO--;Delivery Order;Purchase Order;Requisition;Manufacturing Order;Invoice), ~
+     //             Delivery Order(table:opdor:xdornum;default:DO--;Invoice;GL Voucher;Inventory Transaction), ~
+     //             Invoice(table:opinv:xinvnum;default:INV-;GL Voucher), ~
+		//							~//Sales Credit (table:opcrn:xcrnnum;default:SR--:CN--;GL Voucher)(Returns;Credits),~
+     //             Sales Credit(table:opcrn:xcrnnum;default:CRN-;GL Voucher), ~
+     
+     transactions Quotation (table:opqot:xopqotnum;default:QT--;Customer Order;Requisition), ~
+                  Customer Order (table:opord:xordernum;default:CO--;Delivery Order;Purchase Order;Requisition;Manufacturing Order;Invoice), ~
+                  Delivery Order(table:opdor:xdornum;default:DO--;Invoice;GL Voucher), ~
+                  Invoice(table:opinv:xinvnum;default:INV-;GL Voucher), ~
+									~//Sales Credit (table:opcrn:xcrnnum;default:SR--:CN--;GL Voucher)(Returns;Credits),~
+                  Sales Credit(table:opcrn:xcrnnum;default:CRN-;GL Voucher), ~
+									
+     codes        Quotation Title, Customer Order Title, Delivery Order Title, Invoice Title, Sales Credit Title
+end module
+
+//po.module
+module PO
+     caption "Purchase Order & Receiving"
+     description "You need to convert requisitions from sales, factory or other ~
+                  departments into purchase orders on your suppliers, monitor ~
+                  deliveries, inspect and record goods receipts and alert ~
+                  beneficiaries informed of the status of your purchase orders."
+
+     transactions Requisition (table:poreq:xporeqnum;default:RQ--;Purchase Order;Request For Quotation), ~
+                  Request For Quotation (table:porfq:xporfqnum;default:RFQ-), ~
+                  Purchase Order (table:poord:xpornum;default:PO--;Goods Receipt Note), ~
+                  ~//Goods Receipt Note (table:pogrn:xgrnnum;default:GRN-;Inventory Transaction;GL Voucher;GL Voucher - SI), ~
+                  ~//Purchase Returns (table:podrn:xdrnnum;default:PR--;Inventory Transaction;GL Voucher)
+                  Goods Receipt Note (table:pogrn:xgrnnum;default:GRN-;GL Voucher;GL Voucher - SI), ~
+                  Purchase Returns (table:podrn:xdrnnum;default:PR--;GL Voucher)
+     codes
+     
+end module
+
+//im.module
+module IM
+     caption "Inventory Management"
+     description "You want to keep track of your inventory by unit as well as ~
+                  by cost. You are keen to monitor your supply commitments and ~
+                  take action to meet those commitments."
+
+     transactions ~//Inventory Transaction (table:imtrn:ximtrnnum;default:IMRE:IMIS)(Receipt;Issue), ~
+                  Transfer Order (table:imtor:xtornum;default:TREC:TISS:TXFR;GL Voucher)(Receipt;Issue;Transfer), ~
+                  ~//Tag Transaction (table:imtag:xtagnum;default:TAG-;Inventory Transaction:+;Inventory Transaction:-)
+                  Tag Transaction (table:imtag:xtagnum;default:TAG-;Inventory Excess;Inventory Shortage)
+     codes Transfer Cost Code
+end module
+
+//hr.module
+module HR
+     caption "Human Resources"
+     description "You want to manage information relating to your human resources, ~
+                  your managers, employees, contractors and temp workers. ~
+                  You will also want to track their costs, revenue, attendance, training and placement."
+
+     transactions Employee Number (table:hrmst:xempnum;default:EMP-)
+
+
+     codes Employee Group, Type of Day,JobStatus, Rank, Grade, Courses, VesselType, EngineType, Manufacturer, ~
+            AddressType, Vessel, Port
+end module
+
+//vm.module
+module VM
+     caption "Fleet Management"
+     description "You need to manage your fleet properly."
+
+     transactions Mishap Register,Job Card
+     
+     codes Vehicle Category,Registration Office,Destination,Vehicle Cost Type,Tyre Condition,Type of Work
+     
+     properties
+     
+end module
+
+//cs.module
+module CS
+     caption "Customer Support"
+     description "You need to keep track of your support commitments to your customers. ~
+                  You also need to record customer feedbacks and complaints, ~
+                  and refer them to appropriate persons in your support group. ~
+                  You also need to handle warranty commitments like replacements and ~
+                  free on-site maintenance."
+
+     transactions Service Request (table:csreq:xsrqnum;default:CSR-;SO Quotation;Service Order;Case;Customer Order) //, ~
+                  //Service Agreement (table:csagr:xsagnum;default:CSAG;Service Order;SO Invoice)
+
+
+     codes Nature of Request, Entitlement, Customer Group, Priority
+end module
+
+
+//bm.module
+module BM
+     caption "Bill of Materials"
+     description "You need to maintain the component structure of your assembled ~
+                  products. You may also group your products into generic ~
+                  sub-assemblies, which in turn may be combined into finished ~
+                  products. You may also want to maintain the variations caused by ~
+                  options selected by your customers."
+
+     transactions Engineering Change Order (table:bmeco:xeco;default:ECO-)
+     codes Assembly Group
+end module
+
+//mo.module
+module MO
+     caption "Manufacturing Order"
+     description "You need to convert orders for manufactured goods from sales or other ~
+                  departments into manufacturing orders on your plants, issue raw materials ~
+                  and components, inspect and record goods receipts and alert ~
+                  beneficiaries informed of the status of your production."
+
+     transactions Manufacturing Order (table:moord:xmornum;default:MO--;Purchase Order;Manufacturing Order;~
+                      Inventory Transaction:+;Inventory Transaction:-;~
+                      Inventory Transaction UNDO:+;Inventory Transaction UNDO:-)
+     codes
+end module
+
+
+//mg.module
+module MG
+     caption "Messaging"
+     description "This is a module that provides the general ~
+                  infrastructure for messaging. It facilitates creation and management ~
+                  of messages and adresses' responses to the same."
+
+     transactions *Message Id* (table:mgmsg:xmsgid)
+     codes Message Category
+end module
+
+//hm.module
+module hm
+     caption "Hotel Management"
+
+     description "Your Hotel Management Wizard."
+
+     transactions Check In (table:hmtrn:xhmtrnnum;default:CHIN),~
+     			  Guest Number (table:hmguest:xhmgnum;default:GUES),~
+				  Reservation(table:hmreserve:xhmrnum;default:RESV),~
+				  Restaurant Order(table:hmresord:xhmrordnum;default:RORD),~
+				  House Keeping(table:hmclean:xhmcleanno;default:HK--),~   	
+				  Laundry Trn(table:hmlaundry:xhmlaundtrn;default:LNDR)
+     
+     codes Shift
+     
+     properties
+
+end module
+
+//mm.module
+module MM
+     caption "Clinic and Hospital Management"
+     description "You want to maintain your operation well."
+
+     transactions 
+
+     codes 
+     
+     properties 
+
+end module
+
+//mt.module
+module MT
+     caption "Machine Maintenance"
+     description "You need to keep track of your support commitments to your customers. ~
+                  You also need to record customer feedbacks and complaints, ~
+                  and refer them to appropriate persons in your support group. ~
+                  You also need to handle warranty commitments like replacements and ~
+                  free on-site maintenance."
+
+     transactions //Service Request,Gas Bill,Electricity Bill
+                  
+
+
+     codes Nature of Request,Bill Type,Machine Usage Area,Machine Category,Service Action,Plant,Plant Area,Machine Brand,Priority
+     
+     properties
+     
+end module
+
+//sa.module
+module SA
+     caption "Sales Analysis"
+     description "You need to analyze your sales, costs and margins by various parameters ~
+                  related to your products, customers, markets, territories, etc. "
+
+     transactions 
+     codes
+end module
+
+//ln.module
+module LN
+     caption "Loan Management"
+     description "You want to manage information relating to your all kind of Loans, Schedules, Overdues."
+
+     transactions 
+
+
+     codes 
+     
+end module
+
+//tm.module
+module tm
+     caption "Ticket Management"
+     description "You need to manage your ticket sales properly."
+
+     transactions 
+     
+     codes FRNT Type,Uniform Type,Coach No,Route,Ticket Type,Destination
+     
+     properties
+     
+end module
+
+//sm.module
+module SM
+     caption "Sales Management"
+     description "You want to combine a robust sales database with the knowledge of ~
+                  intricate relationships between organizations, people, events ~
+                  and activities in order to exploit market opportunities."
+
+     transactions Sales Lead (table:smlead:xsmleadnum;default:LEAD)
+
+     codes Sales Activity, Reference Type, Contact Role, Industry Segment, Sales Role, ~
+           Sales Objective, Culture, Opportunity Rating
+
+end module
+
+//am.module
+module AM
+
+     caption "Academic Management"
+
+     description "You want to combine a robust student database with the knowledge of ~
+                  intricate relationships between parents, teachers, events ~
+                  and activities in order to offer the very best."
+
+     transactions AM Trn Number (table:ampay:xamtrnnum;default:RCV-;GL Voucher) 
+
+     codes
+
+end module
+
+//bk.module
+module bk     
+     caption "Bank/Financial Management"
+     description "Your one stop Banking/Financial Institution solution."
+
+     transactions 
+
+     codes        
+          
+end module
+
+
+//ml.module
+module ML     
+     
+     caption "Multi Level Marketing Management"     
+     description "Test Entry"
+
+     transactions Booking Number (table:mlapp:xbooknum;default:PB--)
+
+     codes        
+          
+end module

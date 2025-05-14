@@ -1,0 +1,10 @@
+     list glemp
+        table prmst
+        order xemp
+        select "(xemp like '%"+zvalue+"%' or xname like '%"+zvalue+"%')"
+        rows 10
+        objects xemp attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+                xname,xdesig
+
+
+     end list

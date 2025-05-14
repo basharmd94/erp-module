@@ -1,0 +1,161 @@
+page prpayhead
+    embed onload="move_caret('one','xpaycode')"
+
+     caption "Payment Head(s)"
+     sections form one,list one, text top,script myscript
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+      table prpayhead
+      order xpaycode
+      //navigator alpha
+      object xpaycode attrib(link #servlet+"?page=prpayhead&command=Show&xpaycode=?"),xdesc,xprsign
+      rows 20
+	  end list
+
+     form one
+     	valid valid,access
+        //caption "Payment Head"
+        table prpayhead
+        order xpaycode
+        layout 2
+        objects Show,Details,Add,Update,Clear, Delete, Top,  Previous, Next, Bottom,~
+                xpaycode,xdesc,xprsign,xdigit,xlast,xoption,zemail display(hide),xemail display(hide),xsign display(hide)
+                
+                
+        field xoption
+        	display combo
+        	pick "Advance,None"
+        end field        
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+            if xprsign .eq. "1-Pay"
+               set xsign=1
+            else if xprsign .eq. "2-Deduct"
+               set xsign=-1
+            else
+               set xsign=0
+            end if
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+            if xprsign .eq. "1-Pay"
+               set xsign=1
+            else if xprsign .eq. "2-Deduct"
+               set xsign=-1
+            else
+               set xsign=0
+            end if
+          end event
+        end field
+
+        field xdigit
+         default -1
+        end field
+
+        field xpaycode
+         pick
+         width 10
+         display text
+         event after
+            set globals(xpaycode)=xpaycode
+         end event
+        end field
+
+		field xlast
+			caption Caption Appeared in the Salary Sheet
+		end field
+        
+        field xdesc
+         width 40
+         event after
+            set globals(xdesc)=xdesc
+         end event
+        end field
+
+        field xprsign
+          display combo
+          width 10
+          pick "1-Pay,2-Deduct,3-Total Pay,4-Total Deduction,5-Net Pay"
+          //column 3
+        end field
+        
+        field xtypepay
+        	pick "B-Basic,A-Allowance,M-Medical,D-Deduction"
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Details
+         embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          detail="detail"
+        }
+        function submitit(form)
+        {
+          if (detail=="detail")
+          {
+            form.page.value = "prpayheaddt"
+            form.searchbutton.value= "Find xpaycode=?"
+          }
+        }
+
+        </script>
+     end script
+
+	valid valid
+		config
+			set globals(pkey)=xpaycode
+		end config
+	end valid
+	
+#include access.valid
+
+end page

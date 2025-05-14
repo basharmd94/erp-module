@@ -1,0 +1,148 @@
+page prjobdesc
+
+	 embed onload="move_caret('one','xemp')"
+     caption "Job Description"
+     //sidebar text one
+     sections form one, list one, script myscript, text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        caption "List of Employee(s)"
+        table prmst
+        order xemp
+  	     navigators alpha
+        rows 5
+        objects xemp attrib(link #servlet+"?page="+page+"&command=Show&xemp=?"),~
+                xname,xdesig,xdept,xjoindate
+
+        field xcostcent
+           caption Location
+        end field
+
+        field xjoindate
+          caption DOJ
+        end field
+        
+        field xfirst
+            caption Name
+        end field
+
+     end list
+
+     form one
+        //caption "<font color=black size=4>Job Description</font>"
+        table prmst
+        order xemp
+        layout 2
+        objects Show,Update,Clear, Top, Previous, Next, Bottom,~
+            xemp attrib(search),xname,xdept display(const),xjoindate display(const),~
+            xdesig display(const),dumzid display(const),xlocation,xrepto,xremarks, xobjective,xkeyarea,xtasks
+
+           field xemp
+              event after
+                set globals(xemp)=xemp
+                set globals(xname)=xname
+                //set #field(xdesig.caption) = "<font color=black>"+#field(xdesig.caption)+"</font>"
+                //set #field(xgrade.caption) = "<font color=black>"+#field(xgrade.caption)+"</font>"
+                set #field(xlocation.caption) = "<font color=black>"+#field(xlocation.caption)+"</font>"
+                set #field(xrepto.caption) = "<font color=black>"+#field(xrepto.caption)+"</font>"
+                set #field(xobjective.caption) = "<font color=black>"+#field(xobjective.caption)+"</font>"
+                set #field(xkeyarea.caption) = "<font color=black>"+#field(xkeyarea.caption)+"</font>"
+                set #field(xtasks.caption) = "<font color=black>"+#field(xtasks.caption)+"</font>"
+              end event
+           end field
+
+           field xlocation
+              caption Location
+              display hide
+              pick select xcode from xcodes where xtype='Location'
+           end field
+           
+        field xfirst
+            caption Name
+            display const
+        end field
+        
+        field xremarks
+            caption Immediate Support Supervisor/Co-Worker
+            width 50
+            height 2
+        end field
+           
+           field xname
+              width 30
+              display const
+           end field
+           
+           field dumzid
+            	caption Employee Grade
+             display hide
+           end field
+           
+           field xjoindate
+             caption Date of Joining
+           end field
+           
+           field xobjective
+            width 50
+            height 2
+           end field
+           
+           field xkeyarea
+            height 2
+           end field
+           
+           field xtasks
+            height 2
+            width 50
+           end field
+           
+           field xgrade
+              caption Gradation
+           end field
+
+           field Update
+             event before
+               set globals(ErrChk)=""
+               if xemp .ne. globals(xemp)
+                  set globals(ErrChk)="1"
+                  error "Record pointer mismatch"
+               end if
+             end event
+           end field
+        
+           embed onsubmit="submitit(this)"
+           field Details
+            embed onclick="Details(this)"
+           end field
+
+  end form
+
+     text one
+        //"<object border=0 data=images/"+xemp+".gif type=""text/images"" height=100% width=100% ></object>"
+        "<img border=1 src=html/images/"+xemp+".jpg>"
+        "<p><b>"+xname+"</b><br>"
+     end text
+     
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function Details(b)
+        {
+          detail="details"
+        }
+
+        function submitit(form){
+          if (detail=="details"){
+            form.page.value = "princremdet"
+          }
+         }
+        </script>
+     end script
+
+end page

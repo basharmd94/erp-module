@@ -1,0 +1,496 @@
+page zxusers
+     caption header
+     layout mylayout 1 1 1 //columns rows  tabrows
+       //list details,form order,details,work,cus,cusinfo,del,list work,open,process,complete,docs  (1, 1)//(col,row,colspan,rowspan,width,height)
+       group users,roles,access,limits,groups,teams,man,loc (1,1)
+       //list open (2,1)
+       script myscript,imstk (0,0)
+     end layout
+     
+     text item
+        "<span class=bl>Product Information:</span><span class=br>"+xdesc+"</span><span class=bl> ("+xitem+")</span>"
+        "<iframe border=0 src='"+xlinks+"' height='500' width='100%' ></iframe>"
+     end text
+      text spacer
+        "<table style='border-left: solid green 1px;' height=400px cellspacing=0 cellpadding=1><tr><td></td></tr></table>"
+      end text
+      text spacer_first
+        "<table style='border-left: solid silver 1px;' height=400px cellspacing=0 cellpadding=1><tr><td></td></tr></table>"
+      end text
+
+
+
+
+
+//******************************************************************************
+//******************************************************************************
+     group users 5 1 "User" //columns rows caption select
+       list users (1,1)
+       text spacer (2,1)
+       form users,list roles,limits  (3, 1)//(col,row,colspan,rowspan,width,height)
+       text spacer (4,1)
+       text zxusers, list groups,teams,man,loc (5,1)
+       keys "Find zemail=?"
+       //keys "Show"
+     end group
+     
+     list users
+      caption "<center>Users</center>"
+      //columns 2
+      rows 15 //f
+      header ""
+      table zxusers
+      order xname
+      objects xname attrib(link ""+#servlet+"?page="+page+"&command=Show&zemail=?"),~
+        zemail//,zactive
+     end list
+
+    valid usersvalid
+      //mandatory zemail,xpassword,xname
+      config
+          str header="<font color=green>"+xflagord+"</font> User "
+            if zemail .ne. "" .and. zemail .ne. "null"
+                  set header=zxusers.xname(zemail)
+            end if
+            set globals(header)=header
+          set globals(zemail)=zemail
+          //Print "HHHHHHHHHHHHHHHH"
+      end config
+
+
+         before Add
+         end before
+         before Delete
+          int i=#sql(int,"delete from zxflags where zemail='"+zemail+"'")
+         end before
+     end valid
+     
+     form users
+		 		caption "User"
+        command Top
+		 		valid usersvalid
+        table zxusers
+        order zemail
+        layout 2
+        objects ~
+							 Clear,Show,Add,Update,Delete,Top,Previous,Next,Bottom,~
+               xautoshow visibility(hide),~
+							 zemail, xpassword, xname,xaccess,  ~
+          xphone width(20),xmobile,xdformat,xdsep,~
+          xscprefix,xscexclude,xlanguage,~
+					xtooltips,xmodules caption(Restrict Access to Modules),zactive,~
+					zref width(20) display(const),xassetid ,zchanged display(const),xsingleses,xques columns(3) caption(Security Question),xans columns(3) width(60),~
+					xcustom caption(Custom Security Model) display(combo) picklist(resource .method),~
+					xaccessloc,xselfcustom
+
+        field xassetid
+          pick list wsassetpick
+        end field
+
+      end form     
+//******************************************************************************
+     form docs
+        caption "Documents"
+        table cadocs
+        order xtypetrn,xtrnnum,xdoc
+        fixed xtypetrn,xtrnnum
+        layout 3
+        objects ~
+                Clear,Show, ~
+                Add,Update, Delete, Top, Previous, Next, Bottom,~
+                xdoc width(20), xlink width(40),zactive
+
+     end form
+//******************************************************************************
+     group roles 2 1 "Roles" //columns rows
+       form roles,list roles  (1, 1)//(col,row,colspan,rowspan,width,height)
+       access " zemail .ne. "+#char(34)+#char(34)
+       keys "Top"
+     end group
+
+     list roles
+      caption "<center>Roles-Here</center>"
+      //columns 2
+      rows 50 f
+      //header ""
+      table (select *,case when xrole='Customer' then (select xorg from cacus where zid=zxroles.zid and xcus=zxroles.xentity) ~
+                           when xrole='Supplier' then (select xorg from casup where zid=zxroles.zid and xsup=zxroles.xentity) ~
+                           when xrole='Site' then (select xdesc from pxsites where zid=zxroles.zid and xsite=zxroles.xentity) ~
+                           when xrole='Employee' then (select xfirst||' '||xmiddle||' '||xlast from hrmst where zid=zxroles.zid and xempnum=zxroles.xentity) ~
+                           else '' end as xname from zxroles) as tbl
+      fixed zemail
+      order zemail, xrole, xentity
+      objects xrole attrib(link ""+#servlet+"?page="+page+"&nexttab=Roles&command=Show&zemail=?&xrole=?&xentity=?"),xentity,~
+        xname,zactive
+        
+     end list
+
+     
+     form roles
+      valid validrole
+      caption "Roles"
+      table zxroles
+      fixed zemail
+      order zemail, xrole, xentity
+
+        layout 4
+        objects Add, Update, Delete, Top, Previous, Next, Bottom,~
+              xrole attrib(submit;search), xentity, xname attrib(local) display(const), zactive
+              
+        field xrole
+		  
+          pick "User, Site, Customer, Supplier, Employee, Designer, Manager, Merchant, Accountant"
+        end field
+
+     end form
+     
+     valid validrole
+      config
+		//print "here i am"
+        if xrole .eq. "User"
+          set xentity=""
+          set #fields(xentity.display)="const"
+          set #fields(xentity.caption)=""
+          set #fields(xname.caption)=""
+          set xname=""
+        elseif xrole .eq. "Member"
+          set xentity=""
+          set #fields(xentity.display)="const"
+          set #fields(xentity.caption)=""
+          set #fields(xname.caption)=""
+          set xname=""
+        elseif xrole .eq. "Customer"
+          set #fields(xentity.pick)="list xcus"
+          set #fields(xentity.caption)=xrole
+          set xname=cacus.xorg("xcus='"+xentity+"'")
+        elseif xrole .eq. "Supplier"
+          set #fields(xentity.pick)="list xsup"
+          set #fields(xentity.caption)=xrole
+          set xname=casup.xorg("xsup='"+xentity+"'")
+        elseif xrole .eq. "Site"
+          set #fields(xentity.display)="combo"
+          set #fields(xentity.pick)="select xsite from pxsites"
+          set #fields(xentity.caption)=xrole
+          set xname=pxsites.xdesc("xsite='"+xentity+"'")
+        elseif xrole .eq. "Employee"
+          set #fields(xentity.pick)="list hrmst"
+          set #fields(xentity.caption)=xrole
+          set xname=#sql(varchar,"select xfirst||' '||xmiddle||' '||xlast from hrmst where xempnum='"+xentity+"'")
+        end if
+      end config
+     end valid
+
+//******************************************************************************
+     group limits 2 1 "Limits" //columns rows
+       form limits,list limits  (1, 1)//(col,row,colspan,rowspan,width,height)
+       access " zemail .ne. "+#char(34)+#char(34)
+       keys "Top"
+     end group
+
+     list limits
+      caption "<center>Limits</center>"
+      //columns 2
+      rows 50 f
+      //header ""
+      table zxlimits
+      fixed zemail
+      order zemail, xtypetrn,xcommand
+      objects xtypetrn,xcommand attrib(link ""+#servlet+"?page="+page+"&nexttab=Limits&command=Show&zemail=?&xtypetrn=?&xcommand=?"),~
+        xlimit, xnote,zactive
+     end list
+
+     form limits
+      valid validlimit
+      caption "Limits"
+      table zxlimits
+      fixed zemail
+      order zemail, xtypetrn,xcommand
+        layout 4
+        objects Add, Update, Delete, Top, Previous, Next, Bottom,~
+              xtypetrn attrib(submit;search), xcommand,xlimit,zactive, xnote
+              
+        field xcommand
+          caption Restrict Command
+          attrib
+          pick 
+          default ""
+          display text
+        end field
+        field xlimit
+          caption To a Maximum Limit of
+        end field
+
+     end form
+     
+     valid validlimit
+      config
+      end config
+     end valid
+
+     
+//******************************************************************************
+     group groups 2 1 "Groups" //columns rows
+       form groups,list groups  (1, 1)//(col,row,colspan,rowspan,width,height)
+       access " zemail .ne. "+#char(34)+#char(34)
+       keys "Top"
+     end group
+
+     list groups
+      caption "<center>Groups</center>"
+      //columns 2
+      rows 50 f
+      header ""
+      table cagroup
+      fixed zemail
+      order zemail, xguser
+      objects xguser attrib(link ""+#servlet+"?page="+page+"&nexttab=Groups&command=Show&zemail=?&xguser=?"),~
+        zactive
+     end list
+
+     form groups
+      valid validgroup
+      caption "Groups"
+      table cagroup
+      fixed zemail
+      order zemail, xguser
+
+      layout 2
+        objects Add, Update, Delete, Top, Previous, Next, Bottom,~
+              xguser display(text) attrib(search), zactive
+              
+
+     end form
+     
+     valid validgroup
+      config
+      end config
+     end valid
+     
+//******************************************************************************
+     group teams 2 1 "Teams" //columns rows
+       form teams,list teams  (1, 1)//(col,row,colspan,rowspan,width,height)
+       access " zemail .ne. "+#char(34)+#char(34)
+       keys "Top"
+     end group
+
+     list teams
+      caption "<center>Teams</center>"
+      //columns 2
+      rows 50 f
+      //header ""
+      table (select zid,xmember as zemail, xrole,xteam,zactive from cateam) as tbl
+      fixed zemail
+      order zemail, xteam
+      objects xteam attrib(link ""+#servlet+"?page="+page+"&command=Show&nexttab=Teams&xmember="+zemail+"&xteam=?"),xrole,~
+        zactive
+     end list
+
+     form teams
+      valid validteam
+      caption "Teams"
+      table cateam
+      //fixed xmember
+      select " xmember='"+zemail+"'"
+      order xmember, xteam
+
+      layout 3
+        objects Clear,Add, Update, Delete, Top, Previous, Next, Bottom,~
+              xteam display(tcombo) attrib(search), xrole,zactive caption,xmember attrib(hide)
+              
+        field xrole
+          caption Team Role
+          picklist code Team Role
+        end field
+     end form
+     
+     valid validteam
+      config
+        set xmember=zemail
+      end config
+     end valid
+
+
+//******************************************************************************
+     group man 2 1 "Managers" //columns rows
+       form man,list man  (1, 1)//(col,row,colspan,rowspan,width,height)
+       access " zemail .ne. "+#char(34)+#char(34)
+       keys "Top"
+     end group
+
+     list man
+      caption "<center>Team Manager</center>"
+      //columns 2
+      rows 50 f
+      header ""
+      table (select zid,xmanager as zemail, xteam,zactive from caman) as tbl
+      fixed zemail
+      order zemail, xteam
+      objects xteam attrib(link ""+#servlet+"?page="+page+"&nexttab=Managers&command=Show&zemail=?&xteam=?"),~
+        zactive
+     end list
+
+     form man
+      valid validman
+      caption "Managers"
+      table caman
+      //fixed xmember
+      select " xmanager='"+zemail+"'"
+      order xmanager, xteam
+
+      layout 2
+        objects Add, Update, Delete, Top, Previous, Next, Bottom,~
+              xteam display(text) attrib(search), zactive,xmanager attrib(hide)
+              
+
+     end form
+     
+     valid validman
+      config
+        set xmanager=zemail
+      end config
+     end valid
+     
+
+//******************************************************************************
+     group loc 2 1 "Locations" //columns rows
+       form loc,list loc  (1, 1)//(col,row,colspan,rowspan,width,height)
+       access " zemail .ne. "+#char(34)+#char(34)
+       keys "Top"
+     end group
+
+    list loc
+      caption "<center>Locations</center>"
+      //columns 2
+      rows 50 f
+      header ""
+      table (select calocuser.*,caloc.xtypeloc,caloc.xdepot,caloc.xdateexp from calocuser,caloc where calocuser.zid=caloc.zid and calocuser.xlocation=caloc.xlocation ) as tbl
+      fixed zemail
+      order zemail, xlocation                                                    
+      objects xlocation attrib(link ""+#servlet+"?page="+page+"&nexttab=Locations&command=Show&zemail=?&xlocation=?"),~
+        xdepot,zactive
+     end list
+     
+    form loc
+      caption "Locations"
+      table calocuser
+      fixed zemail
+      order zemail, xlocation  
+      layout 2
+      objects Add, Update, Delete, Top, Previous, Next, Bottom,~
+        xlocation attrib(search),~
+        zactive
+        
+       field xlocation
+        pick select xlocation,xtypeloc,xdepot,xdateexp from caloc
+       end field
+    end form
+     
+     
+     
+     
+     
+
+//******************************************************************************
+//******************************************************************************
+     group access 5 1 "Access-Control" //columns rows caption select
+       form access, list access (1,1)
+       keys "Top"
+     end group
+
+
+
+     list access
+      //caption "<center>Access Con</center>"
+      rows 50 //f
+      //header ""
+      table zxaccess
+      order xrole,xtyperes,xresource, xoption
+      objects xrole attrib(link ""+#servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xrole=?&xtyperes=?&xresource=?&xoption=?"),~
+        xtyperes,xresource, xoption, xalist, zactive
+        
+      field xoption
+        caption Option/Command
+      end field
+      field xresource
+        caption Filename/Prefix
+      end field
+     end list
+
+    valid accessvalid
+      config
+            set globals(xrole)=xrole
+            if xtyperes .sw. "Me"
+              set #fields(xresource.pick)="menu"
+              set #fields(xresource.caption)="Menu"
+              set #fields(xresource.display)="combo"
+              set #fields(xoption.pick)="option"
+              set #fields(xoption.display)="combo"
+              set #fields(xoption.caption)="Option"
+              set xmenu=xresource
+            elseif xtyperes .sw. "Mo"
+              set #fields(xresource.pick)="module"
+              set #fields(xresource.caption)="Module"
+              set #fields(xresource.display)="combo"
+              set #fields(xoption.display)="const"
+              set #fields(xoption.caption)=""
+              set xoption=""
+            elseif xtyperes .sw. "Pa"
+              set #fields(xresource.pick)="page"
+              set #fields(xresource.caption)="Page"
+              set #fields(xresource.display)="combo"
+              set #fields(xoption.display)="const"
+              set #fields(xoption.caption)=""
+              set xoption=""
+            elseif xtyperes .sw. "Pr"
+              set #fields(xresource.pick)=""
+              set #fields(xresource.caption)="Page Prefix"
+              set #fields(xoption.display)="const"
+              set #fields(xoption.caption)=""
+              set xoption=""
+
+            elseif xtyperes .sw. "Co"
+              set #fields(xresource.pick)="page"
+              set #fields(xresource.caption)="Page"
+              set #fields(xresource.display)="combo"
+              set #fields(xoption.pick)=""
+              set #fields(xoption.caption)="Command"
+            else
+              set #fields(xresource.pick)=""
+            end if
+            
+            set header="Access-Control"
+      end config
+
+
+         before Add
+         end before
+     end valid
+     
+     form access
+		 		caption "Access-Control"
+        command Top
+		 		valid accessvalid
+        table zxaccess
+        order xrole,xtyperes,xresource, xoption
+        layout 6
+        objects ~
+							 Add,Update,Delete,Top,Previous,Next,Bottom,~
+               xrole attrib(search;submit),xtyperes attrib(submit),xresource attrib(submit) width(10), xoption width(10), xalist width(10), zactive
+      field xrole
+        pick select xrole from zxroles
+      end field
+      field xtyperes
+        pick "Menu,Module,Page,Prefix,Command"
+      end field
+      field xoption
+        caption Option/Command
+      end field
+      field xresource
+        caption Filename/Prefix
+      end field
+               
+      end form     
+//******************************************************************************
+//******************************************************************************
+
+end page

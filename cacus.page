@@ -1,0 +1,280 @@
+page cacus
+     caption "Customer Master"
+     sidebar list xdocs, one
+     sections form one, script myscript
+
+
+
+     list one
+        caption "Customers"
+        table cacus
+        order xcus
+        //fixed xvoucher
+        //select none
+        navigators alpha //group xacc
+        //navigators alpha,group xacc "select xacc from glmst" // where xtype = 'Country'"
+        rows 10
+        objects  xcus attrib(link #servlet+"?page=cacus&command=Show&xcus=?"),xorg//,xbilladd,xlicense
+        //heading "customer","name"
+        //headers none
+     end list
+
+
+     form one
+        //caption "Customer Masters"
+		table cacus
+        order xcus
+        //select
+        layout 3
+        objects Show,Add,Update,Delete,Clear,Delivery Address,Credit,Docs,Top display(hide), Previous, Next, Bottom display(hide),~
+               xcus,xshort attrib(search),xorg attrib(search) width(30),~
+			   xmethodpay,xadd1 caption(Address),xcity attrib(submit), xadd2 caption(Sub-Area),  xsp attrib(submit;attach),spname,xsp1 ,xsp2 ,xsp3 ,xstate caption(Division),xzip,xcountry,~
+          xsalute, xfirst,xmiddle,xlast, xtitle, xemail, xphone, xmobile,xfax, xurl width(30), ~
+          xid caption(District),xeccnum caption(Eligible for Special Discount) attrib(mandatoruuy),xtaxnum,xaccar attrib(mandatory),xgcus attrib(mandatory),xgprice,xsic,xtaxscope attrib(mandatory),xindustry attrib(mandatory), xdisc,xagent,xcomm,xbilladd,~
+          xstatuscus,xcrlimit ,xcravail,xcreditr,xcrterms,xdatecra,xdateapp,xdateexp,xdatecorp,xdatecre,xdatefst,xpayins width(80) columns(3),~
+		  xavgpdays display(const) attrib(local),xrem width(80) columns(3),xlicense,xtypebo,xpoints
+		  
+		field xeccnum
+			display ocombo
+			pick "Yes,No"
+			default "Yes"
+		end field
+		
+		field xindustry
+			display ocombo
+			//pick "Hardware Tools,Furniture,Sanitary,Electric,General Store,Hardware & Furniture"
+			//default "Yes"
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Ind Segment'"
+		end field
+		
+		 field xcity
+			caption Area
+			attrib mandatory
+		   display ocombo
+           pick "select xdistrict from casalshrc3 where zid='"+#id+"'"
+            event after
+				set globals(xcity)=xcity
+			end event
+         end field
+		 
+		 field xid
+		   display ocombo
+		   attrib mandatory
+           pick "select xcode from xcodes where zid='"+#id+"' and xtype='District'"
+            event after
+				set globals(xcity)=xcity
+			end event
+         end field
+	 
+	field xsic
+	    caption Priority Card?
+	    attrib mandatory
+	    pick "Bronze,Silver,Gold,Platinum,No Card"
+	end field
+		 
+		 field xsp
+			display text
+			pick list xemp
+		 end field
+		 
+		 field xsp1
+			display text
+			pick list xemp
+		 end field
+		 
+		 field xsp2
+			display text
+			pick list xemp
+		 end field
+		 
+		 field xsp3
+			display text
+			pick list xemp
+		 end field
+		 
+		 field xmethodpay
+			pick "Cash,Credit"
+		 end field
+		 
+		 field spname
+			display const
+			event after
+				set spname=#sql("select xname from prmst where zid='"+#id+"' and xemp='"+xsp+"'")
+			end event
+		 end field
+		 
+		field xadd2
+			display ocombo
+			pick "select xthana from casalshrc4 where zid='"+#id+"' and xdistrict='"+xcity+"'"
+			//pick casalshrc4
+		end field
+		 
+		  field xstate
+			display combo	
+			attrib mandatory
+            pick "select xstate from cacus where zid='"+#id+"'"
+         end field
+		  
+		  
+          field Add
+            event before
+				set xisscode="CUS-"
+				str mysql = #sql(str,"select xcus from cacus where xcus like '"+xisscode+"%' order by xcus desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,6)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set xcus = xisscode + mysql            
+
+            end event
+            event after
+              buffer cadel=cacus(xcus)
+              set cadel.xcur=#cur
+              set cadel.xwh=cadef.xwh()
+
+              set cadel.xrowdel=10
+              insert cadel
+            end event
+          end field
+
+					field xstatuscus
+						display radio
+					end field
+				field xcrlimit
+
+					default cadef.xcrlimitcus()
+				end field
+
+        field xpayins
+          extend
+          //caption Remarks
+          //display rtf
+        end field
+        field xcravail
+          attrib local
+          display const
+          event after
+						call cacredit
+              set globals(returnpage)="cacus"
+              set globals(trnfield)="xcus"
+              set globals(xtypetrn)="Customer"
+              set globals(xtrnnum)=xcus
+
+              if cadef.xnoautocus() .eq. "1"
+                set #fields(xcus.display)="text"
+              else
+                set #fields(xcus.display)="trn Customer Number"
+
+              end if
+
+          end event
+        end field
+
+
+
+        field xcus
+         //pick list xcus
+         event after
+          //set #field(Bottom.display)="hide"
+          set globals(xcus)=xcus
+         end event
+        end field
+
+        //embed onsubmit="return submitit(this)"
+        embed onsubmit="submitit(this)"
+        field Order
+          embed onclick="clicked(this)"
+        end field
+        field Credit
+          embed onclick="clicked(this)"
+        end field
+        field Delivery
+          embed onclick="clicked(this)"
+        end field
+        field Payment
+          embed onclick="clicked(this)"
+        end field
+        field Shipping
+          embed onclick="clicked(this)"
+        end field
+        field Follow
+          embed onclick="clicked(this)"
+        end field
+        field Contacts
+          embed onclick="clicked(this)"
+        end field
+
+        field Docs
+          embed onclick="clicked(this)"
+        end field
+
+
+     end form
+
+
+
+
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail=b.value
+        }
+        function submitit(form){
+
+          if (detail=="Order"){
+            form.page.value = "opordcus"
+            form.searchbutton.value = "Find xcus=?"
+            //form.searchbutton.value = "Top"
+           // return false
+          }
+          if (detail=="Credit"){
+            form.page.value = "opcredit"
+            //form.searchbutton.value = "Find xcus=?"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (detail=="Delivery Address"){
+            form.page.value = "cadel"
+            //form.searchbutton.value = "Find xcus=?"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (detail=="Payment Methods"){
+            form.page.value = "capay"
+            //form.searchbutton.value = "Find xcus=?"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (detail=="Shipping Methods"){
+            form.page.value = "caship"
+            //form.searchbutton.value = "Find xcus=?"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (detail=="Follow Up"){
+            form.page.value = "opact"
+            //form.searchbutton.value = "Find xcus=?"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (detail=="Contacts"){
+            form.page.value = "cacuscon"
+            //form.searchbutton.value = "Find xcus=?"
+            form.searchbutton.value = "Top"
+            //return false
+          }else if (detail=="Docs"){
+            form.page.value = "xdocs"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        </script>
+     end script
+
+
+
+end page

@@ -1,0 +1,17 @@
+format prdum
+  file pratdummy.txt
+  table pratdummy
+  fdelimiter ;
+  rdelimiter /r/n
+  skip 0
+  columns xname,xref,xdesc,xemp
+
+  event before
+
+    set pratdummy.zid = #id
+    set pratdummy.xpflag=""
+    set pratdummy.ztime="7/1/2007 12:43:38 PM"
+    set pratdummy.zutime="7/1/2007 12:43:38 PM"
+  end event
+
+end format

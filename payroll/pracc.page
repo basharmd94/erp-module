@@ -1,0 +1,87 @@
+page pracc
+
+      embed onload="move_caret('one','xpaydate')"
+
+     caption header
+     sections  form one,list one, script myscript,text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        table prpay
+        order xyear,xper DESC
+        rows 20
+        objects xyear,xper attrib(link #servlet+"?page=pracc&command=Show&xyear=?&xper=?"),xpaydate,xremarks
+
+     end list
+
+     form one
+        //caption "Select a Pay Date"
+        table prpay
+		valid valid
+        order xyear,xper DESC
+        layout 1
+        objects  Show, Detail,Clear,Top, Previous, Next, Bottom,~
+                 xyear,xper,xpaydate display(const),xremarks
+
+          field xpaydate
+		default #date
+            event after
+              set globals(xpaydate)=xpaydate
+            end event
+          end field
+
+         field xremarks
+ //           display area
+            caption Comments
+            width 34
+            height 3
+         end field
+
+          embed onsubmit="submitit(this)"
+
+          field Detail
+           embed onclick="clicked(this)"
+          end field
+
+     end form
+
+
+     script myscript
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b)
+        {
+          detail="EMPCode"
+        }
+        function pickvalue(b){
+          detail="pick"
+        }
+        function submitit(form)
+        {
+	        if (detail=="EMPCode")
+          {
+            form.page.value = "praccmsg"
+            form.searchbutton.value="Find xpaydate=?"
+            //return false
+          }
+	        if (detail=="pick")
+          {
+            document.one.xpaydate.value=xpaydate
+            return true
+          }
+        }
+
+        </script>
+     end script
+
+	 valid valid
+		config
+			set header = "<font color=green size=4+>Select a Pay Date</font><br>"
+		end config
+	 end valid
+
+
+end page

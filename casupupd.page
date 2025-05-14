@@ -1,0 +1,343 @@
+page casupupd
+
+     caption "Supplier Copy to another Business"
+     //sidebar list one
+     sections form one,method updtempdr,method updtempcr,method deltempdr,method deltempcr, script myscript
+
+     form one
+        //caption "IM to GL Posting Process"
+        table
+        order
+        fixed
+        layout 1
+        objects Copy,dumzid caption(Destination Business ID)
+
+        field xcustom
+          caption From Transaction No
+          //height 1
+          width 15
+          display text
+          pick list ximtrnf
+        end field
+
+        field xlong
+          caption To Transaction No
+          //height 1
+          width 15
+          display text
+          pick list ximtrnt
+        end field
+
+        field xdate
+	    default #d	
+          caption Posting Date
+          //pick list ximtrnt
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Copy
+          event before
+	   int rec=0
+	   set chkid=#sql("select zorg from zbusiness where zid='"+dumzid+"' and zid>10 and zactive='1'")
+	   if #result .eq. "true"
+		   //int rec=0
+		    set xsup=""
+		    set xsup=#sql("select xsup from casup where zid='"+#id+"' and xsup>'"+xsup+"' order by xsup")
+		    while #result .eq. "true"			
+			
+			buffer casup
+			move casup = casup(xsup)
+			set casup.zid=dumzid
+			insert casup
+			if #result .eq. "true"				
+				set rec=0+rec+1
+			end if
+			
+			set xsup=#sql("select xsup from casup where zid='"+#id+"' and xsup>'"+xsup+"' order by xsup")
+		    end while
+		    set zorg=#sql("select zorg from zbusiness where zid='"+dumzid+"'")
+	    else
+		error "Wrong Business ID"
+	    end if
+	    //print "R: "+rec
+	    if rec > 0
+		print "<font color=red size=3+>"+rec+" record(s) inserted in : </font><font color=blue size=3+>"+zorg+"</font>"
+	    else
+		print "<font color=red size=4+>Nothing to Copy</font>"
+	    end if
+	   
+          end event
+        end field
+
+        field post_old
+          event before
+            str ftrn = xcustom
+            str ttrn = xlong
+            str trntype=""
+            str ctrn = ""
+            str cwh=""
+            str citem = ""
+            str xcur = "BDT"
+            double xprime = 0.0D
+            //double xbase = 0.0D
+            double totamt = 0.0D
+
+            set myqry = "delete imtemp where zid = '"+#id+"'"
+            set myqry = #sql(myqry)
+
+
+            set myqry = "select ximtrnnum from imtrn where zid = '"+#id+"' and xval<>xvalpost and ximtrnnum>='"+ftrn+"' and ximtrnnum<='"+ttrn+"'"
+            set ctrn = #sql(str,myqry)
+            //print ctrn
+
+            while ctrn .ge. ftrn .and. ctrn .le. ttrn
+              //print ctrn
+              buffer imtrn
+              set ximtrnnum = ctrn
+              move imtrn = imtrn(ximtrnnum)
+              //print imtrn.xwh+";"+imtrn.xitem
+              if #result .eq. "true"
+                set ximtrn = #sub(imtrn.ximtrnnum,0,4)
+                set xwh = imtrn.xwh
+                set xitem = imtrn.xitem
+                set xdiv = imtrn.xdiv
+                set xsec = imtrn.xsec
+                set xproj = imtrn.xproj
+                set xprime = 0.0D+imtrn.xval
+              else
+                set ximtrn = ""
+                set xwh = ""
+                set xitem = ""
+                set xdiv = ""
+                set xsec = ""
+                set xproj = ""
+                set xprime = 0.0D
+              end if
+
+              buffer caitem
+              move caitem = caitem(xitem)
+              if #result .eq. "true"
+                set xgitem = caitem.xgitem
+              else
+                set xgitem = ""
+              end if
+
+              buffer imgli
+              move imgli = imgli(ximtrn,xwh,xgitem)
+              if #result .eq. "true"
+                set statflagD=""
+                set statflagC=""
+
+                call updtempdr
+                call updtempcr
+                //print statflagD+";"+statflagC
+
+                if statflagD .eq. "ok" .and. statflagC .eq. "ok"
+                  set imtrn.xvalpost = 0.0D+xprime
+                  update imtrn(ximtrnnum)
+                else if statflagD .ne. "ok" .and. statflagC .eq. "ok"
+                  call deltempdr
+                else if statflagC .eq. "ok" .and. statflagC .ne. "ok"
+                  call deltempcr
+                else
+                  call deltempdr
+                  call deltempcr
+                end if
+              else
+                set globals(ErrChk) = "1"
+                print "<h3><font color=purple><center>Interface not defined for<br>Trn type: <font color=blue>"+ximtrn+"</font>, WareHouse: <font color=blue>"+xwh+"</font>, Item Group: <font color=blue>"+xgitem+"</font></center></font></h3>"
+              end if
+
+              set myqry = "select ximtrnnum from imtrn where zid = '"+#id+"' and xval<>xvalpost and ximtrnnum>'"+ctrn+"'"
+              set ctrn = #sql(str,myqry)
+            end while
+
+            str tmpkey=""
+            int rownum = 0
+            set myqry = "select xcur+xacc+xdiv+xsec+xproj from imtemp where zid='"+#id+"' and xcur+xacc+xdiv+xsec+xproj >'"+tmpkey+"' order by xcur,xacc,xdiv,xsec,xproj"
+            set tmpkey = #sql(str,myqry)
+            //print "tt:"+#result+";"+myqry
+            set totamt = 0.0D
+
+            while #result .eq. "true"
+              //print #result+";"+tmpkey
+              set xcur = #sql("select xcur from imtemp where xcur+xacc+xdiv+xsec+xproj='"+tmpkey+"'")
+              set xexch = #sql(double,"select xexch from xcur where xcur='"+xcur+"'")
+              set xacc = #sql("select xacc from imtemp where xcur+xacc+xdiv+xsec+xproj='"+tmpkey+"'")
+              set xdiv = #sql("select xdiv from imtemp where xcur+xacc+xdiv+xsec+xproj='"+tmpkey+"'")
+              set xsec = #sql("select xsec from imtemp where xcur+xacc+xdiv+xsec+xproj='"+tmpkey+"'")
+              set xproj = #sql("select xproj from imtemp where xcur+xacc+xdiv+xsec+xproj='"+tmpkey+"'")
+              set xprime = #sql(double,"select xprime from imtemp where xcur+xacc+xdiv+xsec+xproj='"+tmpkey+"'")
+
+              if rownum <= 0
+                //print "1"
+                buffer glheader
+                set xvoucher = #trn("GL Voucher","IM--")
+                move glheader = glheader(xvoucher)
+                if #result .ne. "true"
+                  set glheader.xvoucher = xvoucher
+                  set glheader.xdate = xdate
+                  buffer xlocals
+                  set xtypelocal="Module"
+                  set xname="GL"
+                  move xlocals=xlocals(xtypelocal,xname)
+                  int offset
+                  int per
+                  int year=#sub(xdate,0,4)
+                  set offset=#prop(xlocals.xprops,"offset")
+                  set per=12+#sub(xdate,5,2)-offset
+                  if per<=12
+                    set glheader.xper=per
+                    set glheader.xyear=year-1
+                  else
+                    set glheader.xper=per-12
+                    set glheader.xyear=year
+                  end if
+                  set glheader.xlong = "Transferred from IM, Transaction No. "+ftrn+" to "+ttrn+"."
+                  insert glheader
+                  if #result .eq. "true"
+                    set globals(ErrChk) = ""
+                  end if
+                end if
+              end if
+
+              set rownum = 0+rownum+10
+              buffer gldetail
+              set xrow = rownum
+              move gldetail = gldetail(xvoucher,xrow)
+              set gldetail.xvoucher = xvoucher
+              set gldetail.xrow = xrow
+              set gldetail.xacc = xacc
+              set gldetail.xcur = xcur
+              set gldetail.xdiv = xdiv
+              set gldetail.xsec = xsec
+              set gldetail.xproj = xproj
+              set gldetail.xprime = 0.0D+xprime
+              set gldetail.xexch = 0.0D+xexch
+              set gldetail.xbase = 0.0D+xprime*xexch
+              insert gldetail
+              if #result .eq. "true"
+                set totamt = 0.0D+totamt+xprime
+              end if
+              
+              set myqry = "select xcur+xacc+xdiv+xsec+xproj from imtemp where zid='"+#id+"' and xcur+xacc+xdiv+xsec+xproj >'"+tmpkey+"' order by xcur,xacc,xdiv,xsec,xproj"
+              set tmpkey = #sql(str,myqry)
+            end while
+
+            if globals(ErrChk) .ne. "1"
+              buffer glheader
+              move glheader = glheader(xvoucher)
+              if #result .eq. "true" .and. totamt == 0.0D
+                set glheader.xstatusjv = "Balanced"
+              else
+                set glheader.xstatusjv = "Out of Balance"
+              end if
+              update glheader(xvoucher)
+              if #result .ne. "true"
+                set globals(ErrChk) = "1"
+              end if
+            end if
+
+            if globals(ErrChk) .eq. "1"
+              print "<h2><center>Error Occured while Posting<br>Please Delete Voucher# <font color=blue>"+xvoucher+"</font> Created.</center></h2>"
+            else
+              print "<h3><center><font color=blue>Transaction Transferred Successfully<br>Voucher# <font color=red>"+xvoucher+"</font> Created.</font></center></h3>"
+            end if
+
+          end event
+        end field
+
+     end form
+
+     method updtempdr
+
+                set xacc = imgli.xaccdr
+                buffer imtemp
+                move imtemp = imtemp(xcur,xacc,xdiv,xsec,xproj)
+                if #result .eq. "true"
+                  set imtemp.xprime = 0.0D+imtemp.xprime+xprime
+                  //set imtemp.xbase = 0.0D+imtemp.xbase+xbase
+                  update imtemp(xcur,xacc,xdiv,xsec,xproj)
+                  if #result .eq. "true"
+                    set statflagD = "ok"
+                  end if
+                else
+                  set imtemp.xcur = xcur
+                  set imtemp.xacc = xacc
+                  set imtemp.xdiv = xdiv
+                  set imtemp.xsec = xsec
+                  set imtemp.xproj = xproj
+                  set imtemp.xprime = 0.0D+xprime
+                  //set imtemp.xbase = 0.0D+xbase
+                  insert imtemp
+                  if #result .eq. "true"
+                    set statflagD = "ok"
+                  end if
+                end if
+     end method
+
+     method updtempcr
+                set xacc = imgli.xacccr
+                buffer imtemp
+                move imtemp = imtemp(xcur,xacc,xdiv,xsec,xproj)
+                if #result .eq. "true"
+                  set imtemp.xprime = 0.0D+imtemp.xprime-xprime
+                  //set imtemp.xbase = 0.0D+imtemp.xbase-xbase
+                  update imtemp(xcur,xacc,xdiv,xsec,xproj)
+                  if #result .eq. "true"
+                    set statflagC = "ok"
+                  end if
+                else
+                  set imtemp.xcur = xcur
+                  set imtemp.xacc = xacc
+                  set imtemp.xdiv = xdiv
+                  set imtemp.xsec = xsec
+                  set imtemp.xproj = xproj
+                  set imtemp.xprime = 0.0D-xprime
+                  //set imtemp.xbase = 0.0D-xbase
+                  insert imtemp
+                  if #result .eq. "true"
+                    set statflagC = "ok"
+                  end if
+                end if
+     end method
+
+     method deltempdr
+                  set xacc = imgli.xaccdr
+                  buffer imtemp
+                  move imtemp = imtemp(xcur,xacc,xdiv,xsec,xproj)
+                  set imtemp.xprime = 0.0D+imtemp.xprime-xprime
+                  //set imtemp.xbase = 0.0D+imtemp.xprime-xbase
+                  update imtemp(xcur,xacc,xdiv,xsec,xproj)
+     end method
+
+     method deltempcr
+                  set xacc = imgli.xacccr
+                  buffer imtemp
+                  move imtemp = imtemp(xcur,xacc,xdiv,xsec,xproj)
+                  set imtemp.xprime = 0.0D+imtemp.xprime+xprime
+                  //set imtemp.xbase = 0.0D+imtemp.xprime+xbase
+                  update imtemp(xcur,xacc,xdiv,xsec,xproj)
+     end method
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Another Code"){
+            form.page.value = "caship"
+            form.searchbutton.value = "Find xcode=?"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+end page

@@ -1,0 +1,694 @@
+page pogrnimp
+	caption header
+	sidebar list pogdt
+	sections form one, list open,problems,confirmed,sicreated, script myscript
+
+	  text top
+	   "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+	  end text
+
+     list pogdt
+        caption "<font size=2>Item(s) for "+xgrnnum
+        table pogdt
+        order xgrnnum,xrow
+        fixed xgrnnum
+        select "zid='"+#id+"'"
+        rows 5
+        objects xrow attrib(link #servlet+"?page=pogdtimp&command=Show&xgrnnum=?&xrow=?"), ~
+                xitem,desc equals((select xdesc from caitem where zid=pogdt.zid and xitem=pogdt.xitem)),~
+                xqty
+
+        totals count,"Totals","",sum
+
+        field xqty
+            len 10.2
+        end field
+
+        field desc
+          storage varchar
+          caption Description
+        end field
+
+     end list
+
+     list returns
+        caption "All Returns Against MRR No: <font color=red>"+xgrnnum+"</font>"
+		table poddt
+        order xgrnnum,xdrnnum,xrow
+        fixed xgrnnum
+        select "zid='"+#id+"'"
+        rows 5
+        objects xdrnnum,xrow attrib(link #servlet+"?page=poddt&command=Show&xdrnnum=?&xrow=?"), ~
+                xitem,desc equals((select xdesc from caitem where zid=poddt.zid and xitem=poddt.xitem)),~
+				xqty,xunitpur,xrate,xgrnnum,xlineamt
+        field xgrnnum
+            caption MRR No
+        end field
+
+        field xqty
+            len 10.2
+        end field
+
+        field xrate
+            caption Unit Rate
+            len 10.2
+        end field
+
+        field xlineamt
+            len 10.2
+        end field
+
+        totals "","","","Totals","","","","","",sum
+
+     end list
+
+     list open
+        caption "Open MRRs"
+        select "xstatusgrn like '1%' and xtypepor='Import'"
+        table pogrn
+        order xgrnnum DESC
+        rows 5
+        objects xgrnnum attrib(link #servlet+"?page=pogrnimp&command=Show&xgrnnum=?"), ~
+                xsup,name equals((select xorg from casup where zid=pogrn.zid and xsup=pogrn.xsup)),~
+				xdate,xsupref,xdatesupref,xstatusgrn
+        field xgrnnum
+            caption MRR No
+        end field
+
+        field xstatusgrn
+            caption MRR Status
+        end field
+        
+		field name
+			caption Name
+			storage varchar
+		end field
+
+     end list
+
+     list confirmed
+        caption "Confirmed MRRs"
+        select "(xstatusgrn like '5%') and (xref='') and xtypepor='Import'"
+        table pogrn
+        order xgrnnum DESC
+        rows 5
+        objects xgrnnum attrib(link #servlet+"?page=pogrnimp&command=Show&xgrnnum=?"), ~
+                xsup,name equals((select xorg from casup where zid=pogrn.zid and xsup=pogrn.xsup)),~
+				xdate,xsupref,xdatesupref,xstatusgrn
+        field xgrnnum
+            caption MRR No
+        end field
+
+        field xstatusgrn
+            caption MRR Status
+        end field
+
+		field name
+			caption Name
+			storage varchar
+		end field
+
+     end list
+
+     list sicreated
+        caption "S.I. Created MRRs"
+        select "(xstatusgrn like '5%') and (xref<>'') and xtypepor='Import'"
+        table pogrn
+        order xgrnnum DESC
+        rows 5
+        objects xgrnnum attrib(link #servlet+"?page=pogrnimp&command=Show&xgrnnum=?"), ~
+                xsup,name equals((select xorg from casup where zid=pogrn.zid and xsup=pogrn.xsup)),~
+				xdate,xsinnum,xref caption(GL Invoice Number),xstatusgrn
+				
+        field xgrnnum
+            caption MRR No
+        end field
+
+        field xstatusgrn
+            caption MRR Status
+        end field
+
+		field name
+			caption Name
+			storage varchar
+		end field
+
+     end list
+
+     list problems
+        caption "Problem MRRs"
+        select "xstatusgrn > '6' and xtypepor='Import'"
+        table pogrn
+        order xgrnnum DESC
+        rows 5
+        objects xgrnnum attrib(link #servlet+"?page=pogrnimp&command=Show&xgrnnum=?"), ~
+                xsup,name equals((select xorg from casup where zid=pogrn.zid and xsup=pogrn.xsup)),~
+				xdate,xsupref,xdatesupref,xstatusgrn
+				
+        field xgrnnum
+            caption MRR No
+        end field
+
+        field xstatusgrn
+            caption MRR Status
+        end field
+
+		field name
+			caption Name
+			storage varchar
+		end field
+
+     end list
+
+
+	form one
+		valid valid,access
+		table pogrn
+		order xgrnnum DESC
+		select "xtypepor='Import'"
+		layout 2
+		objects ~
+             Show, Details, Add attrib(hidden),Update, Top, Previous, Delete,Next, Bottom,~//Close,
+			 Confirm MRR,~
+             xgrnnum attrib(search), xdate,~
+             xsup attrib(attach) display(const),sup_name,xsupref ,xdatesupref display(const),~
+             xdiv display(hide),xsec display(hide),xproj display(const),~
+             xwh display(const),xcur display(const),xexch,~
+             xdisc display(hide),xdtwotax display(constant),xdtdisc display(hide),~
+             xdttax display(constant),xval display(hide),xdiscamt display(hide),~
+             xtotamt display(constant),xgrncost display(constant),~
+             xsinnum width(20),xref caption(GL Invoice Number) display(const),~
+             xpornum display(constant),xrem display(hide),~
+             ordqty display(constant) attrib(local), delqty display(constant) attrib(local),~
+             balqty display(constant) attrib(local),detqty display(const) attrib(local),xdatedue,~
+             xstatusqc display(hide),xstatusgrn display(const),~
+             xconuser display(hide),xconfirmt display(hide),xfailer display(hide),xfailedt display(hide),~
+             xinvuser display(hide),xinvoicet display(hide),xtypepor display(hide),xtwh display(hide),~
+             xreviser display(hide),xreviset display(hide),~
+             xteam display(hide),xmember display(hide),xmanager display(hide)
+
+		field show
+			event before
+				set globals(hed) = xgrnnum
+				set globals(tempsup)=xsup
+			end event
+			event after
+				set globals(hed) = xgrnnum
+				set globals(tempsup)=xsup
+			end event
+		end field
+		
+		
+		field xproj
+			caption <font color=blue size=+1>Project
+		end field
+
+		field Top
+			event before
+				set globals(hed) = xgrnnum
+				set globals(tempsup)=xsup
+			end event
+			event after
+				set globals(hed) = xgrnnum
+				set globals(tempsup)=xsup
+			end event
+		end field
+
+		field xgrnnum
+            width 20
+            caption MRR No
+			event after
+				set globals(xgrnnum)=xgrnnum
+
+				if xgrnnum .eq. ""
+					set #field(xdate->.display) = "constant"
+					set #field(Delete.display) = "disable"
+					set #field(Update.display) = "disable"
+					set #field(Confirm.display) = "disable"
+				end if
+
+                set xstatusgrn = pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+				if xstatusgrn .eq. #status("xstatusgrn",5)
+					set #field(xdate->.display) = "constant"
+					set #field(Delete.display) = "disable"
+					set #field(Confirm.display) = "disable"
+					set #field(Close.display) = "disable"
+					set #field(Update.display) = "disable"
+				end if
+
+				if xstatusgrn .eq. #status("xstatusgrn",1)
+					set #field(xdate->xpornum.display) = "constant"
+					set #field(Delete.display) = "disable"
+				end if
+
+				if xstatusgrn .ge. #status("xstatusgrn",6)
+					set #field(Confirm.display) = "disable"
+				end if
+			end event
+		end field
+
+		field xgrncost
+			attrib local
+			caption MRR Cost
+			event after
+				set globals(returnpage)="pogrnimp"
+				set globals(trnfield)="xgrnnum"
+				set globals(xtypetrn)="Goods Receipt Note"
+				set globals(xtrnnum)=xgrnnum
+				set xgrncost = #sql(double,"select sum(xcost*xexch) from pogrncost where zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+			end event
+		end field
+
+        field sup_name
+            attrib local
+            display constant
+            caption Company
+            event after
+                set sup_name=#sql(string,"select xorg from casup where zid='"+#id+"' and  xsup = '"+xsup+"'")
+            end event
+        end field
+
+        field xstatusgrn
+            caption MRR Status
+            event after
+                set globals(xstatusgrn) = xstatusgrn
+            end event
+        end field
+
+        field xval
+            caption Gross Amount
+        end field
+
+        field ordqty
+            caption Order Qty
+            storage decimal
+            len 10.2
+            event after
+                str mysql="select sum(xqtyord) from poodt where zid='"+#id+"' and  xpornum='"+xpornum+"'"
+                set ordqty=#sql(decimal,mysql)
+            end event
+        end field
+
+        field delqty
+            caption Receive Qty
+            storage decimal
+            len 10.2
+            event after
+                str mysql="select sum(xqtygrn) from poodt where zid='"+#id+"' and  xpornum='"+xpornum+"'"
+                set delqty=#sql(decimal,mysql)
+            end event
+        end field
+
+        field balqty
+            caption Balance Qty
+            storage decimal
+            len 10.2
+            event after
+                set balqty=0.00+ordqty-delqty
+            end event
+        end field
+
+        field xdate
+            event after
+                set globals(xdate) = xdate
+            end event
+        end field
+
+        field xdatedue
+            caption Confirm Date
+            event after
+                set globals(xdatedue)=xdatedue
+            end event
+        end field
+
+        field detqty
+            caption Detail Qty
+            storage decimal
+            len 10.2
+            event after
+                set detqty=#sql(decimal,"select sum(xqty) from pogdt where zid='"+#id+"' and  xgrnnum='"+xgrnnum+"'")
+            end event
+        end field
+
+	    field Get
+            display hidden
+            event after
+                set xexch=#exch(xcur)
+                print "<span class=bl>You must click on </span><span class=br>Update</span><span class=bl> to update the record with the new rate!</span>"
+            end event
+	    end field
+
+        field Add
+            event before
+                set globals(ErrChk) = "1"
+                error " "
+            end event
+        end field
+
+        field update
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                	if xgrnnum .ne. globals(xgrnnum)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xgrnnum .ne. globals(hed)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusgrn = pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if xstatusgrn .ne. #status("xstatusgrn",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"</p>Status "+xstatusgrn
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    if xsup .ne. globals(tempsup)
+                        set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Cannot Change Supplier</font>"
+                    end if
+                end if
+
+            end event
+        end field
+
+        field delete
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                	if xgrnnum .ne. globals(xgrnnum)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xgrnnum .ne. globals(hed)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusgrn = pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if xstatusgrn .ne. #status("xstatusgrn",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"</p>Status "+xstatusgrn
+                    end if
+                end if
+
+            end event
+        end field
+
+        field Close
+            event before
+                set globals(ErrChk) = ""
+                if globals(ErrChk) .ne. "1"
+                	if xgrnnum .ne. globals(xgrnnum)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xgrnnum .ne. globals(hed)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusgrn = pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if xstatusgrn .ne. #status("xstatusgrn",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"</p>Status "+xstatusgrn
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusgrn=#status("xstatusgrn","C")
+                    set xfailer=#user
+                    set xfailedt=#time
+                    action Update
+                end if
+            end event
+        end field
+
+		field Confirm
+			event before
+				set globals(ErrChk) = ""
+				set globals(Flag) = ""
+				decimal totord=0.0
+				decimal totgrn=0.0
+
+                if globals(ErrChk) .ne. "1"
+                	if xgrnnum .ne. globals(xgrnnum)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xgrnnum .ne. globals(hed)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusgrn = pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if xstatusgrn .ne. #status("xstatusgrn",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"</p>Status "+xstatusgrn
+                    end if
+                end if
+
+				if globals(ErrChk) .ne. "1"
+					set detqty = #sql(decimal,"select sum(xqty) from pogdt where zid='"+#id+"' and  xgrnnum='"+globals(xgrnnum)+"'")
+					if detqty <= 0.0
+						set globals(ErrChk)="1"
+						set xstatusgrn=#status("xstatusgrn","C")
+						action Update
+						error "MRR has No Receipt Qty -- Cencelling MRR No: "+xgrnnum
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					//call templog
+				end if
+
+		         if globals(ErrChk) .eq. ""
+					set totord=#sql(decimal,"select sum(xqtyord) from poodt where zid='"+#id+"' and xpornum='"+xpornum+"'")
+					set totgrn=#sql(decimal,"select sum(xqtygrn) from poodt where zid='"+#id+"' and xpornum='"+xpornum+"'")
+
+					if totord > totgrn
+					  str mysql="update poord set xstatuspor='"+#status("xstatuspor",4)+"' where zid='"+#id+"' and xpornum='"+xpornum+"'"
+					  set updval=#sql(str,mysql)
+					else
+					  str mysql="update poord set xstatuspor='"+#status("xstatuspor",5)+"' where zid='"+#id+"' and xpornum='"+xpornum+"'"
+					  set updval=#sql(str,mysql)
+					end if
+
+					set mysql = "update pogrn set xstatusgrn='"+#status("xstatusgrn",5)+"',xconuser='"+#user+"',xconfirmt='"+#time+"' where zid='"+#id+"' and xgrnnum='"+xgrnnum+"'"
+					set updval = #sql(str,mysql)
+
+					str mysql = "delete from ztemplog where zid='"+#id+"' and  xordernum='"+globals(xgrnnum)+"'"
+					set tmpstr = #sql(str,mysql)
+
+					print "MRR No. "+globals(xgrnnum)+" Confirmed"
+					action show
+		         end if
+			end event
+		end field
+
+        embed onsubmit="submitit(this)"
+
+        field Details
+            embed onclick="clicked(this)"
+        end field
+
+        field Cost
+            embed onclick="cost(this)"
+        end field
+
+    end form
+
+    script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+
+          button=b.value
+        }
+        function cost(b){
+
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Details"){
+            form.page.value = "pogdtimp"
+            form.searchbutton.value = "Top"
+            //return false
+          }else if (button=="Cost"){
+            form.page.value = "pogrncost"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+        </script>
+    end script
+
+
+    method chk_interface
+        int xrow = 0
+        str mysql = "select xrow from pogdt where zid='"+#id+"' and xgrnnum='"+globals(xgrnnum)+"' and xrow > '"+xrow+"' order by xrow"
+        set xrow=#sql(int,mysql)
+        while #result .eq. "true"
+        	set xitem = pogdt.xitem("zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+        	set xqty = pogdt.xqty("zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+	        if xqty != 0.0
+	           set xgitem = #sql(str,"select xgitem from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+	           set xaccpur = #sql(str,"select xaccpur from pogli where zid='"+#id+"' and xgitem='"+xgitem+"'")
+	           if #result .ne. "true"
+	              set globals(ErrChk) = "1"
+	              error "Interface Table Not Found</br>Process Aborted "//+xitem+" "+xgitem
+	           else
+	              set globals(chk_source)=#sql("select xaccsource from glmst where zid='"+#id+"' and xacc='"+xaccpur+"'")
+	              if globals(chk_source) .eq. "Subaccount"
+	              	set xsubcr = #sql(str,"select xaccpur from pogli where zid='"+#id+"' and xgitem='"+xgitem+"'")
+	                set chk_subacc=#sql("select xsub from glsub where zid='"+#id+"' and xacc='"+xaccpur+"' and xsub='"+xsubcr+"'")
+	                if #result .ne. "true"
+	                    set globals(ErrChk) = "1"
+	                    error "Subaccount not found for A/C Code "+xaccpur+"</br>Process Aborted"
+	                end if
+	              end if
+	           end if
+	        end if
+           str mysql = "select xrow from pogdt where zid='"+#id+"' and xgrnnum='"+globals(xgrnnum)+"' and xrow > '"+xrow+"' order by xrow"
+           set xrow=#sql(int,mysql)
+        end while
+    end method
+
+    method templog
+		set myqry = "insert into ztemplog (zid,xordernum,xdate,xtime,xobject,xaction,xemail,xrem)"
+		set myqry = myqry + " values('"+#id+"','"+globals(xgrnnum)+"','"+#date+"','"+#time+"','"+page+"',~
+			'"+#command+"','"+#user+"','')"
+		set tmpstr =#sql(myqry)
+		if #result .eq. "true"
+		else
+			set globals(ErrChk) = "1"
+			error "Error: Contact System Administrator or</p>Run Correction"
+		end if
+    end method
+
+    valid valid
+     	config
+     		set globals(pkey) = xgrnnum
+     		set globals(xgrnnum) = xgrnnum
+
+			if xgrnnum .eq. ""
+				set #field(xdate->.display) = "constant"
+				set #field(Delete.display) = "disable"
+				set #field(Update.display) = "disable"
+				set #field(Confirm.display) = "disable"
+			end if
+
+            set xstatusgrn = pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+			if xstatusgrn .eq. #status("xstatusgrn",5)
+				set #field(xdate->.display) = "constant"
+				set #field(Delete.display) = "disable"
+				set #field(Confirm.display) = "disable"
+				set #field(Close.display) = "disable"
+				set #field(Update.display) = "disable"
+			end if
+
+			if xstatusgrn .eq. #status("xstatusgrn",1)
+				set #field(xdate->xpornum.display) = "constant"
+				set #field(Delete.display) = "disable"
+			end if
+
+			if xstatusgrn .ge. #status("xstatusgrn",6)
+				set #field(Confirm.display) = "disable"
+			end if
+            set chkrow=0+#sql(int,"select xrow from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and (select xalias from caitem where zid='"+#id+"' and xitem=pogdt.xitem)='Fixed Asset' and xqty<>(select count(xline) from pofatrn where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow=pogdt.xrow)")
+            if chkrow>0
+                print "<font color=red size=3> Fixed Asset Details not defined in "+chkrow+" Row"
+                set #field(confirm.display)="disable"
+            end if
+            str header="<font color=red>"+"Import"+"</font> <font color=green>"+xstatusgrn+"</font> Material Receipt"
+            str print=podef.xprintgrn()
+            if print .ne. "0"            
+              set header=header+"<a href='"+#report(pogrecimp.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xgrnnum+"&prompt2="+xgrnnum+"' target='_new'>Print</a>"
+            end if
+     		if balqty < 0
+     			compute balqty = 0.0+balqty*-1
+     			set #field(balqty.caption) = "Excess Delivery"
+     		end if
+     	end config
+    end valid
+
+    method setselect //***mssql
+        str setselect=" zid="+#id+" and ("
+        set setselect= setselect + " (zemail = '"+#user+"') or "
+        set setselect= setselect + " (xemail = '"+#user+"') or "
+        set setselect= setselect + " (xmember = '"+#user+"') or "
+        set setselect= setselect + " (xmanager = '"+#user+"') or "
+        set setselect= setselect + " ('"+#user+"' in (select xmember from cateam where zid='"+#id+"' and xteam=pogrn.xteam)) or "
+        set setselect= setselect + " ('"+#user+"' in (select xmanager from caman where zid='"+#id+"' and xteam=pogrn.xteam)) or "
+        set setselect= setselect + " ('"+#user+"' in (select xmanager from caman where zid='"+#id+"' and (xteam='Supervisor' or xteam='Administrator'))) "
+        set setselect= setselect + " )"
+        //print setselect
+    end method
+
+#include access.valid
+     
+end page

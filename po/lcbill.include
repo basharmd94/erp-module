@@ -1,0 +1,416 @@
+ group lcbill 2 2 "Bill of Entry"
+       form lcbill (1, 1)//(col,row,colspan,rowspan,width,height)
+       list lcbill1 (1, 2)
+       //access " xordernum .ne. "+#char(34)+#char(34)
+       keys "Top"
+     end group
+
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list lcbill1
+        table lcbill
+        order xlctrnnum,xline
+        fixed xlctrnnum
+        navigators alpha
+        rows 20
+        objects  xline attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xline=?"), ~
+                 xbeno,xdemqty,xicno,xsupqty,xslvval,xmaxload
+
+
+        field xicno
+          caption H.S.Code
+        end field
+
+        field xbeno
+         caption Bill of Entry No
+         width 20
+        end field
+
+        field xdemqty
+         caption CIF Value
+         width 12
+        end field
+
+        field xsupqty
+         caption Exchange Rate
+         width 12
+        end field
+
+        field xslvval
+         caption CRF No
+         width 12
+        end field
+
+        field xmaxload
+         caption Assassable Value
+         width 12
+        end field
+
+
+     end list
+     
+     
+
+     form lcbill
+        caption "Bill of Entry"
+        table lcbill
+        order xlctrnnum,xline
+        fixed xlctrnnum
+        
+        layout 3
+        objects "<b>Bill of Entry info for LC No <font color=red>"+xlcno,"</font></b><p>",~
+                Add,  Show,Clear,Update, Delete, Top, Previous, Next, Bottom,"" ,~
+                xline attrib(row 0 10;search),xastbook,xbeno,"",xdateeco,xexpected,"",~
+                xicno,xdemqty,"",xsupqty,xslvval,"",xmaxload,"",dum1,"",~
+                xlsafe,xamt,xlmax,xlmin,xinhand,xavail,~
+                xopqut,xopord,xopalc,xopdor,xporeq,xpoord,xpocon,xpogrn,xqtyrej,xwopln,xwoord,~
+                xworel,xwoins,xwodem,xwoalc,xtaxrate1,xtaxrate2,xtaxrate3,~
+                xmenu,xdateapp,xfirst,xdatecom,xredate display(hide),xlong
+
+
+         field xtaxrate1
+           caption Total Tax Amount
+         end field
+
+         field xopdor
+           caption AIT Tax Base
+         end field
+
+
+         field xporeq
+           caption AIT Tax Rate
+         end field
+
+         field xpoord
+           caption AIT Tax Amount
+         end field
+
+
+         field xpocon
+          caption DSC Tax Base
+         end field
+
+         field xpogrn
+          caption DSC Tax Rate
+         end field
+
+
+          field xqtyrej
+          caption DSC Tax Amount
+         end field
+
+
+         field xwopln
+          caption ATV Tax Base
+         end field
+
+         field xwoord
+          caption ATV Tax Rate
+         end field
+
+         field xworel
+          caption ATV Tax Amount
+         end field
+
+
+
+         field xwoins
+          caption PSI Tax Base
+         end field
+
+
+
+         field xwodem
+          caption PSI Tax Rate
+         end field
+
+         field xwoalc
+          caption PSI Tax Amount
+         end field
+
+
+
+         field xopqut
+          caption VAT Tax Base
+         end field
+
+         field xopord
+          caption VAT Tax Rate
+         end field
+
+         field xopalc
+          caption VAT Tax Amount
+         end field
+
+
+        
+         field xlmin
+          caption SD Tax Base
+         end field
+         
+         field xinhand
+          caption SD Tax Rate
+         end field
+         
+
+          field xavail
+          caption SD Tax Amount
+         end field
+         
+
+         field xamt
+           caption CD Rate
+         end field
+        
+        
+         field xlsafe
+          caption CD Tax Base
+         end field
+         
+         field xlmax
+           caption CD Tax Amount
+         end field
+         
+         
+
+
+        field dum1
+         caption
+         col 7
+         display const
+         attrib local
+         event after
+            set dum1 = "<font color=blue><center>_______________Calculation_______________</center></font>"
+         end event
+        end field
+        
+        field xexpected
+          caption Quantity
+          col 3
+        end field
+        
+        field xicno
+          caption H.S.Code
+            pick list xhscode
+            col 2
+        end field
+        
+        field xline
+        col 2
+        end field
+
+        field xastbook
+         caption Insurance Company
+          display hide
+         pick list xinscomp2
+        end field
+        
+        field xbeno
+         caption Bill of Entry No
+         col 2
+         width 20
+        end field
+        
+        field xdemqty
+         caption CIF Value
+         col 2
+         width 12
+        end field
+        
+        field xsupqty
+         caption Exchange Rate
+        col 2
+         width 12
+        end field
+        
+        field xslvval
+         caption CRF No
+         col 2
+         width 12
+        end field
+        
+        field xmaxload 
+         caption Assassable Value
+         col 7
+          width 12
+        end field
+        
+
+        field xdateeco
+         caption  Date
+         col 2
+        end field
+
+        field xlong
+          caption Remarks
+          display hide
+          width 30
+          height 3
+        end field
+        
+        field xmenu
+         caption Pay Order No.
+         display hide
+        end field
+        
+        field xdateapp
+         caption Pay Order Date
+         display hide
+        end field
+
+        field xdatecom
+         caption Docs Return Date
+         display hide
+        end field
+
+        field xredate
+         caption Bill Submission Date
+        end field
+        
+        field xfirst
+         caption Policy No.
+         display hide
+        end field
+        
+        field xdatecom
+         caption Policy Date
+         display hide
+        end field
+        
+        field xtaxrate2
+           caption DF/CVAT/FP
+         end field
+
+         field xtaxrate3
+           caption Total Diclaretion
+         end field
+
+        field add
+          event before
+            call BOERate
+           set  maxload = 0.0 + xdemqty * xsupqty
+           //print maxload
+           set maxload1 = 0.0 +  maxload * 1 / 100
+           //print maxload1
+           set xmaxload = 0.0 + maxload + maxload1
+           //class osbcustom(#calc(xmaxload,1,"*",8,xmaxload))
+           // next line cd tax base
+           set xlsafe=0.0+xmaxload
+           //class osbcustom(#calc(xlsafe,1,"*",8,xlsafe))
+           //next line cd tax amount
+          set xlmax=0.0+xlsafe*xamt/100
+          //class osbcustom(#calc(xlmax,1,"*",8,xlmax))
+           //next line sd tax base
+           set xlmin=0.0+xlmax+xmaxload
+           //class osbcustom(#calc(xlmin,1,"*",8,xlmin))
+           //next line sd tax amount
+           set xavail=0.0+xlmin*xinhand/100
+           //class osbcustom(#calc(xavail,1,"*",8,xavail))
+           //next line VAT tax base
+           set xopqut=0.0+xmaxload+xlmax+xavail
+           //class osbcustom(#calc(xopqut,1,"*",8,xopqut))
+           //next line VAT tax amount
+           set xopalc=0.0+xopqut*xopord/100
+           //class osbcustom(#calc(xopalc,1,"*",8,xopalc))
+           //next line AIT tax Base
+           set xopdor=0.0+xmaxload
+           //class osbcustom(#calc(xopdor,1,"*",8,xopdor))
+           //next line AIT tax Amount
+           set xpoord=0.0+xopdor*xporeq/100
+           //class osbcustom(#calc(xpoord,1,"*",8,xpoord))
+           //next line DSC tax Base
+           set xpocon=0.0+xmaxload
+           //class osbcustom(#calc(xpocon,1,"*",8,xpocon))
+           //next line DSC tax Amount
+           set xqtyrej=0.0+xpocon*xpogrn/100
+           //class osbcustom(#calc(xqtyrej,1,"*",8,xqtyrej))
+           //next line ATV tax Base
+          set xwopln=0.0+xmaxload+xlmax+xqtyrej
+          //class osbcustom(#calc(xwopln,1,"*",8,xwopln))
+          //next line ATV tax Amount
+          set xworel=0.0+xwopln*xwoord/100
+          //class osbcustom(#calc(xworel,1,"*",8,xworel))
+          //next line PSI tax Base
+          //set xwoins=xmaxload
+          set xwoins=0.0+xdemqty * xsupqty
+          //class osbcustom(#calc(xwoins,1,"*",8,xwoins))
+          //next line PSI tax Amount
+          set xwoalc=0.0+xwoins*xwodem/100
+          //class osbcustom(#calc(xwoalc,1,"*",8,xwoalc))
+          set xtaxrate1=0.0+xlmax+xavail+xopalc+xpoord+xqtyrej+xworel+xwoalc
+          //class osbcustom(#calc(xtaxrate1,1,"*",8,xtaxrate1))
+          //class osbcustom(#calc(xtaxrate1,xtaxrate2,"+",8,xtaxrate3))
+		  set xtaxrate3 = 0.0+xtaxrate1+xtaxrate2
+          end event
+          
+
+          
+        end field
+        
+       field update
+          event before
+            call BOERate
+           //set  xmaxload =xdemqty *xsupqty
+           set xlsafe=0.0+xmaxload
+           //class osbcustom(#calc(xlsafe,1,"*",8,xlsafe))
+           set xlmax=0.0+xlsafe*xamt/100
+           //class osbcustom(#calc(xlmax,1,"*",8,xlmax))
+           set xlmin=0.0+xlmax+xmaxload
+           //class osbcustom(#calc(xlmin,1,"*",8,xlmin))
+           set xavail=0.0+xlmin*xinhand/100
+           //class osbcustom(#calc(xavail,1,"*",8,xavail))
+           set xopqut=0.0+xmaxload+xlmax+xavail
+           //class osbcustom(#calc(xopqut,1,"*",8,xopqut))
+           set xopalc=0.0+xopqut*xopord/100
+           //class osbcustom(#calc(xopalc,1,"*",8,xopalc))
+           set xopdor=0.0+xmaxload
+           //class osbcustom(#calc(xopdor,1,"*",8,xopdor))
+           set xpoord=0.0+xopdor*xporeq/100
+           //class osbcustom(#calc(xpoord,1,"*",8,xpoord))
+           set xpocon=0.0+xmaxload
+           //class osbcustom(#calc(xpocon,1,"*",8,xpocon))
+           set  xqtyrej=0.0+xpocon*xpogrn/100
+           //class osbcustom(#calc(xqtyrej,1,"*",8,xqtyrej))
+           set xwopln=0.0+xmaxload+xlmax+xqtyrej
+           //class osbcustom(#calc(xwopln,1,"*",8,xwopln))
+           set xworel=0.0+xwopln*xwoord/100
+           //class osbcustom(#calc(xworel,1,"*",8,xworel))
+           //set xwoins=xmaxload
+           set xwoins=0.0+xdemqty * xsupqty
+           //class osbcustom(#calc(xwoins,1,"*",8,xwoins))
+           set xwoalc=0.0+xwoins*xwodem/100
+           //class osbcustom(#calc(xwoalc,1,"*",8,xwoalc))
+           set xtaxrate1=0.0+xlmax+xavail+xopalc+xpoord+xqtyrej+xworel+xwoalc
+           //class osbcustom(#calc(xtaxrate1,1,"*",8,xtaxrate1))
+          //class osbcustom(#calc(xtaxrate1,xtaxrate2,"+",8,xtaxrate3))
+		  set xtaxrate3 = 0.0+xtaxrate1+xtaxrate2
+          end event
+        end field
+        
+
+        embed onsubmit="submitit(this)"
+
+        field Exit
+          embed onclick="clicked(this)"
+        end field
+
+  end form
+  
+
+
+          
+     method BOERate
+        set dateeco=#sql(date,"select max(xdateeco) from lcbillset where zid='"+#id+"' and xicno='"+xicno+"' and xdateeco<='"+xdateeco+"' ")
+          set xamt=0.0+#sql("select xrcvamt from lcbillset where zid='"+#id+"' and xdateeco='"+dateeco+"' and xicno='"+xicno+"'")
+          set xinhand=0.0+#sql("select xinhand from lcbillset where zid='"+#id+"' and xdateeco='"+dateeco+"' and xicno='"+xicno+"'")
+          set xopord=0.0+#sql("select xopord from lcbillset where zid='"+#id+"' and xdateeco='"+dateeco+"' and xicno='"+xicno+"'")
+          set xporeq=0.0+#sql("select xporeq from lcbillset where zid='"+#id+"' and xdateeco='"+dateeco+"' and xicno='"+xicno+"'")
+          set xpogrn=0.0+#sql("select xpogrn from lcbillset where zid='"+#id+"' and xdateeco='"+dateeco+"' and xicno='"+xicno+"'")
+          set xwoord=0.0+#sql("select xwoord from lcbillset where zid='"+#id+"' and xdateeco='"+dateeco+"' and xicno='"+xicno+"'")
+          set xwodem=0.0+#sql("select xwodem from lcbillset where zid='"+#id+"' and xdateeco='"+dateeco+"' and xicno='"+xicno+"'")
+     end method
+
+

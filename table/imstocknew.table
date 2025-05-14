@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table imstocknew
+  caption "Item Stock View"
+  columns zid,xitem,xwh,xstdcost,xinhand,xopord,xopdor,xpoord,xpogrn,xtogin,xtoout,xwoalc,xwokit,xwoord,xaltqty,xpocon,xavail
+  		  
+  primary key zid,xitem,xwh
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+  
+  sql create view imstocknew (zid,xitem,xwh,xstdcost,xinhand,xopord,xopdor,xpoord,xpogrn,xtogin,xtoout,xwoalc,xwokit,xwoord,xaltqty,xpocon,xavail) ~
+	    as SELECT zid,xitem,xwh,xstdcost,xinhand,xopord,xopdor,xpoord,xpogrn,xtogin,xtoout,xwoalc,xwokit,xwoord,xaltqty,xpocon,~
+	    xinhand-xopord-xopdor-xwoalc-xwokit-xtoout-xaltqty ~
+					FROM imstock
+end table

@@ -1,0 +1,489 @@
+page poquotimpapp
+	 //embed onload="move_caret('one','xtrnpoqt')"
+     caption header 
+     sidebar list poqudt
+     sections form one, list one, script myscript,text top
+     
+     text top
+      "<a href=#top title='Back To Top'><font color=blue size=+1>Go Top</font></a>"
+     end text
+
+     list poqudt
+        caption "<font size=2>Supplier(s) for "+xpoqot
+        table poqudt
+        order xpoqot,xrow
+        fixed xpoqot
+        select "zid='"+#id+"'"
+        rows 5
+        objects xrow attrib(link #servlet+"?page=poqudtimpapp&command=Show&xpoqot=?&xrow=?"), ~
+                xsup,supdesc equals((select xorg from casup where zid=poqudt.zid and xsup=poqudt.xsup)),~
+                xcur,xrate caption(Quote Price)
+
+        totals count,"Totals","",""
+
+        field supdesc
+          storage varchar
+          caption Name
+        end field
+
+     end list
+     
+     list one
+     	caption "<font color=blue>Last 5 Records "+mode
+        table poquot
+        order xpoqot desc
+        select "xtypepor='Import'"
+        rows 5
+        objects xpoqot attrib(link #servlet+"?page=poquotimpapp&command=Show&xpoqot=?"), ~
+                xdate,xref,xitem,~
+                name equals((select xdesc from caitem where zid=poquot.zid and xitem=poquot.xitem)),~                
+                xstatusqot
+
+        field name
+          caption Name
+          storage varchar
+        end field
+
+        field xref
+          caption Requisition No.
+        end field
+
+        field xpoqot
+          caption Quotation No.
+        end field
+
+     end list
+
+    form one
+        //caption "<font color=black size=3>Supplier Quotation Entry"
+        valid valid,access
+        table poquot
+        order xpoqot desc
+        select "xtypepor='Import'"
+        layout 1
+        objects Show,Add attrib(hidden),Details,Clear,Update attrib(hidden), Previous, Delete attrib(hidden),Next,~
+            xtrnpoqt display(hide),xpoqot display(text),xdate default(#d),~
+            xitem attrib(attach; submit),item_name,xdesc display(hide),xref,~
+            xdiv display(hide),xsec display(hide),xproj display(hide),xlong,xstatusqot display(const), ~
+    		appstat attib(local; attach) display(const) caption(Quotation Detail Status),appsup caption() attib(local) display(const),~
+    		xporeqnum display(hide),xline display(const),xtypepor display(hide),~
+    		zemail display(const),xemail display(const),zactive display(hide),~
+    		xteam display(hide),xmember display(hide),xmanager display(hide)
+
+        field show
+        	event before
+        		set globals(hed) = xpoqot
+        		set globals(tempitem)=xitem
+        		set globals(tempref)=xref
+        	end event
+        	event after
+        		set globals(hed) = xpoqot
+        		set globals(tempitem)=xitem
+        		set globals(tempref)=xref
+        	end event
+        end field
+
+        field Top
+        	event after
+        		set globals(hed) = xpoqot
+        		set globals(tempitem)=xitem
+        		set globals(tempref)=xref
+        	end event
+        end field
+
+        field xtrnpoqt
+            pick "select xtrn from xtrn where zid='"+#id+"' and xtypetrn='Purchase Quotation' and zactive='1'"
+            default "IPQT"
+        end field
+
+		field xpoqot
+            caption Import Quotation No
+            width 20
+//            event before
+//				call setselect
+//			end event
+			event after
+              	set globals(returnpage)=page
+              	set globals(trnfield)="xpoqot"   			
+				set globals(xpoqot)=xpoqot
+				if xpoqot .eq. ""
+					set #field(Details.display) = "hide"
+					set #field(Update.display) = "hide"
+				else
+					set #field(xtrnpoqt.display) = "const"
+				end if
+				if xstatusqot .eq. "5-Order Created"
+					set #field(Delete.display) = "hide"
+					set #field(xdate.display) = "const"
+					set #field(xitem.display) = "const"
+					set #field(xlong.display) = "const"
+					set #field(xdesc.display) = "const"
+					set #field(xref.display) = "const"
+				end if
+				set #field(zemail.caption) = "Entered By"
+				set #field(xemail.caption) = "Last Updated By"  
+			end event
+		end field
+
+        field xlong
+            caption Note/Remarks
+            height 2
+            width 50
+        end field
+
+        field zactive
+            event after
+                set globals(zactive)=zactive
+            end event
+        end field
+
+        field item_name
+            attrib local
+            display const
+            caption Name
+            event after
+                set item_name=#sql(str,"select xdesc from caitem where xitem='"+xitem+"'")
+            end event
+        end field
+
+        field xsupref
+            display hide
+        end field
+
+        field xref
+            caption Requisition Number
+        end field
+
+        field xitem
+            event after
+                set globals(xitem) = xitem
+            end event
+        end field
+
+        field xstatusqot
+            event after
+                set globals(xstatusqot) = xstatusqot
+            end event
+        end field
+
+        field xdatesupref
+            display hide
+        end field
+
+        field xporeqnum
+            caption Requisition Number
+            display text
+        end field
+
+        field xline
+            caption Requisition Row No
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk) = "1"
+                error " "
+
+                if globals(ErrChk) .eq. ""
+                    buffer caitem
+                    move caitem=caitem(xitem)
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Wrong Item Code"
+                    end if
+                end if
+                if globals(ErrChk) .eq. ""
+                    set xstatusqot = #status("xstatusqot",1)
+                    set zactive = "1"
+                    set zemail = #user
+                    set xporeqnum = #sql(str,"select xporeqnum from poreqview where zid="+#id+" and xitem='"+xitem+"' and xporeqnum='"+xref+"'")
+                    set xline = #sql(int,"select xrow from poreqview where zid="+#id+" and xitem='"+xitem+"' and xporeqnum='"+xporeqnum+"'")
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_ref
+                end if
+
+                //set xpoqot=""
+    			if globals(ErrChk) .eq. ""
+    				set poqotcode = xtrn.xtrn("zid='"+#id+"' and xtypetrn='Purchase Quotation' and xtrn='"+xtrnpoqt+"' and zactive='1'")
+    				if #result .ne. "true"
+    					set globals(ErrChk) = "1"
+    					error "PQT code("+xtrnpoqt+") not found</p>Cannot "+#command
+    				end if
+    			end if
+    			if globals(ErrChk) .ne. "1"
+                    set shortbus=#sql(str,"select xshort from zbusiness where zid='"+#id+"'")
+                    int shortlen=0+#length(shortbus)
+                    if shortlen<4
+                        set globals(ErrChk)="1"
+                        error "Business Short Name is not defined"
+                    end if
+                end if
+                if globals(ErrChk) .ne. "1"
+                    set xdate=#date
+                    set poqotper=#sub(xdate,5,2)
+                    set poqotyr=#sub(xdate,2,2)
+                    set poqotcode = #sub(poqotcode,0,4)
+                    set shortbus=#sub(shortbus,0,4)
+                    set poqotprefix=shortbus+poqotcode+poqotper+poqotyr+"-"
+
+    				str mysql = #sql(str,"select xpoqot from poquot where  zid='"+#id+"' and xpoqot like '"+poqotprefix+"%' order by xpoqot desc")
+    				if #result .eq. "true" .and. mysql .ne. ""
+    					set last_num = 0+#sub(mysql,13,6)
+    				end if
+    				set last_num = 0+1+last_num
+    				set mysql = #padl(""+last_num,6,"0")
+    				set xpoqot = poqotprefix + mysql
+    				set xtypepor="Import"
+    				set xmember = #user
+	                set xteam = #sql(string,"select xteam from cateam where zid='"+#id+"' and xmember = '"+xmember+"' and xrole='Member'")
+	                set xmanager = #sql(string,"select xmanager from caman where zid='"+#id+"' and xteam = '"+xteam+"'")
+                end if
+            end event
+            event after
+                if globals(ErrChk) .ne. "1"
+                    call upd_req
+                end if
+            end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk) = "1"
+                error " "
+
+        		if globals(ErrChk) .ne. "1"
+        			if xpoqot .ne. globals(xpoqot)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xpoqot .ne. globals(hed)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xref .ne. globals(tempref)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xref .ne. xporeqnum
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+                  	set stat = poquot.xstatusqot(" zid='"+#id+"' and xpoqot='"+xpoqot+"'")
+                  	if stat .ne. #status("xstatusqot",1)
+                        set globals(ErrChk)="1"
+                  		error "Cannot "+#command+" Status "+stat
+                  	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    if xitem .ne. globals(tempitem)
+                        set #command = "show"
+                        print "<font color=red>Cannot Change Item Code</font>"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xemail=#user
+                end if
+
+            end event
+            event after
+                if globals(ErrChk) .ne. "1"
+                    call upd_req
+                end if
+            end event
+        end field
+        
+        field Delete
+            event before
+                set globals(ErrChk) = "1"
+                error " "
+
+        		if globals(ErrChk) .ne. "1"
+        			if xpoqot .ne. globals(xpoqot)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xpoqot .ne. globals(hed)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+                  	set stat = poquot.xstatusqot(" zid='"+#id+"' and xpoqot='"+xpoqot+"'")
+                  	if stat .ne. #status("xstatusqot",1)
+                        set globals(ErrChk)="1"
+                  		error "Cannot "+#command+" Status "+stat
+                  	end if
+                end if
+
+            end event
+            event after
+                if globals(ErrChk) .ne. "1"
+                    call upd_req
+                end if
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Details 
+            embed onclick="clicked()"
+        end field
+
+    end form
+
+    script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit(); 
+          });
+        </script>
+    
+      <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(){
+          detail="clicked"
+        }
+
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "poqudtimpapp"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+
+        function pickSup(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xsup.xvalue=link.text
+          }else{
+            document.one.xsup.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+    end script
+
+    method chk_ref
+        set chk_reqnum = #sql(str,"select xporeqnum from poreqview where zid="+#id+" and xitem='"+xitem+"' and xporeqnum='"+xref+"' and xstatusreq<>'"+#status("xstatusreq",1)+"' and xstatusreqd='"+#status("xstatusreqd",6)+"'")
+        if #result .ne. "true"
+            set globals(ErrChk) = "1"
+            error "No Approved Requisition found as such "+xref
+        end if
+        if globals(ErrChk) .ne. "1"
+            set duplicate = #sql(str,"select xpoqot from poquot where zid='"+#id+"' and xref='"+xref+"'")
+            if #result .eq. "true"
+                set globals(ErrChk) = "1"
+                error xref+" already used in "+duplicate
+            end if
+        end if
+    end method
+ 
+    method upd_req
+        if #command .ne. "Delete"
+            str mysql="update poreqd set xstatusreqd = '"+#status("xstatusreqd",2)+"' where zid="+#id+" and xporeqnum='"+xporeqnum+"' and xrow = '"+xline+"'"
+            set updval=#sql(mysql)
+        else
+            str mysql="update poreqd set xstatusreqd = '"+#status("xstatusreqd",6)+"' where zid="+#id+" and xporeqnum='"+xporeqnum+"' and xrow = '"+xline+"'"
+            set updval=#sql(mysql)
+        end if
+    end method
+
+    valid valid
+     	mandatory xitem
+        config
+        
+            set globals(pkey)=xpoqot
+            
+			set chkrec = #sql(int,"select count(*) from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"'")
+			if chkrec == 0
+				print "<span class=bl>No Details Entered -- Go to Details and Add record.</span>"
+			end if
+				        
+			set header = "Import Quotation Approval"+<br>"<a href='"+#report(poquot.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xpoqot+"&prompt2="+xpoqot+"' target='_new'>Print</a>"
+			
+			if xitem .ne. ""
+                set globals(xitem)=xitem
+				set #field(xref.pick)="list xporeq"
+			end if	    
+			
+			set chkrec = #sql(int,"select count(*) from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xstatusqdt='"+#status("xstatusqdt",4)+"'")
+			if chkrec > 0
+                set #field(xdate->.display) = "const"
+				//set #field(xstatusqot.display) = "hide"
+				set appsup = #sql(str,"select xsup from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xstatusqdt='"+#status("xstatusqdt",4)+"'")  
+				set appstat = #sql(str,"select xstatusqdt from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xstatusqdt='"+#status("xstatusqdt",4)+"'")
+			else
+				set #field(appsup.display) = "hide"
+				set #field(appstat.display) = "hide"
+			end if
+        end config
+    end valid
+
+    method setselect //***mssql
+        str setselect=" zid="+#id+" and ("
+        set setselect= setselect + " (zemail = '"+#user+"') or "
+        set setselect= setselect + " (xemail = '"+#user+"') or "
+        set setselect= setselect + " (xmember = '"+#user+"') or "
+        set setselect= setselect + " (xmanager = '"+#user+"') or "
+        set setselect= setselect + " ('"+#user+"' in (select xmember from cateam where zid='"+#id+"' and xteam=poquot.xteam and xrole='Guest')) or "
+        set setselect= setselect + " ('"+#user+"' in (select xmember from cateam where zid='"+#id+"' and xteam=poquot.xteam and xrole='Member')) or "
+        set setselect= setselect + " ('"+#user+"' in (select xmanager from caman where zid='"+#id+"' and xteam=poquot.xteam)) or "
+        set setselect= setselect + " ('"+#user+"' in (select xmanager from caman where zid='"+#id+"' and (xteam='Supervisor' or xteam='Administrator'))) "
+        set setselect= setselect + " )"
+        //print setselect
+    end method
+
+#include access.valid
+          
+end page

@@ -1,0 +1,269 @@
+page fatrn_de
+     caption "Fixed Asset Depreciation"
+     sidebar list cur//  , text three
+     sections form one, list one,text top, script myscript
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+
+     list cur
+        table xcur
+        caption "List of Available Currencies"
+        order xcur
+        //select xtype='currency'
+        //navigators search, alpha
+        rows 20
+        objects xcur attrib(link "abc" embed onclick="return pickCur(this:xexch#)"), ~
+                xexch attrib(name xexch#)
+     end list
+
+     list one
+        table fatrn
+        caption "List of Transactions"
+        order xvoucher DESC
+        //fixed xvoucher
+        select "xvoucher like 'DE%'"
+	      //navigators alpha
+        //navigators alpha,group xacc "select xacc from glmst" // where xtype = 'Country'"
+        rows 20
+        objects  xvoucher attrib(link #servlet+"?page=fatrn_de&command=Show&xvoucher=?"),~
+                 xcode,xastname,xdate,xcur,xexch,xprime,xbase
+        //headers none
+     end list
+
+
+     form one
+        caption "Fixed Asset Depreciation Entry"
+        table fatrn
+        order xvoucher DESC
+        select "xvoucher like 'DE%'"        
+        layout 2
+        objects Add,Show,Clear, Update, Delete, Top, Previous, Next, Bottom,~
+                xvoucher display(trn Fixed Asset Transaction),xdate,~
+                xcode,xastname,xyear display(constant),xper display(constant),~
+                xcur,xexch,xprime,xbase,~
+                xastcatg,xastbook,xasttype,xastunit,xastbr,xastloc,xdiv,xsec,xproj,xglref
+
+
+        field xvoucher
+         caption Transaction Number
+         default "DE--"
+         event before
+          set #field(xastname.display)="constant"
+          set #field(xastcatg.display)="constant"
+          set #field(xastbook.display)="constant"
+          set #field(xasttype.display)="constant"
+          set #field(xastunit.display)="constant"
+          set #field(xastbr.display)="constant"
+          set #field(xastloc.display)="constant"
+          set #field(xdiv.display)="constant"
+          set #field(xsec.display)="constant"
+          set #field(xproj.display)="constant"
+         end event
+         event after
+          set globals(xvoucher)=xvoucher
+         end event
+        end field
+
+        field xcode
+          width 15
+          caption Asset Code
+          pick list famst
+        End field
+
+        field xcur
+          display text
+          pick
+          default "BDT"
+        end field
+
+        field xexch
+          default "1.0000"
+        end field
+
+        field xbase
+          display constant
+          event before
+            set xbase=xprime*xexch
+          end event
+        end field
+
+        field xsupplier
+          pick list xsup
+        end field
+
+        field xglref
+          display constant
+        end field
+
+        field add
+           event before
+            set globals(ErrChk)=""
+            str trntype=#sub (xvoucher_ONE,0,2)
+
+            if trntype .sw. "DE"
+            else
+              set globals(ErrChk)="1"
+              error "Transaction Type mismatch<br>Use DEPRECIATION Code only."
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              buffer famst
+              move famst = famst(xcode)
+              if #result .ne. "true"
+                set globals(ErrChk)="1"
+                error "Asset code not found in Asset Master<br>Depreciation not allowed, Use <font color=blue>ACQUISITION</font>."
+              else
+                set xastname=famst.xastname
+                set xastcatg=famst.xastcatg
+                set xastbook=famst.xastbook
+                set xasttype=famst.xasttype
+                set xastunit=famst.xastunit
+                set xastbr=famst.xastbr
+                set xastloc=famst.xastloc
+                set xdiv=famst.xdiv
+                set xsec=famst.xsec
+                set xproj=famst.xproj
+              end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              buffer xlocals
+              set globals(xtypelocal)="Module"
+              set globals(xname)="gl"
+              move xlocals=xlocals(xtypelocal,xname)
+              int offset
+              int per
+              int year=#sub(xdate,0,4)
+              set offset=#prop(xlocals.xprops,"offset")
+              set per=12+#sub(xdate,5,2)-offset
+              if per<=12
+                set xper=per
+                set xyear=year-1
+              else
+                set xper=per-12
+                set xyear=year
+              end if
+              set xdate = #sub(xdate,0,10)
+            end if
+           end event
+
+           event after
+            if #result .eq. "true" .and. globals(ErrChk) .ne. "1"
+              //call ast_de
+            end if
+           end event
+         end field
+
+        field update
+          event before
+            set globals(ErrChk)=""
+            str trntype=#sub (xvoucher_ONE,0,2)
+            
+            if globals(ErrChk) .ne. "1"
+              if globals(xvoucher) .ne. xvoucher
+                set globals(ErrChk) = "1"
+                error "Cannot Update, Show First!"
+              end if
+            end if
+
+            if trntype .sw. "DE"
+            else
+              set globals(ErrChk)="1"
+              error "Transaction Type mismatch<br>Use DEPRECIATION Code only."
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              set myqry = "select xcode from fatrn where xvoucher='"+globals(xvoucher)+"'"
+              set tmpchk = #sql(myqry)
+              if #result .ne. "true"
+                set globals(ErrChk)="1"
+                error "Invalid Voucher Number."
+              else
+                if tmpchk .ne. xcode
+                  set globals(ErrChk)="1"
+                  error "Asset Code cannot be changed."
+                end if
+              end if
+            end if
+
+            //if globals(ErrChk) .ne. "1"
+            //  set mysql="select xvoucher from famstad where xcode='"+xcode+"' and xvoucher='"+xvoucher+"'"
+            //  set tmpchk=#sql(str,mysql)
+            //  if #result .ne. "true"
+            //    set globals(ErrChk)="1"
+            //    error "Voucher Number not found in Addition Master<br>Cannot update."
+            //  end if
+            //end if
+
+            if globals(ErrChk) .ne. "1"
+              buffer xlocals
+              set globals(xtypelocal)="Module"
+              set globals(xname)="gl"
+              move xlocals=xlocals(xtypelocal,xname)
+              int offset
+              int per
+              int year=#sub(xdate,0,4)
+              set offset=#prop(xlocals.xprops,"offset")
+              set per=12+#sub(xdate,5,2)-offset
+              if per<=12
+                set xper=per
+                set xyear=year-1
+              else
+                set xper=per-12
+                set xyear=year
+              end if
+              set xdate = #sub(xdate,0,10)
+            end if
+          end event
+
+          event after
+            if #result .eq. "true" .and. globals(ErrChk) .ne. "1"
+              //call upd_ast_ad
+            end if
+          end event
+        end field
+
+       //embed onsubmit="return submitit(this)"
+        embed onsubmit="submitit(this)"
+
+     end form
+
+
+
+
+
+     script myscript
+
+      <script language="javascript" type="text/javascript">
+        var detail=""
+        
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+
+	      if (detail=="clicked"){
+            //form.page.value = "glsub"
+            //return false
+          }
+        }
+
+        function pickCur(link, exch){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcur.value=link.text
+            document.one.xexch.value=exch.text
+          }else{
+            document.one.xcur.value=link.innerText
+            document.one.xexch.value=exch.innerText
+          }
+          return false
+        }
+      </script>
+     end script
+
+
+end page

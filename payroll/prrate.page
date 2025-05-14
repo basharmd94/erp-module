@@ -1,0 +1,81 @@
+page prrate
+     caption "Employee Rate Master "+xempnum+": <font color=red>"+hrmst.xfirst(xempnum)+" "+hrmst.xlast(xempnum)+"</font> -- Effictive Date: "+xdateeff
+
+     layout mylayout 2 1  //columns rows
+       form rates  (1, 1) //(col,row,colspan,rowspan,width,height)
+       list rates (2, 1)
+			 //list emp (3, 1)
+       script myscript (0, 0)
+     end layout
+     
+     list rates
+        caption "Pay Rates"
+        table (select prrate.*,prcode.xtyperatepay from prrate,prcode where prrate.zid=prcode.zid and prrate.xcodepay=prcode.xcodepay) as tbl
+        order xempnum,xdateeff,xcodepay
+        fixed xempnum,xdateeff
+        //select none
+        //navigators alpha
+        //rows 20
+        objects  xcodepay attrib(link #servlet+"?page="+page+"&command=Show&xempnum=?&xdateeff=?&xcodepay=?"), ~
+                xrate,xtyperatepay
+
+                field xrate
+                  caption Pay Rate
+                end field
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+     
+     form rates
+        caption "Pay Rates"
+        table prrate
+        order xempnum,xdateeff,xcodepay
+        fixed xempnum,xdateeff
+        
+        layout 3
+        objects ~
+                ~
+                Return,Show,Add, Update, Delete, Top, Previous, Next, Bottom,~
+                xcodepay,xrate,xtyperatepay attrib(local) display(const)
+
+                field xcodepay
+                  
+                  pick select xcodepay from prcode where xratemaster='1'
+                  event after
+                    set globals(xcodepay)=xcodepay
+                    set xtyperatepay=prcode.xtyperatepay(xcodepay)
+                  end event
+                end field
+                field xrate
+                  caption Pay Rate
+                end field
+
+
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Return"){
+            form.page.value = "premp"
+            form.searchbutton.value = "Find xempnum=?&xdateeff=?"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+end page

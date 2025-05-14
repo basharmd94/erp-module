@@ -1,0 +1,26 @@
+product ERP on the Net
+
+table opcdt
+  caption "Sales Return Details"
+  columns ztime,zutime,zid,xcrnnum,xrow, xcode,xcodebasis,xitem, xdesc, xlong, ~
+          xlinks,xstype,xwh,~
+          xqty,xqtydel,xqtyinv,~
+          xdornum,xstatusddt,~
+          xunitsel,xcfsel,xwtunit,xunitwt,xcur,xrate,xratesys,xmargin,xmarginsys, ~
+          xdisc,xdiscsys,xdiscf,xcomm,xcommsys,xexch,xpricebasis,xcurprice,~
+          xexchsell,xprice,xstatuscdt,~
+          xtaxcat,xtaxcode1,xtaxrate1,xtaxcode2,xtaxrate2,xtaxcode3,xtaxrate3,~
+          xtaxcode4,xtaxrate4,xtaxcode5,xtaxrate5,xlineamt,xlineamtsys,~
+          xordernum,xbatch,xserialnum,xbin,xaltqty,xtypeserial,xstdcost,xcost,xsup,~
+          ximtrnnum,xdept,xdtwotax,xdttax,xdtdisc,xdtcomm,xfreight
+
+
+  primary key zid, xcrnnum,xrow
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xcrnnum references opcrn.zid,xcrnnum
+        zid,xitem references caitem.zid,xitem
+  end foreign key
+
+end table

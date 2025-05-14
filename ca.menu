@@ -1,0 +1,24 @@
+//ca.menu
+caption "Cross Application" page
+//---------------------------------------------------------------------------------------
+option                  |action                                          |modules|models
+//---------------------------------------------------------------------------------------
+Common Codes            |#classPath+"/"+#servlet+"?menu=cacodes"                 |
+Customers               |#classPath+"/"+#servlet+"?menu=cacus"                 |
+Suppliers               |#classPath+"/"+#servlet+"?menu=casup"                 |
+Items                   |#classPath+"/"+#servlet+"?menu=caitems"                 |
+Date Insert For Calender                            |#classPath+"/"+#servlet+"?page=cadateup"
+Holyday Setup                            |#classPath+"/"+#servlet+"?page=cadate"
+Customer Copy                             |#classPath+"/"+#servlet+"?page=cacusupd"
+Supplier Copy                             |#classPath+"/"+#servlet+"?page=casupupd"
+Item Copy                             |#classPath+"/"+#servlet+"?page=caitemupd"
+Admin Report                   |#classPath+"/"+#servlet+"?menu=caadmin"
+//Currencies&#044; Categories&#044; Discounts &amp; Taxes       |#classPath+"/"+#servlet+"?menu=cadisctax"                 |
+//Currencies Categories Prices Discounts and Taxes       |#classPath+"/"+#servlet+"?menu=cadisctax"
+//GL Interfaces           |#classPath+"/"+#servlet+"?page=cagli" 
+//Lists                   |#classPath+"/"+#servlet+"?menu=calists"
+//Load Masters             |#classPath+"/"+#servlet+"?menu=caload"
+//Test                             |#classPath+"/"+#servlet+"?menu=catest&page=catest"
+//Manage Favorites                             |#classPath+"/"+#servlet+"?page=zxfavuser"
+//-------------------------------------------------------------------
+

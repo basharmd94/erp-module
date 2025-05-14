@@ -1,0 +1,24 @@
+product ERP on the Net
+
+table famst
+
+ caption "Fixed Asset Master"
+  
+
+ columns ztime,zutime, zid, xcode,xastname,xastcatg,xastbook,xasttype,~
+          xastunit,xastbr,xastloc,xdiv,xsec,xproj,xdepmeth,~
+          xpurdate,xdate,xyear,xper,xcur,xexch,xprime,xbase,xsup,xinvno,~
+          xnomlife,xestlife,xslvval,xretdate,xvoucher,~
+          xprvunit,xprvbr,xprvloc,xprvdiv,xprvsec,xprvproj,xdepfactor,~
+          xleasestat,xmortgstat,xassetstat,xpornum,xdateto,xcus,xmodel,xcondition,~
+          xmaxload,xunitalt,xmfgyear,xorigin,xmanufacturer,xarea,xthana,xmouza,~
+		  xareagovt,xareaphys,xaruntgovt,xaruntphys,xdistrict,xdept,xsubdept,xglref,xlong,~
+		  xdateord,xname,xalias,xlineamt
+
+  primary key zid, xcode
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+end table

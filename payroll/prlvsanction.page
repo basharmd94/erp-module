@@ -1,0 +1,280 @@
+page prlvsanction
+	caption "Sanction Entry of Employee: "+xemp+" Name: "+prmst.xname(xemp)+" Category: "+prmst.xempcat(xemp)+details
+	sidebar list leave2,list leave4
+	section form one,list leave
+
+	list leave2
+		caption "Recommended Leave "
+		table prlv
+		order xemp,xleave,xdate
+		select "xstatusleave='2-Recommended'"
+		rows 20
+		objects xemp,xleave,xdate attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xleave=?&xdate=?"), ~
+				xfdate,xtdate,xdaysreq,xdaysapp,xstatusleave
+
+		totals "","Totals","","","",sum,sum,""
+	end list
+	
+	list leave4
+		caption "Cancelled Leave "
+		table prlv
+		order xemp,xleave,xdate
+		select "xstatusleave='4-Requested for Cancellation'"
+		rows 20
+		objects xemp,xleave,xdate attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xleave=?&xdate=?"), ~
+				xfdate,xtdate,xdaysreq,xdaysapp,xstatusleave,xnote
+
+		totals "","Totals","","","",sum,sum,""
+	end list
+
+	list leave
+		caption "All Leave"
+		table prlv
+		order xemp,xleave,xdate
+		rows 20
+		objects xemp,xleave,xdate attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xleave=?&xdate=?"), ~
+				xfdate,xtdate,xdaysreq,xdaysapp,xstatusleave
+
+		totals "","Totals","","","",sum,sum,""
+	end list
+
+	form one
+		valid valid
+		table prlv
+		order xemp,xleave,xdate
+		select "xstatusleave='2-Recommended'"
+		layout 2
+		objects	Show,Sanction,Cancel,Previous, Next, Top, Bottom,~
+				xemp attrib(submit),empname attrib(local) display(const),fathername,dept,~
+				desi,doj,xleave,xdate,xfdate,xtdate,xdaysreq display(constant),~
+				xdaysapp display(constant),xphone,xremark,xpurpose,~
+				xnote,xstatusleave,xlvtype,xyear,xper,xrecommendedby,xapprovedby,xcancelreqby,xcancelledby,~
+				xpflag,xuserc,xuseru
+
+		field xnote
+			caption Reason For Cancellation
+			col 3
+			width 70
+			height 2
+		end field
+    
+		field xremark
+			caption Address while on Leave
+			col 3
+			width 70
+			height 2
+		end field
+    
+		field xphone
+			col 3
+		end field
+
+		field fathername
+			attrib local
+			display const
+			caption Father Name			
+		end field
+		
+		field dept
+			attrib local
+			display const
+			caption Department
+		end field
+
+		field desi
+			attrib local
+			display const
+			caption Designation
+		end field
+
+		field doj
+			attrib local
+			display const
+			caption Joining Date
+		end field
+        
+		field xemp
+			attrib attach
+			coll 3
+			event after
+				set globals(xleave) = xleave
+				set globals(xemp) = xemp
+				set #field(xstatusleave->.display) = "constant"
+				if xemp .eq. ""
+					set #field(Delete.display) = "disable"
+					set #field(Delete.display) = "disable"
+					set #field(Sanction.display) = "disable"
+					set #field(Cancel.display) = "disable"
+				end if
+				if xstatusleave .eq. "1-Open"
+					set #field(Add.display) = "disable"
+				end if
+				
+				if xstatusleave .eq. "3-Sanctioned"
+					set #field(Add.display) = "disable"
+					set #field(Delete.display) = "disable"
+					set #field(Sanction.display) = "disable"
+					set #field(Cancel.display) = "disable"
+				end if
+				if xstatusleave .eq. "2-Recommended"
+					set #field(Add.display) = "disable"
+					set #field(Delete.display) = "disable"
+				end if
+				if xnote .ne. ""
+					set #field(Add.display) = "disable"
+					set #field(Delete.display) = "disable"
+					set #field(Sanction.display) = "disable"
+					set #field(Cancel.display) = "disable"
+				end if
+
+			set tot_lv = #sql(int,"select xleavealc from prlvpolicy where zid='"+#id+"' and xempcat='"+xempcat+"' and xleave='"+xleave+"'")
+			set used_lv =#sql(dec,"select sum(xdaysapp) from prlv where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xyear='"+xyear+"' and xleave='"+xleave+"'")
+			set pipeline=#sql(int,"select sum(xdaysreq) from prlv where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xyear='"+xyear+"' and xleave='"+xleave+"' and xstatusleave='2-Recommended'")
+			set avl_lv = 0+tot_lv-used_lv-pipeline
+
+			str details =  "<table width=100%><tr class=bl>~
+			<td bgcolor=#dddddd><font color=green>Leave Code: </font></td><td bgcolor=#ccccff>"+xleave+"</td> ~
+			<td bgcolor=#dddddd><font color=green>Allocated: </font></td><td bgcolor=#ccccff>"+tot_lv+"</td> ~
+			<td bgcolor=#dddddd><font color=green>Consumed: </font></td><td bgcolor=#ccccff>"+used_lv+"</td> ~				
+			<td bgcolor=#dddddd><font color=green>Pipeline: </font></td><td bgcolor=#ccccff>"+pipeline+"</td> ~				
+			<td bgcolor=#dddddd><font color=green>Available: </font></td><td bgcolor=#ccccff>"+avl_lv+"</td> ~
+			</tr></table>"
+				
+			end event
+		end field
+
+		field xdate
+			default #d
+			caption Application Date
+		end field
+
+		field xleave
+			width 10
+			display combo
+			pick "select xcode from xcodes where zid="+#id+" and xtype like 'Leave Type' and zactive='1'"
+		end field
+
+		field xfdate
+		  caption Leave Start Date
+		end field
+
+		field xtdate
+		  caption Leave End Date
+		end field
+
+		field xlvtype
+			default "1-Full Pay"
+		end field
+
+		field xuserc
+            caption Created by
+            display constant
+		end field
+
+		field xuseru
+            caption Updated by
+            display constant
+		end field
+
+		field Sanction
+			event before
+				if xstatusleave .ne. "2-Recommended"
+					error "Not Yet Recomended cannot Sanction"
+				end if
+				set stat =  #status("xstatusleave",3)
+				str mysql = "update prlv set xstatusleave='"+stat+"',xapprovedby='"+#user+"',xdaysapp='"+xdaysreq+"' where zid="+#id+" and xdate='"+xdate+"' and xemp='"+xemp+"' and xleave='"+xleave+"'"
+				set tmpstr = #sql(str,mysql)
+				action show
+				
+				set recid1 = #sql("select xappby1 from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+				set recid2 = #sql("select xappby2 from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+				set recid3 = #sql("select xappby3 from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+				if recid1 .ne. ""
+					set target = #sql("select xemailb from prmst where zid='"+#id+"' and xemp='"+recid1+"'")
+				end if
+				
+				if recid2 .ne. ""
+					set target2 = #sql("select xemailb from prmst where zid='"+#id+"' and xemp='"+recid2+"'")
+				end if
+				
+				if recid3 .eq. ""
+					set target3 = #sql("select xemailb from prmst where zid='"+#id+"' and xemp='"+recid3+"'")
+				end if         		
+							
+				set emailemp = #sql("select xemailb from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+
+				set targetcc = target2+","+target3+","+emailemp
+				set target=target+","+emailemp
+				
+				if target .ne. ""
+					str msg
+					text "lvsacn.email","string msg"
+					mail from=#user;;to=target;;cc=targetcc;;sub="Sactioned the Leave Applied by "+prmst.xname(xemp)+" ("+xemp+")" ;;message=msg
+				end if
+				
+			end event
+		end field
+
+		field Cancel
+			event before
+				if xnote .eq. ""
+					error "Please mention reason for cancellation "
+				end if
+				set #field(xnote.display) = "text"
+				set stat =  #status("xstatusleave",4)
+				str mysql = "update prlv set xstatusleave='"+stat+"',xcancelreqby='"+#user+"',xnote='"+xnote+"' where zid="+#id+" and xdate='"+xdate+"' and xemp='"+xemp+"' and xleave='"+xleave+"'"
+				set tmpstr = #sql(str,mysql)
+				set recid1 = #sql("select xappby1 from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+				set recid2 = #sql("select xappby2 from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+				set recid3 = #sql("select xappby3 from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+				if recid1 .ne. ""
+					set target = #sql("select xemailb from prmst where zid='"+#id+"' and xemp='"+recid1+"'")
+				end if
+				
+				if recid2 .ne. ""
+					set target2 = #sql("select xemailb from prmst where zid='"+#id+"' and xemp='"+recid2+"'")
+				end if
+				
+				if recid3 .eq. ""
+					set target3 = #sql("select xemailb from prmst where zid='"+#id+"' and xemp='"+recid3+"'")
+				end if         		
+							
+				set emailemp = #sql("select xemailb from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+
+				set targetcc = target2+","+target3+","+emailemp
+				set target=target+","+emailemp
+				
+				if target .ne. ""
+					str msg
+					text "lvcancel.email","string msg"
+					mail from=#user;;to=target;;cc=targetcc;;sub="Cancelled the Leave Applied by "+prmst.xname(xemp)+" ("+xemp+")" ;;message=msg
+				end if
+				
+				action show
+			end event
+		end field
+	end form
+
+	valid valid
+		mandatory xemp,xleave,xdate,xfdate,xtdate
+		config		
+			set empname = prmst.xname(xemp)
+			set fathername = prmst.xfather(xemp) 
+			set dept = prmst.xdept(xemp)
+			set desi = prmst.xdesig(xemp)
+			set doj = prmst.xjoindate(xemp)
+
+			if xemp .eq. ""
+				set #field(fathername.display) = "hide"
+				set #field(dept.display) = "hide"
+				set #field(desi.display) = "hide"
+				set #field(doj.display) = "hide"
+			end if
+
+			int xyear=#sub(#date,0,4)
+			if globals(ErrChk) .ne. "1"
+				set xempcat = #sql("select xempcat from prmst where zid="+#id+" and xemp='"+globals(xemp)+"'")
+			end if
+		end config
+	end valid
+end page

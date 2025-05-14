@@ -1,0 +1,34 @@
+//GL Codes.menu
+caption "Settings" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Transaction Code                 					|#classPath+"/"+#servlet+"?page=xtrngl"
+Division                      						|#classPath+"/"+#servlet+"?page=xcodes(xtype=Division)"
+Section                      						|#classPath+"/"+#servlet+"?page=xcodes(xtype=Section)"
+Project                      						|#classPath+"/"+#servlet+"?page=xcodes(xtype=Project)"
+//COGS Setup                                          |#classPath+"/"+#servlet+"?page=glcstset"
+-
+Account Group                    					|#classPath+"/"+#servlet+"?page=glhrc1"
+//Analysis Code 1                  					|#classPath+"/"+#servlet+"?page=xcodes(xtype=Analysis Code 1)"
+//Analysis Code 2                  					|#classPath+"/"+#servlet+"?page=xcodes(xtype=Analysis Code 2)"
+//Analysis Code 3                  					|#classPath+"/"+#servlet+"?page=xcodes(xtype=Analysis Code 3)"
+//Analysis Code 4                  					|#classPath+"/"+#servlet+"?page=xcodes(xtype=Analysis Code 4)"
+//Analysis Code 5                  					|#classPath+"/"+#servlet+"?page=xcodes(xtype=Analysis Code 5)"
+//Account Group                    					|#classPath+"/"+#servlet+"?page=xcodesag"
+//Second Account Group             					|#classPath+"/"+#servlet+"?page=xcodesag1"
+// *** activate this if anybody wants to have HRC2 code on his own
+//Hierarchy 2                      					|#classPath+"/"+#servlet+"?page=xhrc2"
+//Cash Flow Setup                  					|#classPath+"/"+#servlet+"?page=glhrched"
+-
+//GL Local Settings                					|#classPath+"/"+#servlet+"?page=xlocalsgl"
+//Company ID Master                					|#classPath+"/"+#servlet+"?page=glbid"
+-
+//IOU Interface Table               					|#classPath+"/"+#servlet+"?page=glioulink"
+-
+Set Year/Period           							|#classPath+"/"+#servlet+"?page=castatusgl"
+Set Period Offset         							|#classPath+"/"+#servlet+"?page=castatusgloff"
+//-
+//Cheque Register Defaults                        	|#classPath+"/"+#servlet+"?page=ardef"|ar,gl
+//Cheque Register Interface       					|#classPath+"/"+#servlet+"?page=glchqgli"|gl
+//-------------------------------------------------------------------

@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table opgli
+  caption "OP to GL Interface"
+  columns ztime,zutime,zid,xoptrn,xwh,xgitem,xaccsales,xsalessub,~
+          xtaxacc,xtaxsub,xdiscacc,xdiscsub,xacccomm,xaccret,xretsub,~
+          xaitacc,xaitsub
+
+  primary key zid,xoptrn,xwh,xgitem
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table

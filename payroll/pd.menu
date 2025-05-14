@@ -1,0 +1,9 @@
+//H.R.Management Menu
+//---------------------------------------------------------------------------------------
+caption "HR Management" page 3
+option                  |action                                   modules|models
+//---------------------------------------------------------------------------------------
+Employee Master         |#classPath+"/"+#servlet+"?menu=prmst"				 |
+Reports                 |#classPath+"/"+#servlet+"?menu=PDReports"          |
+Setup                   |#classPath+"/"+#servlet+"?menu=pdsetup"             |
+//----------------------------------------------------------------------------------------

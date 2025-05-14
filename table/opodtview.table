@@ -1,0 +1,27 @@
+product ERP on the Net
+
+table opodtview
+  caption "OP Details View"
+  columns  zid,xordernum,xrow,xdate,xcus,xcur,xexch,~
+          xcode,xitem,xlong,xstype,xwh, ~
+          xqtyord,xqtydel,xbotype,xrate,xdisc,xcomm,xdtwotax,xdtcomm,xdttax,xdtdisc,xlineamt,~
+		  xstatusord,xinvrule
+
+  primary key zid, xordernum,xrow
+  
+  sql create view opodtview (~
+			zid,xordernum,xrow,xdate,xcus,xcur,xexch,~
+          	xcode,xitem, xlong,xstype,xwh, ~
+          	xqtyord,xqtydel,xbotype,xrate,xdisc,xcomm,~
+          	xdtwotax,xdtcomm,xdttax,xdtdisc,xlineamt,~
+			  xstatusord,xinvrule) ~
+        as select  ~
+			opodt.zid,opodt.xordernum,opodt.xrow,opord.xdate,opord.xcus,opord.xcur,opord.xexch,~
+          	opodt.xcode,opodt.xitem,opodt.xlong,opodt.xstype,opodt.xwh, ~
+          	opodt.xqtyord,opodt.xqtydel,opodt.xbotype,~
+          	opodt.xrate,opodt.xdisc,opodt.xcomm,~
+          	opodt.xdtwotax,opodt.xdtcomm,opodt.xdttax,opodt.xdtdisc,opodt.xlineamt,~
+			opord.xstatusord,opord.xinvrule ~
+        from opodt, opord where opodt.zid=opord.zid and opodt.xordernum=opord.xordernum
+
+end table

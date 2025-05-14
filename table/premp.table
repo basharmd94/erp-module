@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table premp
+  caption "Employee View"
+  columns zid,xemp,xempcat,xyear,xleave,xleavealc,xleavecfd,xdateeff,xdateexp
+  
+  primary key xemp,xempcat,xyear
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  sql create view premp (zid,xemp,xempcat,xyear,xleave,xleavealc,xleavecfd,xdateeff,xdateexp) ~
+            as SELECT prmst.zid, prmst.xemp,prmst.xempcat, prlvyear.xyear, ~
+            	prlvpolicy.xleave,prlvpolicy.xleavealc,prlvpolicy.xleavecfd,prlvyear.xdateeff,prlvyear.xdateexp ~
+            FROM prmst,prlvyear,prlvpolicy ~
+            WHERE prlvyear.zid = prmst.zid AND prlvyear.xempcat = prmst.xempcat AND ~
+				prlvpolicy.zid = prmst.zid AND prlvpolicy.xempcat = prmst.xempcat
+ end table

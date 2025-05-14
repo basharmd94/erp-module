@@ -1,0 +1,10 @@
+//op.menu
+caption "Damage Sales Return" page 3
+//-------------------------------------------------------------------
+option                         |action
+//---------------------------------------------------------------
+Damage Sales Return                   |#classPath+"/"+#servlet+"?page=opcrn_dam&command=clear"
+Accept Returns                  |#classPath+"/"+#servlet+"?page=opcrn_dam_acc&command=clear"
+Issue CRN                   |#classPath+"/"+#servlet+"?page=opcrn_dam_crn&command=clear"
+
+//---------------------------------------------------------------

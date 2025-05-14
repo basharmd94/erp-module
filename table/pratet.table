@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table pratet
+  caption "Employee wise Time Settings"
+  columns ztime,zutime,zid,xemp,xshift,xintime,xpnlttime,zemail,xemail
+
+  primary key zid,xemp,xshift
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xemp references prmst.zid,xemp
+  end foreign key
+
+end table

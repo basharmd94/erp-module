@@ -1,0 +1,243 @@
+page glyearend
+     caption "Year End Process"
+     sections form one, script myscript
+     
+     form one
+     	valid valid,access
+        order xyear
+		
+        layout 1
+        objects ~
+                Process,~
+                xyear,xproj,xacc,xtrngl display(ocombo),xtype
+                        
+        field xaccdr
+          caption Transfer Account
+          width 40
+        end field
+        field xproj
+          caption Project Name
+          width 25
+        end field
+        
+        field xtype
+        	caption AR/AP Balance Type
+        	pick "Detail,Summary"
+        end field                
+
+        field Process
+        	event before
+	          	set globals(ErrChk) = ""
+				
+	          	if globals(ErrChk) .ne. "1"
+	          		set chktrn = #sql("select xtrn from xtrn where xtypetrn='GL Voucher' and xtrn='"+xtrngl+"'")
+	          		if #result .eq. "false"
+	          			set globals(ErrChk) = "1"
+	          			error "Wrong Transaction Type"
+	          		end if
+	          	end if
+	          	if globals(ErrChk) .ne. "1"
+	          		set chkacc = #sql("select xacc from glmst where xacc='"+xacc+"'")
+	          		if #result .eq. "false"
+	          			set globals(ErrChk) = "1"
+	          			error "Invalid Transfer Account"
+	          		end if
+	          	end if
+	          	if globals(ErrChk) .ne. "1"
+	          		if xtype .ne. "Detail" .and. xtype .ne. "Summary"
+	          			set globals(ErrChk) = "1"
+	          			error "Select "+#field(xtype.caption)
+	          		end if
+	          	end if
+	          	
+	          	if globals(ErrChk) .ne. "1"
+					if xtype .eq. "Detail"
+						set balacc = xacc
+		            	int nyear = 0+xyear+1
+		          		set oldvoucher = glheader.xvoucher("zid='"+#id+"' and xvoucher like '"+xtrngl+"%' and xyear='"+nyear+"' and xper="0" and xref='"+xproj+"'")
+		          		str mysql = "delete from gldetail where zid='"+#id+"' and xvoucher='"+oldvoucher+"'"
+		          		set tmpstr = #sql(str,mysql)
+		          		//print "D: "+#result
+		          		str mysql = "delete from glheader where zid='"+#id+"' and xvoucher='"+oldvoucher+"'"
+		          		set tmpstr = #sql(str,mysql)
+		          		//print "H: "+#result
+
+		          		//int count = 0+1
+		          		//set xacc = ""
+						//set xproj = ""
+		          		
+						str mysql = #sql(str,"select xvoucher from glheader where zid='"+#id+"' and xvoucher like '"+xtrngl+"%' order by xvoucher desc")
+						if #result .eq. "true" .and. mysql .ne. ""
+							set last_num = 0+#sub(mysql,4,6)
+						end if
+						set last_num = 0+1+last_num
+						set mysql = #padl(""+last_num,6,"0")
+						set xvoucher = xtrngl + mysql            
+		                           
+		                set myqry = "insert into glheader (zid, xvoucher,xref,xdate,xlong,xpostflag,~
+		           			xyear,xper,xstatusjv,xdatedue,xdesc01,xdesc02,xdesc03,xdesc04,xdesc05,xictrnno,dumzid,~
+		           			zemail,xemail,xaccdr,xsubdr,xnumofper,xcheque,xpaytype,xstatus,xtrngl,xnote,xteam,xmember,~
+		           			xmanager,xapproved,xaction)"
+						set myqry = myqry + " values('"+#id+"','"+xvoucher+"','"+xproj+"','"+#date+"',~
+							'Opening Balance through Year End Processing','','"+nyear+"',"0",'Balanced','"+#date+"',~
+							'','','','','','',"0",'"+#user+"','','','',"0",'','','','"+xtrngl+"','',~
+							'','','','','Opening Balance')"
+						set tmpstr =#sql(myqry)                      
+						
+						str sclist="xyear,xacc,xsub,xproj,xlineamt"
+									
+						str sql="select "+sclist+" from glbalyearproj where zid='"+#id+"' and xyear='"+xyear+"' and xproj='"+xproj+"' and xlineamt<>0"
+						int isscount=#sqlfill(sql)
+						//print isscount+"-"+sql
+						int sic = 0
+						int sprint = 0								
+						//print "Before: "				
+						//print isscount
+						while sic < isscount					
+							array get(sic,sclist)	
+							set sic = sic + 1
+							//str mysql = "select xacc from glbalyearproj where zid='"+#id+"' and xyear='"+xyear+"' order by xyear"
+							//set xacc = #sql(str,mysql)							
+							//error #result+"-"+mysql
+		          			set xaccusage=glmst.xaccusage("zid='"+#id+"' and xacc='"+xacc+"'")	          			
+		          			set xacctype=glmst.xacctype("zid='"+#id+"' and xacc='"+xacc+"'")
+		          			set xaccsource=glmst.xaccsource("zid='"+#id+"' and xacc='"+xacc+"'")
+							//error xacc+"-"+xacctype+"-"+xaccsource+"-"+xaccusage
+		          			if xaccsource .eq. "None"
+		          				set xlineamt=glbalyearproj.xlineamt("zid='"+#id+"' and xyear='"+xyear+"' and xproj='"+xproj+"' and xacc='"+xacc+"'")
+								//error xlineamt
+		          				if xlineamt <> 0.0	          				
+		          					//set count = 0+count+1
+		          					//print count
+									set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+										xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+										xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+										xstatus,xtypegl)"							
+									set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+sic+"','"+xacc+"','"+xaccusage+"',~
+										'"+xaccsource+"','','','','"+xproj+"','BDT',"1.0",~
+										"+xlineamt+","+xlineamt+",'','','','"+xacctype+"','"+#user+"','','','','','','',"0",'',"0",~
+										'','','','')"
+									set tmpstr = #sql(mysql)
+									//error #result+"-"+mysql
+
+									//set count = 0+count+1 
+									//set sic = sic + 1
+		          				end if		          				
+		          			else
+			          			//print "B "+count+" "+xacc+" "+xaccsource+" "+xlineamt
+			          			//str xsub = ""
+				          		//str mysql = "select xsub from glbalyearproj where zid='"+#id+"' and xyear='"+xyear+"' and xproj='"+xproj+"' and xacc='"+xacc+"' and xlineamt<>0.0 and xsub='"+xsub+"' order by xsub"
+				          		//set xsub = #sql(str,mysql)
+								//error #result+"-"+mysql
+								while #result .eq. "true"
+									set xlineamt=glbalyearproj.xlineamt("zid='"+#id+"' and xyear='"+xyear+"' and xproj='"+xproj+"' and xacc='"+xacc+"' and xsub='"+xsub+"'")
+				          			
+									set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+										xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+										xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+										xstatus,xtypegl)"							
+									set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+sic+"','"+xacc+"','"+xaccusage+"',~
+										'"+xaccsource+"','"+xsub+"','','','"+xproj+"','BDT',"1.0",~
+										"+xlineamt+","+xlineamt+",'','','','"+xacctype+"','"+#user+"','','','','','','',"0",'',"0",~
+										'','','','')"
+									set tmpstr = #sql(mysql) 
+									
+									//print "______"+xsub
+									//set count = 0+count+1
+									//set sic = sic + 1
+					          		//str mysql = "select xsub from glbalyearproj where zid='"+#id+"' and xyear='"+xyear+"' and xproj='"+xproj+"' and xacc='"+xacc+"' and xlineamt<>0.0 and xsub>'"+xsub+"' order by xsub"
+					          		//set xsub = #sql(str,mysql)							
+								end while	          		
+							end if	
+			          		//str mysql = "select xacc from glbalyearproj where zid='"+#id+"' and xyear='"+xyear+"' order by xyear"
+			          		//set xacc = #sql(str,mysql)	          			
+							//set sic = sic + 1
+		          		end while
+		          				          		
+		          		set count = 0+sic+1
+	          			set xaccusage=glmst.xaccusage("zid='"+#id+"' and xacc='"+balacc+"'")	          			
+	          			set xacctype=glmst.xacctype("zid='"+#id+"' and xacc='"+balacc+"'")
+	          			set xaccsource=glmst.xaccsource("zid='"+#id+"' and xacc='"+balacc+"'")
+	          			set balamt=#sql(double,"select sum(xprime*xexch) from gldetailview where zid='"+#id+"' and xyear='"+xyear+"' and xproj='"+xproj+"' and (xacctype='Income' or xacctype='Expenditure')")
+	          			//print balamt+" "+balacc
+	          			
+						set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+							xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+							xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+							xstatus,xtypegl)"							
+						set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+count+"','"+balacc+"','"+xaccusage+"',~
+							'"+xaccsource+"','','','','"+xproj+"','BDT',"1.0",~
+							"+balamt+","+balamt+",'','','','"+xacctype+"','"+#user+"','','','','','','',"0",'',"0",~
+							'','','','')"
+						set tmpstr = #sql(mysql) 
+						//print #result+"-"+mysql
+
+						set tot_prime = #sql(decimal,"select sum(xprime) from gldetail where xvoucher='"+xvoucher+"'")
+						if tot_prime <> 0.0
+							set globals(ErrChk) = "1"
+							str mysql = "update glheader set xstatusjv='Out of Balance' where zid='"+#id+"' and xvoucher='"+xvoucher+"'"
+							set tmpstr = #sql(str,mysql)
+							print "Cannot Update("+xvoucher+")Out of Balance</p>Check Error Logs"
+						else
+							print "</br><span class=bl>Voucher Number <a href=/da/"+#servlet+"?page=glopen&command=Show&xvoucher="+xvoucher+">" +xvoucher+ "</a> Created for Opening Balances for Year <font color=red>"+nyear+"</font></span>"
+							//Voucher Number OB--000004 Created for Opening Balances for Year 2008.
+						end if
+					end if
+	          	end if
+        	end event
+          	event after
+          		if globals(ErrChk) .ne. "1"
+					if xtype .eq. "Summary"
+		        		int lastnum = 0
+		        		int newnum = 0
+					          	
+	            		class gltrn(glyearEnd)
+	            		int newyear = 0+xyear+1
+	            		set lastnum = xtrn.xnum("xtypetrn='GL Voucher' and xtrn='"+xtrngl+"'")
+						if lastnum == 0
+							set newnum = 0+2
+						else
+							set newnum = xtrn.xnum("xtypetrn='GL Voucher' and xtrn='"+xtrngl+"'")+1
+						end if
+	            		str myqry = "update xtrn set xnum='"+newnum+"' where xtypetrn='GL Voucher' and xtrn='"+xtrngl+"'"
+	            		set tmpstr = #sql(str,myqry)
+	            		set newvou = #sql("select xvoucher from glheader where xyear='"+newyear+"' and xper='0'")
+	            		str mysql = "update glheader set xtrngl='"+xtrngl+"',zemail='"+#user+"',xaction='Opening Balance' where xvoucher='"+newvou+"'"
+	            		set tmpstr = #sql(str,mysql)
+	            	end if
+            	end if
+          end event
+        end field
+        
+        embed onsubmit="submitit(this)"
+        field Details
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Details"){
+            form.page.value = "pogdt"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+        </script>
+     end script
+
+     valid valid
+     	config
+     	end config
+     end valid
+     
+#include access.valid
+     
+end page

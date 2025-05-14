@@ -1,0 +1,465 @@
+page famaitanence
+     caption "Maintainance Entry"
+     sidebar list detail
+      sections form one,list one, script myscript
+
+      list detail
+        caption "List For Details"
+        table famaitanencedet
+        order xvoucher,xrow
+        select "xvoucher='"+globals(xvoucher)+"'"
+        row 50
+        object xrow attrib(link #servlet+"?page=famaitanencedet&command=Show&xvoucher=?&xrow=?"), ~
+      	       xitem,itemdesc equals((select xdesc from caitem where zid=famaitanencedet.zid and xitem=famaitanencedet.xitem)),xprime
+
+        field xcode
+            caption Asset Code
+        end field
+
+        field xprime
+            caption Amount
+        end field
+        
+        field itemdesc
+            caption Item Description
+        end field
+
+        totals "","Totals","",sum
+
+      end list
+
+      list one
+        caption "Maintainance Entry List"
+        table famaitanence
+        order xvoucher
+        row 50
+        object xvoucher attrib(link #servlet+"?page="+page+"&command=show&xvoucher=?"),~
+      	       xcode,xdate,xcomp
+      	       
+        field xcode
+            caption Asset Code
+        end field
+
+        field xcomp
+            caption Maintainance Factors
+        end field
+        
+        field xvoucher
+            caption Transaction No.
+        end field
+        
+      end list
+
+      form one
+        valid valid
+        table famaitanence
+        order xvoucher        
+        layout 2
+        objects Show,Clear,Add, Update, Delete, Top, Previous, Next, Bottom,Details,Post to GL, ~
+                xvoucher,xcode,xdate,xcomp,xyear display(const),xper display(const),xaccdr attrib(submit; attach),dummy_1,~
+                xsubdr attrib(submit; attach),dummy_2,xacccr attrib(submit; attach),dummy_3,xsubcr attrib(submit; attach),dummy_4,xglref display(const),xrem
+
+        field xrem
+            width 30
+            height 2
+        end field
+        
+        field xglref
+            caption GL Status
+        end field
+
+        field xvoucher
+            caption Transaction No.
+            display const
+             event after
+              set globals(xcode)=xcode
+              set globals(xvoucher)=xvoucher
+              if xglref .ne. ""
+                  set #field(Post.display) = "disable"
+              end if
+             end event
+        end field
+        
+        field xsubdr
+            pick list xsubdr
+        end field
+        
+        field dummy_1
+          attrib local
+          display constant
+          caption Debit Account Description
+          event after
+         //       set dummy_1=#sql("selcet xdesc from glmst where zid='"+#id+"' and xacc='"+xaccdr+"'")
+          end event
+        end field
+        
+        field dummy_2
+          attrib local
+          display constant
+          caption Debit Sub Account Description
+          event after
+        //        set dummy_2=#sql("selcet xdesc from glmst where zid='"+#id+"' and xacc='"+xsubdr+"'")
+          end event
+        end field
+        
+        field dummy_3
+          attrib local
+          display constant
+          caption Credit Account Description
+          event after
+                set dummy_3=#sql("selcet xdesc from glmst where zid='"+#id+"' and xacc='"+xacccr+"'")
+          end event
+        end field
+        
+        field dummy_4
+          attrib local
+          display constant
+          caption Credit Sub Account Description
+          event after
+                set dummy_4=#sql("selcet xdesc from glmst where zid='"+#id+"' and xacc='"+xsubcr+"'")
+          end event
+        end field
+        
+        field xsubcr
+            pick list xsubcr
+        end field
+        
+        field xcode
+            caption Asset Code
+            pick list famst
+        end field
+        
+        field xcomp
+            caption Maintainance Factors
+            display combo
+            pick "select xcode from xcodes where zid='"+#id+"' and xtype='Maintainance'"
+        end field
+        
+        field add
+            event before
+                set globals(ErrChk) = ""
+                set xglref =""
+                //error xcode
+                if xcode .eq. ""
+                    set globals(ErrChk) = "1"
+                    error "Asset Code Cannot Blank"
+                end if
+                
+                if globals(ErrChk) .ne. "1"
+                    set assetcode =#sql(str,"select xcode from famst where zid='"+#id+"' and  xcode='"+xcode+"'")
+                    if #result .ne. "true"
+                        set globals(ErrChk)="1"
+                        error "Wrong Asset Code"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+    	            int offset
+    	            int per
+    	            int year=#sub(xdate,0,4)
+
+    	            int tempper
+    	            int tempyear
+    	            set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+    	            set per=12+#sub(xdate,5,2)-offset
+    	            if per<=12
+    	                set tempper=per
+    	                set tempyear=year-1
+    	            else
+    	                set tempper=per-12
+    	                set tempyear=year
+    	            end if
+
+    	            if #glall .ne. ""
+    	              String pyp = tempyear
+    	              if #glyear <> pyp
+    	              	set globals(ErrChk) = "1"
+    	                error "<span class=bl>Year Must Match the Following Year:</span><br><span class=br>"+#glyear+"</span>"
+    	              end if
+    	            end if
+                    set xyear = tempyear
+    				//set xper = tempper
+    				set xper = tempper
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xtrn = "MAIN"
+    				str mysql = #sql(str,"select xvoucher from famaitanence where xvoucher like '"+MAIN+"%' order by xvoucher desc")
+    				if #result .eq. "true" .and. mysql .ne. ""
+    					set last_num = 0+#sub(mysql,6)
+    				end if
+    				set last_num = 0+1+last_num
+    				set mysql = #padl(""+last_num,6,"0")
+    				set xvoucher = xtrn + mysql
+    				
+                end if
+            end event
+        end field
+        
+        field update
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    set glref =#sql(str,"select xglref from famaitanence where zid='"+#id+"' and  xvoucher='"+xvoucher+"'")
+                    if glref .eq. "Posted"
+                        set globals(ErrChk)="1"
+                        error "Already Posted. Cannot "+#command
+                    end if
+                end if
+                
+                if xcode .eq. ""
+                    set globals(ErrChk) = "1"
+                    error "Asset Code Cannot Blank"
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set assetcode =#sql(str,"select xcode from famst where zid='"+#id+"' and  xcode='"+xcode+"'")
+                    if #result .ne. "true"
+                        set globals(ErrChk)="1"
+                        error "Wrong Asset Code"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+    	            int offset
+    	            int per
+    	            int year=#sub(xdate,0,4)
+
+    	            int tempper
+    	            int tempyear
+    	            set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+    	            set per=12+#sub(xdate,5,2)-offset
+    	            if per<=12
+    	                set tempper=per
+    	                set tempyear=year-1
+    	            else
+    	                set tempper=per-12
+    	                set tempyear=year
+    	            end if
+
+    	            if #glall .ne. ""
+    	              String pyp = tempyear
+    	              if #glyear <> pyp
+    	              	set globals(ErrChk) = "1"
+    	                error "<span class=bl>Year Must Match the Following Year:</span><br><span class=br>"+#glyear+"</span>"
+    	              end if
+    	            end if
+                    set xyear = tempyear
+    				//set xper = tempper
+    				set xper = tempper
+                end if
+
+            end event
+        end field
+        
+        field Post
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    set glref =#sql(str,"select xglref from famaitanence where zid='"+#id+"' and  xvoucher='"+xvoucher+"'")
+                    if glref .eq. "Posted"
+                        set globals(ErrChk)="1"
+                        error "Already Posted. Cannot "+#command
+                    end if
+                end if
+                
+                set prime =#sql(decimal,"select sum(xprime) from famaitanencedet where zid='"+#id+"' and xvoucher='"+xvoucher+"'")
+                
+                if globals(ErrChk) .ne. "1"
+                	if prime <= 0.0
+                		set globals(ErrChk)="1"
+                		error "Detail has no record</p>Cannot "+#command
+                	end if
+                end if
+                set xtrn ="JV--"
+				set last_voucher = #sql(str,"select xvoucher from glheader where xvoucher like '"+xtrn+"%' order by xvoucher Desc")
+
+				if #result .eq. "true" .and. last_voucher .ne. ""
+					set last_num = 0+#sub(last_voucher,6)
+				end if
+				set last_num = 0+1+last_num
+				set last_voucher = #padl(""+last_num,6,"0")
+				set vouchernum = xtrn + last_voucher
+				//error vouchernum
+
+                if globals(ErrChk) .ne. "1"
+                    buffer glheader
+                    set glheader.xtrngl="JV--"
+                    set glheader.xvoucher=vouchernum
+                    set glheader.xref=""
+                    set glheader.xdate=xdate
+                    set glheader.xstatusjv="Balanced"
+                    set glheader.xyear=xyear
+                    set glheader.xper=xper
+                    set glheader.xaction="Journal"
+    			    insert glheader
+                end if
+                
+                if globals(ErrChk) .ne. "1"
+                   buffer gldetail
+                   set gldetail.xvoucher=vouchernum
+                   set gldetail.xrow=0+10
+                   set gldetail.xacc=xaccdr
+                   set gldetail.xaccusage=#sql("select xaccusage from glmst where xacc='"+xaccdr+"'")
+                   set gldetail.xaccsource=#sql("select xaccsource from glmst where xacc='"+xaccdr+"'")
+                   set gldetail.xsub=xsubdr
+                   set gldetail.xdiv="ANY"
+                   set gldetail.xsec="ANY"
+                   set gldetail.xproj="ANY"
+                   set gldetail.xcur="BDT"
+                   set gldetail.xexch="1"
+                   set gldetail.xprime=0.00+prime
+                   set gldetail.xbase=0.00+prime
+                   insert gldetail
+                end if
+                if globals(ErrChk) .ne. "1"
+                   buffer gldetail
+                   set gldetail.xvoucher=vouchernum
+                   set gldetail.xrow=0+20
+                   set gldetail.xacc=xacccr
+                   set gldetail.xaccusage=#sql("select xaccusage from glmst where xacc='"+xacccr+"'")
+                   set gldetail.xaccsource=#sql("select xaccsource from glmst where xacc='"+xacccr+"'")
+                   set gldetail.xsub=xsubcr
+                   set gldetail.xdiv="ANY"
+                   set gldetail.xsec="ANY"
+                   set gldetail.xproj="ANY"
+                   set gldetail.xcur="BDT"
+                   set gldetail.xexch="1"
+                   set gldetail.xprime=0.00-prime
+                   set gldetail.xbase=0.00-prime
+                   insert gldetail
+                end if
+                if globals(ErrChk) .ne. "1"
+                   str mysql = "select sum(xprime) from gldetail where xvoucher='"+glheader.xvoucher+"'"
+                   set detval = #sql(str,mysql)
+                   if detval != 0.0
+                      str mysql = "update glheader set xstatusjv='Out of Balance' where xvoucher='"+glheader.xvoucher+"'"
+                      set tmpstr = #sql(str,mysql)
+                   else
+                      str mysql = "update famaitanence set xglref='Posted' where zid='"+#id+"' and xvoucher='"+xvoucher+"' "
+                      set tmpstr = #sql(str,mysql)
+                      action show
+                   end if
+                   print " Posted Voucher No. "+vouchernum
+                end if
+            end event
+        end field
+
+         
+        //embed onsubmit="return submitit(this)"
+        embed onsubmit="submitit(this)"
+        
+        field details
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function docs(b){
+          detail="docs"
+        }
+        function manual(b){
+          detail="manual"
+        }
+        function search(b){
+          detail="search"
+        }
+
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "famaitanencedet"
+            form.searchbutton.value = "Find xvoucher=?"
+            //return false
+          }else if (detail=="docs"){
+            form.page.value = "xdocs"
+            form.searchbutton.value = "Top"
+          }else if (detail=="manual"){
+            form.page.value = "glhelpjv"
+            form.searchbutton.value = "Top"
+          }else if (detail=="search"){
+              var link =  #servlet+"?page=glvsearch&menu=*none*&zvalue="+form.zvalue.value
+
+              var width = 700
+              var left = 600
+              if (screen){
+                left = screen.width-width
+              }
+              var param = "toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,center=0,alwaysRaised=yes,resizable=yes,width="+width+",top=0,left="+left
+              window.open(link,"Search",param)
+              result = false
+		  }
+        }
+
+        </script>
+     end script
+
+	valid valid
+		//mandatory xacc,xcheque
+
+		config
+			set dummy_1 = #sql(str,"select xdesc from glmst where xacc='"+xaccdr+"'")
+			set dummy_2 = #sql(str,"select xdesc from glmst where xacc='"+xsubdr+"'")
+			set dummy_3 = #sql(str,"select xdesc from glmst where xacc='"+xacccr+"'")
+			set dummy_4 = #sql(str,"select xdesc from glmst where xacc='"+xsubcr+"'")
+			
+			set xaccusage = #sql(str,"select xaccusage from glmst where xacc='"+xaccdr+"'")
+			set xaccsource = #sql(str,"select xaccsource from glmst where xacc='"+xaccdr+"'")
+			
+			//print xaccusage + " "+ xaccsource
+			
+            if xaccusage .eq. "Ledger" .or. xaccusage .eq. "Bank" .or. xaccusage .eq. "Cash" .and. xaccsource .eq. "Subaccount"
+                set #field(xsubdr.pick)="list xfasub"
+                set dummy_2=#sql(str,"select xdesc from glsub where xacc='"+xaccdr+"' and xsub='"+xsubdr+"'")
+            else if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+                set #field(xsubdr.pick)="list glcus"
+                set dummy_2=#sql(str,"select xorg from cacus where xcus='"+xsubdr+"'")
+            else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+                set #field(xsubdr.pick)="list glsup"
+                set dummy_2=#sql(str,"select xorg from casup where xsup='"+xsubdr+"'")
+            else if xaccusage .eq. "Ledger" .and. xaccsource .eq. "Employee"
+                set #field(xsubdr.pick)="list glemp"
+                set dummy_2=#sql(str,"select xname from prmst where xemp='"+xsubdr+"'")
+            else
+            	set #field(xsubdr.display) = "hide"
+            	set #field(dummy_2.display) = "hide"
+              	set xsub = ""
+              	set dummy_2 = ""
+            end if
+            
+			set xaccusage1 = #sql(str,"select xaccusage from glmst where xacc='"+xacccr+"'")
+			set xaccsource1 = #sql(str,"select xaccsource from glmst where xacc='"+xacccr+"'")
+
+            if xaccusage1 .eq. "Ledger" .or. xaccusage1 .eq. "Bank" .or. xaccusage1 .eq. "Cash" .and. xaccsource1 .eq. "Subaccount"
+                set #field(xsubcr.pick)="list xfasubcr"
+                set dummy_4=#sql(str,"select xdesc from glsub where xacc='"+xacccr+"' and xsub='"+xsubcr+"'")
+            else if xaccusage1 .eq. "AR" .and. xaccsource1 .eq. "Customer"
+                set #field(xsubcr.pick)="list glcus"
+                set dummy_4=#sql(str,"select xorg from cacus where xcus='"+xsubcr+"'")
+            else if xaccusage1 .eq. "AP" .and. xaccsource1 .eq. "Supplier"
+                set #field(xsubcr.pick)="list glsup"
+                set dummy_4=#sql(str,"select xorg from casup where xsup='"+xsubcr+"'")
+            else if xaccusage1 .eq. "Ledger" .and. xaccsource1 .eq. "Employee"
+                set #field(xsubcr.pick)="list glemp"
+                set dummy_4=#sql(str,"select xname from prmst where xemp='"+xsubcr+"'")
+            else
+            	set #field(xsubcr.display) = "hide"
+            	set #field(dummy_4.display) = "hide"
+              	set xsub = ""
+              	set dummy_2 = ""
+            end if
+
+
+		end config
+
+	end valid
+
+  end page

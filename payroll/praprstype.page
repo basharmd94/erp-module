@@ -1,0 +1,96 @@
+page praprstype
+	
+     embed onload="move_caret('one','xaprstype')"
+     caption header
+     sections form one, list one, script myscript,~
+         method mustcheck
+
+     list one
+        table praprstype
+        order xaprstype,xmgtgrade
+        rows 10
+        objects xaprstype,xmgtgrade attrib(link #servlet+"?page="+page+"&command=Show&xaprstype=?&xmgtgrade=?"),~
+         xscore,xrate,xstataprs
+        
+        field xscore
+          caption Score >=
+        end field
+
+        field xrate
+          caption Score <=
+          scale 2
+        end field
+
+     end list
+
+     form one
+        //caption "<font color=black size=3>Apraisal Type"
+        table praprstype
+		valid valid
+        order xaprstype,xmgtgrade
+        layout 1
+        objects Add,Show,Clear, Update, Delete, Top, Previous, Next, Bottom,~
+                xaprstype,xmgtgrade,xscore,xrate,xstataprs,~
+                zemail display(hide),xemail display(hide)                
+
+        field xscore
+          caption Score >=
+        end field
+
+        field xrate
+          caption Score <=
+          scale 2
+        end field
+        
+        field add
+          event before
+            set globals(ErrChk)=""
+            call mustcheck
+            if globals(ErrChk) .eq. ""
+               set zemail=#user
+            end if
+          end event
+        end field
+
+        field Update
+          event before
+            set globals(ErrChk)=""
+            call mustcheck
+            if globals(ErrChk) .eq. ""
+               set xemail=#user
+            end if
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Sub
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        </script>
+     end script
+
+     method mustcheck
+        if xrate < xscore
+          set globals(ErrChk) = "1"
+          error #field(xrate.caption)+" must be >= "+#field(xscore.caption)
+        end if
+     end method
+
+	 valid valid
+		config
+			set header = "Apraisal Type"
+		end config
+	 end valid
+	 
+end page

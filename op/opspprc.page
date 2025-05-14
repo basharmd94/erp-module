@@ -1,0 +1,95 @@
+page opspprc
+
+     caption header
+
+     sections form one,list new
+	 
+	 
+     list new
+        caption "Special Price"
+		empty "There is Not Data "
+        table opspprc
+        order xpricecat,xqty
+        
+        rows 20
+        objects ~
+				xpricecat attrib(link #servlet+"?page=opspprc&command=Show&xpricecat=?&xqty=?"),~
+				xqty,xqtypur,xstdprice,xdisc,xdateeff,xdateexp,xtype
+									
+
+		field xqty
+			caption From Qty. 
+		end field
+
+		field xqtypur
+			caption To Qty. 
+		end field
+									
+		field xstdprice
+			display hide
+			caption Rate
+		end field
+		
+		field xtype
+			caption Sales Type
+		end field
+		
+		field xdisc
+			caption Discount
+		end field
+     end list
+
+	 
+	 
+
+     form one
+        valid valid
+        table opspprc
+        order xpricecat,xqty
+        layout 1
+        objects Show,Add, Update,Clear,Delete, ~
+                xpricecat,xqty,xqtypur,xstdprice,xdisc,xdateeff,xdateexp,xtype
+				
+				
+		
+		field xstdprice
+			caption Rate
+			display hide
+			wid 12
+			len 10.2
+		end field
+		
+		field xtype
+			caption Sales Type
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Sales Type' and zactive='1'"
+		end field
+		
+		
+		field xdisc
+			caption Discount
+			wid 12
+		end field
+		
+		field xqty
+			caption From Qty. 
+		end field
+
+		field xqtypur
+			caption To Qty. 
+		end field
+		
+         field Add
+            event before
+			
+            end event
+         end field
+     end form
+
+	 valid valid         
+		config
+			
+			set header = "<font color=green size=4+>Special Price</font><br>"
+			    
+		end config  
+	end valid   
+end page

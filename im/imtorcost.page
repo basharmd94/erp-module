@@ -1,0 +1,151 @@
+page imtorcost
+     caption "Transport Cost"
+     sidebar list one
+     sections form one, script myscript
+
+     list one
+        table imtorcost
+        order ximtor,xrow
+        fixed ximtor
+        rows 10
+        objects xrow attrib(link "main?page=imtorcost&command=Show&ximtor=?&xrow=?"), ~
+                xname,xlong,xcost
+
+     end list
+
+     form one
+        table imtorcost
+        order ximtor,xrow
+        fixed ximtor
+        return "Main"
+        layout 1
+        objects ~
+                Add,Clear,Show,Update, Top, Previous, Delete, Next, Bottom,returnpage,trnfield, Return,~
+                xrow attrib(row 0 1; search),xname,xcur,xexch display(hide),xcost,xlong
+
+        field returnpage
+          attrib local
+          caption Return Page
+          display hide
+          event after
+            set returnpage=globals(returnpage)
+          end event
+        end field
+        
+        field trnfield
+          attrib local
+          caption Transaction Field
+          display hide
+          event after
+            set trnfield=globals(trnfield)
+ 			console "trnfield="+trnfield
+          end event
+        end field
+
+		field xrow
+			event after
+				set globals(xrow)=xrow
+			end event
+		end field
+		
+        field xcur
+          display hide
+        end field
+
+        field xname
+          pick list xtorcost
+          caption Cost Code
+        end field
+
+		field xlong
+			with 50
+			height 2
+			caption Narration
+		end field
+		
+        field add
+	        event before
+	        	set globals(ErrChk) = ""
+	        	
+	        	if globals(ErrChk) .ne. "1"
+	        		set chkcode = #sql("select xcode from xcodes where xtype='Transfer Cost Code' and xcode='"+xname+"'")
+	        		if #result .ne. "true"
+	        			set globals(ErrChk) = "1"
+	        			error "Wrong Cost Code"
+	        		end if
+	        	end if
+				
+				if globals(ErrChk) .ne. "1"
+		        	set xcur = #cur
+		            set xdate=#sql(string,"select xdate from imtor where ximtor='"+ximtor+"'")
+		            double rate=0.00+caexch.xexch("xcur='"+xcur+"' and xdate <= '"+xdate+"'  Order by xdate DESC")
+		            if rate <= 0.00
+		              double rate=0.00+xcur.xexch("xcur='"+xcur+"'")
+		            end if
+		            if rate <= 0.00
+		              set xexch="1"
+		            else
+		              set xexch=rate
+		            end if
+		            if xcur .eq. ""
+		              error "Please pick Currency"
+		            end if
+				end if	        	
+	        end event
+	        event after
+				if globals(ErrChk) .ne. "1"
+					set temp=#sql(string,"update imtor set xcost=(select sum(xcost*xexch) from imtorcost where ximtor='"+ximtor+"' and zid="+#id+") where ximtor='"+ximtor+"' and zid="+#id+")				
+				end if	        	            
+	        end event
+        end field
+
+        field update
+	        event after
+	        	set globals(ErrChk)=""
+	        	if xrow .ne. globals(xrow)
+					set globals(ErrChk) = "1"
+					error "Record pointer mismatch"	            	
+	            end if
+	            if globals(ErrChk) .ne. "1"
+	            	set temp=#sql(string,"update imtor set xcost=(select sum(xcost*xexch) from imtorcost where ximtor='"+ximtor+"' and zid="+#id+") where ximtor='"+ximtor+"' and zid="+#id+")
+	            end if
+	        end event
+        end field
+
+        field delete
+	        event after
+	        	set globals(ErrChk)=""
+	        	if xrow .ne. globals(xrow)
+					set globals(ErrChk) = "1"
+					error "Record pointer mismatch"	            	
+	            end if
+	            if globals(ErrChk) .ne. "1"
+	            	set temp=#sql(string,"update imtor set xcost=(select sum(xcost*xexch) from imtorcost where ximtor='"+ximtor+"' and zid="+#id+") where ximtor='"+ximtor+"' and zid="+#id+")
+	            end if
+	        end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+        
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = form.returnpage.value
+            form.searchbutton.value = "Find "+form.trnfield.value+"=?"
+          }
+        }
+        </script>
+     end script
+
+end page

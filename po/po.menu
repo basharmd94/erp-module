@@ -1,0 +1,21 @@
+//po.menu
+//-------------------------------------------------------------------
+caption "Purchasing" page 3
+option                |action
+//-------------------------------------------------------------------
+-Requisitions
+Purchase Requisitions          |#classPath+"/"+#servlet+"?menu=poreq"
+-Quotations
+Quotations            		   |#classPath+"/"+#servlet+"?menu=poquot"
+-Purchase
+Local Purchase				   |#classPath+"/"+#servlet+"?menu=polocal"
+-
+Import Purchase				   |#classPath+"/"+#servlet+"?menu=poimport"
+-Reports
+Local Reports         		   |#classPath+"/"+#servlet+"?menu=polocalreports"
+-
+Import Reports           	   |#classPath+"/"+#servlet+"?menu=poimportreports"
+-Setup
+Department Wise Authority Setup  		   |#classPath+"/"+#servlet+"?page=imsetdept"
+Codes and Parameters  		   				|#classPath+"/"+#servlet+"?menu=pocodes"
+//-------------------------------------------------------------------

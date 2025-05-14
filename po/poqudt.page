@@ -1,0 +1,396 @@
+page poqudt
+    caption header
+    //embed onload="move_caret('detail','xsup')"
+    sidebar list order
+	dependent
+    sections form detail,list prv_ord_sup_item, text top, script myscript
+              
+    text top
+        "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list order
+        caption "Details for Quotation "+xpoqot
+		table (select *,~
+			(select xorg from casup ~
+			where zid=poqudt.zid and xsup=poqudt.xsup) as supdesc ~
+			from poqudt) as tbl
+        order xpoqot,xrow
+        fixed xpoqot
+        rows 20
+        objects xrow attrib(link #servlet+"?page=poqudt&command=Show&xpoqot=?&xrow=?"), ~
+            xsup,supdesc,xqtyord,xunitpur,xcur,xrate caption(Quote Price),xstatusqdt
+
+        field xunitpur
+            caption Unit
+        end field
+
+        field supdesc
+            storage varchar
+            caption Name
+        end field
+        
+        field xqtyord
+            len 10.2
+            caption Qty Offered
+        end field
+
+        field xrate
+            len 10.2
+        end field
+
+    end list
+
+    list prv_ord_sup_item
+        caption "Previous 5 Order(s) for Item: <font color=red>"+globals(xitem)+"</font> to Supplier : <font color=red>"+xsup
+        table poodtview
+        order xsup,xitem,xdate DESC
+        fixed xsup,xitem
+        rows 5
+        objects xdate,xpornum,xrow,xqtyord,xrate
+    end list
+     
+    form detail
+        valid valid,access
+        table poqudt
+        order xpoqot,xrow
+        fixed xpoqot        
+        layout 1
+		focus xsup
+		default Add
+        objects Show, Add,Clear,Update, Top, Previous, Delete, Next, Bottom,Return,~
+            xrow attrib(row 0 1; attach),xstatusqdt display(const),xstatuspdt display(hide),~
+            xsup attrib(attach; submit),sup_name,xsupref,xdatesupref default(#date),~
+            xqtyord attrib(attach),xunitpur disply(const),xcur attrib(attach),xexch,xrate caption(Quote Price),~
+            xleadt caption(Lead Time in Days),xqtypur display(const),xpornum display(const),~
+            xapprover display(const) attrib(attach),xdateapp display(const),xapptime display(hide),~
+            zemail display(hide), xemail display(hide)
+
+        field show
+        	event before
+        		set globals(temp) = xrow
+        		set globals(tempsup)=xsup
+        	end event
+        	event after
+        		set globals(temp) = xrow
+        		set globals(tempsup)=xsup
+        	end event
+        end field
+
+        field Top
+        	event after
+        		set globals(temp) = xrow
+        		set globals(tempsup)=xsup
+        	end event
+        end field
+
+        field xrow
+            width 5
+            event after
+                set globals(xrow) = xrow
+                set #field(xsup.caption) = "<font color=red>"+#field(xsup.caption)+"</font>"
+                set status = #sql(str,"select xstatusqdt from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xstatusqdt='"+#status("xstatusqdt",4)+"'")
+                if #result .eq. "true"
+                    set #field(Add.display) = "disable"
+                    set #field(Update.display) = "disable"
+                    set #field(Delete.display) = "disable"
+                    set #field(Approve.display) = "disable"
+                end if
+            end event
+        end field
+
+        field xsup
+            width 20
+            event after
+                set globals(xsup)=xsup
+            end event
+        end field
+
+        field sup_name
+            attrib local
+            display const
+            caption Name
+            event after
+                set sup_name=#sql(str,"select xorg from casup where xsup='"+xsup+"'")
+            end event
+        end field
+
+        field xstatuspdt
+            caption Status
+        end field
+
+        field xcur
+            default "BDT"
+        end field
+
+        field xqtyord
+            width 10
+            len 10.2
+            caption Qty Offered
+        end field
+
+        field xexch
+            width 15
+        end field
+
+        field xrate
+            width 10
+            len 10.2
+            caption Quote Price
+        end field
+
+        field xleadt
+            caption Lead Time in Days
+        end field
+
+        field xqtypur
+            len 10.2
+        end field
+        
+        field zemail
+            caption Created By
+        end field
+        
+        field xemail
+            caption Updated By
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_code
+                end if
+                
+                if globals(ErrChk) .ne. "1"
+                    set chkrec = #sql(int,"select count(*) from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xsup='"+xsup+"'")
+                    if chkrec > 0
+                        set globals(ErrChk) = "1"
+                        error "Dulicate Record"
+                    end if
+                end if
+                
+                if globals(ErrChk) .ne. "1"
+                    set xstatuspdt=""
+                    set zemail = #user
+                    set xunitpur=#sql(str,"select xunitstk from caitem where xitem='"+xitem+"'")
+                    set xstatusqdt = #status("xstatusqdt",1)
+                    if xqtyord <= 0
+                        set xqtyord = 1
+                    end if
+                end if
+            end event
+        end field
+
+        field update
+            event before
+                set globals(ErrChk) = ""
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(xrow)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(temp)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_code
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xemail = #user
+                    set xunitpur=#sql(str,"select xunitstk from caitem where xitem='"+xitem+"'")
+                end if
+            end event
+        end field
+
+        field delete
+            event before
+                set globals(ErrChk) = ""
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(xrow)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(temp)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+                
+            end event
+        end field
+
+        field Approve
+            event before
+                set globals(ErrChk) = ""
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(xrow)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(temp)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chkrec = #sql(int,"select count(*) from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xstatusqdt='"+#status("xstatusqdt",4)+"'")
+                    if chkrec > 0
+                        set globals(ErrChk) = "1"
+                        error "Duplicate approval not possible"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    str mysql = "update poqudt set xstatusqdt='"+#status("xstatusqdt",4)+"',xapprover='"+#user+"',xdateapp='"+#date+"',xapptime='"+#time+"' where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xrow='"+xrow+"'"
+                    set tmpstr = #sql(str,mysql)
+                    action show
+                end if
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+            embed onclick="clicked(this)"
+        end field
+
+    end form
+
+    script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+        
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+            //b.value = "Find xpoqot=?"
+            detail="clicked"
+        }
+        function submitit(form){
+            if (detail=="clicked"){
+                form.page.value = "poquot"
+                form.searchbutton.value = "Find xpoqot=?"
+            }
+        }
+
+        </script>
+    end script
+
+    method chk_code
+        set chksup = #sql("select xsup from casup where zid='"+#id+"' and xsup='"+xsup+"' and xstatussup='1-Open Normal'")
+        if #result .ne. "true"
+            set globals(ErrChk) = "1"
+            error "Wrong Supplier Code"
+        end if
+    end method
+
+    method chk_rec
+		if globals(ErrChk) .ne. "1"
+          	set stat = poquot.xstatusqot(" zid='"+#id+"' and xpoqot='"+xpoqot+"'")
+          	if stat .ne. #status("xstatusqot",1)
+                set globals(ErrChk)="1"
+          		error "Cannot "+#command+" Status "+stat
+          	end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+            set xstatusqdt=poqudt.xstatusqdt("zid='"+#id+"' and xpoqot='"+xpoqot+"' and xrow='"+xrow+"'")
+            if xstatusqdt .eq. #status("xstatusqdt",4)
+                set globals(ErrChk) = "1"
+                error "Cannot "+#command+"</p>Status: "+xstatusqdt
+            end if
+        end if
+    end method
+
+    valid valid
+        mandatory xsup
+        config
+            set globals(pkey) = xpoqot+" "+xrow
+
+            set header = "<span class=bl>Quotation Details: <a href=/da/"+#servlet+"?page=poquot&command=Show&xpoqot="+xpoqot+">" +xpoqot+ "</a></span>"
+            set header = header+" Item: "+poquot.xitem("zid='"+#id+"' and xpoqot='"+xpoqot+"'")+" "+caitem.xdesc("zid='"+#id+"' and xitem='"+globals(xitem)+"'")
+
+            set chkrec = #sql(int,"select count(*) from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xstatusqdt='"+#status("xstatusqdt",4)+"'")
+            if chkrec > 0
+                set #field(Add.display) = "disable"
+                set #field(Update.display) = "disable"
+                set #field(Delete.display) = "disable"
+                set #field(Approve.display) = "disable"
+            end if
+            if xunitpur .eq. ""
+                set xunitpur=caitem.xunitpur("zid='"+#id+"' and xitem='"+xitem+"'")
+            end if
+        end config
+	end valid
+	
+#include access.valid
+
+end page			

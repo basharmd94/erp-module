@@ -1,0 +1,13 @@
+product ERP on the Net
+
+table famaitanence
+  caption "Fa Maintanence"
+  columns ztime,zutime,zid, xvoucher,xcode,xdate,xyear,xper,xcomp,xaccdr ,xsubdr ,xacccr ,xsubcr,xglref,xrem
+  
+  primary key zid, xvoucher
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table

@@ -1,0 +1,20 @@
+product ERP on the Net
+
+table poilc
+  caption "L.C. Information"
+  columns ztime,zutime,zid,xpornum,xsup,xlcno,xlcopndate,xlcclsdate,xindent,xdateord,~
+          xpayact,xcountry,xtotamt,xcur,xexch,xinscvr,xdateass,xmnfst,xdate,xdateres,xcarrier,~
+          xdatesch,xblno,xbeno,xdateeff,xlong,xicno,xpinvno,xpinvdate,xlmemt,xshipupto,xshipdate,~
+          xlcano,xamddate,xpsino,xlcvalue,xfobval,xbank,xfreight,xstatusord,zemail,xemail,~
+          xteam,xmember,xmanager
+          
+  primary key zid, xpornum
+
+  unique zid,xlcno
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xpornum references poord.zid,xpornum
+  end foreign key
+
+end table

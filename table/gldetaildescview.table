@@ -1,0 +1,26 @@
+product ERP on the Net
+
+table gldetaildescview
+  caption "GL Detail View"
+  
+  sql create view gldetaildescview (ztime,zutime, zid, xvoucher,xrow,xacc,acc_desc,xaccusage,xaccsource,xsub,sub_desc,xdiv,xsec,xproj,~
+           debit,credit,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+           xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xcheque,xref,xdateapp) ~
+           as select  ~
+           gldetail.ztime,gldetail.zutime, gldetail.zid, gldetail.xvoucher,gldetail.xrow,~
+		   gldetail.xacc,(select xdesc from glmst where zid=gldetail.zid and xacc=gldetail.xacc),~
+		   gldetail.xaccusage,gldetail.xaccsource,~
+		   gldetail.xsub,(case when gldetail.xaccsource='Subaccount' then (select xdesc from glsub where zid=gldetail.zid and xacc=gldetail.xacc and xsub=gldetail.xsub) ~
+           when gldetail.xaccsource='Employee' then (select xname from prmst where zid=gldetail.zid and xemp=gldetail.xsub) ~
+           when gldetail.xaccsource='Customer' then (select xorg from cacus where zid=gldetail.zid and xcus=gldetail.xsub) ~
+           when gldetail.xaccsource='Supplier' then (select xorg from casup where zid=gldetail.zid and xsup=gldetail.xsub) end),~
+		   gldetail.xdiv,gldetail.xsec,gldetail.xproj,~
+		   (case when xprime>0 then xprime end),(case when xprime<0 then 0-xprime end), ~
+		   gldetail.xcur,gldetail.xexch,gldetail.xprime,gldetail.xbase,gldetail.xlong,gldetail.xicacc,gldetail.xicsub,gldetail.xacctype,gldetail.zemail,gldetail.xemail,~
+           gldetail.xicdiv,gldetail.xicsec,gldetail.xicproj,gldetail.xvmcode,gldetail.xamount,gldetail.xrem,gldetail.xcheque,gldetail.xref,gldetail.xdateapp ~
+           from gldetail											   
+
+
+end table
+
+

@@ -1,0 +1,40 @@
+product ERP on the Net
+
+table gldetailview
+  caption "GL Detail View"
+  columns  ztime,zutime, zid, xvoucher,xrow,xacc,xdesc,acc_desc,xaccusage,xaccsource,xsub,sub_desc,xdiv,xsec,xproj,~
+           xcur,xexch,xprime,xlong,xdatedue,xcheque,xstatus,xinvnum,xoriginal,~
+           xtypegl,xdateapp,xyear,xper,xdate,~
+           xref,xmember,xteam,xmanager,xacctype,xnote,xtrngl,xstatusjv,xexchval,xdoctype,xdocnum
+
+  primary key zid, xvoucher, xrow
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+  sql select  ~
+           gldetail.ztime,gldetail.zutime, gldetail.zid, gldetail.xvoucher,gldetail.xrow,~
+		   gldetail.xacc,(select xdesc from glmst where zid=gldetail.zid and xacc=gldetail.xacc),~
+		   (select xdesc from glmst where zid=gldetail.zid and xacc=gldetail.xacc),~
+		   gldetail.xaccusage,gldetail.xaccsource,~
+		   gldetail.xsub,(case when gldetail.xaccsource='Subaccount' then (select xdesc from glsub where zid=gldetail.zid and xacc=gldetail.xacc and xsub=gldetail.xsub) ~
+           when gldetail.xaccsource='Employee' then (select xname from prmst where zid=gldetail.zid and xemp=gldetail.xsub) ~
+           when gldetail.xaccsource='Customer' then (select xorg from cacus where zid=gldetail.zid and xcus=gldetail.xsub) ~
+           when gldetail.xaccsource='Supplier' then (select xorg from casup where zid=gldetail.zid and xsup=gldetail.xsub) end),~
+		   gldetail.xdiv,gldetail.xsec,gldetail.xproj,~
+           gldetail.xcur,gldetail.xexch,gldetail.xprime,gldetail.xlong,gldetail.xdatedue,gldetail.xcheque,gldetail.xstatus,gldetail.xinvnum,gldetail.xoriginal,~
+           gldetail.xtypegl,gldetail.xdateapp,~
+           glheader.xyear,glheader.xper,glheader.xdate,~
+           glheader.xref,glheader.xmember,glheader.xteam,glheader.xmanager,~
+           (select xacctype from glmst where glmst.zid=gldetail.zid and glmst.xacc=gldetail.xacc),glheader.xnote,glheader.xtrngl,glheader.xstatusjv, ~
+		   case when coalesce(gldetail.xexchval,gldetail.xexch) = 0  then gldetail.xexch else coalesce(gldetail.xexchval,gldetail.xexch) end, xdoctype,xdocnum ~
+           from gldetail, glheader where gldetail.zid=glheader.zid and gldetail.xvoucher=glheader.xvoucher and ~
+				(select abs(sum(xexch*xprime)) from gldetail where ~
+				gldetail.xvoucher=glheader.xvoucher and gldetail.zid=glheader.zid)< cast(0.01 as numeric(4,2))
+											   
+
+
+//***relation glarview,glapview,glalcar,glalcap
+
+end table
+
+

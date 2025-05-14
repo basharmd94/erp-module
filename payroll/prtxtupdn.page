@@ -1,0 +1,169 @@
+page prtxtupdn
+
+    caption "Attendance Posting(In For Team)"
+    sections form imtrn,script myscript
+
+    form imtrn      
+      layout 1
+      objects ~
+      		xdatefrom default(#d),Process,Show
+      		
+       field xdatefrom
+            caption Date
+       end field
+	   
+		field process
+			event before
+
+				set globals(ErrChk) = ""    
+				
+					
+				set In_time = ""
+				set Out_time = ""
+				set stat = ""
+				set D_time = ""
+				set P_time = ""		  
+
+				int i = 0
+				int count=0
+				str clist="xemp"
+				str mysql = "select "+clist+" from pratdummy where zid='"+#id+"'  and xdate='"+xdatefrom+"'"
+				set count = #sqlfill(mysql)
+//error #result+"-"+count+"-"+mysql
+				if count>0
+					while i<count
+						array get(i,clist)
+										
+						set emp_code = #sql(str,"select xemp from prmst where zid='"+#id+"' and xid='"+xemp+"' and xstatusemp='A-Active' and xshift<>''")
+
+
+						set empshift=#sql(str,"select xshift from prmst where zid='"+#id+"' and  xemp='"+emp_code+"'")
+						set shift=empshift
+//	print   	shift				
+						if shift .ne. ""
+							set chkdate = #sql("select xdate from prath where zid ='"+#id+"' and xdate='"+xdatefrom+"' and xshift='"+shift+"' ")
+
+							if #result .ne. "true" 
+								set mysql = "insert into prath (zid,xyear,xper,xday,xdate,xshift,xatdrem,zemail,xemail)"
+								set mysql = mysql + " values('"+#id+"','"+#sub(xdatefrom,0,4)+"','"+#sub(xdatefrom,5,2)+"','"+#sub(xdatefrom,8,2)+"',~
+													'"+xdatefrom+"','"+shift+"','','"+#user+"','')"
+								set insdata =#sql(mysql)
+								//error  #result+""-"+mysql
+								if #result .ne. "true"
+									set globals(ErrChk)="1"
+									error "Error Creating In Attendence Process Details."
+								end if
+							end if
+						end if
+						
+						set d_in_time=#sql("select xtssch2 from pratdt where zid='"+#id+"' and xshift ='"+shift+"'")
+						set d_out_time=#sql("select xtssch from pratdt where zid='"+#id+"' and xshift ='"+shift+"' ")
+						set In_time = #sql("select min(xdesc) from pratdummy where xdate='"+xdatefrom+"' and xemp='"+xemp+"'")
+						
+						
+						if In_time .le. d_in_time
+							set stat = "Present"
+						else
+							set stat = "Late"
+						end if
+						//error stat
+
+						set In_time=xdatefrom+" "+In_time
+						
+						set xlitime=xdatefrom+" "+d_in_time
+						set xlotime=xdatefrom+" "+d_out_time
+						
+						set out_time=xdatefrom+" "+"00:00:00"
+						
+						set chkday=#sql("select xname from cadate where zid='"+#id+"' and xdate='"+xdatefrom+"'")
+//error out_time
+						set chkrec = #sql("select xemp from pratd where zid ='"+#id+"' and xdate='"+xdatefrom+"' and xshift='"+shift+"' and xemp='"+emp_code+"' ")        
+						//print emp_code+" "+In_time+" "+d_in_time
+						if #result .ne. "true"	
+							set mysql = "insert into pratd (ztime,zid,xyear,xper,xday,xdate,xshift,xemp,~
+										xintime,xouttime,xlotime,xlitime,xatdstat,xpflag,zemail,xemail,xrem,xtimediff,xhour,xamount,xname)"
+							set mysql = mysql + " values('"+#time+"','"+#id+"','"+#sub(xdatefrom,0,4)+"','"+#sub(xdatefrom,5,2)+"','"+#sub(xdatefrom,8,2)+"',~
+											'"+xdatefrom+"','"+shift+"','"+emp_code+"','"+In_time+"','"+out_time+"','"+xlotime+"','"+xlitime+"','"+stat+"','','"+#user+"',~
+											'','','0.0','0.0','0.0','"+chkday+"')"
+							set insdata =#sql(mysql)
+							
+							//print  #result+"-"+emp_code+"-"+mysql
+
+							if #result .ne. "true"
+								set globals(ErrChk)="1"
+								//error "Error Creating In Attendence Process Details."
+							end if
+						end if
+						set i=0+i+1
+					end while
+				end if
+
+				
+				set mysql = "insert into prath (zid,xyear,xper,xday,xdate,xshift,xatdrem,zemail,xemail)"
+				set mysql = mysql +" values('"+#id+"','"+#sub(xdatefrom,0,4)+"','"+#sub(xdatefrom,5,2)+"','"+#sub(xdatefrom,8,2)+"',~
+								'"+xdatefrom+"','default','','"+#user+"','') "
+							
+				set insdata =#sql(mysql)
+					
+				
+				set mysql = "insert into pratd (ztime,zid,xyear,xper,xday,xdate,xshift,xemp,~
+							xintime,xouttime,xlotime,xlitime,xatdstat,xpflag,zemail,xemail,xrem,xtimediff,xhour,xamount,xname)"
+							
+				set mysql = mysql + " select '"+#time+"','"+#id+"','"+#sub(xdatefrom,0,4)+"','"+#sub(xdatefrom,5,2)+"','"+#sub(xdatefrom,8,2)+"','"+xdatefrom+"','default', ~
+							xemp,'"+#max+"','"+#max+"','"+#time+"','"+#time+"','Not-Punched','','"+#user+"','','','0.0','0.0','0.0','"+chkday+"' from prmst where zid='"+#id+"' and xstatusemp='A-Active' and ~
+							xemp not in (select xemp from pratd where zid='"+#id+"' and xyear='"+#sub(xdatefrom,0,4)+"' and xper='"+#sub(xdatefrom,5,2)+"' and xday='"+#sub(xdatefrom,8,2)+"' )"
+							
+				set insdata =#sql(mysql)
+				
+				//error #result+"-"+mysql
+
+				
+				set updsql="update pratd set xatdstat='On Leave' where zid='"+#id+"' and xyear='"+#sub(xdatefrom,0,4)+"' and xper='"+#sub(xdatefrom,5,2)+"' and xday='"+#sub(xdatefrom,8,2)+"' ~
+							and xemp in (select xemp from prleave where zid='"+#id+"' and xfdate<='"+xdatefrom+"' and xtdate>='"+xdatefrom+"')"
+				set updsql1=#sql(str,updsql)
+
+				set updsql="update pratd set xatdstat='Absent',xintime='"+xdatefrom+"',xouttime='"+xdatefrom+"' where zid='"+#id+"' and xyear='"+#sub(xdatefrom,0,4)+"' and xper='"+#sub(xdatefrom,5,2)+"' and xday='"+#sub(xdatefrom,8,2)+"' ~
+							and xatdstat='Not-Punched'"
+				set updsql3=#sql(str,updsql)
+				
+				set chkh_day=#sql("select xremark from cadate where zid='"+#id+"' and xdate='"+xdatefrom+"'")
+				
+				if #result .eq. "true" .and. chkh_day .eq. "Holiday"
+					set mysql="update pratd set xatdstat='Holiday' where zid='"+#id+"' and xyear='"+#sub(xdatefrom,0,4)+"' and xper='"+#sub(xdatefrom,5,2)+"' and xday='"+#sub(xdatefrom,8,2)+"' "
+					set upval=#sql(str,mysql)
+					print #result+"  "+"Holy Day"
+					action show
+				end if
+				
+				print "<font color=green size=+1>Attendance Posting(In) Completed Successfully"
+				
+			end event
+			
+				
+
+		end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+          }
+        }
+         function keeplastkey(){
+        document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        }
+        </script>
+    end script
+
+end page

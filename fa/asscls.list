@@ -1,0 +1,15 @@
+     list asscls
+        table xcodes
+        order xcode
+        select "xtype='Asset Class'"
+        navigators alpha
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xname')"),~
+                xdescdet
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

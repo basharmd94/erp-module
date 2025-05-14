@@ -1,0 +1,297 @@
+page prschgen
+     caption "Pay Schedules"
+     sidebar text two
+     sections form one,list one
+
+     list one
+	      table prsch
+        order xcyclepay,xdatepay
+        select " xcyclepay = '"+xcyclepay+"'"
+        rows 20
+
+        objects  xcyclepay,xdatepay attrib(link #servlet+"?page="+page+"&command=Show&xcyclepay=?&xdatepay=?"),~
+            xdateeff,xdateexp,xstatussch
+
+
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+     form one
+        caption "Generate/Remove Schedule"
+	      //table hccal
+        //order xphysician ,xday,xtimestart
+        //select
+        
+        layout 3
+        objects Show, Clear,Generate Schedule,Remove Schedule ,~
+            xcyclepay columns(3),xdatepay,xdateeff,xdateexp,xnumcycles
+
+
+        field Generate
+          event before
+            if xcyclepay .eq. "Custom"
+              error "Custome Schedule has to be Generated Manually!"
+            end if
+            
+            buffer prsch
+            move prsch=#form
+            int pay=#day(xdatepay)
+            int eff=#day(xdateeff)
+            int exp=#day(xdateexp)
+            set prsch.xstatussch=#status("xstatussch",1)
+
+
+
+            if xcyclepay .eq. "Weekly"
+              call weekly
+            else if xcyclepay .eq. "Monthly"
+              call monthly
+            else if xcyclepay .eq. "Quarterly"
+              call quarterly
+            else
+              error xcyclepay+" Schedules are to be Generated Manually!"
+            end if
+          end event
+        end field
+        
+        
+        field Remove
+          event before
+            int cycle=0
+            while cycle<xnumcycles
+              set sql="select xdatepay from prsch where xcyclepay='"+xcyclepay+"' and xdatepay>='"+xdatepay+"' order by xdatepay"
+              set xdatepay=#sql(date,sql)
+              set sql="delete from prsch where xcyclepay='"+xcyclepay+"' and xdatepay='"+xdatepay+"'"
+              set temp=#sql(int,sql)
+              
+              set cycle=cycle+1
+                          
+            end while
+          end event
+        end field
+            
+
+            //,xnote
+
+     end form
+method lastday
+		set yyyy=#sub(thisdate,0,4)
+		int mm=#sub(thisdate,5,2)
+		set mm=mm+1
+		if mm>12 
+			set mm="01"
+			compute yyyy=yyyy+1
+		end if
+    set smm=#padl(mm,2,"0")
+		set date=yyyy+"-"+smm+"-01"
+		set #consolidate="true"
+    set lastday=#sql(date,"select cast('"+date+"' as date)-1") 
+		set #consolidate="false"
+		//console "lastday="+lastday
+		
+
+end method
+method nextmonth
+		set yyyy=#sub(currentdate,0,4)
+		int mm=#sub(currentdate,5,2)
+		str dd=#sub(currentdate,8,2)
+		set mm=mm+1
+		if mm>12 
+			set mm="01"
+			compute yyyy=yyyy+1
+		end if
+    str smm=#padl(mm,2,"0")
+		str newdate=yyyy+"-"+smm+"-"+dd
+    set nextmonth=newdate //#valid(newdate)
+    set validmonth=#valid(newdate)
+    if validmonth .eq. "false"
+      set thisdate=#sub(newdate,0,8)+"01"
+      call lastday
+      set nextmonth=lastday
+    end if
+		//console "nextmonth="+nextmonth
+		
+
+end method
+
+method nextqtr
+		console "currentdate="+currentdate
+		set yyyy=#sub(currentdate,0,4)
+		int mm=#sub(currentdate,5,2)
+		str dd=#sub(currentdate,8,2)
+		set mm=mm+3
+		if mm > 12
+			compute yyyy=yyyy+1
+    end if
+    if mm == 13 
+			set mm=01
+    else if mm == 14 
+			set mm=02
+    else if mm == 15 
+			set mm=03
+		end if
+    str smm=#padl(mm,2,"0")
+		str newdate=yyyy+"-"+smm+"-"+dd
+		console "newdate="+newdate
+    set nextqtr=newdate //#valid(newdate)
+    set validqtr=#valid(newdate)
+    if validqtr .eq. "false"
+      set thisdate=#sub(newdate,0,8)+"01"
+      call lastday
+      set nextqtr=lastday
+    end if
+		console "nextqtr="+nextqtr
+		
+
+end method
+method weekly
+              int cycle=0
+              while cycle < xnumcycles
+                set prsch.xdatepay=xdatepay                
+                set prsch.xdateeff=xdateeff                
+                set prsch.xdateexp=xdateexp                
+                insert prsch
+console "INSERT-W"
+                set cycle=cycle+1
+                comp pay=pay+7
+                comp eff=eff+7
+                comp exp=exp+7
+                set xdatepay=#longtodate(pay)
+                set xdateeff=#longtodate(eff)
+                set xdateexp=#longtodate(exp)
+console "pay*xdatepay="+pay+"*"+xdatepay
+                
+              end while
+end method
+method monthly
+              int cycle=0
+              str thisdate=xdatepay
+              call lastday
+              if thisdate .eq. lastday
+                str monthendpay="true"
+              else
+                str monthendpay="false"
+              end if
+
+              str thisdate=xdateexp
+              call lastday
+              if thisdate .eq. lastday
+                str monthendexp="true"
+              else
+                str monthendexp="false"
+              end if
+
+                //console  "monthendexp="+monthendexp
+                //console  "monthendpay="+monthendpay
+
+              while cycle < xnumcycles
+                set prsch.xdatepay=xdatepay                
+                set prsch.xdateeff=xdateeff                
+                set prsch.xdateexp=xdateexp                
+                insert prsch
+console "INSERT-M"
+
+                set cycle=cycle+1
+//console "PAYDATE"
+                
+                set currentdate=xdatepay
+                call nextmonth
+                set xdatepay=nextmonth
+                
+                if monthendpay .eq. "true"
+                  set thisdate=xdatepay
+                  call lastday
+                  set xdatepay=lastday
+                
+                end if
+//console "EFFECTIVE"
+                set currentdate=xdateeff
+                call nextmonth
+                set xdateeff=nextmonth
+//console "EXPIRY"
+
+                set currentdate=xdateexp
+                call nextmonth
+                set xdateexp=nextmonth
+                
+                if monthendexp .eq. "true"
+                  set thisdate=xdateexp
+                  call lastday
+                  set xdateexp=lastday
+                
+                end if
+
+
+                
+              end while
+            
+end method
+method quarterly
+              int cycle=0
+              str thisdate=xdatepay
+              call lastday
+              if thisdate .eq. lastday
+                str monthendpay="true"
+              else
+                str monthendpay="false"
+              end if
+
+              str thisdate=xdateexp
+              call lastday
+              if thisdate .eq. lastday
+                str monthendexp="true"
+              else
+                str monthendexp="false"
+              end if
+
+                //console  "monthendexp="+monthendexp
+                //console  "monthendpay="+monthendpay
+console "xnumcycles="+xnumcycles
+              while cycle < xnumcycles
+                set prsch.xdatepay=xdatepay                
+                set prsch.xdateeff=xdateeff                
+                set prsch.xdateexp=xdateexp                
+                insert prsch
+console "INSERT-Q"
+
+                set cycle=cycle+1
+console "PAYDATE"
+                
+                set currentdate=xdatepay
+console "CURRENTDATE="+currentdate
+                call nextqtr
+                set xdatepay=nextqtr
+                
+                if monthendpay .eq. "true"
+                  set thisdate=xdatepay
+                  call lastday
+                  set xdatepay=lastday
+                
+                end if
+console "EFFECTIVE"
+                set currentdate=xdateeff
+                call nextqtr
+                set xdateeff=nextqtr
+console "EXPIRY"
+
+                set currentdate=xdateexp
+                call nextqtr
+                set xdateexp=nextqtr
+                
+                if monthendexp .eq. "true"
+                  set thisdate=xdateexp
+                  call lastday
+                  set xdateexp=lastday
+                
+                end if
+
+
+                
+              end while
+            
+end method
+
+end page

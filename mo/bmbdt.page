@@ -1,0 +1,290 @@
+page bmbdt
+    //embed onload = "move_caret('one','xitem')"
+
+    caption "<span class=bl>BOM Detais for <a href=/da/"+#servlet+"?page=bmbom&command=Show&xbom="+xbom+">" +xbom+ "</a></span>"
+
+    sidebar list one
+    sections  form one,text top, script myscript
+
+    text top
+        "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list one
+        caption "Components for BOM "+xbom
+        //table bmbdt
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=bmbdt.zid and xitem=bmbdt.xitem) as itemdesc ~
+			from bmbdt) as tbl
+			
+        order xbom,xline
+        fixed xbom
+        select "zid='"+#id+"'"
+        rows 20
+        objects xline attrib(link #servlet+"?page="+page+"&command=Show&xbom=?&xline=?"), ~
+                xitem,itemdesc,~
+                xqty,xunit,xstype
+
+        field xqty
+           
+        end field
+		
+		field xamount
+			caption Amount
+		end field
+
+        field desc
+            caption Description
+            storage varchar
+        end field
+
+    end list
+
+    form one
+        valid valid,access
+        table bmbdt
+        order xbom,xline
+        fixed xbom
+        select "zid='"+#id+"'"
+        focus xitem
+		default Add
+        layout 1
+        objects Show,Add, Update, Clear, Delete, Top, Previous, Next, Bottom,Return,~// Back to Previous,
+                xline attrib(row 0 10),"",xitem attrib(submit;attach),xdesc,xqty attrib(attach),xunit display(const),~
+                xstype display(const),xoption display(hide),~
+                zemail attrib(hidden),xemail attrib(hidden)
+
+		field show
+			event before
+				set globals(temp) = xline
+			end event
+			event after
+				set globals(temp) = xline
+			end event
+		end field
+
+		field Top
+			event before
+				set globals(temp) = xline
+			end event
+			event after
+				set globals(temp) = xline
+			end event
+		end field
+
+        field xline
+            col 3
+            event after
+                set globals(xline)=xline
+            end event
+        end field
+
+        field xpercent
+            caption Process Loss Percent
+            len 10.2
+        end field
+
+        field xdesc
+            attrib local
+            event after
+                set xdesc=#sql("select xdesc from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+            end event
+            display constant
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    buffer caitem
+                    move caitem=caitem(xitem)
+                    if xitem .eq. ""
+                        set globals(Err_check) = "1"
+                        error "No Item Selected"
+                    else
+                        if caitem.xitem .ne. xitem
+                            set globals(Err_check) = "1"
+                            error "Invalid Item"
+                        else
+                            set xunit = caitem.xunitstk
+                            set xstype = caitem.xstype
+							//set xamount = xqty*xrate
+                            set zemail = #user
+                        end if
+                    end if
+                end if
+            end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+				
+				if globals(ErrChk) .ne. "1"
+                    //set xamount = xqty*xrate
+                end if
+
+                if globals(Err_check) .ne. "1"
+                    buffer caitem
+                    move caitem=caitem(xitem)
+                    if xitem .eq. ""
+                        set globals(Err_check) = "1"
+                        error "No Item Selected"
+                    else
+                        if caitem.xitem .ne. xitem
+                            set globals(Err_check) = "1"
+                            error "Invalid Item"
+                        else
+                            set xunit = caitem.xunitstk
+                            set xstype = caitem.xstype
+                            set xemail = #user
+                        end if
+                    end if
+                end if
+            end event
+        end field
+
+        field Delete
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+            end event
+        end field
+
+        field pick
+            event before
+
+                call mymethod
+
+                set xstype="Non-Stock"
+                int i = 0
+                int xrow=0
+                set xrow=#sql(int,"select xline from bmbdt where zid='"+#id+"' and xbom='"+globals(xbom)+"' order by xline DESC")
+                str my = "select xline from bmnstk where zid='"+#id+"' and xstype = '"+xstype+"' and xline > '"+i+"'"
+                set xline=#sql(str, my)
+                while #result .eq. "true"
+                    set i=xline
+                    str xbom=globals(xbom)
+                    
+                    buffer bmnstk
+                    move bmnstk=bmnstk(xstype,xline)
+                    buffer bmbdt
+                    set bmbdt.xbom=globals(xbom)                    
+                    set bmbdt.xline=0+i+xrow
+                    set bmbdt.xitem=bmnstk.xitem
+                    set bmbdt.xqty=bmnstk.xqty
+                    set bmbdt.xunit=bmnstk.xunit
+                    set bmbdt.xstype=bmnstk.xstype
+                    set bmbdt.xdate=#date
+                    insert bmbdt
+
+                    str my = "select xline from bmnstk where zid='"+#id+"' and xstype = 'Non-Stock' and xline > '"+i+"'"
+                    set xline=#sql(str, my)
+                end while
+                print "Non-Stock Items Picking Completed"
+            end event
+        end field
+
+        embed onsubmit="return submitit(this)"
+        field Return
+            embed onclick="clicked(this)"
+        end field
+
+        field Back
+            embed onclick="back(this)"
+        end field
+
+    end form
+
+    script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+            function clicked(b){
+              b.value = "Top"
+              detail="clicked"
+            }
+
+            function back(b){
+              b.value = "Top"
+              detail="back"
+            }
+
+            function submitit(form){
+
+            if (detail=="clicked"){
+                form.page.value = "bmbom"
+                form.searchbutton.value = "Find xbom=?"
+              }else if (detail=="back"){
+                form.page.value= "bmopt"
+                form.searchbutton.value = "Find xoption=?"
+             }
+            }
+
+            function pickItem(link){
+              if (navigator.appName.indexOf("Netscape")>0){
+                document.one.xitem.value=link.text
+              }else{
+                document.one.xitem.value=link.innerText
+              }
+              return false
+            }
+
+        </script>
+    end script
+
+    method chk_rec
+        if globals(ErrChk) .ne. "1"
+        	if xline .ne. globals(xline)
+        		set globals(ErrChk) = "1"
+        		set #command = "show"
+        		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+        	end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+        	if xline .ne. globals(temp)
+        		set globals(ErrChk) = "1"
+        		set #command = "show"
+        		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+        	end if
+        end if
+    end method
+
+    method mymethod
+        int linenum=0
+        str myqry = "select xline from bmbdt where zid='"+#id+"' and xbom='"+globals(xbom)+"' and xline > '"+linenum+"' and xstype='Non-Stock'"
+        set xline=#sql(str,myqry)
+        while #result .eq. "true"
+            set linenum=xline
+            set xbom=globals(xbom)            
+            buffer bmbdt
+            move bmbdt=bmbdt(xbom,xline)
+            delete bmbdt(xbom,xline)
+            str myqry = "select xline from bmbdt where zid='"+#id+"' and xbom='"+globals(xbom)+"' and xline > '"+linenum+"' and xstype='Non-Stock'"
+            set xline=#sql(str,myqry)
+        end while
+    end method
+
+    valid valid
+        config
+            set globals(pkey) = xbom+" "+xline
+			set xrate=caitem.xstdprice("zid='"+#id+"' and xitem='"+xitem+"'")
+            if xunit .eq. ""
+                set xunit=caitem.xunitstk("zid='"+#id+"' and xitem='"+xitem+"'")
+            end if
+        end config
+    end valid
+
+#include access.valid
+
+end page

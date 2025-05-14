@@ -1,0 +1,177 @@
+page praprs
+
+	  embed onload="move_caret('one','xcode')"
+	  
+     caption header
+     sidebar list one
+     sections form one ,method chk_access,script myscript
+
+
+     list one
+        table praprs
+        order xcode
+        //select none
+        navigators alpha
+        rows 20
+        objects  xcode attrib(link #servlet+"?page=praprs&command=Show&xcode=?"), ~
+                 xdisc,xdesc,xlong
+
+
+
+        totals "Totals",sum,"","","",""
+        
+          field xcode
+            capiton Job Factors
+          end field
+
+          field xdisc
+            caption Weight (%)
+          end field
+
+          field xdesc
+            caption Description
+          end field
+
+          field xlong
+            captio Note
+          end field
+
+
+        //headers none
+     end list
+
+     form one
+        caption "Performance Appraisal"
+        table praprs
+		valid valid
+        order xcode
+        //select
+        layout 1
+        objects Show, Add, Details, Update, Delete, Top, Previous, Next, Bottom,~
+                xcode,xdisc,xdesc,xlong, xprops display(hide)
+                
+
+          field xcode
+            capiton Job Factors
+            width 50
+            event after
+               set globals(xcode)=xcode
+            end event
+          end field
+          
+          field xdisc
+            caption Weight (%)
+          end field
+          
+          field xdesc
+            caption Description
+            display text
+            width 50
+          end field
+          
+          field xlong
+            captio Note
+            width 50
+            height 3
+//          columns 3
+          end field
+
+
+        //field show
+        //   event before
+        //     set globals(ErrChk) = "1"
+        //     call chk_access
+        //   end event
+        //end field
+
+        //field top
+        //   event before
+        //     set globals(ErrChk) = "1"
+        //     call chk_access
+        //   end event
+        //end field
+
+    	field Add
+           event before
+              //set globals(ErrChk) = ""
+              //call chk_access
+           end event
+    	end field
+
+    	field Update
+           event before
+              //set globals(ErrChk) = ""
+              //call chk_access
+           end event
+    	end field
+
+    	field Delete
+           event before
+              set globals(ErrChk) = ""
+              call chk_access
+           end event
+    	end field
+
+      embed onsubmit="submitit(this)"
+
+       field Details
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+     
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "praprsd"
+            form.searchbutton.value = "Find xcode=?"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+     method chk_access
+       set type = "Page"
+       set object = page
+       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"'")
+       if #result .ne. "true"
+          set tmp = "REC-"
+          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+          if #result .eq. "true" .and. mysql .ne. ""
+             set last_num = 0+#sub(mysql,6)
+          end if
+          set last_num = 1+last_num
+          set mysql = #padl(""+last_num,6,"0")
+          set mysql=tmp+mysql
+          buffer xcriminal
+          set xcriminal.xwornum = mysql
+          set xcriminal.xemail = #user
+          set xcriminal.xdate = #date
+          str tmptime = ""
+          class osbcustom(#time(tmptime))
+          set xcriminal.xtime = tmptime
+          set xcriminal.xobject = page
+          insert xcriminal
+
+          set globals(ErrChk) = "1"
+          error "Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+       end if
+     end method
+
+	 valid valid
+		config
+			set header = "Performance Appraisal"
+		end config
+	 end valid
+
+
+end page

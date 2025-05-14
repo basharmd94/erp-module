@@ -1,0 +1,107 @@
+page pradvinfo
+     caption header
+     sections  form one, script myscript
+
+     list one
+      table pradvview
+      order xemp
+      navigators alpha
+      object xemp attrib(link #servlet+"?page=pradvinfo&command=Show&xemp=?"),~
+             xname,xpaycode
+     end list
+
+     form one
+        caption "Advance Information"
+        table pradvinfo
+		valid valid
+        order xemp
+        layout 2
+        objects Add, Enter, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+               xemp,xpaycode,xnamedum,xpaydum,~
+               xtotadv display(constant),xprrate display(constant),~
+               xtotdeduc display(constant),xbalance display(constant),zemail display(hide),xemail display(hide)
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+               field xemp
+                  pick list xemp
+                  event after
+                     set globals(xemp)=xemp
+                  end event
+               end field
+
+               field xpaycode
+                  display text
+                  pick list paycode
+               end field
+
+               field xpaydum
+                  attrib local
+                  display constant
+                  caption Pay Description
+                  event after
+                     set xpaydum=#sql(str,"select xdesc from prpayhead where xpaycode='"+xpaycode+"'")
+                  end event
+               end field
+
+               field xnamedum
+                  attrib local
+                  display constant
+                  caption Employee Name
+                  event after
+                     set xnamedum=#sql(str, "select xname from prmst where xemp='"+xemp+"'")
+                  end event
+               end field
+
+
+            embed onsubmit="submitit(this)"
+
+            field enter
+               embed onclick="clicked(this)"
+            end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          details="enter"
+        }
+        function submitit(form)
+        {
+          if (details=="enter")
+          {
+            form.page.value = "pradvdt"
+            form.searchbutton.value= "Find xemp=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+	 
+	 valid valid
+		config
+			set header = "Advance Information"
+		end config
+	 end valid
+	 
+
+end page
+

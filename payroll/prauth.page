@@ -1,0 +1,210 @@
+page prauth
+     caption "<span class=bl>Recommendation & Approval Authority for Employee <a href=/da/"+#servlet+"?page=prmst&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xname)+")"
+	 embed onload="move_caret('one','xemp')"
+     sidebar text one
+     sections form one, list one, script myscript, text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     form one
+        //caption "<font color=black size=4>Employment Info of "+globals(xemp)+" ("+globals(xfirst)+")"
+        table prmst
+        order xemp
+        fixed xemp
+        layout 1
+        objects Update,Show,Return,~
+        	dum3,"",~
+			xrecby1 attrib(attach),rname1,xrecid1 display(hide),xrecby2 attrib(attach),rname2,xrecid2 display(hide),~
+			xrecby3 attrib(attach),rname3,xrecid3 display(hide),~
+			dum4,"",~
+        	xappby1 attrib(attach),aname1,xappid1 display(hide),xappby2 attrib(attach),aname2,xappid2 display(hide),~
+        	xappby3 attrib(attach),aname3,xappid3 display(hide)
+          	
+                  
+        field dum3
+         caption
+         //col 3
+         display const
+         attrib local
+         event after
+            set dum3 = "<font color=red>::::::::::::::Recommendation:::::::::::::</font>"
+         end event
+        end field
+        
+        field dum4
+         caption
+         //col 3
+         display const
+         attrib local
+         event after
+            set dum4 = "<font color=red>::::::::::::::Approval::::::::::::::</font>"
+         end event
+        end field        
+        
+		field aname1
+			caption
+			display const
+			attrib local
+			event after
+				set aname1 = #sql("select xname from prmst where xemp='"+xappby1+"'")
+			end event
+		end field
+          
+		field aname2
+			caption
+			display const
+			attrib local
+			event after
+				set aname2 = #sql("select xname from prmst where xemp='"+xappby2+"'")
+			end event
+		end field
+		
+		field aname3
+			caption
+			display const
+			attrib local
+			event after
+				set aname3 = #sql("select xname from prmst where xemp='"+xappby3+"'")
+			end event
+		end field
+		
+		field rname1
+			caption
+			display const
+			attrib local
+			event after
+				set rname1 = #sql("select xname from prmst where xemp='"+xrecby1+"'")
+			end event
+		end field
+		
+		field rname2
+			caption
+			display const
+			attrib local
+			event after
+				set rname2 = #sql("select xname from prmst where xemp='"+xrecby2+"'")
+			end event
+		end field
+		
+		field rname3
+			caption
+			display const
+			attrib local
+			event after
+				set rname3 = #sql("select xname from prmst where xemp='"+xrecby3+"'")
+			end event
+		end field
+			      
+		field update
+			event before
+				set globals(ErrChk) = ""
+				if globals(xemp) .ne. xemp
+					set globals(ErrChk) = "1"
+					error ""
+				end if
+				if globals(ErrChk) .ne. "1"
+					if xappby1 .ne. ""
+						set chkemp = #sql("select xemp from prmst where xemp='"+xappby1+"'")
+						if #result .ne. "true"
+							set globals(ErrChk) = "1"
+							error "Wrong Eployee ID selected"
+						else
+							set xappid1 = #sql("select zemail from xusers where xemp='"+xappby1+"'")
+						end if
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					if xappby2 .ne. ""
+						set chkemp = #sql("select xemp from prmst where xemp='"+xappby2+"'")
+						if #result .ne. "true"
+							set globals(ErrChk) = "1"
+							error "Wrong Eployee ID selected"
+						else
+							set xappid2 = #sql("select zemail from xusers where xemp='"+xappby2+"'")
+						end if
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					if xappby3 .ne. ""
+						set chkemp = #sql("select xemp from prmst where xemp='"+xappby3+"'")
+						if #result .ne. "true"
+							set globals(ErrChk) = "1"
+							error "Wrong Eployee ID selected"
+						else
+							set xappid3 = #sql("select zemail from xusers where xemp='"+xappby3+"'")
+						end if
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					if xrecby1 .ne. ""
+						set chkemp = #sql("select xemp from prmst where xemp='"+xrecby1+"'")
+						if #result .ne. "true"
+							set globals(ErrChk) = "1"
+							error "Wrong Eployee ID selected"
+						else
+							set xrecid1 = #sql("select zemail from xusers where xemp='"+xrecby1+"'")
+						end if
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					if xrecby2 .ne. ""
+						set chkemp = #sql("select xemp from prmst where xemp='"+xrecby2+"'")
+						if #result .ne. "true"
+							set globals(ErrChk) = "1"
+							error "Wrong Eployee ID selected"
+						else
+							set xrecid2 = #sql("select zemail from xusers where xemp='"+xrecby2+"'")
+						end if
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					if xrecby3 .ne. ""
+						set chkemp = #sql("select xemp from prmst where xemp='"+xrecby3+"'")
+						if #result .ne. "true"
+							set globals(ErrChk) = "1"
+							error "Wrong Eployee ID selected"
+						else
+							set xrecid3 = #sql("select zemail from xusers where xemp='"+xrecby3+"'")
+						end if
+					end if
+				end if				
+				
+			end event
+		end field
+
+		embed onsubmit="submitit(this)"
+		field Return
+			embed onclick="clicked(this)"
+		end field
+		
+		field Complete
+			embed onclick="comp(this)"
+		end field
+			
+end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "prmstdb"
+            form.searchbutton.value = "Find xemp=?"
+          }
+        }
+        </script>
+     end script
+     
+end page

@@ -1,0 +1,155 @@
+page imglidep
+     caption "IM to GL Interface"
+     sections form one,list One, text top, script myscript
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+     
+       list one
+        table imglidep
+        caption "Added List(s)"
+        order xdept,xtmpaction,xwh,xgitem
+        rows 10
+        objects  xdept  attrib(link #servlet+"?page=imglidep&command=Show&xdept=?&xtmpaction=?&xwh=?&xgitem=?"), ~
+                 xwh,xgitem,xaccdr,xsubdr,xtmpaction
+
+        field desc
+          caption Name
+          storage varchar
+        end field
+
+     end list
+     
+
+
+     form one
+        caption "<br><center><b>"IM to GL Interface"</b>"
+        table imglidep
+        order xdept,xtmpaction,xwh,xgitem        
+        layout 2
+        objects  Add,Show,Clear,Update, Delete, Top, Previous, Next, Bottom,"<p>" ,~
+                 xdept,"",xwh,xtmpaction,xgitem,xdum1,xaccdr,xdum2,xsubdr,xdum3
+
+
+    field xdept
+     col 3
+    end field
+
+   field xaccdr
+      display text
+      pick list xaccdr
+      event after
+        set globals(xaccdr)=xaccdr
+      end event
+   end field
+
+  
+   field xsubdr
+      display text
+      //pick list xsubdr
+      pick list xsubhed
+      event after
+       set globals(xsubdr)=xsubdr
+      end event
+   end field
+
+
+
+   field xdum1
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum1=#sql("select xlong from xcodes where xtype='Item Group' and xcode='"+xgitem+"'")
+      end event
+   end field
+
+   field xdum2
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum2=#sql("select xdesc from glmst where xacc='"+xaccdr+"'")
+      end event
+   end field
+
+   field xdum3
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum3=#sql("select xdesc from glsub where xsub='"+xsubdr+"'")
+      end event
+   end field
+   
+   field xtmpaction
+     caption Transaction Type
+   end field
+
+   
+   field add
+    event after
+      set xacc=globals(xaccdr)
+      buffer glmst
+      move glmst=glmst(xacc)
+      if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+         print "Please update record with correct Debit Sub Account"
+      end if
+
+      set xacc=globals(xacccr)
+      buffer glmst
+      move glmst=glmst(xacc)
+      if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+         print "Please update record with correct Credit Sub Account"
+      end if
+    end event
+   end field
+
+   field update
+    event before
+      buffer imgli
+      move imgli=imgli(ximtrn,xwh,xgitem)
+      if #result .eq. "true"
+        if imgli.xaccdr .ne. xaccdr
+          set xacc=xaccdr
+          buffer glmst
+          move glmst=glmst(xacc)
+          if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+             print "Please update record with correct Debit Sub Account"
+          else
+            set xsubdr=""
+          end if
+        end if
+
+        if imgli.xacccr .ne. xacccr
+          set xacc=xacccr
+          buffer glmst
+          move glmst=glmst(xacc)
+          if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+             print "Please update record with correct Credit Sub Account"
+          else
+            set xsubcr=""
+          end if
+        end if  
+      end if
+
+    end event
+   end field
+
+end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        </script>
+     end script
+
+
+
+end page

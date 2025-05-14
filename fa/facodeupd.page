@@ -1,0 +1,61 @@
+page facodeupd
+	sections form one
+   caption "FA Depreciation Process"
+
+     list one
+        table facode
+        order xcode
+        navigators alpha
+        rows 10
+        objects  xtype,xcode attrib(link #servlet+"?page=facode&command=Show&xtype=?&xcode=?"),xdesc
+     end list
+
+   form one
+      caption "Tools"
+      table
+      order
+      layout 1
+      
+      objects  Process
+
+      field process
+        event before
+        	str xcode = ""
+        	str mysql = "select xcode from famst where xcode>'"+xcode+"'"
+        	set xcode = #sql(str,mysql)
+        	while #result .eq. "true"
+        		set asttype = #sub(xcode,16,2)
+        		str myqry = "update famst set xasttype = '"+asttype+"' where xcode='"+xcode+"'"
+        		set tmpstr = #sql(str,myqry)
+
+        		set div = #sub(xcode,0,2)
+        		str myqry = "update famst set xdiv = '"+div+"' where xcode='"+xcode+"'"
+        		set tmpstr = #sql(str,myqry)
+
+        		set loc = #sub(xcode,3,1)
+        		str myqry = "update famst set xastloc = '"+loc+"' where xcode='"+xcode+"'"
+        		set tmpstr = #sql(str,myqry)
+
+        		set dept = #sub(xcode,5,4)
+        		str myqry = "update famst set xdept = '"+dept+"' where xcode='"+xcode+"'"
+        		set tmpstr = #sql(str,myqry)
+
+        		set subdept = #sub(xcode,10,2)
+        		str myqry = "update famst set xsubdept = '"+subdept+"' where xcode='"+xcode+"'"
+        		set tmpstr = #sql(str,myqry)
+        		  
+        		set xyear = #sql("select xyear from famst where xcode='"+xcode+"'")
+        		set xpurdate = xyear+"-01-01"
+        		str myqry = "update famst set xpurdate = '"+xpurdate+"' where xcode='"+xcode+"'"
+        		set tmpstr = #sql(str,myqry)
+        		      		        		        		
+	        	str mysql = "select xcode from famst where xcode>'"+xcode+"'"
+	        	set xcode = #sql(str,mysql)
+        	end while
+        	print "<font color=blue size=3>Processing Completed"
+        end event
+      end field
+
+   end form
+
+end page

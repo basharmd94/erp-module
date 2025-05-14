@@ -1,0 +1,200 @@
+page prtrndt
+    
+	embed onload="move_caret('one','xpaycode')" 
+	caption "<span class=bl>Payment Transactions of Employee <a href=/da/"+#servlet+"?page=prmsg&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xdumname)+")"
+     //sidebar text two,list two, text three
+     sections form one, list one,script myscript,~
+     	method chk_access
+     	
+     embed onload="move_caret('one','xpaycode')"	
+
+     list one
+        table prtrndt
+        order xpaydate,xemp,xpaycode
+        //navigators alpha
+        fixed xpaydate,xemp
+        rows 20
+        objects xpaycode attrib(link #servlet+"?page=prtrndt&command=Show&xpaycode=?"),~
+                tmpdesc equals((select xdesc from prpayhead where prtrndt.zid=prpayhead.zid and prtrndt.xpaycode=prpayhead.xpaycode)),~
+                xamount
+
+        field tmpdesc
+          storage varchar
+          caption Pay Description
+        end field
+     end list
+
+     form one
+        //caption "Payment Details"
+        table prtrndt
+        order xemp,xpaydate,xpaycode
+        fixed xpaydate,xemp        
+        layout 1
+        objects Add, Return, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+          xpaycode,xdumdesc,xamount,zemail display(hide),xemail display(hide),~
+          xtype display(hide),xoption display(hide),xdateeff display(hide)
+
+        field add
+          event before
+          	set globals(ErrChk) = ""
+          	
+          	if globals(ErrChk) .ne. "1"
+          		call chk_access
+          	end if
+          	
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+          	set globals(ErrChk) = ""
+          	
+          	if globals(ErrChk) .ne. "1"
+          		call chk_access
+          	end if
+          	
+            set xemail=#user
+          end event
+        end field
+
+          field xpaycode
+            display text
+            width 10
+            pick list xpaycode
+            //pick select xcode from xcodes where xtype='Pay Code'
+            event after
+                if #user .eq. "sadia@destiny-2000.com" .or. #user .eq. "anupom.das@destiny-2000.com"
+                    //set #field(Update.display) = "hide"
+                end if
+
+            end event
+          end field
+
+          field xdumdesc
+            attrib local
+            display constant
+            caption Description 
+            event after
+              set xdumdesc = #sql(str,"select xdesc from prpayhead where xpaycode='"+xpaycode+"'")
+            end event
+          end field
+
+          embed onsubmit="submitit(this)"
+          field Return
+            embed onclick="clicked(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          detail="back"
+        }
+        function submitit(form)
+        {
+          if (detail=="back")
+          {
+            form.page.value = "prmsg"
+            form.searchbutton.value= "Find xpaydate=?&xemp=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+
+     method chk_access
+     	set stype = ""
+	  	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          buffer xcriminal
+	          set xcriminal.xwornum = mysql
+	          set xcriminal.xemail = #user
+	          set xcriminal.xdate = #date
+	          str tmptime = ""
+	          class osbcustom(#time(tmptime))
+	          set xcriminal.xtime = tmptime
+	          set xcriminal.xobject = page
+	          insert xcriminal
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+     
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	end if    
+     end method
+    
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql     
+
+		str tmptime = ""
+		class osbcustom(#time(tmptime))
+				
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(xacc)+"','','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+tmptime+"','"+page+"','')"
+		set tmpstr =#sql(myqry)		
+     end method
+     
+end page

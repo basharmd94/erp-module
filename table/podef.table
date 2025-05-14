@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table podef
+  caption "PO Defaults"
+  columns ztime,zutime,zid,~
+                xlimitgit,xlimitavail,xsysnot,xprintpor,xprintgrn,xautoalc,xwhselect,xcrosslimit
+  
+  primary key zid
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table

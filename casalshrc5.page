@@ -1,0 +1,145 @@
+page casalshrc5
+     caption header
+    // sidebar list thna
+     sections form one,list five, script myscript
+
+	list thna
+        caption "List of "+xemp
+        table casalshrc5
+        order xstate,xdiv,xdistrict,xthana
+        fixed xstate,xdiv,xdistrict
+
+        rows 20
+        objects xthana attrib(link #servlet+"?page=casalshrc4&command=Show&xstate=?&xdiv=?&xdistrict=?&xthana=?"),xemp,xcode
+        
+     end list
+
+	list five
+        caption "List of Sales Representative in "+xthana
+        table casalshrc5
+        order xstate,xdiv,xdistrict,xthana,xemp
+        fixed xstate,xdiv,xdistrict,xthana
+
+        rows 20
+        objects xemp caption(SR Code) attrib(link #servlet+"?page=casalshrc5&command=Show&xstate=?&xdiv=?&xdistrict=?&xthana=?&xthana=?&xemp=?"),~
+		xname caption(SR Name)
+
+     end list
+
+     
+     form one
+     	valid valid,access
+        table casalshrc5
+        order xstate,xdiv,xdistrict,xthana,xemp
+        fixed xstate,xdiv,xdistrict,xthana
+        layout 1
+        objects Back to Sub Area, ~//Level 5,~
+               Add, Update, Delete,Clear,Previous, Next,"" ,~
+               xemp display(text) attrib(submit),xtype caption(Type) display(const),xdescdet,xcode caption(SR Code),~
+			   xname caption(SR Name) display(const),zactive,zemail display(const)
+               
+        field xemp
+		capttion Sales Representaive
+          event after
+            set globals(xemp)=xemp
+          end event
+        end field
+		
+		field xemp
+			//pick "select xemp from prmst where zid='"+#id+"'"
+			pick list xemp1
+		end field
+		
+        field add
+        	event before
+        		set globals(ErrChk) = ""
+				
+				if globals(ErrChk) .ne. "1"
+					set chkemp = #sql(str,"select xemp from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+					//pick "select xemp from prmst where zid='"+#id+"'"
+					if #result .ne. "true"
+						set globals(ErrChk)=1
+						error "The Sales Representative  Does not Exist."
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+				    //set tmpstr = #sql(str,"select xcode from xcodes where zid='"+#id+"' and xtype='Warehouse' and xcode='"+xthana+"'")
+				    //if #result .ne. "true"
+						//set myqry = "insert into xcodes (ztime, zid, xtype, xcode, xdescdet, xprops,xcodealt,zactive)"
+						//set myqry = myqry + " values('"+#time+"','"+#id+"','Warehouse','"+xthana+"','','','','1')"
+						//set tmpstr =#sql(myqry)		
+					//end if    
+					set zemail=#user
+					set xname=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+					set xtype="SR"
+					set zactive="1"
+				end if
+        	end event
+        end field
+
+        field update
+        	event before
+        		set globals(ErrChk) = ""
+       		
+        	end event
+        end field
+        
+        field delete
+        	event before
+        		set globals(ErrChk) = ""
+
+        	end event
+        end field
+        
+        embed onsubmit="submitit(this)"
+
+        field Back
+          embed onclick="clicked(this)"
+        end field
+
+        field Level
+          embed onclick="grouped(this)"
+        end field
+
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but = ""
+        function clicked(b){
+          but = "clicked"
+        }
+        function grouped(b){
+          but = "grouped"
+        }
+        function submitit(form){
+          if (but == "clicked"){
+            form.page.value = "casalshrc4"
+            form.searchbutton.value = "Find xstate=?&xdiv=?&xdistrict=?&xthana=?"
+
+          }
+          if (but == "grouped"){
+            form.page.value = "casalshrc3"
+            form.searchbutton.value = "Find xstate=?&xdiv=?"
+
+          }
+        }
+
+        </script>
+     end script
+     
+     valid valid
+     	config
+     		set globals(pkey)=xstate+" "+xdiv+" "+xdistrict+" "+xthana+" "+xemp
+			set zactive="1"
+			set xname=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+			set header = "<font color=green size=4+>Sales Representative</font><br>"
+     	end config
+     end valid
+
+#include access.valid  
+
+end page

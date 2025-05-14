@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table cadatevw
+  caption "Date View"
+  columns zid,xdate,Weekday,Week
+  
+  
+  
+	sql create or replace view cadatevw ~
+		as SELECT  zid, xdate, to_char(xdate,'d') AS Weekday, to_char(xdate,'ww') AS Week ~
+		FROM cadate ~
+		GROUP BY zid, xdate
+	
+ end table

@@ -1,0 +1,11 @@
+caption "Leave Reports" page 3
+//-------------------------------------------------------------------
+option                                  |action
+//-------------------------------------------------------------------
+Employee Ledger                     	|#classpath+"/"+#servlet+"?page=*crystal prlv_manage(xemp=Employee Code,xpaydate=From Date,xpaydate=To Date)"
+Employee Ledger                     	|#classpath+"/"+#servlet+"?page=*crystal prlv_emp(xemp=From Employee ,xemp=To Employee,xpaydate=From Date,xpaydate=To Date)"
+//Employee Ledger                     	|#classpath+"/"+#servlet+"?page=*crystal prlvledger(xemp=Employee Code,xpaydate=From Date,xpaydate=To Date)"
+Yearly Leave Report(Summary)        	|#classpath+"/"+#servlet+"?page=*crystal prmstsum_leave(xyear=Year=,xemp=From Employee,xemp=To Employee, xdept=From Dept.,xdept=To Dept.)"
+Employee Wise Leave Report(Details)     |#classpath+"/"+#servlet+"?page=*crystal prleavedetails(xyear=Year,xemp=From Employee,xemp=To Employee, xdept2=From Dept.,xdept2=To Dept.)"
+//Yearly Leave Report(Summary)        	|#classpath+"/"+#servlet+"?page=*crystal prleavesum(xyear=Year)"
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------

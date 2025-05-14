@@ -1,0 +1,21 @@
+//pdcodes.menu
+caption "Settings"
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Contexts                      |#classPath+"/"+#servlet+"?page=xcodes(xtype=Context)"
+Item Groups                      |#classPath+"/"+#servlet+"?page=xcodes(xtype=Item Group)"
+Item Group Parameters            |#classPath+"/"+#servlet+"?page=xcodesp(xtype=Item Group)"
+Item Class                       |#classPath+"/"+#servlet+"?page=xcodes(xtype=Item Class)"
+Item Categories                       |#classPath+"/"+#servlet+"?page=xcodes(xtype=Item Category)"
+Price Categories               |#classPath+"/"+#servlet+"?page=xcodes(xtype=Price Category)"
+Tax Categories               |#classPath+"/"+#servlet+"?page=xcodes(xtype=Tax Category)"
+//Warehouses                     |#classPath+"/"+#servlet+"?page=xcodes(xtype=Warehouse)"
+Country of Origin                 |#classPath+"/"+#servlet+"?page=xcodes(xtype=Country)"
+Brands                 |#classPath+"/"+#servlet+"?page=xcodes(xtype=Brand)"
+ABC Codes                        |#classPath+"/"+#servlet+"?page=xcodes(xtype=ABC Code)"
+Supercession Codes               |#classPath+"/"+#servlet+"?page=xcodes(xtype=Supercession Code)"
+Units of Measure                 |#classPath+"/"+#servlet+"?page=xcodes(xtype=Unit of Measure)"
+
+//-------------------------------------------------------------------
+

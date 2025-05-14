@@ -1,0 +1,85 @@
+page cacuscon
+     caption "Customer Contacts"
+     //sidebar text two,list two, text three
+     sections list one, form one, script myscript
+     list one
+        table cacuscon
+        order xcus,xrowcon
+        fixed xcus
+        //select none
+        navigators alpha
+        rows 20
+        objects  xrowcon attrib(link #servlet+"?page=cacuscon&command=Show&xcus=?&xrowcon=?"), ~
+                xfirst,xlast, xemail,xphone,xfax
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+     form one
+caption "Customer Contact",
+table cacuscon
+        order xcus,xrowcon
+        fixed xcus
+        //select
+
+        layout 2
+        objects ~
+                Return,"<br>", Show, Add, Update, Delete, Top display(hide), Previous, Next, Bottom display(hide),~
+                xrowcon attrib(row 0 10;search),~
+                xsalute,xfirst,xmiddle,xlast, xtitle, xemail, xphone, xfax, xurl,xadd1, xadd2, xcity, xstate,xzip,xcountry
+
+               //"<p>", ~
+               //"<b>",Details,"</b>",Show, Add, Update, Delete, Top, Previous, Next, Bottom
+
+
+        field xrowcon
+         event after
+          //set globals(xcus)=xcus
+          set globals(xrowcon)=xrowcon
+          if xrowcon == 0
+            set #field(Continue.display) = "hidden"
+            set #field(Show.display) = "hidden"
+            set #field(Update.display) = "hidden"
+            set #field(Previous.display) = "hidden"
+            set #field(Next.display) = "hidden"
+            set #field(Delete.display) = "hidden"
+            set #field(Top.display) = "hidden"
+            set #field(Bottom.display) = "hidden"
+          end if
+         end event
+        end field
+
+        //embed onsubmit="return submitit(this)"
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Return"){
+            form.page.value = "cacus"
+            form.searchbutton.value = "Find xcus=?"
+            //return false
+          }
+
+
+
+        }
+
+        </script>
+     end script
+
+
+end page

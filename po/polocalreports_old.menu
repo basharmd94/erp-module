@@ -1,0 +1,45 @@
+//PO Reports.menu
+caption "PO Local Reports" page
+//-------------------------------------------------------------------------------------
+option                                       |action
+//-------------------------------------------------------------------------------------
+Item List                                    |#classpath+"/"+#servlet+"?page=*crystal itemlst(xgitem=Item Group, xitem=From Item=,xitem=To Item=z)"
+-Purchase Report
+Purchase Order List By Date                  |#classPath+"/"+#servlet+"?page=*crystal poord(xdate=From Date=#d,xdate=To Date=#d,xsup=From Suplier, xsup=To Suplier,xtypepor=Type=Local=hide)"
+
+-
+Purchase Order List By Party               |#classPath+"/"+#servlet+"?page=*crystal poord_sup1(xdate=From Date=#d,xdate=To Date=#d,xsup=From Suplier, xsup=To Suplier,xtypepor=Type=Local=hide)"
+Purchase Order List By Item                |#classPath+"/"+#servlet+"?page=*crystal poord_item(xdate=From Date=#d,xdate=To Date=#d,xitem=From Item=0,xitem=To Item=z,xtypepor=Type=Local=hide)"
+-MRR Report
+-
+MRR Report By Date                           |#classPath+"/"+#servlet+"?page=*crystal pogrn_mrr(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Local=hide)"
+-
+Item Wise MRR Report                         |#classPath+"/"+#servlet+"?page=*crystal pogrn_mrr_item(xdatereq=From Date=#d,xdatereq=To Date=#d,xitem=From Item,xitem=To Item)"
+-
+Ware house Wise MRR Report                   |#classPath+"/"+#servlet+"?page=*crystal pogrn_mrr_proj(xdatereq=From Date=#d,xdatereq=To Date=#d,xwh=From Project,xwh=To Project)"
+
+//List by Supplier By Date                     |#classPath+"/"+#servlet+"?page=*crystal posup2( xsup=From Supplier=0,xsup=TO Supplier=z,xdate=From Date=#d,xdate=To Date=#d)"
+//Supplier Wise MRR Report                     |#classPath+"/"+#servlet+"?page=*crystal pogrn_mrr_sup(xdate=From Date=#d,xdate=To Date=#d, xsup=From Supplier,xsup=TO Supplier)"
+
+//Work Order Wise MRR Report                   |#classPath+"/"+#servlet+"?page=*crystal pogrn_mrr_po(xdate=From Date=#d,xdate=To Date=#d,xpornum=From PO,xpornum=To PO)"
+
+//Challan wise PO List By Date                 |#classPath+"/"+#servlet+"?page=*crystal poord_caln(xdatereq=From Date=#d,xdatereq=To Date=#d,xsup=From Suplier, xsup=To Suplier)"
+
+Quality Report By Date                       |#classPath+"/"+#servlet+"?page=*crystal pogrnqc(xdatereq=From Date=#d,xdatereq=To Date=#d)"
+
+//Item Wise Indent List                        |#classPath+"/"+#servlet+"?page=*crystal porequ_item(xdatereq=From Date=#d,xdatereq=To Date=#d,xitem=From Item,xitem=To Item)"
+
+//Purchase Order List By Party                 |#classPath+"/"+#servlet+"?page=*crystal poord_sup(xdatereq=From Date=#d,xdatereq=To Date=#d,xsup=From Party,xsup=To Party)"
+
+//Materials Wise Summary Report                |#classPath+"/"+#servlet+"?page=*crystal porequ_summ(xitem=From Item,xitem=To Item)"
+//Purchase Report Printing                     |#classPath+"/"+#servlet+"?page=*crystal pogrec(xgrnnum=GRN Number)"
+-Requsition Report
+Date Wise Requsition List                        |#classPath+"/"+#servlet+"?page=*crystal porequ(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Local=hide)"
+Item Wise Requsition List                        |#classPath+"/"+#servlet+"?page=*crystal porequ_item(xdatereq=From Date=#d,xdatereq=To Date=#d,xitem=From Item,xitem=To Item)"
+//Indent No Wise Indent List                 |#classPath+"/"+#servlet+"?page=*crystal porequ_indent(xdatereq=From Date=#d,xdatereq=To Date=#d,xporeqnum=From Indent No,xporeqnum=To Indent No)"
+//Project Wise Indent List                   |#classPath+"/"+#servlet+"?page=*crystal porequ_proj(xdatereq=From Date=#d,xdatereq=To Date=#d,xwh=From Project,xwh=To Project)"
+-Quotation Report
+Quotation List By Date                       |#classPath+"/"+#servlet+"?page=*crystal poquotu_RFQ(xdatereq=From Date=#d,xdatereq=To Date=#d)"
+Quotation List By REQ No.                    |#classPath+"/"+#servlet+"?page=*crystal poquotu_req(xdatereq=From Date=#d,xdatereq=To Date=#d,xporeqnum=Requisition No,xporeqnum=Requisition No)"
+//-------------------------------------------------------------------
+

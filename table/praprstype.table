@@ -1,0 +1,13 @@
+product ERP on the Net
+
+table praprstype
+  caption "Appraisal Type"
+  columns ztime,zutime,zid,xaprstype,xmgtgrade,xscore,xrate,xstataprs,xpercent,zemail,xemail
+
+  primary key zid,xaprstype,xmgtgrade
+
+  foreign key
+    zid references zbusiness.zid
+  end foreign key
+
+end table

@@ -1,0 +1,13 @@
+//MOR.menu
+caption "Manufacturing Order" page 3
+//---------------------------------------------------------------------------------------
+option                  |action                                          |modules|models
+//---------------------------------------------------------------------------------------
+Manufacturing Order       |#classPath+"/"+#servlet+"?page=moord"                   |
+Manufacturing Release     |#classPath+"/"+#servlet+"?page=moord_rel"                   |
+Manufacturing Compleate     |#classPath+"/"+#servlet+"?page=moord_com"                   |
+//Shedule Create		  |#classPath+"/"+#servlet+"?page=moordsh"                   |
+//Printing Performance                 |#classPath+"/"+#servlet+"?page=moperfom"              |
+Reports                 |#classPath+"/"+#servlet+"?menu=moreports"              |
+Set Up                  |#classPath+"/"+#servlet+"?menu=mosetup"                |
+//-------------------------------------------------------------------

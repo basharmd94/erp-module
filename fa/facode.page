@@ -1,0 +1,43 @@
+page facode
+   caption "FA code page "
+//   sidebar list one
+   sections  form one
+
+     list one
+        table facode
+        order xcode
+        navigators alpha
+        rows 10
+        objects  xtype,xcode attrib(link #servlet+"?page=facode&command=Show&xtype=?&xcode=?"),xdesc
+     end list
+
+   form one
+      caption "Fixed Asset Code "
+      table facode
+      order xtype
+      layout 1      
+
+      objects  Show,Clear,Add, Update, Delete, Top, Previous, Next, Bottom,~
+               xtype,xcode,xdesc,xdepmeth,xdeprate
+
+//    field xcode
+//          pick list facode
+//    End field
+
+      field xtype
+        display combo
+        pick "Category,Book,Type,Unit,Branch,Location"
+      end field
+
+      field xdepmeth
+        //display combo
+        pick "Straight Line,Reducing Balance,Double Decline,Special"
+      end field
+
+   end form
+
+
+
+
+
+end page

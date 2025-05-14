@@ -1,0 +1,49 @@
+page falocation
+
+     caption header
+     sidebar list one//,list two, text three
+     sections form one ,method chk_access
+
+
+     list one
+        table xcodes
+        order xtype,xcode
+        select "(xtype='FA Location')"
+        
+        rows 20
+        objects  xtype,xcode attrib(link #servlet+"?page="+page+"&command=Show&xtype=?&xcode=?"), ~
+                 xdescdet, xprops,xcodealt,zactive
+
+
+     end list
+
+     form one
+		valid valid,access
+        table xcodes
+        order xtype,xcode
+        select "xtype='FA Location'"
+        layout 1
+        objects Show, Add, Update, Delete, Top, Previous, Next, Bottom,~
+                xtype display(const), xcode, xdescdet, xprops,xcodealt len(4),zactive
+                
+	field Add
+        event before
+            set globals(ErrChk) = ""
+            set xtype="FA Location"
+        end event
+	end field
+
+end form
+     
+	 valid valid
+     	config
+			set globals(pkey)=xtype+" "+xcode
+			
+			set header = "<font color=green size=4+>FA Location(s)</font><br>"
+		
+     	end config
+     end valid
+
+#include access.valid
+	 
+end page

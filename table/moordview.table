@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table moordview
+	caption "moordview Detail View"
+
+	columns zid,xmoord,xitem,item_desc,xcus,xbom,xqtyprd,xunit
+
+	sql create view moordview (zid,xmoord,xitem,item_desc,xcus,xbom,xqtyprd,xunit) ~
+		as select ~
+		moord.zid,moord.xmoord,moord.xitem,~
+        (select xdesc from caitem where zid=moord.zid and xitem=moord.xitem),~
+		moord.xcus,moord.xbom,moord.xqtyprd,moord.xunit ~
+		FROM moord
+end table

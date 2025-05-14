@@ -1,0 +1,106 @@
+page prfamily
+     caption "<span class=bl>Family Member's of Employee <a href=/da/"+#servlet+"?page=prmst&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+     sections form one, list one, script myscript
+
+     list one
+      caption "Family Member(s)"
+      table prfamily
+      order xkin
+      fixed xemp
+      object xkin attrib(link #servlet+"?page="+page+"&command=Show&xkin=?"),~
+             xdate,xplbirth,xbloodgrp,xrelation,xspocc,xspppno,xdependant,xnominee
+			   
+        field xspocc
+        	caption Occupation
+        end field
+        
+        field xspppno
+        	caption Passport Numnber
+		end field
+			   
+     end list
+
+     form one
+        //caption "Children Details <font color=black>"+xemp+"</font>"
+        table prfamily
+        order xemp,xkin
+        fixed xemp
+        layout 1
+        objects Add, Clear, Show,  Update,  Top,Delete, Previous, Next, Bottom,Return,~
+          xkin,xdate,xplbirth,xbloodgrp,xrelation,xspocc,xspppno,xdependant,xnominee,xremarks,~
+		  zemail display(hide),xemail display(hide)
+          
+        field xkin
+            caption Name of Family Member
+        end field
+        
+        field xspocc
+        	caption Occupation
+        end field
+        
+        field xspppno
+        	caption Passport Numnber
+		end field
+        
+        field xbloodgrp
+              display combo
+              pick "select xcode from xcodes where zid='"+#id+"' and xtype='Blood Group'"
+        end field
+        
+        field xrelation
+        	pick "Child,Spouse,Father,Mother,Brother,Sister"
+        end field
+        
+        field xremarks
+        	width 40
+    		height 2
+        end field
+        
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+          field xdate
+            caption Birth Date
+          end field
+
+          embed onsubmit="submitit(this)"
+          field Return
+            embed onclick="clicked(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          details="back"
+        }
+        function submitit(form)
+        {
+          if (details=="back")
+          {
+            form.page.value = "prmst"
+            form.searchbutton.value= "Find xemp=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+
+end page

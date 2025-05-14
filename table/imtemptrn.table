@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table imtemptrn
+  caption "IM Transfer"
+  columns ztime,zutime,zid,ximtmptrn,xref,xdate,xyear,xper,xdatecom,xrem,xstatustor,~
+           xdiv,xsec,xproj,xwh,xsign,xaction,zemail,xemail,xdept,xtrnimf,xtrnimt,~
+           xglref,xsup,xcus,xteam,xmember,xmanager,xtyperec,xdateinv,xstatustrn,xapprover,xemail1,xarea,xemp,xflagcrn
+
+  primary key zid, ximtmptrn
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+end table

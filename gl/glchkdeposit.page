@@ -1,0 +1,608 @@
+page glchkdeposit
+
+    caption "Cheque Deposit"
+	dependent
+	sidebar list one,list two,list three
+    sections form imtrn,script myscript
+	
+	list one
+        caption "Cheque Pending List <p>~
+		<button class=bt onclick="submitCommand('TreatOrder','imtrn');"  ><u>Deposit</button>"
+		empty "No Cheque Pending"
+		//table (select gldetail.*,'1' as zactive from gldetail) tbl
+		table (select gldetail.*,(select xorg from cacus where zid=gldetail.zid and xcus=gldetail.xsub) as xdesc,'1' as zactive from gldetail) tbl
+        order xvoucher		
+		select "xdateapp='"+xdate+"' and xstatus = 'Not Cleared' and xvoucher like 'CHQ-%'"		
+        rows 30 
+		objects ~        
+			xvoucher,xsub caption(Customer Code),xdesc caption(Customer Name),xcheque,xamount caption(Amount),xref caption(Bank),xdateapp caption(Cheque Date),zactive
+		
+		
+		field zactive
+			caption Activate			
+			display checkbox
+			attrib flags xvoucher+"-"+xcheque
+		end field
+
+		field xcheque
+			caption Cheque			
+			display const
+			//attrib flags xcheque
+		end field		
+        
+    end list
+
+	list two
+        caption "Cheque Deposit List <p>~
+		<button class=bt onclick="submitCommand('Bounced_Order','imtrn');"  ><u>Bounced</button>"
+		empty "No Cheque Pending"
+		table (select gldetail.*,(select xorg from cacus where zid=gldetail.zid and xcus=gldetail.xsub) as xdesc,'1' as xsel from gldetail) tbl
+        order xvoucher		
+		select "xdateapp='"+xdate+"' and xstatus = 'Clear' and xvoucher like 'CHQ-%'"		
+        rows 30 
+		objects ~        
+			xvoucher,xsub caption(Customer Code),xdesc caption(Customer Name),xcheque,xamount caption(Amount),xref caption(Bank),xdateapp caption(Cheque Date),xsel
+		
+		field cus_desc
+			attrib local
+			storage varchar
+			caption Customer Name
+		end field
+		
+		field xsel
+			caption Activate			
+			display checkbox
+			attrib flags xvoucher+"-"+xcheque
+		end field
+
+		field xcheque
+			caption Cheque			
+			display const
+		end field		
+        
+    end list	
+	
+	list three
+        caption "Cheque Bounced List <p>~
+		<button class=bt onclick="submitCommand('Cash_Order','imtrn');"  ><u>Cash Deposit</button>"
+		empty "No Cheque Pending"
+		table (select gldetail.*,(select xorg from cacus where cacus.zid=gldetail.zid and cacus.xcus=gldetail.xsub) as xdesc,'1' as activation from gldetail) tbl
+        order xvoucher		
+		select "xdateapp='"+xdate+"' and xstatus = 'Bounced' and xvoucher like 'CHQ-%'"		
+        rows 30 
+		objects ~        
+			xvoucher,xsub caption(Customer Code),xdesc caption(Customer Name),xcheque,xamount caption(Amount),xref caption(Bank),xdateapp caption(Cheque Date),activation
+		
+		field cus_desc
+			attrib local
+			storage varchar
+			caption Customer Name
+		end field
+		
+		field activation
+			caption Active		
+			display checkbox
+			attrib flags xvoucher+"-"+xcheque
+		end field
+
+		field xcheque
+			caption Cheque			
+			display const
+		end field		
+        
+    end list
+
+    form imtrn      
+	  valid valid
+      layout 1
+      objects Clear,Show,TreatOrder display(hide),Bounced_Order display(hide),Cash_Order display(hide),~
+      		xdate default(#max) attrib(submit),xtrngl,xaccdr attrib(submit; attach),acc_desc,~
+            xsubdr attrib(submit; attach),sub_desc
+			
+		field xaccdr
+          display text
+          pick "select xacc from glmst where zid='"+#id+"' and xaccusage='Bank'"
+          caption Bank Account Code
+        end field
+		
+		field xtrngl
+			//default "JV--"	
+			pick "select xtrn from xtrn where  zid='"+#id+"' and xtypetrn='GL Voucher' and xaction='Journal'"
+			event after
+				set globals(xtrngl) = xtrngl
+			end event	
+		end field
+        
+        field acc_desc
+          caption Description
+          display const
+          attrib local
+        end field
+
+        field xsubdr
+          display text
+          pick "select xsub from glsub where zid='"+#id+"' and xacc='"+globals(xacc)+"'"
+          caption Sub Account Code
+        end field
+
+        field sub_desc
+          caption Description
+          display const
+          attrib local
+        end field	
+		
+		field Cash_Order
+			event before 
+				set globals(ErrChk)=""
+				
+				if globals(ErrChk) .ne. "1"
+					set chkrec = #sql("select xtrn from xtrn where zid='"+#id+"' and xtypetrn='GL Voucher' and xtrn='"+xtrngl+"' and zactive='1'")
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+						error "Wrong Transaction Type</p>Select appropriate prefix"
+					end if
+				end if	
+
+				
+				if globals(ErrChk) .ne. "1"
+					begin
+					str chcond="name .sw. "+#char(34)+"activation__"+#char(34)+"	
+					int chns=#names("roword", chcond)
+
+					str chque_no="name .sw. "+#char(34)+"xcheque__"+#char(34)+"						
+					int chqno=#names("roworda", chque_no)	
+
+					set rownum=1
+					int j=0					
+					call gl_header
+					while j < chns 
+						str nam1=#eval("roword["+j+"]")	
+						int length=#length(nam1)
+						int chqdigit=length-24						
+						str arritem=#sub(nam1,12,10)
+						str cheque=#sub(nam1,23,chqdigit)
+						//error cheque
+						str value=#eval(nam1)						
+						if arritem .ne. ""	.and. cheque .ne. ""							
+							//print arritem+" "+cheque							
+							if globals(ErrChk) .ne. "1"		
+								set xamount=gldetail.xamount("zid='"+#id+"' and xvoucher='"+arritem+"' and xcheque='"+cheque+"'")
+								set acccr=glheader.xaccdr("zid='"+#id+"' and xvoucher='"+arritem+"'")	
+								//error arritem
+								set totamt=0.0-xamount
+								set xaccusage1=glmst.xaccusage("zid='"+#id+"' and xacc='"+acccr+"'")
+								set xaccsource1=glmst.xaccsource("zid='"+#id+"' and xacc='"+acccr+"'")
+								set xacctype1=glmst.xacctype("zid='"+#id+"' and xacc='"+acccr+"'")
+								set accsubcr=glheader.xsubdr("zid='"+#id+"' and xvoucher='"+arritem+"'")																
+								set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+													xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+													xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+													xstatus,xtypegl)"							
+								set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+rownum+"','"+acccr+"','"+xaccusage1+"',~
+											'"+xaccsource1+"','"+accsubcr+"','','','','BDT',"1.0",~
+											"+totamt+","+totamt+",'','','','"+xacctype1+"','"+#user+"','','','','','','"+arritem+"','"+xamount+"','',"0",~
+											'"+cheque+"','','','')"
+								set tmpstr = #sql(mysql)	
+								//print #result+" "+mysql
+								if #result .ne. "true"
+									set globals(ErrChk)="1"
+									rollback
+								end if
+								if globals(ErrChk) .ne. "1"
+									set rownum=0+rownum+1									
+									set xaccdr=gldetail.xacc("zid='"+#id+"' and xcheque='"+cheque+"' and xvoucher='"+arritem+"' and xaccsource='Customer'")
+									//error cheque+" "+arritem
+									set xsubdr=gldetail.xsub("zid='"+#id+"' and xcheque='"+cheque+"' and xvoucher='"+arritem+"' and xaccsource='Customer'")							
+									set xaccusage=glmst.xaccusage("zid='"+#id+"' and xacc='"+xaccdr+"'")
+									set xaccsource=glmst.xaccsource("zid='"+#id+"' and xacc='"+xaccdr+"'")
+									set xacctype=glmst.xacctype("zid='"+#id+"' and xacc='"+xaccdr+"'")
+									set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+												xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+												xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+												xstatus,xtypegl)"							
+									set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+rownum+"','"+xaccdr+"','"+xaccusage+"',~
+										'"+xaccsource+"','"+xsubdr+"','','','','BDT',"1.0",~
+										"+xamount+","+xamount+",'','','','"+xacctype+"','"+#user+"','','','','','','"+arritem+"','"+xamount+"','',"0",~
+										'','','','')"
+									set tmpstr = #sql(mysql)							
+									//print #result+" "+mysql
+									if #result .ne. "true"
+										set globals(ErrChk)="1"
+										rollback
+									end if								
+								end if
+							end if
+							
+							if globals(ErrChk) .ne. "1"								
+								str mysql = "update gldetail set xstatus='Cash' where zid='"+#id+"' and xvoucher='"+arritem+"' and xcheque='"+cheque+"'"
+								set tmpstr = #sql(str,mysql)
+								//error #result
+								if #result .ne. "true"
+									set globals(ErrChk)="1"
+									rollback
+								end if								
+							end if
+						end if
+						set j=j+1
+						set rownum=0+rownum+1
+					end while
+					
+					set chkamt=#sql(decimal,"select sum(xbase) from gldetail where zid='"+#id+"' and xvoucher='"+xvoucher+"'")
+					//error chkamt
+					if chkamt <> 0.0
+						set globals(ErrChk)="1"
+						rollback			
+					end if
+
+					if globals(ErrChk) .ne. "1"										
+						str mysql = "update glheader set xstatusjv = 'Balanced' where zid='"+#id+"' and xvoucher='"+arritem+"'"
+						set tmpstr = #sql(str,mysql)
+						//error #result
+						if #result .ne. "true"
+							set globals(ErrChk)="1"
+							rollback
+						end if								
+					end if
+					//error "ok"
+					
+					if globals(ErrChk) .ne. "1"
+						commit
+						print "<font color=red size=4>Cash Cleared Successfully. Voucher # "+xvoucher
+					end if
+					
+					if globals(ErrChk) .eq. "1"
+						rollback
+						print "Error Creating Voucher"
+					end if
+				end if
+			end event			
+		end field 		
+		
+
+		field Bounced_Order
+			event before 
+				set globals(ErrChk)=""
+				
+				if globals(ErrChk) .ne. "1"
+					set chkrec = #sql("select xtrn from xtrn where zid='"+#id+"' and xtypetrn='GL Voucher' and xtrn='"+xtrngl+"' and zactive='1'")
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+						error "Wrong Transaction Type</p>Select appropriate prefix"
+					end if
+				end if	
+
+				
+				if globals(ErrChk) .ne. "1"
+					begin
+					str chcond="name .sw. "+#char(34)+"xsel__"+#char(34)+"	
+					int chns=#names("roword", chcond)
+
+					str chque_no="name .sw. "+#char(34)+"xcheque__"+#char(34)+"						
+					int chqno=#names("roworda", chque_no)	
+
+					set rownum=1
+					int j=0					
+					call gl_header
+					while j < chns 
+						str nam1=#eval("roword["+j+"]")	
+						int length=#length(nam1)
+						int chqdigit=length-18						
+						str arritem=#sub(nam1,6,10)
+						str cheque=#sub(nam1,17,chqdigit)
+						//error arritem
+						str value=#eval(nam1)						
+						if arritem .ne. ""	.and. cheque .ne. ""							
+							//print arritem+" "+cheque							
+							if globals(ErrChk) .ne. "1"		
+								set xamount=gldetail.xamount("zid='"+#id+"' and xvoucher='"+arritem+"' and xcheque='"+cheque+"'")
+								set acccr=glheader.xaccdr("zid='"+#id+"' and xvoucher='"+arritem+"'")	
+								//error arritem
+								set xaccusage1=glmst.xaccusage("zid='"+#id+"' and xacc='"+acccr+"'")
+								set xaccsource1=glmst.xaccsource("zid='"+#id+"' and xacc='"+acccr+"'")
+								set xacctype1=glmst.xacctype("zid='"+#id+"' and xacc='"+acccr+"'")
+								set accsubcr=glheader.xsubdr("zid='"+#id+"' and xvoucher='"+arritem+"'")																
+								set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+													xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+													xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+													xstatus,xtypegl)"							
+								set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+rownum+"','"+acccr+"','"+xaccusage1+"',~
+											'"+xaccsource1+"','"+accsubcr+"','','','','BDT',"1.0",~
+											"+xamount+","+xamount+",'','','','"+xacctype1+"','"+#user+"','','','','','','','"+xamount+"','',"0",~
+											'"+cheque+"','','','')"
+								set tmpstr = #sql(mysql)	
+								//print #result+" "+mysql
+								if #result .ne. "true"
+									set globals(ErrChk)="1"
+									rollback
+									//error "ok"
+								end if
+								if globals(ErrChk) .ne. "1"
+									set rownum=0+rownum+1									
+									set totamt=0.0-xamount
+									set xaccdr=gldetail.xacc("zid='"+#id+"' and xcheque='"+cheque+"' and xvmcode='"+arritem+"'")
+									//error cheque+" "+arritem
+									set xsubdr=gldetail.xsub("zid='"+#id+"' and xcheque='"+cheque+"' and xvmcode='"+arritem+"'")							
+									set xaccusage=glmst.xaccusage("zid='"+#id+"' and xacc='"+xaccdr+"'")
+									set xaccsource=glmst.xaccsource("zid='"+#id+"' and xacc='"+xaccdr+"'")
+									set xacctype=glmst.xacctype("zid='"+#id+"' and xacc='"+xaccdr+"'")
+									set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+												xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+												xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+												xstatus,xtypegl)"							
+									set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+rownum+"','"+xaccdr+"','"+xaccusage+"',~
+										'"+xaccsource+"','"+xsubdr+"','','','','BDT',"1.0",~
+										"+totamt+","+totamt+",'','','','"+xacctype+"','"+#user+"','','','','','','"+arritem+"','"+xamount+"','',"0",~
+										'"+cheque+"','','','')"
+									set tmpstr = #sql(mysql)							
+									//print #result+" "+mysql
+									if #result .ne. "true"
+										set globals(ErrChk)="1"
+										rollback
+									end if								
+								end if
+							end if
+							
+							if globals(ErrChk) .ne. "1"								
+								str mysql = "update gldetail set xstatus='Bounced' where zid='"+#id+"' and xvoucher='"+arritem+"' and xcheque='"+cheque+"'"
+								set tmpstr = #sql(str,mysql)
+								//error #result
+								if #result .ne. "true"
+									set globals(ErrChk)="1"
+									rollback
+								end if								
+							end if
+						end if
+						set j=j+1
+						set rownum=0+rownum+1
+					end while
+					
+					set chkamt=#sql(decimal,"select sum(xbase) from gldetail where zid='"+#id+"' and xvoucher='"+xvoucher+"'")
+					//error chkamt
+					if chkamt <> 0.0
+						set globals(ErrChk)="1"
+						rollback			
+					end if
+
+					if globals(ErrChk) .ne. "1"										
+						str mysql = "update glheader set xstatusjv = 'Balanced',xstatus='Cheque At Bank' where zid='"+#id+"' and xvoucher='"+arritem+"'"
+						set tmpstr = #sql(str,mysql)
+						//error #result
+						if #result .ne. "true"
+							set globals(ErrChk)="1"
+							rollback
+						end if								
+					end if
+					//error "ok"
+					
+					if globals(ErrChk) .ne. "1"
+						commit
+						print "<font color=red size=4>Cheque Bounced. Voucher # "+xvoucher
+					end if
+					
+					if globals(ErrChk) .eq. "1"
+						rollback
+						print "Error Creating Voucher"
+					end if
+				end if
+			end event			
+		end field 		
+		
+		field TreatOrder
+			event before 
+				set globals(ErrChk)=""
+				
+				if globals(ErrChk) .ne. "1"
+					set chkrec = #sql("select xtrn from xtrn where zid='"+#id+"' and xtypetrn='GL Voucher' and xtrn='"+xtrngl+"' and zactive='1'")
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+						error "<font color=red size=+1>Wrong Transaction Type</p>Select appropriate prefix"
+					end if
+				end if	
+				
+				if xaccdr .eq. ""
+					set globals(ErrChk)="1"
+					error "<font color=red size=+1>Select Bank Account Code From list"
+				end if
+				
+				if xaccdr .ne. ""
+					set chkacc=glmst.xacc("zid='"+#id+"' and xacc='"+xaccdr+"'")
+					if #result .ne. "true" .or. chkacc .eq. ""
+						set globals(ErrChk)="1"
+						error "<font color=red size=+1>Wrong Bank Account Code. Pick From The List."
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					begin
+					str chcond="name .sw. "+#char(34)+"zactive__"+#char(34)+"	
+					int chns=#names("roword", chcond)
+
+					str chque_no="name .sw. "+#char(34)+"xcheque__"+#char(34)+"						
+					int chqno=#names("roworda", chque_no)	
+
+					set rownum=1
+					int j=0					
+					call gl_header
+					while j < chns 
+						str nam1=#eval("roword["+j+"]")	
+						int length=#length(nam1)
+						int chqdigit=length-21						
+						str arritem=#sub(nam1,9,10)
+						str cheque=#sub(nam1,20,chqdigit)
+						//error cheque
+						str value=#eval(nam1)						
+						if arritem .ne. ""	.and. cheque .ne. ""							
+							//print arritem+" "+cheque
+							set xamount=gldetail.xamount("zid='"+#id+"' and xvoucher='"+arritem+"' and xcheque='"+cheque+"'")							
+							set xaccusage=glmst.xaccusage("zid='"+#id+"' and xacc='"+xaccdr+"'")
+							set xaccsource=glmst.xaccsource("zid='"+#id+"' and xacc='"+xaccdr+"'")
+							set xacctype=glmst.xacctype("zid='"+#id+"' and xacc='"+xaccdr+"'")
+							set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+										xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+										xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+										xstatus,xtypegl)"							
+							set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+rownum+"','"+xaccdr+"','"+xaccusage+"',~
+								'"+xaccsource+"','"+xsubdr+"','','','','BDT',"1.0",~
+								"+xamount+","+xamount+",'','','','"+xacctype+"','"+#user+"','','','','','','"+arritem+"','"+xamount+"','',"0",~
+								'"+cheque+"','','','')"
+							set tmpstr = #sql(mysql)							
+							//print #result+" "+mysql
+							if #result .ne. "true"
+								set globals(ErrChk)="1"
+								rollback
+							end if
+							if globals(ErrChk) .ne. "1"
+								set rownum=0+rownum+1							
+								set acccr=glheader.xaccdr("zid='"+#id+"' and xvoucher='"+arritem+"'")
+								set xaccusage1=glmst.xaccusage("zid='"+#id+"' and xacc='"+acccr+"'")
+								set xaccsource1=glmst.xaccsource("zid='"+#id+"' and xacc='"+acccr+"'")
+								set xacctype1=glmst.xacctype("zid='"+#id+"' and xacc='"+acccr+"'")
+								set accsubcr=glheader.xsubdr("zid='"+#id+"' and xvoucher='"+arritem+"'")
+								set totamt=0.0-xamount								
+								set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+													xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+													xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+													xstatus,xtypegl)"							
+								set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+rownum+"','"+acccr+"','"+xaccusage1+"',~
+											'"+xaccsource1+"','"+accsubcr+"','','','','BDT',"1.0",~
+											"+totamt+","+totamt+",'','','','"+xacctype1+"','"+#user+"','','','','','','','"+xamount+"','',"0",~
+											'','','','')"
+								set tmpstr = #sql(mysql)	
+								//error #result
+								if #result .ne. "true"
+									set globals(ErrChk)="1"
+									rollback
+								end if
+							end if								
+							if globals(ErrChk) .ne. "1"								
+								str mysql = "update gldetail set xstatus='Clear' where zid='"+#id+"' and xvoucher='"+arritem+"' and xcheque='"+cheque+"'"
+								set tmpstr = #sql(str,mysql)
+								//error #result
+								if #result .ne. "true"
+									set globals(ErrChk)="1"
+									rollback
+								end if								
+							end if
+						end if
+						set j=j+1
+						set rownum=0+rownum+1
+					end while
+					
+					if globals(ErrChk) .ne. "1"										
+						set chkamt=#sql(decimal,"select sum(xbase) from gldetail where zid='"+#id+"' and xvoucher='"+xvoucher+"'")
+						//error chkamt
+						if chkamt <> 0.0
+							set globals(ErrChk)="1"
+							rollback			
+						end if
+					end if
+					
+					if globals(ErrChk) .ne. "1"										
+						str mysql = "update glheader set xstatusjv = 'Balanced',xstatus='Clear' where zid='"+#id+"' and xvoucher='"+arritem+"'"
+						set tmpstr = #sql(str,mysql)
+						//error #result
+						if #result .ne. "true"
+							set globals(ErrChk)="1"
+							rollback
+						end if								
+					end if
+					//error "ok"
+					
+					if globals(ErrChk) .ne. "1"
+						commit
+						print "<font color=red size=4>Cheque Deposited Successfully "+xvoucher
+					end if
+					
+					if globals(ErrChk) .eq. "1"
+						rollback
+						print "Error Creating Voucher"
+					end if
+				end if
+			end event			
+		end field 
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+          }
+        }
+         function keeplastkey(){
+        document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        }
+        </script>
+    end script
+	
+	method gl_header
+		set globals(ErrChk)=""
+		if 	globals(ErrChk) .ne. "1"
+			
+			
+			int offset
+			int per
+			int year=#sub(xdate,0,4)
+
+			int tempper
+			int tempyear	            
+			set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+			set per=12+#sub(xdate,5,2)-offset
+			if per<=12
+				set tempper=per
+				set tempyear=year-1
+			else
+				set tempper=per-12
+				set tempyear=year
+			end if
+			
+			set xyear = tempyear
+			set xper = tempper 
+			set prefix=xtrngl
+			
+			set xvoucher = #trn("GL Voucher",xtrngl)  
+			
+					   
+			set myqry = "insert into glheader (zid, xvoucher,xref,xdate,xlong,xpostflag,~
+				xyear,xper,xstatusjv,xdatedue,xdesc01,xdesc02,xdesc03,xdesc04,xdesc05,xictrnno,dumzid,~
+				zemail,xemail,xaccdr,xsubdr,xnumofper,xcheque,xpaytype,xstatus,xtrngl,xnote,xteam,xmember,~
+				xmanager,xapproved,xaction)"
+			set myqry = myqry + " values('"+#id+"','"+xvoucher+"','','"+xdate+"',~
+				'Syetem Generated Voucher From Cheque Deposit','','"+xyear+"','"+xper+"','Balanced','"+#date+"',~
+				'','','','','','',"0",'"+#user+"','','','',"0",'','','','"+prefix+"','',~
+				'','','','','Journal')"
+			set tmpstr =#sql(myqry)
+			if #result .ne. "true"
+				set globals(ErrChk) = "1"
+				error "Error in Creating Voucher"+myqry
+			end if
+		end if
+	end method
+	
+	valid valid
+		mendatory xaccdr,xtrngl
+		config
+			set globals(xacc)=xaccdr
+			set sub_desc=#sql(str,"select xdesc from glsub where zid='"+#id+"' and xacc='"+xaccdr+"' and xsub='"+xsubdr+"'")
+			set acc_desc=#sql(str,"select xdesc from glmst where zid='"+#id+"' and xacc='"+xaccdr+"'")
+			
+			set accsource=glmst.xaccsource("zid='"+#id+"' and xacc='"+xaccdr+"'")
+			//print accsource
+			if accsource .eq. "None" .or. accsource .eq. ""
+				set #field(xsubdr.display)="hide"
+				set #field(sub_desc.display)="hide"
+			end if
+			
+		end config
+	end valid
+
+end page

@@ -1,0 +1,32 @@
+product ERP on the Net
+
+table pogdt
+  caption "Goods Receipt Note Details"
+  columns ztime,zutime,zid,xgrnnum,xrow, xcode,xcodebasis,xitem, xlong, ~
+          xstype,xwh, xdropship, ~
+          xqty,xqtygrn,xpornum,~
+          xunitpur,xcfpur,xwtunit,xunitwt,xcur,xrate, ~
+          xdisc,xdiscf,xcomm,xexch,xpricebasis,xcurprice,~
+          xexchbuy,xprice,xdatesch,xdaterec,xstatusgdt,~
+          xtaxcat,xtaxcode1,xtaxrate1,xtaxcode2,xtaxrate2,xtaxcode3,xtaxrate3,~
+          xtaxcode4,xtaxrate4,xtaxcode5,xtaxrate5,xlandcost,xdttax,xdtdisc,xdtwotax,~
+		  xlineamt,ximtrnnum,xqtycrn,xchgapply
+
+  primary key zid, xgrnnum,xrow
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xgrnnum references pogrn.zid,xgrnnum
+        zid,xpornum,xrow references poodt.zid,xpornum,xrow        
+        zid,xitem references caitem.zid,xitem
+  end foreign key
+
+  field xdtwotax
+        length 30.6
+  end field
+
+  field xlineamt
+        length 30.6
+  end field
+
+end table

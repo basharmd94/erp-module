@@ -1,0 +1,10 @@
+//Payroll Menu
+//---------------------------------------------------------------------------------------
+caption "Payroll Menu" page 3
+option                  |action                                          |modules|models
+//---------------------------------------------------------------------------------------
+Payroll              |#classPath+"/"+#servlet+"?menu=prmenu"                |
+Reports           |#classPath+"/"+#servlet+"?menu=PRReports"             |
+Setup             |#classPath+"/"+#servlet+"?menu=prsetup"               |
+//-------------------------------------------------------------------
+

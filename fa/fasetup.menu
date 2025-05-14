@@ -1,0 +1,13 @@
+//Fixed Assets Setup menu
+//-------------------------------------------------------------------
+caption "Setup" page 3
+option                      |action
+//-------------------------------------------------------------------
+Location                       		|#classPath+"/"+#servlet+"?page=falocation"
+Asset Class         	  |#classPath+"/"+#servlet+"?page=faasset"
+Asset Type         	  |#classPath+"/"+#servlet+"?page=faassetp"
+Unit Number                       		|#classPath+"/"+#servlet+"?page=xcodes(xtype=Unit Number)"
+Cost Center Code                      		|#classPath+"/"+#servlet+"?page=xcodes(xtype=Cost Center)"
+Manufacturer                  |#classPath+"/"+#servlet+"?page=famanufacturer"
+Country                       |#classPath+"/"+#servlet+"?page=facountry"|
+FA Transaction Code           |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Fixed Asset Transaction)"

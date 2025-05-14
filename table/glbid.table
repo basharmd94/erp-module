@@ -1,0 +1,13 @@
+product ERP on the Net
+
+table glbid
+  caption "Company ID Master"
+  columns ztime,zutime,zid,dumzid,xorg,zemail,xemail
+
+  primary key zid,dumzid
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table

@@ -1,0 +1,16 @@
+//Fixed Asset menu
+//-------------------------------------------------------------------
+caption "Fixed Asset" page
+option                           |action
+//-------------------------------------------------------------------
+Transaction Entry           |#classPath+"/"+#servlet+"?menu=fatrn"|common
+//Asset Addition               |#classPath+"/"+#servlet+"?menu=faadd"|common
+//Asset Disposal               |#classPath+"/"+#servlet+"?menu=fadis"|common
+//Asset Transfer               |#classPath+"/"+#servlet+"?menu=fatrf"|common
+//Maintainance Entry                   |#classPath+"/"+#servlet+"?page=famaitanence"|common
+//Asset Master                 |#classPath+"/"+#servlet+"?menu=famst"|common
+//Depreciation                 |#classPath+"/"+#servlet+"?page=fadpprocs_mth"|common
+Yearly Depreciation              |#classPath+"/"+#servlet+"?page=fadpprocs_year"
+Setup                        |#classPath+"/"+#servlet+"?menu=fasetup"|common
+Reports                      |#classPath+"/"+#servlet+"?menu=FA Reports"  |
+//-------------------------------------------------------------------

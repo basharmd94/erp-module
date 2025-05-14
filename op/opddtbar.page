@@ -1,0 +1,165 @@
+page opddtbar
+
+     caption "Issue Serial Number for "+xdornum+" "+xrow
+ 
+	 sidebar list imseravailwh
+     sections form one, list entlst,script myscript
+	 
+	 list imseravailwh
+        caption "Serial Numbers Available for Item "+globals(xitem)
+        table (select zid,xbarcode,xitem ~
+			,(select xdesc from caitem where zid=tbl.zid and xitem=tbl.xitem) as itemdesc ~
+			from (select zid,xbarcode,xitem,sum(xqty*xsign) as xqty from imtrndt group by zid,xbarcode,xitem) tbl) tbl1
+        order xdornum, xrow,xline
+        fixed xdornum, xrow
+        rows 10
+        objects xline attrib(link #servlet+"?page=opddtbar&command=Show&xline=?"),~
+				xbarcode,xitem,itemdesc
+			Totals count
+	end list
+
+    list entlst
+        caption "Serial Numbers Issued to "+xtypeout+" "+xnumout
+        table (select opddtbar.* ~
+			,(select xdesc from caitem where zid=opddtbar.zid and xitem=opddtbar.xitem) as itemdesc ~
+			from opddtbar) tbl
+        order xdornum, xrow,xline
+        fixed xdornum, xrow
+        rows 10
+        objects xline attrib(link #servlet+"?page=opddtbar&command=Show&xline=?"),~
+				xbarcode,xitem,itemdesc
+			Totals count
+	end list
+
+
+
+    form one
+		valid opddtbar
+        table opddtbar
+        order xdornum, xrow,xline
+        fixed xdornum, xrow
+        layout 1
+		focus xbarcode
+		default Add
+        objects Show,Clear,Add,Delete,Top, Previous, Next, Bottom,Return, ~
+        		returnpage attrib(local) display(hidden),trnfield attrib(local) display(hidden),trnrowfield attrib(local) display(hidden),~
+				xline attrib(row 0 1),xqty display(hide),xbarcode,xitem attrib(attach),itemdesc,xentst display(hide),zemail display(hide)
+
+				field xline
+					event after
+						set globals(xline)= xline
+						set statustrn = opdor.xstatusdor("xdornum='"+xdornum+"'")
+						if statustrn .eq. #status("xstatusdor",2) .or. statustrn .eq. #status("xstatusdor",3)
+							set #field(Add.display) = "disable"
+							set #field(Update.display) = "disable"
+							set #field(Delete.display) = "disable"
+						end if
+						
+					end event
+				end field
+				
+				field xitem
+					display const
+				end field
+				
+				field itemdesc
+					caption item Description
+					attrib local
+					display const
+					event after
+						set itemdesc=caitem.xdesc(xitem)
+					end event
+				end field
+				
+				field Add
+					event before
+						set globals(ErrChk) =""
+						
+						set globals(xwh) = opdor.xwh("zid='"+#id+"' and xdornum='"+xdornum+"'")
+						set xitem=#sql(str,"select xitem from opddt where zid='"+#id+"' and xdornum='"+xdornum+"' and xrow="+xrow+"")
+						set globals(xqty)=#sql("select xqty from opddt where zid='"+#id+"' and xdornum='"+xdornum+"' and xrow="+xrow+"")
+						
+						if globals(ErrChk) .ne. "1"
+							int count=#sql(int,"select count(*) from opddtbar where zid='"+#id+"' and xdornum='"+xdornum+"' and xrow="+xrow+"")
+							if count == globals(xqty)
+								error "<span class=br>Free a Number Before You Issue Another One.</span>"
+								set globals(ErrChk) ="1"
+							end if
+						end if
+						
+						if globals(ErrChk) .ne. "1"
+							set chkrec=#sql("select xbarcode from imtrndt where zid='"+#id+"' and xbarcode='"+xbarcode+"' and xitem='"+xitem+"' and xwh='"+globals(xwh)+"'")
+							if #result .ne. "true"
+								error "<font color=red size=+1>Invalid Serial No"
+								set globals(ErrChk) ="1"
+							end if
+						end if
+						
+						if globals(ErrChk) .ne. "1"
+							set stkavl=#sql(dec,"select sum(xqty*xsign) from imtrndt where zid='"+#id+"' and xbarcode='"+xbarcode+"' and xitem='"+xitem+"' and xwh='"+globals(xwh)+"'")
+							if stkavl <=0
+								error "<font color=red size=+1>Already Issued this serial"
+								set globals(ErrChk) ="1"
+							end if
+						end if
+						
+						
+						if globals(ErrChk) .ne. "1"
+							set calentst=#sql(int,"select max(xentst) from imtrndt where zid='"+#id+"' and xbarcode='"+xbarcode+"' and xitem='"+xitem+"' and xsign='1'")
+							set xentst=0+calentst
+							set xqty=0+1
+							set zemail=#user
+						end if
+					
+					end event
+				end field
+								
+				embed onsubmit="submitit(this)"
+
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+				var result
+
+        function clicked(b){
+						detail=b.value
+        }
+        function submitit(form){
+          //result = 'true'
+					if (detail=="Return"){
+            form.page.value = form.returnpage.value
+            form.searchbutton.value = "Find "+form.trnfield.value+"=?&"+form.trnrowfield.value+"=?"
+          }
+					//return result
+        }
+
+        </script>
+     end script
+
+		 valid opddtbar
+		 	config
+	            
+				set returnpage=globals(returnpage)
+	            set trnfield=globals(trnfield)
+	            set trnrowfield=globals(trnrowfield)
+			
+
+				int count=#sql(int,"select count(*) from opddtbar where zid='"+#id+"' and xdornum='"+xdornum+"' and xrow="+xrow+")
+				if count <> globals(xqty)
+					print "<span class=br>Serial Number Mismatch -- Must Have "+globals(xqty)+" Items</span>"
+					set #fields(Return.display)="disabled"
+				else
+					set #fields(Add.display)="disabled"
+				end if
+			end config
+		 
+		 end valid
+
+end page

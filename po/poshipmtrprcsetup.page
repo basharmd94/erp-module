@@ -1,0 +1,167 @@
+page poshipmtrprcsetup
+
+    //embed onload="move_caret('one','xdateout')"
+
+    caption "C&F Information Setup"
+
+    sections form one,list one,script myscript
+
+    list one
+        table poshipmtrprcsetup
+        order xrow,xcostcode DESC
+        select "zid='"+#id+"'"
+        rows 20
+        objects ~
+            xrow attrib(link #servlet+"?page=poshipmtrprcsetup&command=Show&xrow=?&xcostcode=?"),~
+            xcostcode
+
+        field xcostcode
+            caption C&F Info Code
+        end field
+
+    end list
+
+    form one
+        valid valid,access
+        table poshipmtrprcsetup
+        order xrow,xcostcode DESC
+        select "zid='"+#id+"'"
+        layout 1
+        objects Show, Add,Details,Update,Clear, Delete, Top, Previous, Next, Bottom,~
+                xrow attrib(row 0 10),xcostcode,xdescdet,zemail display(hide),xemail display(hide)
+                
+        field xrow
+            caption SL No
+         	event after
+          		set globals(xrow) = xrow
+	        end event
+        end field
+
+        field xcostcode
+            width 20
+            pick
+            caption C&F Code
+            event after
+          		set globals(xcostcode) = xcostcode
+	        end event
+        end field
+
+        field xdescdet
+            caption Description
+            width 40
+            height 2
+         	event after
+          		set globals(xdescdet) = xdescdet
+	        end event
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk)=""
+
+                if globals(ErrChk) .ne. "1"
+                    set zemail=#user
+                end if
+            end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk)=""
+
+                if globals(ErrChk) .ne. "1"
+                    set xemail=#user
+                end if
+        
+            end event
+        end field
+
+        field Delete
+            event before
+                set globals(ErrChk)=""
+
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        
+        field Return
+            embed onclick="ret()"
+        end field
+
+        field Details
+            embed onclick="detail()"
+        end field
+
+    end form
+
+    script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+            $.hotkeys.add('Ctrl+s',function(){
+                //alert('Pressed Ctrl+s');
+                var form=document.forms[0];
+                form.searchbutton.value="Add";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+e',function(){
+                //alert('Pressed Ctrl+e');
+                var form=document.forms[0];
+                form.searchbutton.value="Update";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+d',function(){
+                //alert('Pressed Ctrl+d');
+                var form=document.forms[0];
+                form.searchbutton.value="Delete";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+r',function(){
+                //alert('Pressed Ctrl+r');
+                var form=document.forms[0];
+                form.searchbutton.value="Clear";
+                form.submit();
+            });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+            var detail
+            function ret(){
+                detail="ret"
+            }
+            function detail(){
+                detail="detail"
+            }
+            function submitit(form){
+                if (detail=="ret"){
+                    form.page.value = "vmmovereg_out"
+                    form.searchbutton.value = "Find xsornum=?"
+                //return false
+                }
+                if (detail=="detail"){
+                    form.page.value = "poshipmtrprcsetupdt"
+                    form.searchbutton.value = "Find xcostcode=?&xrow=?"
+                //return false
+                }
+            }
+
+        </script>
+     end script
+
+
+    valid valid
+        mendatory xcostcode
+        config
+            set globals(pkey) = xrow
+
+            set page = "poshipmtrprcsetup"
+
+        end config
+    end valid
+
+#include access.valid
+
+end page

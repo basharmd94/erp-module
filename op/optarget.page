@@ -1,0 +1,162 @@
+page optarget
+
+    caption "OP Target Entry"
+
+    sidebar 
+
+    sections form one,list one,script myscript
+    
+    list one
+        caption "<br><center><b>"Target List"</b>"
+        table optarget
+        order xyear,xper
+        select "zid='"+#id+"'"
+        rows 30
+        objects xyear,xper attrib(link #servlet+"?page=optarget&command=Show&xyear=?&xper=?"),~
+				zemail,xemail
+                
+
+    end list
+
+    form one
+        valid valid,access
+        table optarget
+        order xyear,xper
+        select "zid='"+#id+"'"
+        layout 1
+        objects  Add,Show,Details,Clear,Update,Delete,Previous, Next,~
+                 xyear,xper,zemail display(const) caption(Entry By),xemail display(const) caption(Updated By)
+
+		field show
+			event before
+				set globals(yearhed) = xyear
+				set globals(perhed) = xper
+			end event
+			event after
+				set globals(yearhed) = xyear
+				set globals(perhed) = xper
+			end event
+		end field
+
+		field Top
+			event before
+				set globals(yearhed) = xyear
+				set globals(perhed) = xper
+			end event
+			event after
+				set globals(yearhed) = xyear
+				set globals(perhed) = xper
+			end event
+		end field
+
+        field xyear
+            event after
+                set globals(xyear)=xyear
+            end event
+        end field
+
+        field xper
+            event after
+                set globals(xper)=xper
+            end event
+        end field
+
+        field xarea
+            event after
+                set globals(xarea)=xarea
+            end event
+        end field
+        
+        
+        field Add
+            event before
+                set globals(ErrChk) = ""
+                
+                if globals(ErrChk) .ne. "1"
+                    set zemail=#user
+                end if
+            end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    set xemail=#user
+                end if
+            end event
+        end field
+
+        field Delete
+            event before
+                set globals(ErrChk) = ""
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Details
+          embed onclick="clicked(this)"
+        end field
+
+
+    end form
+
+     script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "optargetd"
+            form.searchbutton.value="Top"
+          }
+        }
+
+        </script>
+     end script
+
+    valid valid
+        mendatory xyear,xper,xarea
+        config
+            set globals(pkey) = xyear+" "+xper+" "+xarea
+        end config
+    end valid
+    
+#include access.valid
+
+end page

@@ -1,0 +1,917 @@
+page moord_com
+     //embed onload = "move_caret('one','xitem')"
+     caption "Manufacturing Order"
+     sidebar list moodt
+     sections form one,list active, finish,text one,script myscript,~
+              method chk_rec, method undo_kit,~
+              method undo_release, method undo_explode,~
+              method chk_stock,method chk_access, method chk_command
+              
+     text one
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+    list moodt
+    	caption "Details"
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=moodt.zid and xitem=moodt.xitem) as itemdesc ~
+			from moodt) as tbl
+		
+        order xmoord,xmorlno
+        fixed xmoord
+        rows 100 f
+        objects xmorlno attrib(link #servlet+"?page=moodt&command=Show&xmoord=?&xmorlno=?"), ~
+                xitem,itemdesc,xqty,xunit
+
+        field itemdesc
+          caption Description
+          storage varchar
+        end field
+		
+	  totals ,,"Total",sum,,,	
+	  
+     end list
+     
+    list header
+        caption "Order List"
+        table moord
+        order xmoord desc
+        
+        rows 20
+        objects ~
+         xmoord attrib(link #servlet+"?page="+page+"&command=Show&xmoord=?"), ~
+         xdatemo,xitem,xqtyprd,xstatusmor
+     end list
+
+    list finish
+        caption "Completed MO(s)"
+        table moord
+        order xmoord desc
+        select "xstatusmor='Completed'"
+        rows 5
+        objects ~
+         xmoord attrib(link #servlet+"?page="+page+"&command=Show&xmoord=?"), ~
+         xdatemo,xitem,xqtyprd,xstatusmor
+     end list
+
+    list active
+        caption "Active MO(s)"
+        table moord
+        order xmoord desc
+        select "xstatusmor <> 'Completed'"
+        rows 5
+        objects ~
+         xmoord attrib(link #servlet+"?page="+page+"&command=Show&xmoord=?"), ~
+         xdatemo,xitem,xqtyprd,xstatusmor
+     end list
+
+    list new
+        caption "NEW MO(s)"
+        table moord
+        order xmoord desc
+        select "xstatusmor='New'"
+        rows 5
+        objects ~
+         xmoord attrib(link #servlet+"?page="+page+"&command=Show&xmoord=?"), ~
+         xdatemo,xitem,xqtyprd,xstatusmor
+     end list
+
+     form one
+        //caption "<font color=black size=3>Manufacturing Order</font>"
+		valid valid,access
+        table moord
+        order xmoord DESC
+        focus xitem
+        layout 2
+        objects Add, Detail, Show,Clear,Delete,Update, ~//Top, Previous, Next, Bottom,
+               Complete, Undo,~
+               xtrnmor,xmoord display(text),xdatemo default(#d),xdfshift attrib(submit),xitem attrib(attach),xitdesc, xcus, xbom,~
+               xqtyprd attrib(attach),xunit display(const),xshift display(hide),xbatch display(hide),~
+               xsuper display(hide), xref ,xwh, xcompwh,xproj display(const),~
+               xdatereq display(hide),xdatesch display(hide),xdateexp display(hide),xdaterel display(hide),~
+               xdatekit display(hide),xdatecom display(hide),xdateundo display(hide),~
+               xdiv display(hide),xsec display(hide), xlong ,xmoglref display(hide),~
+               zemail display(hide), xemail display(hide), xstatusmor,ximtrnnum display(const)
+
+
+      field Item_search
+        event before
+            class osbcustom(search(xitem,"s","caitem","xitem:xdesc","pickItem","xitem:xdesc:xcitem:xgitem","yes","Code:Name:Item Class:Item Group"))
+        end event
+      end field
+	  
+	  
+		field xdfshift
+			display hide
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Manufacturing Shifting'"
+		end field
+		
+		
+	  
+
+      field BOM_search
+        event before
+            class osbcustom(search(xbom,"s","bmbom","xbom","pickbom","xbom:xgitem","yes","BOM Key:Item Group"))
+        end event
+      end field
+
+      field xref
+        caption Operator
+        display hide
+      end field
+
+      field xmoord
+        event after
+           set globals(xmoord)=xmoord
+           set globals(xstatusmor)=xstatusmor
+           set globals(xdatemo)=xdatemo
+           //class osbcustom(osb2crystal("","w","moord","Print Order ",xmoord))
+           if xmoord .ne. ""
+           	  set #field(xtrnmor.display) = "const"
+           end if
+           if xstatusmor .eq. "New"
+              set #field(Release.display) = "hide"
+              set #field(Complete.display) = "hide"
+              set #field(Undo.display) = "hide"
+           else if xstatusmor .eq. "Exploded"
+              set #field(Explode.display) = "disable"
+              set #field(Delete.display) = "disable"
+              set #field(Update.display) = "disable"
+              set #field(Complete.display) = "disable"
+              set #field(xitem.display) = "const"
+              set #field(xbom.display) = "const"
+              set #field(xqtyprd.display) = "const"
+              set #field(xwh.display) = "const"
+              set #field(xcompwh.display) = "const"
+           else if xstatusmor .eq. "Released"
+              //set #field(Update.display) = "disable"
+              set #field(Delete.display) = "disable"
+              set #field(Explode.display) = "disable"
+              set #field(Release.display) = "disable"
+              set #field(xitem.display) = "const"
+              set #field(xdatemo.display) = "const"
+              set #field(xmoord.display) = "const"
+              set #field(xbom.display) = "const"
+              //set #field(xqtyprd.display) = "const"
+              set #field(xwh.display) = "const"
+              set #field(xcompwh.display) = "const"
+           else if xstatusmor .eq. "Completed"
+              set #field(Update.display) = "disable"
+              set #field(Delete.display) = "disable"
+              set #field(Explode.display) = "disable"
+              set #field(Release.display) = "disable"
+              set #field(Undo.display) = "disable"
+              set #field(Complete.display) = "disable"
+              set #field(xitem.display) = "const"
+              set #field(xbom.display) = "const"
+              set #field(xqtyprd.display) = "const"
+              set #field(xwh.display) = "const"
+              set #field(xcompwh.display) = "const"
+           end if
+        end event
+      end field
+
+      field xshift
+        pick list xshift
+      end field
+
+      field xwh
+		caption Receive Warehose
+        default "General Store"
+      end field
+
+      field xitem
+        event after
+         set globals(xitem)=xitem
+		//set xitem=#sql("select xitem from moordshdt where zid='"+#id+"' and xdfshift='"+xdfshift+"' and xdate='"+xdatemo+"'")
+		//set xqtyprd=#sql("select xqty from moordshdt where zid='"+#id+"' and xdfshift='"+xdfshift+"' and xdate='"+xdatemo+"'")
+        end event
+      end field
+
+      field xstatusmor
+        pick
+        default "New"
+        display constant
+        event after
+          set globals(xstatusmor)=xstatusmor
+        end event
+      end field
+
+      field xbom
+        pick list xbom
+        event after
+          set globals(xbom) = xbom
+          set globals(xqtyprd) = xqtyprd
+        end event
+      end field
+
+      field xdateexp
+        caption Explode Date
+      end field
+
+      field xlong
+        caption Notes
+        width 70
+        height 2
+        col 3
+      end field
+
+
+      field xcompwh
+        default "General Store"
+		caption Release Warehouse
+        pick select xcode from xcodes where xtype='Warehouse'
+        event after
+          set globals(xcompwh) = xcompwh
+          set globals(xwh) = xwh
+        end event
+      end field
+
+      field xitdesc
+        caption Description
+        attrib local
+        event after
+          set xitdesc=#sql("select xdesc from caitem where xitem='"+xitem+"'")
+        end event
+        display constant
+      end field
+
+      field xcus
+       caption Option/Customer
+       display hide
+      end field
+
+       field xcusdesc
+          caption Customer Name
+          attrib local
+          event after
+            set xcusdesc=#sql("select xorg from cacus where xcus='"+xcus+"'")
+          end event
+          display constant
+       end field
+
+        field Add
+          event before
+            set globals(ErrChk) = ""
+			
+			//set xwpeffect = #sql("select xwpeffect from zbusiness where zid='"+#id+"'")
+			//set xsysdate=#sub(#date,0,10)
+			//set xwpeffect=#sub(xwpeffect,0,10)
+			//set xsign=0+#days(xwpeffect)-#days(xsysdate)
+			////error xsign
+			//if xsign <= 0
+			//	set globals(ErrChk)="1"
+			//	error " "
+			//end if
+			//
+
+            //call chk_access
+            
+            if globals(ErrChk) .ne. "1"
+             	set chktrn = #sql("select xtrn from xtrn where xtypetrn='MO Number' and zactive='1' and xtrn='"+xtrnmor+"'")
+             	if #result .ne. "true"
+	             	set globals(ErrChk) = "1"
+	             	error "Wrong Transaction Prefix</p>Cannot "+#command
+             	end if
+            end if                
+            
+			if globals(ErrChk) .ne. "1"
+	            call chk_rec
+			end if            
+
+            if globals(ErrChk) .ne. "1"
+            	set chkitem = #sql("select xitem from caitem where xitem='"+xitem+"'")
+				if  #result .ne. "true"  
+					set globals(ErrChk) = "1"
+					error "Wrong Item Selected"
+				end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+            	set chkbom = #sql("select xbom from bmbom where xbom='"+xbom+"'")
+            	if #result .ne. "true"
+                	set globals(ErrChk) = "1"
+                	error "Wrong BOM Key Selected"
+             	end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              if xqtyprd <= 0.0
+                	set globals(ErrChk) = "1"
+                	error "Invalid Production Qty"
+              end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+				str mysql = #sql(str,"select xmoord from moord where xmoord like '"+xtrnmor+"%' order by xmoord desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,6)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set xmoord = xtrnmor + mysql                
+            
+				set zemail=#user
+				set xunit=#sql("select xunitstk from caitem where xitem='"+xitem+"'")
+				set xstatusmor="New"
+            end if
+          end event
+        end field
+
+        field Update
+          event before
+            set globals(ErrChk) = ""
+
+            call chk_access
+            
+            if globals(ErrChk) .ne. "1"
+				call chk_rec
+            end if
+            
+            if xstatusmor .ne. "New"
+            	if xitem .ne. globals(xitem) .and. xbom .ne. globals(xbom)
+            		set globals(ErrChk)="1"
+            		error "Cannot Change Item or BOM Key</p>Status : "+xstatumor
+            	end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+            	set chkitem = #sql("select xitem from caitem where xitem='"+xitem+"'")
+				if xitem .ne. chkitem
+					set globals(ErrChk) = "1"
+					error "Wrong Item Selected"
+				end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+            	set chkbom = #sql("select xbom from bmbom where xbom='"+xbom+"'")
+            	if #result .ne. "true"
+                	set globals(ErrChk) = "1"
+                	error "Wrong BOM Key Selected"
+              	end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              if xqtyprd <= 0.0
+                	set globals(ErrChk) = "1"
+                	error "Invalid Production Qty"
+              end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+              set xemail=#user
+              set xunit=#sql("select xunitstk from caitem where xitem='"+xitem+"'")
+            end if
+          end event
+          event after
+          	if globals(ErrChk) .ne. "1"
+          		call upd_log
+          	end if
+          end event
+        end field
+
+        field delete
+          event before
+            set globals(ErrChk) = ""
+            
+            call chk_access
+            
+			if globals(ErrChk) .ne. "1"
+				call chk_rec
+			end if
+          	if globals(ErrChk) .ne. "1"
+          		call upd_log
+          	end if			
+          end event
+        end field
+
+        field Explode
+            event before
+               set globals(ErrChk) = ""
+               set globals(Flag) = ""
+               
+               
+               if globals(ErrChk) .ne. "1"
+               	if globals(xmoord) .ne. xmoord
+                  set globals(ErrChk) = "1"
+                  error "Record pointer mismatch</p>Cannot "+#command
+               	end if
+               end if
+               
+               if globals(ErrChk) .ne. "1"
+                  if xstatusmor .ne. "New" .and. xstatusmor .ne. "Exploded"
+                     set globals(ErrChk) = "1"
+                     error "Cannot "+#command+"</p>Status : "+xstatusmor
+                  end if
+               end if
+               
+               if globals(ErrChk) .ne. "1"
+                  set xmorlno=#sql(str,"select xmorlno from moodt where zid='"+#id+"' and xmoord='"+globals(xmoord)+"'")
+                  if #result .eq. "true"
+                     str mysql="delete from moodt where zid='"+#id+"' and xmoord='"+globals(xmoord)+"'"
+                     set updval=#sql(str,mysql)
+                     if #result .ne. "true"
+                        set globals(ErrChk)="1"
+                        error "Error in deleting detail record</p>Process Aborted</p>Please delete records manually"
+                     end if
+                  end if
+               end if
+               
+               if globals(ErrChk) .ne. "1"
+                  int xline = 0
+                  str mysql = "select xline from bmbdt where zid='"+#id+"' and xbom = '"+globals(xbom)+"' and xline > '"+xline+"' order by xline"
+                  set xline = #sql(str,mysql)
+				  
+                  while #result .eq. "true"
+                     buffer bmbdt
+                     move bmbdt=bmbdt(xbom,xline)
+					 
+                     if #result .eq. "true"
+                        buffer moodt
+                        set moodt.xmoord=globals(xmoord)
+                        set moodt.xmorlno=xline
+                        set moodt.xitem=bmbdt.xitem
+                        set moodt.xwh=globals(xcompwh)
+                        
+                        set moodt.xqty = (0.00+bmbdt.xqty)*globals(xqtyprd)
+						
+                        set moodt.xqtyord = (0.00+bmbdt.xqty)*globals(xqtyprd)
+                        set moodt.xunit=bmbdt.xunit
+                        set moodt.xstype=bmbdt.xstype
+                        set moodt.xcfiss=#sql(decimal,"select xcfiss from caitem where xitem='"+bmbdt.xitem+"'")
+                        set moodt.xbatch=""               
+                        insert moodt
+                        if #result .ne. "true"
+                           set globals(ErrChk)="1"
+                           error "Error in Adding record</p>Process Aborted"
+                        else
+                           set globals(Flag)="1"
+                        end if
+                     end if
+                     str mysql = "select xline from bmbdt where zid='"+#id+"' and xbom = '"+globals(xbom)+"' and xline > '"+xline+"' order by xline"
+                     set xline = #sql(str,mysql)
+                  end while
+               end if
+               if globals(ErrChk) .ne. "1"
+                  if globals(Flag) .eq. "1"
+                     str mysql="update moord set xstatusmor='Exploded' where zid='"+#id+"' and xmoord='"+globals(xmoord)+"'"
+                     set updval=#sql(str,mysql)
+                     action show
+                     print "<font color=blue size=2>Exploded Successfully</font>"
+                  end if
+               end if
+
+            end event
+        end field
+
+        field Release
+            event before
+               set globals(ErrChk) = ""
+               set globals(Flag) = ""
+               
+               if globals(ErrChk) .ne. "1"
+               	if globals(xmoord) .ne. xmoord
+                  set globals(ErrChk) = "1"
+                  error "Record pointer mismatch</p>Cannot "+#command
+               	end if
+               end if
+               
+               if globals(ErrChk) .ne. "1"
+                  if xstatusmor .ne. "Exploded"
+                     set globals(ErrChk) = "1"
+                     error "Cannot "+#command+"</p>Status : "+xstatusmor
+                  end if
+               end if
+               
+               if globals(ErrChk) .ne. "1"
+               	call chk_stock
+               end if
+
+               if globals(ErrChk) .ne. "1"
+                  str mysql="update moord set xstatusmor='Released' where xmoord='"+globals(xmoord)+"'"
+                  set updval=#sql(str,mysql)
+                  action show
+                  print "<font color=blue size=4>Released Successfully</font>"
+               end if
+	           if globals(ErrChk) .ne. "1"
+					call upd_log
+	           end if
+            end event
+        end field
+
+        field Complete
+           event before
+               set globals(ErrChk) = ""
+               set globals(Flag) = ""
+               decimal totval = 0.0
+               
+               call chk_access
+               
+               if globals(ErrChk) .ne. "1"
+               	if globals(xmoord) .ne. xmoord
+                  set globals(ErrChk) = "1"
+                  error "Record pointer mismatch</p>Cannot "+#command
+               	end if
+               end if
+               
+               if globals(ErrChk) .ne. "1"
+                  if xstatusmor .ne. "Released"
+                     //set globals(ErrChk) = "1"
+                     //error "Cannot "+#command+"</p>Status : "+xstatusmor
+                  end if
+               end if
+
+               if globals(ErrChk) .eq. ""
+  	              string xtrncode=#sub(xmoord,0,4)
+                 set xtrncode=xtrnp.xrel("xtypetrn='MO Number' and xtrn='"+xtrncode+"' and xtyperel='Inventory Transaction Receive'")
+                 if #result .ne. "true"
+                   set globals(ErrChk) = "1"
+                   error "Related Inventory Transaction Code for Receive not found</p>Cannot "+#command
+                 end if
+               end if
+               if globals(ErrChk) .eq. ""
+                   set imtrncode = xtrn.xtrn("xtypetrn='Inventory Transaction' and xtrn='"+xtrncode+"'")
+                   if #result .ne. "true"
+                     set globals(ErrChk) = "1"
+                     error "Inventory Transaction code("+xtrncode+") not found</p>Cannot "+#command
+                   end if
+               end if
+
+               if globals(ErrChk) .eq. ""
+  	             string xisscode=#sub(xmoord,0,4)
+                 set xisscode=xtrnp.xrel("xtypetrn='MO Number' and xtrn='"+xisscode+"' and xtyperel='Inventory Transaction Issue'")
+                 if #result .ne. "true"
+                   set globals(ErrChk) = "1"
+                   error "Related Inventory Transaction Code for Issue not found</p>Cannot "+#command
+                 end if
+               end if
+               if globals(ErrChk) .eq. ""
+                   set isscode = xtrn.xtrn("xtypetrn='Inventory Transaction' and xtrn='"+xisscode+"'")
+                   if #result .ne. "true"
+                     set globals(ErrChk) = "1"
+                     error "Inventory Transaction code("+xisscode+") not found</p>Cannot "+#command
+                   end if
+               end if
+
+               if globals(ErrChk) .ne. "1"
+                  call chk_stock
+               end if
+               
+               if globals(ErrChk) .ne. "1"
+					
+	              int offset
+	              int per
+	              int year=#sub(globals(xdatemo),0,4)
+				  
+				  
+	
+	              int tempper
+	              int tempyear	            
+	              set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+	              set per=12+#sub(globals(xdatemo),5,2)-offset
+	              if per<=12
+	                set tempper=per
+	                set tempyear=year-1
+	              else
+	                set tempper=per-12
+	                set tempyear=year
+	              end if
+				  				    
+                  str xmorlno = 0
+                  str mysql = "select xmorlno from moodt where xmoord = '"+globals(xmoord)+"' and xmorlno > '"+xmorlno+"'"
+                  set xmorlno = #sql(str,mysql)
+				  //error #result+" "+mysql
+                  while #result .eq. "true"
+				
+                     buffer moodt
+                     move moodt=moodt(xmoord,xmorlno)
+                     if #result .ne. "true"
+                        set globals(ErrChk)="1"
+                        error "Detail record not found</p>Cannot "+#command
+                     end if
+                     if globals(ErrChk) .ne. "1"
+                        if moodt.xstype .ne. "Non-Stock"						
+                        	decimal tmp_qty = 0.0
+                        	set xsign = 0-1
+							//set totqty=#sql(double,"select sum(xqty*xsign) from imtrn where xwh='"+globals(xcompwh)+"' and xitem='"+moodt.xitem+"' and xdate<='"+globals(xdatemo)+"'")
+							//set totval=#sql(double,"select sum(xval*xsign) from imtrn where xwh='"+globals(xcompwh)+"' and xitem='"+moodt.xitem+"' and xdate<='"+globals(xdatemo)+"'")
+							
+							set batchqty=0.00+imwtview.xqty("zid='"+#id+"' and xitem='"+moodt.xitem+"' and xwh= '"+globals(xcompwh)+"'")
+							set batchval=0.00+imwtview.xval("zid='"+#id+"' and xitem='"+moodt.xitem+"' and xwh= '"+globals(xcompwh)+"'")
+							
+							set tmpval=0.0+batchval/batchqty
+							set tmpval=#round(tmpval,2)
+							set value = 0.0+tmpval*moodt.xqty
+							set value = #round(value,2)
+							//error value
+							//set rate = 0.00+totval/totqty
+							
+							//set tmp_qty = 0.00+moodt.xqty*moodt.xcfiss
+							//set tmp_val = 0.00+moodt.xqty*rate
+							
+							//error moodt.xqty+" "+tmpval
+							str mysql = #sql(str,"select ximtrnnum from imtrn where ximtrnnum like '"+xisscode+"%' order by ximtrnnum desc")
+							if #result .eq. "true" .and. mysql .ne. ""
+								set last_num = 0+#sub(mysql,4,6)
+							end if
+							set last_num = 0+1+last_num
+							set mysql = #padl(""+last_num,6,"0")
+							set ximtrnnum = xisscode + mysql            
+							//error ximtrnnum+" "+xisscode
+                        
+							//str mysql = "delete from imtrn where xdocnum='"+globals(xmoord)+"' and xdocrow='"+xmorlno+"'"
+							//set tmpstr = #sql(str,mysql)
+							
+							//set mysql = "insert into imtrn (ztime,zutime,zid,ximtrnnum, xitem,xitemrow,xitemcol,xwh,xdate,xyear,xper,~
+		          			//	xqty,xval,xvalpost,xdoctype,xdocnum,xdocrow,xnote,xaltqty,xdiv,xsec,xproj,~
+		          			//	xbatch,xdateexp,xdaterec, xlicense,xcus,xsup,xaction,xsign,xtime,zemail,xemail,xtrnim)"
+							//set mysql = mysql + " values('"+#time+"','"+#time+"',"+#id+",'"+ximtrnnum+"','"+moodt.xitem+"','','','"+globals(xcompwh)+"',~
+							//	'"+globals(xdatemo)+"','"+tempyear+"','"+tempper+"',"+moodt.xqty+","+value+","0",'IS--',~
+							//	'"+globals(xmoord)+"','"+xmorlno+"','',"0",'"+xdiv+"','"+xsec+"','"+xproj+"','"+moodt.xbatch+"',~
+							//	'"+globals(xdatemo)+"','"+globals(xdatemo)+"','','','','Issue','"+xsign+"',~
+							//	'"+#time+"','"+#user+"','','IS--')"
+							//set tmpstr =#sql(mysql)
+						//print #result +" ; "+mysql
+						//print #result
+							if #result .eq. "true"				
+								str myqry = "update moodt set ximtrnnum='"+ximtrnnum+"',xrate="+tmpval+" where zid='"+#id+"' and xmoord = '"+globals(xmoord)+"' and xmorlno = '"+xmorlno+"'"
+								set updval = #sql(str,myqry)
+							end if           
+						end if  	             	
+                     end if
+                     str mysql = "select xmorlno from moodt where xmoord = '"+globals(xmoord)+"' and xmorlno > '"+xmorlno+"'"
+                     set xmorlno = #sql(str,mysql)
+                  end while
+               end if
+
+               if globals(ErrChk) .ne. "1"
+               		decimal actval = 0.0
+					str mysql = #sql(str,"select ximtrnnum from imtrn where ximtrnnum like '"+xtrncode+"%' order by ximtrnnum desc")
+					if #result .eq. "true" .and. mysql .ne. ""
+						set last_num = 0+#sub(mysql,4,6)
+					end if
+					set last_num = 0+1+last_num
+					set mysql = #padl(""+last_num,6,"0")
+					set ximtrnnum = xtrncode + mysql            
+                	set ovhval = #sql(decimal,"select sum(xqty) from moodt where xmoord='"+globals(xmoord)+"' and xstype='Non-Stock'")
+					set prdcost = #sql(decimal,"select sum(xval) from imtrn where zid='"+#id+"' and xdocnum='"+globals(xmoord)+"'")
+                	set actval = 0.0+prdcost+ovhval
+                	
+					str mysql = "delete from imtrn where xdocnum='"+globals(xmoord)+"' and xdocrow='"+xmorlno+"'"
+					set tmpstr = #sql(str,mysql)
+					
+					set mysql = "insert into imtrn (ztime,zutime,zid,ximtrnnum, xitem,xitemrow,xitemcol,xwh,xdate,xyear,xper,~
+          				xqty,xval,xvalpost,xdoctype,xdocnum,xdocrow,xnote,xaltqty,xdiv,xsec,xproj,~
+          				xbatch,xdateexp,xdaterec, xlicense,xcus,xsup,xaction,xsign,xtime,zemail,xemail,xtrnim)"
+					set mysql = mysql + " values('"+#time+"','"+#time+"',"+#id+",'"+ximtrnnum+"','"+xitem+"','','','"+globals(xwh)+"',~
+						'"+globals(xdatemo)+"','"+tempyear+"','"+tempper+"',"+globals(xqtyprd)+","+actval+","0",'"+xtrncode+"',~
+						'"+globals(xmoord)+"','10','',"0",'"+xdiv+"','"+xsec+"','"+xproj+"','"+xbatch+"',~
+						'"+globals(xdatemo)+"','"+globals(xdatemo)+"','','','','Receipt','1',~
+						'"+#time+"','"+#user+"','','"+xtrncode+"')"
+					set tmpstr =#sql(mysql)
+					//print #result +" "+mysql
+					//print #result
+					if #result .eq. "true"				
+						str myqry = "update moord set ximtrnnum='"+ximtrnnum+"' where xmoord = '"+globals(xmoord)+"'"
+						set updval = #sql(str,myqry)
+						
+						  str mysql="update moord set xstatusmor='Completed' where xmoord='"+globals(xmoord)+"'"
+						set updval=#sql(str,mysql)
+	                     
+                     	print "<font size=+1>"+globals(xmoord)+" Completed Successfully</font>"
+                     	action show
+                  	end if
+               end if
+           end event
+        end field
+        
+        field Transfer
+        	event before
+        	  class yblcustom(motransfer(xmoord,xstatusmor,xmoglref,xdatecom))
+        	end event
+        end field
+
+        field stock
+          event before
+            class yblcustom(mostkrm)
+          end event
+        end field
+
+        field Undo
+          event before
+            set globals(ErrChk) = ""
+            
+            call chk_access
+            
+            if globals(ErrChk) .ne. "1"
+            	if globals(xmoord) .ne. xmoord
+               		set globals(ErrChk) = "1"
+               		error "Record pointer mismatch</p>Cannot "+#command
+               	end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+               if xstatusmor .eq. "Completed"
+                  set globals(ErrChk) = "1"
+                  error "Cannot "+#command+" ; Already "+xstatusmor
+               else if xstatusmor .eq. "Released"
+                  call undo_release
+               else if xstatusmor .eq. "Exploded"
+                  call undo_explode
+               else if xstatusmor .eq. "New"
+                  set globals(ErrChk) = "1"
+                  error "Nothing to "+#command
+               end if
+            end if
+	        if globals(ErrChk) .ne. "1"
+				call upd_log
+	        end if            
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Detail
+           embed onclick="clicked(this)"
+        end field
+
+        field Wastage
+          embed onclick="Wastage(this)"
+        end field
+
+  end form
+
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but= ""
+
+        function clicked(b){
+          but="clicked"
+        }
+
+        function Wastage(b){
+           but ="Wastage"
+        }
+
+        function submitit(form){
+          if (but=="clicked"){
+            form.page.value = "moodt_com"
+            form.searchbutton.value = "Top"
+          }else if (but=="Wastage"){
+            form.page.value = "mowaste"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xitem.value=link.text
+          }else{
+            document.one.xitem.value=link.innerText
+          }
+          return false
+        }
+
+      function pickbom(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xbom.value=link.text
+          }else{
+            document.one.xbom.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+     method chk_rec
+        if #command .eq. "Add"
+           if xitem .eq. ""
+              set globals(ErrChk) = "1"
+              error "Item not Selected; Cannot "+#command
+           else if xbom .eq. ""
+              set globals(ErrChk) = "1"
+              error "BOM Key not Selected; Cannot "+#command
+           end if
+           if globals(ErrChk) .ne. "1"
+             if globals(xstatusmor) .ne. "NEW"
+                set globals(ErrChk) = "1"
+                error "Cannot "+#command+"; Clear Screen and Try."
+             end if
+           end if
+        end if
+
+        if #command .eq. "Update" .and. xmoord .ne. globals(xmoord)
+          set globals(ErrChk) = "1"
+          error "Record pointer Mismatch, Try SHOW instead.<br>"
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          if globals(xstatusmor) .ne. "Released" //.or. globals(xtatusmor) .ne. "Exploded"
+             set globals(ErrChk) = "1"
+             error "Cannot "+#command +"; Already "+globals(xstatusmor)
+          end if
+        end if
+     end method
+
+     method undo_release
+          set status=#sql(str,"select xstatusmor from moord where xmoord='"+globals(xmoord)+"'")
+          if status .eq. "Released"
+          	str mysql="update moord set xstatusmor='Exploded' where xmoord='"+globals(xmoord)+"'"
+          	set updval=#sql(str,mysql)
+            action show
+            print "<font color=blue size=4>"+globals(xmoord)+ " Changed to "+ xstatusmor+"</font>
+          end if
+     end method
+
+     method undo_explode
+          set status=#sql(str,"select xstatusmor from moord where xmoord='"+globals(xmoord)+"'")
+          if status .eq. "Exploded"
+            str mysql="delete from moodt where xmoord='"+globals(xmoord)+"'"
+            set updval=#sql(str,mysql)
+            if #result .eq. "true"
+	          	str mysql="update moord set xstatusmor='New' where xmoord='"+globals(xmoord)+"'"
+	          	set updval=#sql(str,mysql)
+               action show
+               print "<font color=blue size=4>"+globals(xmoord)+ " Changed to "+ xstatusmor+"</font>
+            end if
+          end if
+     end method
+
+     method chk_stock
+        str xmorlno = ""
+        str mysql = "select xmorlno from moodt where xmoord = '"+globals(xmoord)+"' and xmorlno > '"+xmorlno+"'"
+        set xmorlno = #sql(str,mysql)
+        while #result .eq. "true"
+           set stype = #sql("select xstype from moodt where xmoord='"+globals(xmoord)+"' and xmorlno='"+xmorlno+"'")
+           if stype .ne. "Non-Stock"
+	           decimal avlqty=0.0
+	           set xitem=#sql(str,"select xitem from moodt where xmoord='"+globals(xmoord)+"' and xmorlno='"+xmorlno+"'")
+	           set xwh=globals(xcompwh)
+	           set itemqty=#sql(decimal,"select sum(xqty*xcfiss) from moodt where xmoord='"+globals(xmoord)+"' and xmorlno='"+xmorlno+"'")
+	           buffer imstock
+	           move imstock=imstock(xitem,xwh)
+	           if #result .ne. "true"
+	              set globals(ErrChk) = "1"
+	              print "<font color=red size=3>Stock not found for Item : "+xitem+"</font>"
+	           else
+	           	  if #command .eq. "Complete"
+	              	set avlqty = 0.0+imstock.xinhand-imstock.xopord-imstock.xtoout-imstock.xaltqty
+	              	if avlqty<itemqty
+	                 	set globals(ErrChk) = "1"
+	                 	print "<font color=red size=3>Not enough stock for "+xitem+" <br>Available : "+avlqty+"; Required : "+itemqty+"</font>"
+	              	end if
+	              else if #command .eq. "Release"
+	              	set avlqty = 0.0+imstock.xinhand-imstock.xopord-imstock.xtoout-imstock.xaltqty-imstock.xwoalc
+	              	//print avlqty+" "+itemqty
+	              	if avlqty<itemqty
+	                 	set globals(ErrChk) = "1"
+	                 	print "<font color=red size=3>Not enough stock for "+xitem+" <br>Available : "+avlqty+"; Required : "+itemqty+"</font>"
+	              	end if
+	              end if
+	           end if
+	       end if
+           str mysql = "select xmorlno from moodt where xmoord = '"+globals(xmoord)+"' and xmorlno > '"+xmorlno+"'"
+           set xmorlno = #sql(str,mysql)
+        end while
+        set xitem=globals(xitem)
+        set xwh=globals(xwh)
+     end method
+
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql     
+
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(xmoord)+"','','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+#time+"','"+page+"','')"
+		set tmpstr =#sql(myqry)		
+     end method
+       
+     method templog
+		set myqry = "insert into ztemplog (zid,xordernum,xdate,xtime,xobject,xaction,xemail,xrem)"
+		set myqry = myqry + " values('"+#id+"','"+globals(xmoord)+"','"+#date+"','"+#time+"','"+page+"',~
+			'"+#command+"','"+#user+"','')"
+		set tmpstr =#sql(myqry)
+		if #result .eq. "true"
+		else
+			set globals(ErrChk) = "1"
+			error "Error: Contact System Administrator or</p>Run Correction"
+		end if
+     end method
+
+	valid valid
+		config
+			set xtrnmor="MO--"
+		end config
+	end valid
+	
+end page

@@ -1,0 +1,40 @@
+		method opcheckbatch
+			set xstatusdor=opdor.xstatusdor(xdornum)
+			console "OPCHECKBATCH="+xdornum+"*"+xstatusdor
+			int err=0
+			int row = 0	
+			set row=#sql(int,"select xrow from opddt where zid="+#id+" and xdornum='"+xdornum+"' and xrow > "+row)
+			while row>0
+				double blankcount=#sql(double,"select sum(xqty) from opddtbat where xdornum='"+xdornum+"' and xrow="+row+" and xbatch = ''")
+				double batchcount=#sql(double,"select sum(xqty) from opddtbat where xdornum='"+xdornum+"' and xrow="+row+" and xbatch <> ''")
+				double totcount=blankcount+batchcount
+				double qtydor=#sql(double,"select xqty from opddt where xdornum='"+xdornum+"' and xrow='"+row+"'")
+				console "blank,batch,ddt="+blankcount+"*"+batchcount+"*"+qtydor
+				if qtydor <> totcount
+					set err=1
+				end if
+				if err==0 .and. blankcount > 0
+					//for mandatory batch numbers
+					str batchman =#sql(string,"select (select xbatchman from caitem where zid=opddt.zid and xitem=opddt.xitem) from opddt ~
+					where zid="+#id+" and xdornum='"+xdornum+"' and xrow= "+row)
+					if batchman .eq. "1"
+						set err=1
+					end if
+				end if
+				
+				if err==1
+					set tempstr=#sql(int,"update opddt set xstatusddt='"+#status("xstatusdor",6)+"' where xdornum='"+xdornum+"' and xrow='"+row+"'")
+				else
+					set tempstr=#sql(int,"update opddt set xstatusddt='"+#status("xstatusdor",1)+"' where xdornum='"+xdornum+"' and xrow='"+row+"'")
+				end if
+				set row=#sql(int,"select xrow from opddt where zid="+#id+" and xdornum='"+xdornum+"' and xrow > "+row)
+			end while
+			if err==1
+				set tempstr=#sql(int,"update opdor set xstatusdor='"+#status("xstatusdor",6)+"' where xdornum='"+xdornum+"'")
+				set xstatusdor=#status("xstatusdor",6)
+			else if xstatusdor .eq. #status("xstatusdor",6)
+				set xstatusdor=#status("xstatusdor",1)
+				set tempstr=#sql(int,"update opdor set xstatusdor='"+#status("xstatusdor",1)+"' where xdornum='"+xdornum+"'")
+			end if
+			console "OPCHECKBATCHEND="+xdornum+"*"+xstatusdor
+		end method		

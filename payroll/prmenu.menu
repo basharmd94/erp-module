@@ -1,0 +1,23 @@
+//Employee Other Details Menu
+//---------------------------------------------------------------------------------------
+caption "Payroll" page 3
+option                      |action                                      |modules|models
+//---------------------------------------------------------------------------------------
+Transaction Entry       	|#classPath+"/"+#servlet+"?page=prpay"               |
+-
+Payroll Process-Trial Run   |#classPath+"/"+#servlet+"?page=prprocess"           |
+-
+//Payroll Process-Final Run   |#classPath+"/"+#servlet+"?page=prprocessf"          |
+-
+Actual Query            	|#classPath+"/"+#servlet+"?page=pracc"               |
+-                                                                                |
+Loans/Adavances         	|#classPath+"/"+#servlet+"?page=pradvh"              |
+Bonus Process	         	|#classPath+"/"+#servlet+"?page=prbonusprocess"              |
+PR to GL Process         	|#classPath+"/"+#servlet+"?page=prglpost"              
+PR to GL Interface         	|#classPath+"/"+#servlet+"?page=prgli"              
+-                                                                                |
+//Leave Process           	|#classPath+"/"+#servlet+"?page=prlvprocess"         |
+//Adjustment Process      	|#classPath+"/"+#servlet+"?page=pradjprocess"        |
+//Month Status Entry      	|#classPath+"/"+#servlet+"?page=prmonthst"              |
+//Provident Fund Status   	|#classPath+"/"+#servlet+"?page=prpfhed&command=clear"                  |
+//---------------------------------------------------------------------------------------

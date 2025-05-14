@@ -1,0 +1,330 @@
+page preom
+
+	 embed onload="move_caret('one','xemp')"
+     caption "Employee Of The Month"
+     sidebar text one
+     sections form one, list one, script myscript, text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        //caption "List of Employee(s)"
+        table preom
+        order xrow
+  	    navigators alpha
+        rows 60
+        objects xrow attrib(link #servlet+"?page="+page+"&command=Show&xrow=?"),~
+                xemp,xname,xdesig,xdept,xcostcent,xatype
+
+        field xcostcent
+           caption Location
+        end field
+
+        field xjoindate
+          caption DOJ
+        end field
+
+     end list
+
+     form one
+        //caption "<font color=black size=4>Employee Transfer</font>"
+        table preom
+        order xrow
+        layout 2
+        objects Add,Show,Update,Clear, Top,Delete,Previous, Next, Bottom,~
+            xrow attrib(row 0 1),xemp attrib(search),xname,xdesig display(const),xdept display(const),xcostcent,xjoindate,~
+            xatype,xdateto,xremarks
+
+           field xemp
+              event after
+                set globals(xemp)=xemp
+                set globals(xrow)=xrow
+                set globals(xname)=xname
+                set #field(xempnew.caption) = "<font color=red>"+#field(xempnew.caption)+"</font>"
+                set #field(xnewdept.caption) = "<font color=red>"+#field(xnewdept.caption)+"</font>"
+                set #field(xnewdesig.caption) = "<font color=red>"+#field(xnewdesig.caption)+"</font>"
+                set #field(xlocation.caption) = "<font color=red>"+#field(xlocation.caption)+"</font>"
+                set #field(dumzid.caption) = "<font color=red>"+#field(dumzid.caption)+"</font>"
+                set #field(xdateto.caption) = "<font color=red>"+#field(xdateto.caption)+"</font>"
+              end event
+           end field
+
+           field xcostcent
+              caption Location
+              display const
+           end field
+
+           field xname
+              width 30
+              display const
+           end field
+           
+           field xremarks
+                col 3
+                width 60
+                height 4
+           end field
+           
+           field xpostflag
+              caption Confirmation Status
+              display const
+           end field
+
+           field xjoindate
+             caption Date of Joining
+             display const
+             col 3
+           end field
+
+           field xdateto
+             caption Date
+           end field
+
+           field xlocation
+             caption New Location
+             display combo
+             pick select xcode from xcodes where xtype='Location'
+           end field
+
+           field dumzid
+             caption New Company
+           end field
+
+          field dum1
+           caption
+           display const
+           attrib local
+           event after
+              set dum1 = "<font color=red>*****************************************</font>"
+           end event
+          end field
+
+          field dum2
+           caption
+           display const
+           attrib local
+           event after
+              set dum2 = "<font color=red>****************************************</font>"
+           end event
+          end field
+          
+          field Confirm
+                event before
+                
+                   if xpostflag .ne. ""
+                      set globals(ErrChk)="1"
+                      error "Already Confirmed</p>Cannot "+#command
+
+                   else
+                    str mysql = "update prmst set xcostcent = '"+xlocation+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+                    
+                    str mysql = "update prmst set xdept = '"+xnewdept+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+                    
+                    str mysql = "update prmst set xdesig = '"+xnewdesig+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+                    
+                    str mysql = "update prtransfer set xpostflag='Confirmed' where xemp='"+xemp+"' and xrow='"+globals(xrow)+"' "
+                    set updval = #sql(str,mysql)
+                    action show
+                    
+                  end if
+                end event
+          end field
+
+          field Confirm_old
+            event before
+              set globals(ErrChk)=""
+              int zid=0
+
+              set chkemp=#sql(str,"select xemp from prtransfer where xemp='"+xempnew+"'")
+              if #result .eq. "true"
+                set globals(ErrChk) = "1"
+                error "Employee Code : "+xempnew+" already exists</p>Cannot "+#command
+              end if
+
+              if globals(ErrChk) .ne. "1"
+                if dumzid == 0
+                  set zid=#id
+                else if dumzid != 0
+                  set zid=#sql(int,"select dumzid from glbid where dumzid='"+dumzid+"'")
+                  if #result .ne. "true"
+                    set globals(ErrChk)="1"
+                    error "Wrong Business ID</p>If the transfer is within the same Business; As New Company-update the record with 0"
+                  end if
+                end if
+              end if
+
+              if globals(ErrChk) .ne. "1"
+                if xnewdept .eq. ""
+                  set newdept=xdept
+                else if xnewdept .ne. ""
+                  set newdept=#sql("select xcode from xcodes where xtype='Department' and xcode='"+xnewdept+"'")
+                  if #result .ne. "true"
+                    set globals(ErrChk)="1"
+                    error "Wrong Department Code</p>If new department is same as the old one; Please Leave the field blank"
+                  end if
+                end if
+              end if
+
+              if globals(ErrChk) .ne. "1"
+                if xnewdesig .eq. ""
+                  set newdesig=xdesig
+                else if xnewdesig .ne. ""
+                  set newdesig=#sql("select xcode from xcodes where xtype='Designation' and xcode='"+xnewdesig+"'")
+                  if #result .ne. "true"
+                    set globals(ErrChk)="1"
+                    error "Wrong Designation Code</p>If new designation is same as the old one; Please Leave the field blank"
+                  end if
+                end if
+              end if
+
+              if globals(ErrChk) .ne. "1"
+                if xlocation .ne. ""
+                  set location=xlocation
+                else
+                  set location=xcostcent
+                end if
+              end if
+
+              if globals(ErrChk) .ne. "1"
+                buffer prmst
+                move prmst=prmst(xemp)
+                if #result .eq. "true"
+                  set mysql = "insert into prmst (zid,xemp,xname,xdesig,xdept,xadd,xcostcent,xpaytyp,~
+                               xfather,xmother,xsex,xbloodgrp,xdtbirth,xreligi,xcitizen,~
+                               xpassport,xlicense,xtype,xtinno,xmstatus,xpadd,xjoindate,xempnature,xprobfrdate,xprobtodate,xcondate)"
+                  set mysql = mysql + " values('"+zid+"','"+prmst.xempnew+"','"+prmst.xname+"','"+newdesig+"','"+newdept+"','"+prmst.xadd+"','"+location+"',~
+                              '"+prmst.xpaytyp+"','"+prmst.xfather+"','"+prmst.xmother+"','"+prmst.xsex+"','"+prmst.xbloodgrp+"','"+prmst.xdtbirth+"','"+prmst.xreligi+"',~
+                              '"+prmst.xcitizen+"','"+prmst.xpassport+"','"+prmst.xlicense+"','"+prmst.xtype+"','"+prmst.xtinno+"','"+prmst.xmstatus+"','"+prmst.xpadd+"',~
+                              '"+prmst.xjoindate+"','"+prmst.xempnature+"','"+prmst.xprobfrdate+"','"+prmst.xprobtodate+"','"+prmst.xcondate+"')"
+                  set insdata = #sql(mysql)
+                  if #result .ne. "true"
+                    set globals(ErrChk)="1"
+                    error "Error in Updating Records"
+                  end if
+                end if
+              end if
+
+              if globals(ErrChk) .ne. "1"
+                int newrow = 0
+                set xrow = ""
+                str mysql = "select xrow from prpromotdet where xemp='"+prmst.xemp+"' and xrow>'"+xrow+"'"
+                set xrow = #sql(str,mysql)
+                while #result .eq. "true"
+                  buffer prpromotdet
+                  move prpromotdet=prpromotdet(xemp,xrow)
+                  if #result .eq. "true"
+                    set mysql = "insert into prpromotdet (zid,xemp,xrow,xprvdesig,xnewdesig,xnewdept,xrepto,xamount,xdate)"
+                    set mysql = mysql + " values('"+zid+"','"+prmst.xempnew+"','"+prpromotdet.xrow+"','"+prpromotdet.xprvdesig+"','"+prpromotdet.xnewdesig+"','"+prpromotdet.xnewdept+"','"+prpromotdet.xrepto+"','"+prpromotdet.xamount+"','"+prpromotdet.xdate+"')"
+                    set insdata = #sql(mysql)
+                    if #result .ne. "true"
+                      set globals(ErrChk)="1"
+                      error "Error in Updating Records"
+                    end if
+                  end if
+                  set newrow = 0+xrow
+                  str mysql = "select xrow from prpromotdet where xemp='"+prmst.xemp+"' and xrow>'"+xrow+"'"
+                  set xrow = #sql(str,mysql)
+                end while
+                if globals(ErrChk) .ne. "1"
+                  set newrow = 0+newrow+1
+                  set mysql = "insert into prpromotdet (zid,xemp,xrow,xprvdesig,xnewdesig,xnewdept,xrepto,xdate)"
+                  set mysql = mysql + " values('"+zid+"','"+prmst.xempnew+"','"+newrow+"','"+prmst.xdesig+"','"+newdesig+"','"+newdept+"','"+prmst.xrepto+"','"+#date+"')"
+                  set insdata = #sql(mysql)
+                  if #result .ne. "true"
+                    set globals(ErrChk)="1"
+                    error "Error in Updating Records"
+                  end if
+                end if
+              end if
+              if globals(ErrChk) .ne. "1"
+                str mysql = "delete from prpromotdet where xemp='"+prmst.xemp+"'"
+                set delval = #sql(str,mysql)
+
+                str mysql = "update prmst set xpaytyp = 'Held' where xemp='"+prmst.xemp+"'"
+                set updval = #sql(str,mysql)
+                if #result .ne. "true"
+                  set globals(ErrChk)="1"
+                  error "Error in Updating Records"
+                end if
+              end if
+
+              if globals(ErrChk) .ne. "1"
+                print "<font color=blue size=3>Transfer Completed Successfully</font>"
+              end if
+            end event
+          end field
+          
+          field Add
+            event before
+                set xpostflag = ""
+                set xname=#sql(str,"select xfirst from prmst where xemp='"+xemp+"'")
+                set xdesig=#sql(str,"select xdesig from prmst where xemp='"+xemp+"'")
+                set xdept=#sql(str,"select xdept from prmst where xemp='"+xemp+"'")
+                set xcostcent=#sql(str,"select xcostcent from prmst where xemp='"+xemp+"'")
+                set xjoindate=#sql(str,"select xjoindate from prmst where xemp='"+xemp+"'")
+            end event
+          end field
+
+          field Update
+            event before
+                 if xpostflag .ne. ""
+                    set globals(ErrChk)="1"
+                    error "Already Confirmed</p>Cannot "+#command
+                 else
+                    set xname=#sql(str,"select xname from prmst where xemp='"+xemp+"'")
+                    set xdesig=#sql(str,"select xdesig from prmst where xemp='"+xemp+"'")
+                    set xdept=#sql(str,"select xdept from prmst where xemp='"+xemp+"'")
+                    set xcostcent=#sql(str,"select xcostcent from prmst where xemp='"+xemp+"'")
+                    set xjoindate=#sql(str,"select xjoindate from prmst where xemp='"+xemp+"'")
+                 end if
+            end event
+          end field
+          
+       field Delete
+         event before
+           if xpostflag .ne. ""
+              set globals(ErrChk)="1"
+              error "Already Confirmed</p>Cannot "+#command
+           end if
+         end event
+       end field
+
+
+         embed onsubmit="submitit(this)"
+         field Details
+          embed onclick="Details(this)"
+         end field
+
+  end form
+
+     text one
+        //"<object border=0 data=images/"+xemp+".gif type=""text/images"" height=100% width=100% ></object>"
+        "<img border=1 src=html/images/"+xemp+".jpg>"
+        "<p><b>"+xname+"</b><br>"
+     end text
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function Details(b)
+        {
+          detail="details"
+        }
+
+        function submitit(form){
+          if (detail=="details"){
+            form.page.value = "prclubdet"
+            form.searchbutton.value= "Top"
+          }
+         }
+        </script>
+     end script
+
+end page

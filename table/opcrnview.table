@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table opcrnview
+  caption "OP Credit Note View"  
+  
+  columns  ztime,zutime, zid, xdornum,xrow,xitem,xlong,xwh,xqty,xqtycrn,xunitsel,xcfsel
+  
+  primary key zid, xdornum, xrow
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xdornum references opdor.zid,xdornum
+  end foreign key
+  
+  sql create view opcrnview (ztime,zutime, zid, xdornum,xrow,xitem,xlong,xwh,xqty,xqtycrn,xunitsel,xcfsel) ~
+     as select  ztime,zutime, zid, xdornum,xrow,xitem,xlong,xwh,xqty,coalesce((SELECT SUM(opcdt.xqty*opcdt.xcfsel/opddt.xcfsel)~
+			FROM opcdt WHERE opcdt.zid=opddt.zid AND opcdt.xdornum = opddt.xdornum AND opcdt.xrow = opddt.xrow),0),xunitsel,xcfsel ~
+     from opddt
+end table

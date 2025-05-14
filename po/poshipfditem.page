@@ -1,0 +1,855 @@
+page poshipfditem
+
+    embed onload="move_caret('one','xrowin')"
+
+    caption "Details Information "+globals(xpornum)+" "+globals(xshiplno)+" Feeder Vessel "+globals(xfeedervs)
+
+    sidebar list shipdt
+    
+    sections form one,list one, text top,script myscript
+
+    text top
+        "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list shipdt
+        caption "Item(s) Added in Mother Vessel Information"
+        table poshipitem
+        order xpornum,xshiplno,xrowin
+        fixed xpornum,xshiplno
+        select "zid='"+#id+"'"
+        rows 20
+        objects xrowin attrib(link #servlet+"?page=poshipfditem&command=PoItemAdd&xpornum=?&xshiplno=?&xrowin=?"), ~
+                xitem, itemdesc equals((select xdesc from caitem where zid=poshipitem.zid and xitem=poshipitem.xitem)),~
+                xunitpur,xqty,xqtygrn,balqty equals((xqty-xqtygrn)),xlandcost,xlineamt
+
+        totals "Total","","","",sum,sum,sum,,sum
+
+        field xqtygrn
+            caption Received Qty
+            len 10.2
+        end field
+        
+        field balqty
+            storage decimal
+            len 10.2
+            caption Bal. Qty
+        end field
+        
+        field itemdesc
+            storage varchar
+            caption Description
+        end field
+
+        field xqty
+            caption Shipment Qty
+            len 10.2
+        end field
+
+        field xlandcost
+            caption Landed Cost
+            len 10.2
+        end field
+        
+        field xunitpur
+            caption Unit
+        end field
+        
+        field xlineamt
+            caption Total Amount
+            len 10.2
+        end field
+
+    end list
+
+    list one
+        table poshipfditem
+        order xpornum,xshiplno,xrow,xrowin
+        fixed xpornum,xshiplno,xrow
+        select "zid='"+#id+"'"
+        rows 20
+        objects xrowin attrib(link #servlet+"?page=poshipfditem&command=Show&xpornum=?&xshiplno=?&xrow=?&xrowin=?"), ~
+                xitem,itemdesc equals((select xdesc from caitem where zid=poshipfditem.zid and xitem=poshipfditem.xitem)),~
+                xqty,xdtwotax,xlandcost,xlineamt
+
+        field xrowin
+            caption Row No
+        end field
+                
+        field itemdesc
+            caption Item Name
+            storage varchar
+        end field
+        
+        field xqty
+            caption Qty Rcv.
+            len 10.2
+        end field
+
+        field xlandcost
+            caption Landed Cost
+            len 10.2
+        end field
+
+        field xdtwotax
+            caption Gross Amt
+            len 10.2
+        end field
+        
+        field xlineamt
+            caption Total Amt
+            len 10.2
+        end field
+
+        totals "Totals","","",sum,sum,sum
+
+    end list
+
+    form one
+        valid valid,access
+        table poshipfditem
+        order xpornum,xshiplno,xrow,xrowin
+        fixed xpornum,xshiplno,xrow
+        select "zid='"+#id+"'"
+        layout 2
+        objects Show,Add attrib(hidden), Clear,PoItemAdd attrib(hidden),Update, Delete, Top, Previous, Next, Bottom,Return,~
+                xrowin attrib(row 0 10),xitem attrib(attach;readonly),itemdesc,~
+                xqty,xqtygrn display(hide),~
+                xrate display(hide),xlandcost display(const),xdisc display(hide),xdiscf display(hide),~
+                xdtdisc display(hide),xtaxcat display(hide),xtaxcode1 display(hide),~
+                xtaxrate1 display(hide),xdttax display(hide),xdtwotax,xlineamt,~
+                xcur display(hide),xexch display(hide),xstype display(hide),~
+                xwh display(hide),xunitpur display(hide),xcfpur display(hide),~
+                zemail display(hide),xemail display(hide)
+
+		field show
+			event before
+				set globals(temp) = xrowin
+				set globals(tempitem)=xitem
+			end event
+			event after
+				set globals(temp) = xrowin
+				set globals(tempitem)=xitem
+			end event
+		end field
+
+		field Top
+			event before
+				set globals(temp) = xrowin
+				set globals(tempitem)=xitem
+			end event
+			event after
+				set globals(temp) = xrowin
+				set globals(tempitem)=xitem
+			end event
+		end field
+		
+        field xrowin
+            caption Row No
+            event after
+                set globals(xrowin)=xrowin
+                set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                if xstatusord .ne. "Open"
+                    set #field(Add.display) = "disabled"
+                    set #field(Delete.display) = "disabled"
+                    set #field(Update.display) = "disabled"
+                end if
+                set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                if xstatussrn .ne. #status("xstatussrn",1) .and. xstatussrn .ne. #status("xstatussrn",3)
+                    set #field(Add.display) = "disabled"
+                    set #field(Delete.display) = "disabled"
+                    set #field(Update.display) = "disabled"
+                end if
+                set xstatuscase = poshipfeedvs.xstatuscase("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                if xstatuscase .ne. #status("xstatuscase",1)
+                    set #field(Add.display) = "disabled"
+                    set #field(Delete.display) = "disabled"
+                    set #field(Update.display) = "disabled"
+                end if
+            end event
+        end field
+
+        field xqty
+            caption Quantity Received
+            width 20
+            len 10.2
+        end field
+
+        field xitem
+            pick
+            caption Item Code
+            width 20
+            event after
+                set globals(xitem)=xitem
+            end event
+        end field
+
+        field itemdesc
+            attrib local
+            display const
+            caption Description
+            event after
+                set itemdesc = #sql(str,"select xdesc from caitem where zid='"+#id+"' and xitem='"+globals(xitem)+"'")
+            end event
+        end field
+
+        field xdtwotax
+            width 20
+            len 10.2
+            display const
+            caption Gross Amount
+        end field
+        
+        field xlineamt
+            caption Total Amount
+            len 10.2
+            width 20
+            display const
+        end field
+
+        field PoItemAdd
+            event before
+                set globals(ErrChk)=""
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>LC Already "+xstatusord
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    if xstatussrn .ne. #status("xstatussrn",1) .and. xstatussrn .ne. #status("xstatussrn",3)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Shipment Already "+xstatussrn
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatuscase = poshipfeedvs.xstatuscase("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                    if xstatuscase .ne. #status("xstatuscase",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatuscase
+                    end if
+                end if
+
+				if globals(ErrChk) .ne. "1"
+					decimal tot_grn=0.00
+					decimal tot_ship=0.00
+
+				    set xwh=#sql(str,"select xwh from poord where  zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set xcur=#sql(str,"select xcur from poord where  zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set xexch=0.0+#sql(dec,"select xexch from poord where  zid='"+#id+"' and xpornum='"+xpornum+"'")
+
+					set tot_grn = 0.0+#sql(decimal,"select sum(xqtygrn) from poshipitem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+					set tot_ship = 0.0+#sql(decimal,"select sum(xqty) from poshipitem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+
+					if tot_grn >= tot_ship
+						set globals(ErrChk) = "1"
+						error "Not Enough Qty to Add Item"
+					end if
+
+					if globals(ErrChk) .ne. "1"
+    					set totgrnqty = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+    					if totgrnqty >= tot_ship
+    						set globals(ErrChk) = "1"
+    						error "Not Enough Qty to Add Item"
+                        end if
+					end if
+				end if
+                if globals(ErrChk) .ne. "1"
+                    set xitem = #sql(str,"select xitem from poodt where zid="+#id+" and xpornum = '"+xpornum+"' and xrow='"+xrowin+"'")
+                    str mysql = "select xitem from poodt where zid="+#id+" and xpornum = '"+xpornum+"' and xrow='"+xrowin+"' and xitem='"+xitem+"'"
+                    set chkval = #sql(mysql)
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "<br>Please Pick From The Sidebar"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xqty = 0.0+#sql(decimal,"select sum(xqty-xqtygrn) from poshipitem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set shipqty = 0.0+#sql(decimal,"select sum(xqty) from poshipitem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    set totgrn = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    set xqty=0.0+shipqty-totgrn
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xrowin=0+#sql(int,"select xrowin from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    if #result .eq. "true"
+                        set xstatusddt="Item Verified"
+                        set xitem=#sql(str,"select xitem from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xstype=#sql(str,"select xstype from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xtaxcat=#sql(str,"select xtaxcat from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xtaxcode1=#sql(str,"select xtaxcode1 from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xtaxrate1=0.0+#sql(dec,"select xtaxrate1 from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xunitpur=#sql(str,"select xunitpur from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xcfpur=0.0+#sql(dec,"select xcfpur from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xrate=0.0+#sql(dec,"select xrate from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+
+                        set xlandcost=0.0+#sql(dec,"select xlandcost from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+
+                        set xdisc=0.0+#sql(dec,"select xdisc from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xdiscf=0.0+#sql(dec,"select xdiscf from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    else
+                        set globals(ErrChk)="1"
+                        error "Invalid Row/Item<br>Pick from sidebar list"
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+                        if xstype .eq. ""
+                            set globals(ErrChk)="1"
+                            error "Stock Type is not Defined"
+                        end if
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+        				if xtaxrate1 > 0.0
+        					set xtaxrate1 = 0.00+xtaxrate1
+        					compute xdttax = (xrate*xqty)*(xtaxrate1/100)
+        				end if
+
+                        if xdisc > 0.0
+                        	set xdisc = 0.00+xdisc
+                        	compute xdtdisc = (xrate*xqty)*(xdisc/100)
+                        end if
+
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+        				set fixdisc = poodt.xdiscf("zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrowin+"'")
+        				set ordqty = poodt.xqtyord("zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrowin+"'")
+
+                        compute xdtwotax = xrate*xqty
+
+        				if xdiscf>0.0
+        				    compute xdiscf = (fixdisc/ordqty)*xqty
+        				end if
+
+                        set xlineamt = xdtwotax-xdtdisc-xdiscf+xdttax
+
+                    end if
+                    if globals(ErrChk) .ne. "1"
+                        set mysql="insert into poshipfditem(ztime,zutime,zid,xpornum,xshiplno,xrow,xrowin,xitem,xqty,xqtygrn,~
+                                    xrate,xlandcost,xdisc,xdiscf,xdtdisc,xtaxcat,xtaxcode1,xtaxrate1,xdttax,~
+                                    xdtwotax,xlineamt,xcur,xexch,xstype,xwh,xunitpur,xcfpur,zemail,xemail)"
+                        set mysql=mysql+"values('"+#time+"','','"+#id+"','"+xpornum+"','"+xshiplno+"','"+xrow+"','"+xrowin+"','"+xitem+"','"+xqty+"','0',~
+                                    '"+xrate+"','"+xlandcost+"','"+xdisc+"','"+xdiscf+"','"+xdtdisc+"','"+xtaxcat+"','"+xtaxcode1+"','"+xtaxrate1+"','"+xdttax+"',~
+                                    '"+xdtwotax+"','"+xlineamt+"','"+xcur+"','"+xexch+"','"+xstype+"','"+xwh+"','"+xunitpur+"','"+xcfpur+"','"+#user+"','')"
+                        set insql=#sql(str,mysql)
+                        if #result .ne. "true"
+                            set globals(ErrChk)="1"
+                            error "Error in Inserting Record"
+                        end if
+                    end if
+                    if globals(ErrChk) .ne. "1"
+                        set totfedqty = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                        set updsql=#sql(str,"update poshipfeedvs set xqtydel="+totfedqty+" where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+
+                        set totgrn = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set updsql=#sql(str,"update poshipitem set xqtygrn="+totgrn+" where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+
+                    end if
+                end if
+            end event
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk)=""
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>LC Already "+xstatusord
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    if xstatussrn .ne. #status("xstatussrn",1) .and. xstatussrn .ne. #status("xstatussrn",3)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Shipment Already "+xstatussrn
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatuscase = poshipfeedvs.xstatuscase("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                    if xstatuscase .ne. #status("xstatuscase",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatuscase
+                    end if
+                end if
+
+				if globals(ErrChk) .ne. "1"
+					decimal tot_grn=0.00
+					decimal tot_ship=0.00
+
+				    set xwh=#sql(str,"select xwh from poord where  zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set xcur=#sql(str,"select xcur from poord where  zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set xexch=0.0+#sql(dec,"select xexch from poord where  zid='"+#id+"' and xpornum='"+xpornum+"'")
+
+					set tot_grn = 0.0+#sql(decimal,"select sum(xqtygrn) from poshipitem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+					set tot_ship = 0.0+#sql(decimal,"select sum(xqty) from poshipitem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+
+					if tot_grn >= tot_ship
+						set globals(ErrChk) = "1"
+						error "Not Enough Qty to Add Item"
+					end if
+
+					if globals(ErrChk) .ne. "1"
+    					set totgrnqty = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+    					if totgrnqty >= tot_ship
+    						set globals(ErrChk) = "1"
+    						error "Not Enough Qty to Add Item"
+                        end if
+					end if
+				end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xitem = #sql(str,"select xitem from poodt where zid="+#id+" and xpornum = '"+xpornum+"' and xrow='"+xrowin+"'")
+                    str mysql = "select xitem from poodt where zid="+#id+" and xpornum = '"+xpornum+"' and xrow='"+xrowin+"' and xitem='"+xitem+"'"
+                    set chkval = #sql(mysql)
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "<br>Please Pick From The Sidebar"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                   if xqty <= 0
+                      set globals(ErrChk) = "1"
+                      error "Invaid Quantity"
+                   end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set balqty = 0.0+#sql(decimal,"select sum(xqty-xqtygrn) from poshipitem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    if xqty>balqty
+                        set globals(ErrChk)="1"
+                        error "Qty "+xqty+" cannot be more than Balance Qty "+balqty
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set shipqty = 0.0+#sql(decimal,"select sum(xqty) from poshipitem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    set totgrn = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    set balqty=0.0+shipqty-totgrn
+                    if xqty>balqty
+                        set globals(ErrChk)="1"
+                        error "Qty "+xqty+" cannot be more than Balance Qty "+balqty
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xrowin=0+#sql(int,"select xrowin from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    if #result .eq. "true"
+                        set xstatusddt="Item Verified"
+                        set xitem=#sql(str,"select xitem from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xstype=#sql(str,"select xstype from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xtaxcat=#sql(str,"select xtaxcat from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xtaxcode1=#sql(str,"select xtaxcode1 from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xtaxrate1=0.0+#sql(dec,"select xtaxrate1 from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xunitpur=#sql(str,"select xunitpur from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xcfpur=0.0+#sql(dec,"select xcfpur from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xrate=0.0+#sql(dec,"select xrate from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+
+                        set xlandcost=0.0+#sql(dec,"select xlandcost from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+
+                        set xdisc=0.0+#sql(dec,"select xdisc from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xdiscf=0.0+#sql(dec,"select xdiscf from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    else
+                        set globals(ErrChk)="1"
+                        error "Invalid Row/Item<br>Pick from sidebar list"
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+                        if xstype .eq. ""
+                            set globals(ErrChk)="1"
+                            error "Stock Type is not Defined"
+                        end if
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+        				if xtaxrate1 > 0.0
+        					set xtaxrate1 = 0.00+xtaxrate1
+        					compute xdttax = (xrate*xqty)*(xtaxrate1/100)
+        				end if
+
+                        if xdisc > 0.0
+                        	set xdisc = 0.00+xdisc
+                        	compute xdtdisc = (xrate*xqty)*(xdisc/100)
+                        end if
+
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+        				set fixdisc = poodt.xdiscf("zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrowin+"'")
+        				set ordqty = poodt.xqtyord("zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrowin+"'")
+
+                        compute xdtwotax = xrate*xqty
+
+        				if xdiscf>0.0
+        				    compute xdiscf = (fixdisc/ordqty)*xqty
+        				end if
+
+                        set xlineamt = xdtwotax-xdtdisc-xdiscf+xdttax
+
+                    end if
+                end if
+                if globals(ErrChk) .ne. "1"
+                    set zemail=#user
+                end if
+            end event
+            event after
+                if globals(ErrChk) .ne. "1"
+
+                    set totfedqty = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                    set updsql=#sql(str,"update poshipfeedvs set xqtydel="+totfedqty+" where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+
+                    set totgrn = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    set updsql=#sql(str,"update poshipitem set xqtygrn="+totgrn+" where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+
+                end if
+            end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk)=""
+                if globals(ErrChk) .ne. "1"
+                	if xrowin .ne. globals(xrowin)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrowin .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xitem .ne. globals(tempitem)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>LC Already "+xstatusord
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    if xstatussrn .ne. #status("xstatussrn",1) .and. xstatussrn .ne. #status("xstatussrn",3)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Shipment Already "+xstatussrn
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatuscase = poshipfeedvs.xstatuscase("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                    if xstatuscase .ne. #status("xstatuscase",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatuscase
+                    end if
+                end if
+
+				if globals(ErrChk) .ne. "1"
+					decimal tot_grn=0.00
+					decimal tot_ship=0.00
+
+				    set xwh=#sql(str,"select xwh from poord where  zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set xcur=#sql(str,"select xcur from poord where  zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set xexch=0.0+#sql(dec,"select xexch from poord where  zid='"+#id+"' and xpornum='"+xpornum+"'")
+
+					set tot_grn = 0.0+#sql(decimal,"select sum(xqtygrn) from poshipitem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+					set tot_ship = 0.0+#sql(decimal,"select sum(xqty) from poshipitem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+
+					if tot_grn > tot_ship
+						set globals(ErrChk) = "1"
+						error "Not Enough Qty to "+#command
+					end if
+
+					if globals(ErrChk) .ne. "1"
+    					set totgrnqty = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+    					if totgrnqty > tot_ship
+    						set globals(ErrChk) = "1"
+    						error "Not Enough Qty to "+#command
+                        end if
+					end if
+				end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xitem = #sql(str,"select xitem from poodt where zid="+#id+" and xpornum = '"+xpornum+"' and xrow='"+xrowin+"'")
+                    str mysql = "select xitem from poodt where zid="+#id+" and xpornum = '"+xpornum+"' and xrow='"+xrowin+"' and xitem='"+xitem+"'"
+                    set chkval = #sql(mysql)
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "<br>Please Pick From The Sidebar"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                   if xqty <= 0
+                      set globals(ErrChk) = "1"
+                      error "Invaid Quantity"
+                   end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set balqty = 0.0+#sql(decimal,"select sum(xqty-xqtygrn) from poshipitem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    set prvqty = 0.0+#sql(decimal,"select xqty from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    set curqty=0.0+prvqty+balqty
+                    if xqty>curqty
+                        set globals(ErrChk)="1"
+                        error "Qty "+xqty+" cannot be more than Balance Qty "+curqty
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set shipqty = 0.0+#sql(decimal,"select sum(xqty) from poshipitem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    set totgrn = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    set prvqty = 0.0+#sql(decimal,"select xqty from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    set balqty=0.0+shipqty-totgrn+prvqty
+                    if xqty>balqty
+                        set globals(ErrChk)="1"
+                        error "Qty "+xqty+" cannot be more than Balance Qty "+balqty
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xrowin=0+#sql(int,"select xrowin from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    if #result .eq. "true"
+                        set xstatusddt="Item Verified"
+                        set xitem=#sql(str,"select xitem from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xstype=#sql(str,"select xstype from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xtaxcat=#sql(str,"select xtaxcat from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xtaxcode1=#sql(str,"select xtaxcode1 from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xtaxrate1=0.0+#sql(dec,"select xtaxrate1 from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xunitpur=#sql(str,"select xunitpur from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xcfpur=0.0+#sql(dec,"select xcfpur from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xrate=0.0+#sql(dec,"select xrate from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+
+                        set xlandcost=0.0+#sql(dec,"select xlandcost from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+
+                        set xdisc=0.0+#sql(dec,"select xdisc from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                        set xdiscf=0.0+#sql(dec,"select xdiscf from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    else
+                        set globals(ErrChk)="1"
+                        error "Invalid Row/Item<br>Pick from sidebar list"
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+                        if xstype .eq. ""
+                            set globals(ErrChk)="1"
+                            error "Stock Type is not Defined"
+                        end if
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+        				if xtaxrate1 > 0.0
+        					set xtaxrate1 = 0.00+xtaxrate1
+        					compute xdttax = (xrate*xqty)*(xtaxrate1/100)
+        				end if
+
+                        if xdisc > 0.0
+                        	set xdisc = 0.00+xdisc
+                        	compute xdtdisc = (xrate*xqty)*(xdisc/100)
+                        end if
+
+                    end if
+
+                    if globals(ErrChk) .ne. "1"
+        				set fixdisc = poodt.xdiscf("zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrowin+"'")
+        				set ordqty = poodt.xqtyord("zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrowin+"'")
+
+                        compute xdtwotax = xrate*xqty
+
+        				if xdiscf>0.0
+        				    compute xdiscf = (fixdisc/ordqty)*xqty
+        				end if
+
+                        set xlineamt = xdtwotax-xdtdisc-xdiscf+xdttax
+
+                    end if
+                end if
+                if globals(ErrChk) .ne. "1"
+                    set xemail=#user
+                end if
+            end event
+            event after
+                if globals(ErrChk) .ne. "1"
+                    set totfedqty = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                    set updsql=#sql(str,"update poshipfeedvs set xqtydel="+totfedqty+" where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+
+                    set totgrn = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    set updsql=#sql(str,"update poshipitem set xqtygrn="+totgrn+" where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+
+                end if
+            end event
+        end field
+
+        field Delete
+            event before
+                set globals(ErrChk)=""
+                if globals(ErrChk) .ne. "1"
+                	if xrowin .ne. globals(xrowin)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrowin .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xitem .ne. globals(tempitem)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>LC Already "+xstatusord
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    if xstatussrn .ne. #status("xstatussrn",1) .and. xstatussrn .ne. #status("xstatussrn",3)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Shipment Already "+xstatussrn
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatuscase = poshipfeedvs.xstatuscase("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                    if xstatuscase .ne. #status("xstatuscase",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatuscase
+                    end if
+                end if
+
+            end event
+            event after
+                if globals(ErrChk) .ne. "1"
+                    set totfedqty = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                    set updsql=#sql(str,"update poshipfeedvs set xqtydel="+totfedqty+" where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+
+                    set totgrn = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where  zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+                    set updsql=#sql(str,"update poshipitem set xqtygrn="+totgrn+" where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"' and xitem='"+xitem+"'")
+
+                end if
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Details
+            embed onclick="clicked(this)"
+        end field
+
+        field Return
+          embed onclick="back(this)"
+        end field
+
+    end form
+
+    script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+            $.hotkeys.add('Ctrl+s',function(){
+                //alert('Pressed Ctrl+s');
+                var form=document.forms[0];
+                form.searchbutton.value="Add";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+e',function(){
+                //alert('Pressed Ctrl+e');
+                var form=document.forms[0];
+                form.searchbutton.value="Update";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+d',function(){
+                //alert('Pressed Ctrl+d');
+                var form=document.forms[0];
+                form.searchbutton.value="Delete";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+r',function(){
+                //alert('Pressed Ctrl+r');
+                var form=document.forms[0];
+                form.searchbutton.value="Clear";
+                form.submit();
+            });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+            var detail
+            function clicked(b){
+                b.value = "Top"
+                detail="clicked"
+            }
+
+            function back(b){
+                b.value = "Top"
+                detail="back"
+            }
+
+            function submitit(form){
+
+                if (detail=="clicked"){
+                    form.page.value = "poshipfditem"
+                    form.searchbutton.value="Top"
+                }else if (detail=="back"){
+                    form.page.value= "poshipfeedvs"
+                    form.searchbutton.value = "Find xpornum=?&xshiplno=?&xrow=?"
+                }
+            }
+
+        </script>
+    end script
+
+
+    valid valid
+        config
+            set globals(pkey) = xpornum+" "+xshiplno+" "+xrow+" "+xrowin
+
+            set page = "poshipfditem"
+            
+        end config
+    end valid
+
+#include access.valid
+
+end page

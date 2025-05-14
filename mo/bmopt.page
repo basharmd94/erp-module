@@ -1,0 +1,177 @@
+page bmopt
+     caption "BOM Options"
+     sidebar list option
+     sections form one, script myscript,~
+        method chk_access, method chk_command     
+
+     list option
+        table bmopt
+        order xbom,xoption
+        fixed xbom
+        rows 5
+        objects  xoption attrib(link #servlet+"?page="+page+"&command=Show&xbom=?&xoption=?"), ~
+                 xrem
+     end list
+
+     list cus
+        table cacus
+        order xcus
+        navigators alpha
+        rows 5
+        objects xcus attrib(link "abc" embed onclick="return pickCus(this)"), ~
+                xorg
+     end list
+
+     form one
+        //caption "<font color=black size=3>Select Option</font>"
+        table bmopt
+        order xbom,xoption
+        fixed xbom
+        
+        layout 1
+        objects Continue, Show,Clear,Add, Update, Delete, Top, Previous, Next, Bottom,~
+                xoption,xorg,xrem,zemail display(hide), xemail display(hide)
+
+        field xbom
+         event after
+          set globals(xbom)=xbom
+         end event
+        end field
+
+        field xoption
+         pick 
+         event after
+          set globals(xoption)=xoption
+         end event
+        end field
+        
+        field xrem
+        	width 60
+        	height 2
+        end field
+
+        field add
+          event before
+          	set globals(ErrChk) = ""
+          	call chk_access
+			if globals(ErrChk) .ne. "1"
+	            set zemail=#user
+			end if          	
+          end event
+        end field
+
+        field update
+          event before
+          	set globals(ErrChk)=""
+			if globals(ErrChk) .ne. "1"
+	            set xemail=#user
+			end if          	
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Continue
+          embed onclick="clicked(this)"
+        end field
+
+	   field xorg
+	      attrib local
+	      event after
+	        set xorg=#sql("select xorg from cacus where xcus='"+xoption+"'")
+	      end event
+	      display constant
+	   end field
+
+   end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+
+	    if (detail=="clicked"){
+            form.page.value = "bmbdt"
+          }
+        }
+
+     function pickCus(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xoption.value=link.text
+          }else{
+            document.one.xoption.value=link.innerText
+          }
+          return false
+        }
+        </script>
+     end script
+
+     method chk_access
+     	set stype = ""
+       	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+       	 set stype=#prop(xprops,"security")          	 
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          
+			  set myqry = "insert into xcriminal (zid,xwornum,xemail,xdate,xtime,xobject)"
+			  set myqry = myqry + " values('"+#id+"','"+mysql+"','"+#user+"','"+#date+"',~
+				'"+#time+"','"+page+"')"
+			  set tmpstr =#sql(myqry)		
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+     
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	end if    
+     end method
+     
+end page

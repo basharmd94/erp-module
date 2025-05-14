@@ -1,0 +1,158 @@
+page glsubrpt
+
+	 caption header
+     sections form one
+
+     
+     form one
+     	valid valid
+        objects Clear,Show,xacc attrib(submit; attach),dummy_1,xsub attrib(submit; attach),dummy_2,xfdate caption(From Date),xtdate caption(To Date)
+			   
+
+        field xacc
+          pick list xacc
+          width 10
+        end field
+		
+        field xsub
+          pick list xsubhed
+        end field		
+
+        field dummy_1
+          attrib local
+          display constant
+          caption Account Description
+          //event after
+          //  set dummy_1=#sql(str,"select xdesc from glmst where xacc='"+globals(xacc)+"'")
+          //end event
+        end field
+
+        field dummy_2
+          attrib local
+          display constant
+          caption Sub Account Description
+        end field
+
+        field dummy_3
+          attrib local
+          display constant
+          caption Voucher Number
+          event after
+            set dummy_3=xvoucher
+          end event
+        end field
+
+
+		
+        
+
+    end form
+
+
+	valid valid      
+
+		config	
+		  
+		  str fdate="Date("+#sub(xfdate,0,4)+","+#sub(xfdate,5,2)+","+#sub(xfdate,8,2)+")"
+		  str tdate="Date("+#sub(xtdate,0,4)+","+#sub(xtdate,5,2)+","+#sub(xtdate,8,2)+")"
+		  
+     	    set header=header+" <a href='"+#report(glledger_daily_sub.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xacc+"&prompt2="+xsub+"&prompt3="+fdate+"&prompt4="+tdate+"' target='_new'>Print Sub Account Ledger</a>"
+			
+			set globals(pkey) = globals(xvoucher)+" "+xrow
+			set trndesc = #sql(str,"select xdesc from xtrn where zid='"+#id+"' and xtypetrn='GL Voucher' and xtrn='"+globals(xtrngl)+"'")
+	        set globals(xacc)=xacc
+	        set globals(xsub)=xsub
+	        
+			set dummy_1 = #sql(str,"select xdesc from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+			set xaccusage = #sql(str,"select xaccusage from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+			set xaccsource = #sql(str,"select xaccsource from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+            if xaccusage .eq. "Ledger" .or. xaccusage .eq. "Bank" .or. xaccusage .eq. "Cash" .and. xaccsource .eq. "Subaccount"
+                set #field(xsub.pick)="list xsub"
+				set #field(xicsub.display) = "hide"
+                set dummy_2=#sql(str,"select xdesc from glsub where zid='"+#id+"' and xacc='"+xacc+"' and xsub='"+xsub+"'")
+            else if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+				  //set #field(xsub.caption) = "DIN"
+             set #field(xsub.pick)="list glcus"
+            //set #field(xsub.caption) = "Customer"
+				  set #field(xicsub.display) = "hide"
+				  if xsub .eq. "" 
+					set distri_sl=#sql(decimal,"select distri_sl from tree where zid='"+#id+"' and cid='"+xicsub+"'")					
+					set xsub=#sql(str,"select din from info where zid='"+#id+"' and distri_sl='"+distri_sl+"'")
+					
+					set first=#sql(str,"select first_name from info where zid='"+#id+"' and din='"+xsub+"'")
+
+					set mid=#sql(str,"select middle_name from info where zid='"+#id+"' and din='"+xsub+"'")
+					set last=#sql(str,"select last_name from info where zid='"+#id+"' and din='"+xsub+"'")
+					set dummy_2=first+" "+mid+" "+last
+				  end if
+                //set dummy_2=#sql(str,"select xorg from cacus where zid='"+#id+"' and xcus='"+xsub+"'")
+            else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+				set #field(xicsub.display) = "hide"
+                set #field(xsub.pick)="list glsup"
+                set dummy_2=#sql(str,"select xorg from casup where zid='"+#id+"' and xsup='"+xsub+"'")
+            else if xaccusage .eq. "Ledger" .and. xaccsource .eq. "Employee"
+				set #field(xicsub.display) = "hide"
+                set #field(xsub.pick)="list glemp"
+                set dummy_2=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xsub+"'")
+            else
+				set #field(xicsub.display) = "hide"
+            	//set #field(xsub.display) = "hide"
+            	set #field(dummy_2.display) = "hide"
+              	//set xsub = ""
+              	//set dummy_2 = ""
+            end if
+            
+            if xaccusage .ne. "AR" .and. xaccusage .ne. "AP"
+              set #field(allocate.display) = "disable"
+              set #field(MatchGRN.display) = "disable"
+              set #field(xinvnum.display) = "constant"
+              set #field(xoriginal.display) = "constant"
+            end if
+            if xaccusage .eq. "AR" .and. xprime >= 0.00
+              set #field(MatchGRN.display) = "disable"
+              set #field(allocate.display) = "disable"
+              set #field(xoriginal.display) = "constant"
+            end if
+            if xaccusage .eq. "AP" .and. xprime <= 0.00
+              set #field(allocate.display) = "disable"
+              set #field(xinvnum.display) = "constant"
+              set #field(xoriginal.display) = "constant"
+            end if
+            if xaccusage .eq. "AR" .and. xprime <= 0.00
+              set #field(MatchGRN.display) = "disable"
+              set #field(xinvnum.caption) = "Credit Note Number"
+              set #list(invlist.caption) = #char(34)+"Allocated Invoices List"+#char(34)
+            end if
+            if xaccusage .eq. "AP" .and. xprime >= 0.00
+              set #field(MatchGRN.display) = "disable"
+              //set #field(xinvnum.display) = "constant"
+              set #field(xinvnum.caption) = "Credit Note Number"
+              set #list(silist.caption) = #char(34)+"Allocated Supplier Invoices List"+#char(34)
+            end if
+            if xaccusage .eq. "Bank"
+              set #field(xcheque.display) = "text"
+              set #field(xpaycode.display) = "combo"
+            else if xaccusage .eq. "AP" .and. xprime > 0.00
+              set #field(xcheque.display) = "text"
+              set #field(xpaycode.display) = "combo"
+            else if xaccusage .eq. "AR" .and. xprime < 0.00
+              set #field(xcheque.display) = "text"
+              set #field(xpaycode.display) = "combo"
+            else
+              //set #field(xcheque.display) = "constant"
+              //set #field(xpaycode.display) = "constant"
+            end if
+
+            if #field(MatchGRN.display) .ne. "disable"
+              set #list(grnlist.caption) = #char(34)+"Matched GRN List"+#char(34)
+            end if
+            
+
+		end config  
+
+			
+	end valid   
+	
+
+  
+end page

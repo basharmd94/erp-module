@@ -1,0 +1,41 @@
+page prcode
+     caption "Pay Codes"
+     sidebar list one//,list two, text three
+     //sections list one, form one
+     sections form one //, method m1, method m2
+
+
+     list one
+        table prcode
+        order xseq,xcodepay
+        //select none
+        navigators alpha
+        rows 20
+        objects xseq,xcodepay attrib(link #servlet+"?page="+page+"&command=Show&xcodepay=?"), ~
+                xgpay,xseqdisp,xseqrep,xdesc,xratemaster,xtyperatepay,zactive
+
+
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+     form one
+        //caption "Pay Codes"
+        table prcode
+        order xcodepay
+        //select
+        
+        layout 1
+        objects Show, Clear,Add, Update, Delete, Top, Previous, Next, Bottom,~
+                xcodepay display(text),xgpay,xseq,xseqdisp,xseqrep,xdesc,xratemaster,xtyperatepay,zactive
+
+	field xcodepay
+		pick list prcode
+    //pick select prcode from prcode order by prcode
+	end field
+
+     end form
+
+end page

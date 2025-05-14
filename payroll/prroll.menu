@@ -1,0 +1,10 @@
+//prroll.menu
+caption "Payroll Processing"
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Payroll                        |#classPath+"/"+#servlet+"?page=prroll"
+-
+Run Payroll                       |#classPath+"/"+#servlet+"?page=prrun"
+//-------------------------------------------------------------------
+

@@ -1,0 +1,27 @@
+//OP Reports.menu
+//-------------------------------------------------------------------
+caption "Reports-2" page 3
+option                                  |action
+//-------------------------------------------------------------------
+//Fixed Asset Code List                   |#classPath+"/"+#servlet+"?page=*crystal facodelist"
+//Fixed Asset Master                      |#classPath+"/"+#servlet+"?page=*crystal famst(xfacode=From Asset Code=,xfacode=To Asset Code=)"
+//Fixed Asset Transaction List            |#classPath+"/"+#servlet+"?page=*crystal fatrn(xfatrnnum=From Transaction=0,xfatrnnum=To Transaction=zzz)"
+//-
+//Departmental Asset Report             |#classPath+"/"+#servlet+"?page=*crystal Ext_loc(xyear=Year,xdept=Department Code)"
+//Departmental Asset(Details)             |#classPath+"/"+#servlet+"?page=*crystal faass_sum_dep(xyear=Year,xper=Month,xdept=Department Code)"
+//Category Wise Asset(Details)            |#classPath+"/"+#servlet+"?page=*crystal faass_summ_cat(xyear=Year,xper=Month,xastcatg=Category Code)"
+//Location Wise Asset(Details)            |#classPath+"/"+#servlet+"?page=*crystal fa_loc_ass_det(xyear=Year,xper=Month,xastloc=Location Code)"
+//-
+//Asset Summary Report                    |#classPath+"/"+#servlet+"?page=*crystal ass_summ(xfacode=From Asset Code=,xfacode=To Asset Code=)"
+//Location Wise Asset Summary             |#classPath+"/"+#servlet+"?page=*crystal loc_ass_summ(xfacode=From Asset Code=,xfacode=To Asset Code=,xastloc= From Location,xastloc=To Location)"
+Location Wise Asset                         |#classPath+"/"+#servlet+"?page=*crystal loc_ass(xastloc= From Location,xastloc=To Location)"
+//Category Wise Asset Summary             |#classPath+"/"+#servlet+"?page=*crystal cat_ass_summ(xfacode=From Asset Code=,xfacode=To Asset Code=,xastcatg= From Category,xastcatg=To Category)"
+//Departmental Asset Summary              |#classPath+"/"+#servlet+"?page=*crystal dept_ass_summ(xfacode=From Asset Code=,xfacode=To Asset Code=,xdiv= From Department,xdiv=To Department)"
+//-
+//Disposal Report                         |#classPath+"/"+#servlet+"?page=*crystal faass_dep(xyear=Year,xper=Month,xfacode=From Asset Code=,xfacode=To Asset Code=)"
+//-
+Depreciation Schedule                   |#classPath+"/"+#servlet+"?page=*crystal faass_schedule(xyear=Year,xper=Month)"
+Maintanance                             |#classPath+"/"+#servlet+"?page=*crystal famaintainence(xfacode=Asset Code)"
+Transport Licence Report                             |#classPath+"/"+#servlet+"?page=*crystal falicence(xfacode=Asset Code)"
+//Depreciation Schedule(Leased Assets)  |#classPath+"/"+#servlet+"?page=*crystal fadepsch_lease(xyear=Year)"
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------

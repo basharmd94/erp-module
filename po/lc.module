@@ -1,0 +1,11 @@
+//bm.module
+module lc
+     caption "LC Management"
+     description "Manage your Import and Export LC, Info and Landed cost"
+
+     transactions LC Trn Number (table:lcmst:xlctrnnum;default:LC--),
+				  Name Transaction (table:canam:xtrnnam;default:INS-)
+     codes LC Type
+end module
+
+

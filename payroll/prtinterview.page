@@ -1,0 +1,169 @@
+page prtinterview
+
+	 embed onload="move_caret('one','xtraining')"
+     caption "<span class=bl>Training History of Employee <a href=/da/"+#servlet+"?page=prmstcvtrn_test&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+  	 section form one,list one, script one
+
+  list one
+   table prtinterview
+   order xemp,xrow
+   fixed xemp
+   row 60
+   object xrow attrib(link #servlet+"?page=prtinterview&command=Show&xemp=?&xrow=?"), ~
+          xtraintype,xtype,xamount
+         
+    field xamount
+      caption Marks
+    end field
+
+    field xtype
+      caption Test Type
+    end field
+
+    field xdayab
+      caption Duration of Training(Days)
+      display const
+    end field
+
+    field xinstut
+      caption Training Institute/Body
+    end field
+    
+    field xpass
+      caption Passed
+    end field
+
+    field xmarks
+      caption Marks Obtained
+    end field
+
+  end list
+
+  form one
+    //caption "<font color=black size=4>Training Info of <font color=white></p>"+globals(xname)+"</font></font>"
+    table prtinterview
+    order xemp,xrow
+    fixed xemp
+    layout 2
+    object Add,Back,Show,Update,Delete,~
+          xrow,xtype,xtraintype ,xamount,~
+          xtraining display(hide),xinstut display(hide),xdatefrom display(hide),xdateto display(hide),xdayab display(hide),~
+          xdegcom display(hide),xremarks,zemail display(hide),xemail display(hide)
+
+    field xrow
+      atrrib row 0 1
+      caption Row No
+      event after
+        set globals(xrow)=xrow
+      end event
+    end field
+
+    field xamount
+      caption Marks
+     // col 3
+    end field
+    
+    field xtype
+      caption Test Type
+      display combo
+      pick "Written Test,Interview"
+    end field
+    
+    field xtraintype
+      caption Result
+      pick "Pass,Fail"
+      //pick select xcode from xcodes where xtype='Training Type'
+    end field
+    
+    field xdayab
+      caption Duration of Training(Days)
+      display hide
+    end field
+    
+    field xinstut
+      caption Training Institute/Body
+    end field
+
+    field xremarks
+      //caption Achievement
+      columns 3
+      width 80
+      display area
+      height 3
+    end field
+    
+    field xpass
+      caption Passed
+      display combo
+      pick "Yes, NO"
+    end field
+
+    field xmarks
+      caption Marks Obtained
+    end field
+    
+        field next
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow+1
+        		set xrow = 0+nrow
+        		action show
+        		//print xprqano+" "+nrow
+        	end event
+        end field
+
+        field previous
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow-1
+        		set xrow = 0+nrow
+        		action show
+        		//print xprqano+" "+nrow
+        	end event
+        end field
+
+
+     field add
+       event before
+         set zemail=#user
+         set xemail=""
+         //class osbcustom(#days(xdatefrom,xdateto,xdayab,"i"))
+       end event
+     end field
+
+     field Update
+       event before
+         set globals(ErrChk)=""
+         if xrow .ne. globals(xrow)
+           set globals(ErrChk)="1"
+           error "Record pointer mismatch</p>Cannot "+#command
+         else
+           set xemail=#user
+           //class osbcustom(#days(xdatefrom,xdateto,xdayab,"i"))
+         end if
+       end event
+     end field
+
+    embed onsubmit="submitit(this)"
+    field Back
+      embed onclick="clicked(this)"
+    end field
+
+  end form
+
+  script one
+  <script language="javascript" type="text/javascript">
+  var detail
+  function clicked(b){
+    detail="Back"
+  }
+  function submitit(form){
+    if (detail=="Back"){
+      form.page.value="prmstcvtrn_test"
+      form.searchbutton.value="Find xemp=?"
+    }
+  }
+  </script>
+  end script
+
+end page

@@ -1,0 +1,17 @@
+list xpornumtemp
+table poordtemp
+	order xpornum
+	rows 10
+	objects xpornum attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+			xdate,xsup,supdesc equals((select xorg from casup where zid=poordtemp.zid and xsup=poordtemp.xsup)),~
+			xwh,xstatuspor
+
+	field xtypepor
+		caption Purchase Type
+	end field
+
+	field supdesc
+		caption Name
+	end field
+
+end list

@@ -1,0 +1,13 @@
+     list xaccap
+        table glmst
+        order xacc
+        select "(xacc like '%"+zvalue+"%' or xdesc like '%"+zvalue+"%')"
+        navigators alpha
+        rows 25
+        objects xacc attrib(link "abc" embed onclick="return updateParent(this:'xaccap')"), ~
+                xdesc, xaccsource, xacctype,xaccgroup
+
+
+     end list
+
+

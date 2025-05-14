@@ -1,0 +1,15 @@
+list xporeqnum
+caption "List of Requisition Item(s)"
+table poreqview
+	order xporeqnum desc
+	select "xporeqnum='"+globals(xref)+"' and xstatusreq<>'"+#status("xstatusreq",1)+"' and xstatusreqd='"+#status("xstatusreqd",6)+"'"
+	rows 10
+	objects xitem attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+			xporeqnum,xref,xdatereq,xporeq,xstatusreq
+
+	field xporeq
+		len 10.3
+		caption Required Qty
+	end field
+
+end list

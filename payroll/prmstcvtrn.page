@@ -1,0 +1,706 @@
+page prmstcvtrn
+
+	 embed onload="move_caret('one','xemp')"
+     caption "Curriculum Vitae(Trn File)"
+     sidebar text one
+     sections form one, list one, script myscript, text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        caption "List of Employee(s)"
+        table prmstcvtrn
+        order xemp
+  	    //navigators alpha
+        rows 20
+        objects xemp attrib(link #servlet+"?page=prmstcvtrn&command=Show&xemp=?"),~
+                xname,xmiddle,xlast
+                
+        field xcat
+        	caption Section
+        end field
+
+        field xgrade
+        	caption Grade
+        end field
+        
+        field xfirst
+        	caption Name
+        end field
+        
+        field xname
+        	caption First
+        end field
+                
+     end list
+
+     list two
+        table prmstcvtrn
+        Caption "Search Result List"
+        order xemp
+        rows 5
+        objects  xemp attrib(link #servlet+"?page=prmstcvtrn&command=Show&xemp=?"),xname
+     end list
+
+     form one
+        //caption "<font color=black size=4>Employee Master File</font>"
+        table prmstcvtrn
+        order xemp
+        layout 2
+        objects Add, Show,Clear, Update, Delete, Top, Previous, Next, Bottom,Educational Info,Experience Info,Training Info,Selection,Reject,~
+          xemp,xcardno,xname,xmiddle,xlast,xfather,xmother,xkin,xdtbirth,xspppno,xbloodgrp,xadd,xpadd,xphonec,xmobile,xfax,xemaila,xsex,xreligi,xcat,xmstatus,xcitizen,~
+          xpassport display(hide),xlicense display(hide),xtype display(hide),xtinno display(hide),~
+          xproj display(hide),xdiv display(hide),xpayscl display(hide),xpaytyp display(hide),xsec display(hide),~
+          xbank display(hide),xpayact display(hide),zemail display(hide),xemail display(hide),~
+          xexpiry display(hide),xjoindate display(hide),xempnature display(hide),xprobfrdate display(hide),xprobtodate display(hide),~
+          xcondate display(hide),xgrade display(hide),xrepto display(hide),~
+          xempnew display(hide),xnewdept display(hide),xnewdesig display(hide),xlocation display(hide),dumzid display(hide),xdateto display(hide),~
+          xpfflag display(hide),xstatusemp display(hide),xpsclcode display(hide),xdtwotax display(hide),xunionmem display(hide),~
+          xwelfund display(hide),xquarter display(hide),xspouse display(hide),xspocc display(hide),~
+          xshift display(hide),xspitno display(hide),xfadd display(hide),xfphone display(hide),xwpno display(hide),xwptype display(hide),~
+          xwpeffect display(hide),xwpexpire display(hide),xkinadd display(hide),xkinpho display(hide),xmargin display(hide),~
+          xyield display(hide),xref,xremarks,xkeyarea display(hide),xrnote,xtasks display(hide),dum1,xatdrem ,xobjective display(hide),xlevel,~
+          xdept attrib(attach),xdeptdesc,xjob,xsalary,xamount,xdate,xcba,xpostflag,xfirst display(hide),xstatustor,xcount
+          //,dum2
+          //xdesig attrib(attach),xdesigdesc,xcostcent display(hide),~
+          //"",dum3,dum4,~
+
+
+        field dum1
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum1 = "<font color=red size=+1>__________CAREER & APPLICATION INFORMATION__________</font>"
+         end event
+        end field
+        
+        field xstatustor
+              caption Status
+              pick
+              display const
+        end field
+        
+        field xcount
+              display const
+        end field
+        
+        field xatdrem
+           caption Career Objective
+           width 35
+           height 3
+        end field
+        
+        field xdept
+            caption Your Preferred Area/Department
+            width 20
+        end field
+        
+        field xcba
+            caption Have you applied before in BANEX?
+            width 20
+        end field
+        
+        field xsalary
+            caption Present Salary(BDT)
+        end field
+        
+        field xdate
+            caption Ready to Join on
+        end field
+        
+        field xamount
+            caption Expected Salary(BDT)
+        end field
+        
+        
+        field xcardno
+            caption Employee Code
+        end field
+        
+        field xphonec
+            caption Phone
+        end field
+      
+        field xremarks
+           caption Interest/Hobby
+           width 35
+           height 3
+        end field
+
+        field xmobile
+            caption Mobile
+        end field
+      
+        field xref
+            caption Reference By
+        end field
+
+        field xpostflag
+            caption Post Status
+            display const
+        end field
+        
+        field xkin
+            caption Known Name
+            display hide
+            width 20
+        end field
+        
+        field xspppno
+            caption Place of Birth
+            width 20
+        end field
+        
+        field xfather
+            width 20
+        end field
+        
+        field xbloodgrp
+            display combo
+            pick select xcode from xcodes where xtype='Blood Group'
+        end field
+
+        field xreligi
+            width 20
+        end field
+        
+        field xsex
+            width 20
+            caption Gender
+        end field
+        
+        field xcitizen
+            width 20
+            //col 3
+        end field
+        
+        field xmstatus
+            width 20
+        end field
+        
+        
+        field xmother
+            width 20
+        end field
+
+        field xrnote
+           caption Extra Curricular Activities
+           width 35
+           height 3
+        end field
+        
+        field dum2
+         caption
+         display const
+         attrib local
+         event after
+            set dum2 = "<font color=red>_______________Information______________</font>"
+         end event
+        end field
+        
+        field dum3
+         caption
+         display const
+         attrib local
+         event after
+            set dum3 = "<font color=red>_________Employment Confirmation_________</font>"
+         end event
+        end field
+
+        field dum4
+         caption
+         display const
+         attrib local
+         event after
+            set dum4 = "<font color=red>_______________Information______________</font>"
+         end event
+        end field
+
+        field xlicense
+           caption Driving License No.
+           width 30
+           pick
+        end field
+        
+        field xtype
+           caption License Type
+           display hide
+           width 30
+           pick
+        end field
+
+        field xadd
+           width 35
+           height 3
+        end field
+        
+        field xpadd
+           width 35
+           height 3
+        end field
+        
+        field xpaytyp
+           col 3
+        end field
+        
+        field xcondate
+          caption Date of Confirmation
+        end field
+        
+       field Name_&_Code_Search
+         event before
+          class osbcustom(search(xemp,"a","prmstcvtrn","xemp:xname","PickName","xemp:xname:xdesig","yes","Emp Code:Emp Name:Emp Designation"))
+         end event
+       end field
+
+		field xdesig
+			display text
+			pick list xdesig
+			//pick select xcode from xcodes where xtype='Designation'
+		end field
+
+        field xdesigdesc
+          attrib local
+          display constant
+          event after
+          set xdesigdesc=#sql("select xlong from xcodes where xtype='Designation' and xcode='"+xdesig+"'")
+          end event
+        end field
+
+        field xdeptdesc
+          attrib local
+          display constant
+          event after
+          set xdeptdesc=#sql("select xlong from xcodes where xtype='Department' and xcode='"+xdept+"'")
+          end event
+        end field
+
+
+        field xcat
+            caption Section
+            pick select xcode from xcodes where xtype='Religion Section'
+        end field
+
+        field xcatdesc
+          attrib local
+          display constant
+          event after
+          set xcatdesc=#sql("select xlong from xcodes where xtype='Category' and xcode='"+xcat+"'")
+          end event
+        end field
+
+        field xemp
+          width 20
+          caption CV Code
+          pick list prmstcvtrn
+          event before
+              if xemp .eq. ""
+                  set #field(xcardno.display)= "const"
+              end if
+          end event
+          event after
+             set globals(xemp)=xemp
+             set globals(xfirst)=xfirst
+             //class osbcustom(osb2crystal("","w","prempdetail","Print Employee File",xemp))
+          end event
+        end field
+
+          field code_search
+            event before
+              set #list(two.select) = #char(34)+"xemp like '"+xemp+"%'"+#char(34)
+              set #list(two.order) = "xemp"
+            end event
+          end field
+
+          field name_search
+            event before
+              set #list(two.select) = #char(34)+"xname like '%"+xname+"%'"+#char(34)
+              set #list(two.order) = "xname"
+            end event
+          end field
+
+          field xname
+            width 20
+            caption First Name
+            event after
+              set globals(xname)=xname
+            end event
+          end field
+
+          field xpayscl
+            width 10
+            default "General"
+            pick list payscal
+          end field
+
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+            set xpostflag = ""
+            set xstatustor = ""
+            set xfirst=xname+" "+xmiddle+" "+xlast
+            
+            set mysql = #sql(str,"select xemp from prmstcvtrn  where zid='"+#id+"' and xemp like '"+CVTRN%+"' order by xemp desc")
+
+            if #result .eq. "true" .and. mysql .ne. ""
+            	set last_num = 0+#sub(mysql,5,4)
+            end if
+            set last_num = 0+1+last_num
+            set mysql = #padl(""+last_num,4,"0")
+            set xemp = "CVTRN"+mysql
+        
+          end event
+        end field
+        
+    	field update
+    		event before
+    		
+                if xcount .eq. "3"
+                   set globals(ErrChk) = "1"
+                   error "The CV is Already Canceled"
+                end if
+                
+                if xstatustor .eq. "1-Selected"
+                   set globals(ErrChk) = "1"
+                   error "The CV is Already Selected"
+                end if
+                
+                set xfirst=xname+" "+xmiddle+" "+xlast
+    			if globals(xemp) .ne. xemp
+    	       		error ""
+    			end if
+    		   	set xemail=#user
+    		   	if xpostflag .ne. ""
+                    error "Already Posted, Cannot Update"
+                end if
+    		end event
+    	end field
+    	
+    	field delete
+    		event before
+                   if globals(xemp) .ne. xemp
+    	       	      error ""
+    		   end if
+    		   set xemail=#user
+    		   if xpostflag .ne. ""
+                     error "Already Posted, Cannot Delete"
+                   end if
+                   
+                if xstatustor .eq. "1-Selected"
+                   set globals(ErrChk) = "1"
+                   error "The CV is Already Selected"
+                end if
+    		end event
+    	end field
+        
+        field selection
+            event before
+
+                if xcount .eq. "3" 
+                   set globals(ErrChk) = "1"
+                   error "The CV is Canceled"
+                end if
+                
+                if  xstatustor .eq. "" .or. xstatustor .eq. "2-Rejected"
+        	   	str mysql = "update prmstcvtrn set xstatustor='1-Selected' where xemp='"+globals(xemp)+"'"
+        	   	set tmpstr = #sql(str,mysql)
+        	   	
+        	   	str mysql = "update prmstcvtrn set xcount=1 where xemp='"+globals(xemp)+"'"
+        	   	set tmpstr = #sql(str,mysql)
+        	   	action show
+                else
+                    error " Already Selected"
+                end if
+            end event
+        end field
+
+        field reject
+            event before
+                set count = 0
+                if xcount .eq. "3" 
+                   set globals(ErrChk) = "1"
+                   error "The CV is Already Canceled"
+                end if
+
+                if  xstatustor .eq. "" .or. xstatustor .eq. "2-Rejected"
+        	   	str mysql = "update prmstcvtrn set xstatustor='2-Rejected' where xemp='"+globals(xemp)+"'"
+        	   	set tmpstr = #sql(str,mysql)
+        	   	
+                        set count=#sql(int,"select xcount from prmstcvtrn where xemp='"+globals(xemp)+"'")
+                  
+                        set count=0+count+1
+
+        	   	str mysql = "update prmstcvtrn set xcount='"+count+"' where xemp='"+globals(xemp)+"'"
+        	   	set tmpstr = #sql(str,mysql)
+        	   	action show
+                else
+                    error " Already Selected"
+                end if
+            end event
+        end field
+
+        field Post
+            event before
+                set globals(ErrChk) = ""
+                set emp_code=#sql(str,"select xemp from prmst where zid='"+#id+"' and xemp='"+xcardno+"'")
+                if emp_code .ne. ""
+                    set globals(ErrChk) = "1"
+                    error "Already Posted, Cannot "+#command +" "+xcardno
+                end if
+                
+                if xcardno .eq. ""
+                    set globals(ErrChk) = "1"
+                    error "Blank Employee Code,Cannot Post"
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    buffer prmst
+                    buffer prmstcvtrn
+                    move prmstcvtrn = prmstcvtrn(xemp)
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Error in reading Temporary CV File, Pls contact your System Vendor"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    move prmst = prmstcvtrn(xemp)
+                    set prmst.xemp = xcardno
+                    set prmst.xcardno = prmstcvtrn.xemp
+                    insert prmst
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Already Posted in Employee Master"
+                    else
+                        set prmstcvtrn.xpostflag = "Posted"
+                        update prmstcvtrn(xemp)
+                        if #result .ne. "true"
+                            set globals(ErrChk) = "1"
+                            error "Error occured while updating CV File, but actual Employee record have been added<br>Please contact your System Vendor regarding this issue"
+                        end if
+                    end if
+                    
+               if globals(ErrChk) .eq. ""
+                  str xprqano=""
+                  set mysql = "select xprqano from prqualificcv where xemp = '"+xemp+"' and xprqano > '"+xprqano+"'"
+                  set xprqano=#sql(str, mysql)
+                  while #result .eq. "true"
+                  
+                        buffer prqualific
+                        buffer prqualificcv
+                        move prqualificcv=prqualificcv(xemp,xprqano)
+                        
+                        if #result .ne. "true"
+                            set globals(ErrChk) = "1"
+                            error "Error in reading Temporary CV File, Pls contact your System Vendor"
+                        end if
+
+                        if globals(ErrChk) .ne. "1"
+                            //move prqualific = prqualificcv(xemp,xprqano)
+                            set prqualific.xemp = xcardno
+                            set prqualific.xprqano=prqualificcv.xprqano
+                            set prqualific.xprqad=prqualificcv.xprqad
+                            set prqualific.xprqayr=prqualificcv.xprqayr
+                            set prqualific.xprcourse=prqualificcv.xprcourse
+                            set prqualific.xprqaint=prqualificcv.xprqaint
+                            set prqualific.xedition=prqualificcv.xedition
+                            set prqualific.xremarks=prqualificcv.xremarks
+                            set prqualific.zemail=prqualificcv.zemail
+                            set prqualific.xemail=prqualificcv.xemail
+                            //set prqualific.xstatustor=prqualificcv.xstatustor
+                            set prqualific.xstatustor="Education"
+                            set prqualific.xdate=prqualificcv.xdate
+                            set prqualific.xexpiry=prqualificcv.xexpiry
+                            set prqualific.xdegcom="Before Appointment"
+                            insert prqualific
+                         end if
+
+                  set mysql = "select xprqano from prqualificcv where xemp = '"+xemp+"' and xprqano > '"+xprqano+"'"
+                  set xprqano=#sql(str, mysql)
+                end while
+              end if
+    ///////
+    
+               if globals(ErrChk) .eq. ""
+                  str xrow=""
+                  set mysql = "select xrow from prtraingdetcv where xemp = '"+xemp+"' and xrow > '"+xrow+"'"
+                  set xrow=#sql(str, mysql)
+                  while #result .eq. "true"
+
+                        buffer prtraingdet
+                        buffer prtraingdetcv
+                        move prtraingdetcv=prtraingdetcv(xemp,xrow)
+
+                        if #result .ne. "true"
+                            set globals(ErrChk) = "1"
+                            error "Error in reading Temporary CV File, Pls contact your System Vendor"
+                        end if
+                        
+                        if globals(ErrChk) .ne. "1"
+                            set prtraingdet.xemp = xcardno
+                            set prtraingdet.xrow=prtraingdetcv.xrow
+                            set prtraingdet.xtraining=prtraingdetcv.xtraining
+                            set prtraingdet.xinstut=prtraingdetcv.xinstut
+                            set prtraingdet.xdatefrom=prtraingdetcv.xdatefrom
+                            set prtraingdet.xdateto=prtraingdetcv.xdateto
+                            set prtraingdet.xdayab=prtraingdetcv.xdayab
+                            set prtraingdet.xremarks=prtraingdetcv.xremarks
+                            set prtraingdet.zemail=prtraingdetcv.zemail
+                            set prtraingdet.xemail=prtraingdetcv.xemail
+                            set prtraingdet.xdegcom="Before Appointment"
+
+                            insert prtraingdet
+                         end if
+
+                  set mysql = "select xrow from prtraingdetcv where xemp = '"+xemp+"' and xrow > '"+xrow+"'"
+                  set xrow=#sql(str, mysql)
+                end while
+              end if
+
+              
+//////
+               if globals(ErrChk) .eq. ""
+                  str xrow=""
+                  set mysql = "select xrow from prwrkexpcv where xemp = '"+xemp+"' and xrow > '"+xrow+"'"
+                  set xrow=#sql(str, mysql)
+                  while #result .eq. "true"
+
+                        buffer prwrkexp
+                        buffer prwrkexpcv
+                        move prwrkexpcv=prwrkexpcv(xemp,xrow)
+
+                        if #result .ne. "true"
+                            set globals(ErrChk) = "1"
+                            error "Error in reading Temporary CV File, Pls contact your System Vendor"
+                        end if
+                        
+                        if globals(ErrChk) .ne. "1"
+                            set prwrkexp.xemp = xcardno
+                            set prwrkexp.xrow=prwrkexpcv.xrow
+                            set prwrkexp.xfdate=prwrkexpcv.xfdate
+                            set prwrkexp.xtdate=prwrkexpcv.xtdate
+                            set prwrkexp.xcompany=prwrkexpcv.xcompany
+                            set prwrkexp.xadd=prwrkexpcv.xadd
+                            set prwrkexp.xcountry=prwrkexpcv.xcountry
+                            set prwrkexp.xoccu=prwrkexpcv.xoccu
+                            set prwrkexp.xsalary=prwrkexpcv.xsalary
+                            set prwrkexp.xremarks=prwrkexpcv.xremarks
+                            set prwrkexp.zemail=prwrkexpcv.zemail
+                            set prwrkexp.xemail=prwrkexpcv.xemail
+                            set prwrkexp.xleftre=prwrkexpcv.xleftre
+                            set prwrkexp.xpartial=prwrkexpcv.xpartial  
+                            set prwrkexp.xdegcom="Before Appointment"
+                            insert prwrkexp
+                         end if
+
+                  set mysql = "select xrow from prwrkexpcv where xemp = '"+xemp+"' and xrow > '"+xrow+"'"
+                  set xrow=#sql(str, mysql)
+                end while
+              end if
+/////////////////
+
+                    
+                    if globals(ErrChk) .ne. "1"
+                        print "<h3><font color=blue>Employee# "+prmst.xemp+" created Successfully in Employee Master</font></h3>"
+                        action show
+                    end if
+                end if
+            end event
+        end field
+
+          embed onsubmit="submitit(this)"
+          
+          field Educational
+            embed onclick="Educational(this)"
+          end field
+          
+          field Experience
+            embed onclick="Experience(this)"
+          end field
+          
+          field Training
+            embed onclick="Training(this)"
+          end field
+
+          field Leave
+            embed onclick="Leave(this)"
+          end field
+
+          field Allocate
+            embed onclick="Allocate(this)"
+          end field
+
+          field Employment
+            embed onclick="Employment(this)"
+          end field
+          
+  end form
+
+     text one
+        //"<object border=0 data=images/"+xemp+".gif type=""text/images"" height=100% width=100% ></object>"
+        "<img border=1 src=images/"+xemp+".jpg>"
+        "<p><b>"+xname+"</b><br>"                
+     end text
+     
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function Educational(b)
+        {
+          detail="Educational"
+        }
+        function Experience(b)
+        {
+          detail="Experience"
+        }
+        function Training(b)
+        {
+          detail="Training"
+        }
+        function Leave(b)
+        {
+          detail="Leave"
+        }
+
+        function Employment(b)
+        {
+          detail="Employment"
+        }
+
+      	function PickName(link)
+        {
+    	  if (navigator.appName.indexOf("Netscape")>=0){
+    	    document.one.xemp.value=link.text
+    	  }else{
+    	    document.one.xemp.value=link.innerText
+      	  }
+    	  return false
+      	}
+
+        function submitit(form){
+          if (detail=="Educational"){
+            form.page.value = "predubacdetcvtrn"
+          }else if (detail=="Experience"){
+            form.page.value = "prwrkexpdetcvtrn"
+          }else if (detail=="Training"){
+            form.page.value = "prtraingdetcvtrn"
+          }else if (detail=="Leave"){
+            form.page.value="prleave"
+            form.searchbutton.value = "Top"
+           }else if (detail=="Employment"){
+            form.page.value="prmstcon"
+            form.searchbutton.value = "Top"
+           }
+         }
+        </script>
+     end script
+     
+end page

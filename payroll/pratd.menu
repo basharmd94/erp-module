@@ -1,0 +1,16 @@
+//Attendance Sub Menu
+//---------------------------------------------------------------------------------------
+option                  |action                                          |modules|models
+//---------------------------------------------------------------------------------------
+Attendance Entry        |#classPath+"/"+#servlet+"?page=prath"                   |
+Attendance Entry-Supervisor |#classPath+"/"+#servlet+"?page=praths"                   |
+-
+Daily Attendance Sheet  |#classPath+"/"+#servlet+"?page=*crystal pratd(xdate=Date=#d,xemp=From Employee=0,xemp=To Employee=z)"
+Monthly Attendance Sheet  |#classPath+"/"+#servlet+"?page=*crystal pratdmon(xdate=From Date=#d,xdate=To Date=#d,xemp=From Employee=0,xemp=To Employee=z)"
+Employee Wise Attendance Sheet  |#classPath+"/"+#servlet+"?page=*crystal pratemp(xemp=Employee=,xdate=From Date=#d,xdate=To Date=#d)"
+//Attendance Posting      |#classPath+"/"+#servlet+"?page=pratpost"                |
+-
+Shift Code              |#classPath+"/"+#servlet+"?page=xcodes(xtype=Shift)"     |
+Default Time Settings   |#classPath+"/"+#servlet+"?page=pratdt"                  |
+Employee wise Time      |#classPath+"/"+#servlet+"?page=pratet"                  |
+//---------------------------------------------------------------------------------------

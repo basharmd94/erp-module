@@ -1,0 +1,13 @@
+Product ERP on the net
+
+table prpayhead
+   caption "Payment Head"
+   columns ztime,zutime,zid,xpaycode,xdesc,xacc,xdigit,xprsign,zemail,xemail,xlast,xsign,xoption
+
+   primary key zid,xpaycode
+
+   foreign key
+      zid references zbusiness.zid
+   end foreign key
+
+end table

@@ -1,0 +1,14 @@
+Product ERP on the net
+
+table pratdviewnew
+   caption "Attendance Detail"
+   columns  zid,xyear,xper,xday,xdate,xshift,xemp,~
+            xintime,xouttime,xlotime,xlitime,xatdstat,xpflag,zemail,xemail,xrem
+
+	sql create view pratdviewnew (zid,xyear,xper,xday,xdate,xshift,xemp,~
+            xintime,xouttime,xlotime,xlitime,xatdstat,xpflag,zemail,xemail,xrem)~
+		as select zid,xyear,xper,xday,xdate,xshift,xemp,~
+            xintime,xouttime,xlotime,xlitime,xatdstat,xpflag,zemail,xemail,xrem ~
+	from pratd
+
+end table

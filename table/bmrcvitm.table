@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table bmrcvitm
+	caption "Received Item Details"
+
+	columns ztime,zutime,zid,xbom,xline,xitem,xqty,xunit,~
+	xstype,zemail,xemail
+
+	primary key zid,xbom,xline
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xbom references bmbom.zid,xbom
+		zid,xitem references caitem.zid,xitem
+	end foreign key
+
+end table

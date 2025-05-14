@@ -1,0 +1,81 @@
+//#include lvadd.include
+  //Apply,Credit,Recommend,Deny,Cancel,Sanction
+console "mode="+mode
+
+  if mode .sw. "Apply"
+        set xtrnleave="Consumption(-)"
+        set xsign=#arg(xtrnleave)+"1"
+        set xdate=xfdate
+        set xdatefrom=xdatefromreq
+        set xdateto=xdatetoreq
+        set xdateapply=#date
+        set xstatusleave=#status("xstatusleave",1)
+        call lmcalc
+        
+        vtest xdaysreq > 0
+        vmsg xdysreq, "Days Cannot be 0 or Less"
+
+        vtest xdatefromreq .ge. dateeff
+        vmsg xdatefromreq, #fields(xdatefromreq.caption)+" Cannot be Before the Effective Day "+dateeff
+        
+        //int yyyy=#sub(#date,0,4)
+        //int mm=#sub(#date,5,2)
+        str limitfrom=#add(#date,-1,"month")
+        str limitto=#add(#date,6,"month")
+        vtest xdatefromreq .ge. limitfrom
+        vmsg xdatefromreq, #fields(xdatefromreq.caption)+" Cannot be Predated More than a Month"
+        vtest xdatetoreq .le. limitto
+        vmsg xdatetoreq, #fields(xdatetoreq.caption)+" Cannot be More than 18 Months Away"
+        vtest xdatetoreq .ge. xdatefromreq
+        vmsg xdatetoreq, #fields(xdatetoreq.caption)+" Cannot be Before the "+#fields(xdatefromreq.caption)
+        
+        int days=#days(xdatetoreq)-#days(xdatefromreq)+1
+        //print "days="+days
+        vtest xdaysreq <= days
+        vmsg xdatetoreq, "The Days between "+#fields(xdatefromreq.caption)+" and "+#fields(xdatetoreq.caption)+" is Less than the Days Requested "+xdaysreq
+        
+        vtest xdaysreq + 7 >= days
+        vmsg xdatetoreq, "The Days between "+#fields(xdatefromreq.caption)+" and "+#fields(xdatetoreq.caption)+" is More than One Week in Excess of the Days Requested "+xdaysreq
+        
+        if whendue .ne. "On Approval"
+          vtest xdaysavail >= xdaysreq
+          vmsg xdaysreq, #fields(xdaysreq.caption)+" is More than the Available Days "+xdaysavail
+        end if
+        
+        
+        
+        
+        
+        //print "xdaysavail="+xdaysavail+"*"+whendue+"*"+days
+  elseif mode .sw. "Open"
+        call lmcalc
+        set xtrnleave="Opening Balance(+)"
+        set xsign=#arg(xtrnleave)+"1"
+        set xdate=datebegin
+        set xdatefrom=datebegin
+        set xdateto=#date
+        set xdateapply=#date
+        set xstatusleave=#status("xstatusleave",3)
+        call lmcalc
+  elseif mode .sw. "Credit"
+        call lmcalc
+        set xtrnleave="Credits(+)"
+        set xsign=#arg(xtrnleave)+"1"
+        set xdate=xdatefromreq
+        set xdatefrom=xdatefromreq
+        set xdateto=#date
+        set xdateapply=#date
+        set xstatusleave=#status("xstatusleave",3)
+
+console "status="+xstatusleave
+        call lmcalc
+        
+  elseif mode .sw. "Cancel"
+        set xtrnleave="Cancel(+)"
+        set xsign=#arg(xtrnleave)+"1"
+        set xdateapd=#date
+        set xdateapply=#date
+        set xstatusleave=#status("xstatusleave",3)
+        call lmcalc
+
+  end if

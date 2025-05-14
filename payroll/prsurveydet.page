@@ -1,0 +1,140 @@
+page prsurveydet
+
+	 embed onload="move_caret('one','xdesc')"
+     //caption "<span class=bl>Details For <a href=/da/"+#servlet+"?page=prsubmit&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+       caption "Survey Feedback Action"
+     sections form one,list one, script myscript
+
+     list one
+        caption "Added Record(s)"
+        table prsurvey
+        order xrow
+        //navigators alpha
+        rows 60
+        objects xrow attrib(link #servlet+"?page="+page+"&command=Show&xrow=?"),~
+              xdept,xcostcent,xdoctype,xrole,xyear,xqty
+                
+        field xqty
+            caption Number of Copy
+        end field
+        
+        field xrole
+            caption Grade
+        end field
+        
+        field xdoctype
+            caption Area
+        end field
+        
+        field xqty
+            caption Count
+            len 16
+        end field
+        
+        field xcostcent
+             caption Location
+        end field
+
+        
+     end list
+
+     form one
+        //caption "<font color=black size=4>Furniture Allocation for <font color=white></p>"+globals(xname)+"</font></font>"
+        table prsurvey
+        order xrow
+        layout 1
+        objects Add, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+                xrow attrib(row 0 1),xdept,xcostcent,xyear,xdoctype,xrole,xqty,xremarks display(hide),zemail display(hide),xemail display(hide)
+
+        field xqty
+            caption Number of Copy
+        end field
+        
+        field xrole
+            caption Grade
+            display combo
+            pick "select xcode from xcodes where xtype='Feedback Grade'"
+        end field
+        
+        field xcostcent
+             caption Location
+             display combo
+             pick select xcode from xcodes where xtype='Location'
+        end field
+
+        filed xdoctype
+            caption Area
+            pick list survey
+            //height 5
+            width 30
+            //pick "select xcode from xcodes where xtype='Feedback Area'"
+        end field
+        
+        field xqty
+            caption Count
+            len 16
+        end field
+        
+        field next
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow+1
+        		set xrow = 0+nrow
+        		action show
+        		//print xprqano+" "+nrow
+        	end event
+        end field
+
+        field previous
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow-1
+        		set xrow = 0+nrow
+        		action show
+        		//print xprqano+" "+nrow
+        	end event
+        end field
+
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Back
+            embed onclick="back(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail=""
+
+        function back(b)
+        {
+          details="back"
+        }
+        function submitit(form)
+        {
+          if (details=="back")
+          {
+            form.page.value = "prsurvey"
+            form.searchbutton.value= "Find xemp=?"
+          }
+        }
+        </script>
+     end script
+
+end page

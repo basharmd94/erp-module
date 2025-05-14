@@ -1,0 +1,100 @@
+page pratd
+    embed onload="move_caret('one','xemp')"
+
+     caption "Attendance Details for Date : "+globals(xdate)+" Shift: "+globals(xshift)
+     sections  form one, list one, text top,script myscript
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+      table pratd
+      order xyear,xper,xday,xshift,xemp
+      fixed xyear,xper,xday,xshift
+      navigators alpha
+      object xemp attrib(link #servlet+"?page=pratd&command=Show&xemp=?"),~
+             empname storage(varchar) equals((select xfirst from prmst where xemp=pratd.xemp)),~
+             xintime,xlotime,xlitime,xouttime,xatdstat,xpflag
+
+      field empname
+        caption Employee Name
+      end field
+     end list
+
+     form one
+        //caption "Attendance Details for<br>Date: <font color=cyan>"+globals(xdate)+"</font><br>Shift: <font color=cyan>"+globals(xshift)+"</font>"
+        table pratd
+        order xyear,xper,xday,xshift,xemp
+        fixed xyear,xper,xday,xshift
+        layout 2
+        objects Back, Show, Clear, Delete, Top, Previous, Next, Bottom,~
+                xemp,xnamedum,xintime,xouttime,xlotime,xlitime,xatdstat,xpflag,zemail display(hide),xemail display(hide)
+
+        field xemp
+          width 15
+          pick list xemp
+          event after
+            set globals(xemp)=xemp
+          end event
+        end field
+
+        field xnamedum
+          attrib local
+          display constant
+          caption Employee Name
+          event after
+            set xnamedum=#sql(str, "select xfirst from prmst where xemp='"+xemp+"'")
+          end event
+        end field
+
+        field xatdstat
+          display constant
+        end field
+
+        field xpflag
+          display constant
+          caption Post Flag
+        end field
+
+        field delete
+          event before
+            if xpflag .ne. ""
+              error "Cannot Delete<br>Already Posted"
+            end if
+          end event
+        end field
+
+
+        embed onsubmit="submitit(this)"
+
+        field back
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          detail="back"
+        }
+        function submitit(form)
+        {
+          if (detail=="back")
+          {
+            form.page.value = "prath"
+            form.searchbutton.value= "Find xyear=?&xper=?&xday=?&xshift=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+
+end page

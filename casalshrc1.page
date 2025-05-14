@@ -1,0 +1,131 @@
+page casalshrc1
+     caption header
+     sidebar list glb
+     sections form one, list levl2, script myscript
+
+	list glb
+        caption "Top Level (All Division)"
+        table casalshrc1
+        order xstate
+        rows 20
+        objects xstate caption(Division) attrib(link #servlet+"?page=casalshrc1&command=Show&xstate=?"),~
+				xname caption(Divisional Manager)
+  	end list
+
+	list levl2
+        caption "List of All Zone in  " +xstate
+        table casalshrc2
+        order xstate,xdiv
+        fixed xstate
+        rows 20
+        objects xdiv caption(Zone) attrib(link #servlet+"?page=casalshrc2&command=Show&xstate=?&xdiv=?"),~
+				xname caption(Zonal Manager)
+  	end list
+
+     form one
+     	valid valid,access
+        table casalshrc1
+        order xstate
+        layout 1
+        objects Zone, Show,Clear,Add, Update, Delete, Top, Previous, Next, Bottom,"" ,~
+               xstate,xtype caption(Type) display(const),xdescdet,xcode display(hide) caption(Division Code),~
+			   xemp caption(Divisional Manager) attrib(submit),xname display(const),zactive,zemail display(const) caption(Added By)
+               
+        field xstate
+		  caption Division
+          event after
+            set globals(xstate)=xstate
+          end event
+        end field
+        
+		field xemp
+		//display ocombo
+			//pick "select xemp from prmst where zid='"+#id+"'"
+			pick list xemp
+		end field
+		
+        field add
+        	event before
+        		set globals(ErrChk) = ""
+				
+				if globals(ErrChk) .ne. "1"
+					set chkemp = #sql(str,"select xemp from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+					if #result .ne. "true"
+						set globals(ErrChk)=1
+						error "The Commercial Manager Code is not Exist."
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+				    //set tmpstr = #sql(str,"select xcode from xcodes where zid='"+#id+"' and xtype='Level' and xcode='"+xstate+"'")
+				    //if #result .ne. "true"
+						//set myqry = "insert into xcodes (ztime, zid, xtype, xcode, xdescdet, xprops,xcodealt,zactive)"
+						//set myqry = myqry + " values('"+#time+"','"+#id+"','Level','"+xstate+"','','','','1')"
+						//set tmpstr =#sql(myqry)		
+					//end if    
+					set xname=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+					set zemail=#user
+					set xtype="Divisional"
+					set zactive="1"
+				end if
+        	end event
+        end field
+
+        field update
+        	event before
+        		set globals(ErrChk) = ""
+				set zactive="1"
+        	end event
+        end field
+        
+        field delete
+        	event before
+        		set globals(ErrChk) = ""
+
+        	end event
+        end field
+                
+        embed onsubmit="submitit(this)"
+        field Zone
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but = ""
+        function clicked(b){
+          but = "clicked"
+        }
+        function submitit(form){
+          if (but == "clicked"){
+            form.page.value = "casalshrc2"
+            form.searchbutton.value = "Find xstate=?"
+          }
+        }
+
+        </script>
+     end script
+     
+     method chkcode
+	    set tmpstr = #sql(str,"select xcode from xcodes where zid='"+#id+"' and xtype='Warehouse' and xcode='"+xstate+"'")
+	    if #result .ne. "true"
+			set myqry = "insert into xcodes (ztime, zid, xtype, xcode, xdescdet, xprops,xcodealt,zactive)"
+			set myqry = myqry + " values('"+#time+"','"+#id+"','Warehouse','"+xstate+"','','','','1')"
+			set tmpstr =#sql(myqry)		
+		end if     
+     end method
+     
+     valid valid
+     	config
+			set zactive="1"
+     		set globals(pkey)=xstate
+			set xname=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+			set header = "<font color=green size=4+>Divisional Distributor</font><br>"
+     	end config
+     end valid
+
+#include access.valid
+          
+end page

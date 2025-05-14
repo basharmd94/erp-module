@@ -1,0 +1,174 @@
+page prpay
+
+     caption "Payment Date(s)"
+     sections form one, list one, script myscript, text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        table prpay
+        order xyear,xper desc
+        rows 20
+        objects xyear,xper attrib(link #servlet+"?page=prpay&command=Show&xyear=?&xper=?"),~
+                xpaydate,xremarks
+     end list
+
+     form one
+        //caption "Pay Date"
+        //valid valid
+        table prpay
+        order xyear,xper desc
+        layout 1
+        objects  Show,  Detail, Add, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+                 xyear,xper,xpaydate,xremarks,~
+				 zemail display(hide),xemail display(hide)                 
+
+		field xyear
+			default #cyear
+		end field
+		
+		field xper
+			default #cper
+		end field
+		
+        field add
+          event before      	
+		  	int day = 0	
+		  	set salcal = prdef.xprsalcalc("zid='"+#id+"'")
+		  	if #result .ne. "true"
+		  		set globals(ErrChk) = "1"
+		  		error "Payroll Default not defined"
+		  	end if
+		  	
+		  	if globals(ErrChk) .ne. "1"
+				if salcal .eq. "Last Day"
+					if xper .eq. "01" .or. xper .eq. "03" .or. xper .eq. "05" .or. xper .eq. "07" .or. xper .eq. "08" .or. xper .eq. "10" .or. xper .eq. "12"
+						int day = 31
+					else if xper .eq. "1" .or. xper .eq. "3" .or. xper .eq. "5" .or. xper .eq. "7" .or. xper .eq. "8" .or. xper .eq. "10" .or. xper .eq. "12"
+						int day = 31
+					end if
+					if xper .eq. "04" .or. xper .eq. "06" .or. xper .eq. "09" .or. xper .eq. "11"
+						int day = 30
+					else if xper .eq. "4" .or. xper .eq. "6" .or. xper .eq. "9" .or. xper .eq. "11"
+						int day = 30
+					end if
+					if xper .eq. "02"
+						int day = 28 
+					else if xper .eq. "2" 
+						int day = 28
+					end if
+				else if salcal .eq. "Custom"
+					int day = prdef.xperend("zid='"+#id+"'")+1 
+				end if
+				
+	          	set tmpdate = xyear+"-"+xper+"-"+day
+	          	set temp = #days(tmpdate)+1
+	          	//set xpaydate=#longtodate(temp)
+				set xpaydate=xpaydate				
+	            set zemail=#user
+	            set xemail=""
+			end if            
+          end event
+        end field
+
+        field update
+          event before      	
+		  	int day = 0	
+		  	set salcal = prdef.xprsalcalc("zid='"+#id+"'")
+		  	if #result .ne. "true"
+		  		set globals(ErrChk) = "1"
+		  		error "Payroll Default not defined"
+		  	end if
+		  	
+		  	if globals(ErrChk) .ne. "1"
+				if salcal .eq. "Last Day"
+					if xper .eq. "01" .or. xper .eq. "03" .or. xper .eq. "05" .or. xper .eq. "07" .or. xper .eq. "08" .or. xper .eq. "10" .or. xper .eq. "12"
+						int day = 31
+					else if xper .eq. "1" .or. xper .eq. "3" .or. xper .eq. "5" .or. xper .eq. "7" .or. xper .eq. "8" .or. xper .eq. "10" .or. xper .eq. "12"
+						int day = 31
+					end if
+					if xper .eq. "04" .or. xper .eq. "06" .or. xper .eq. "09" .or. xper .eq. "11"
+						int day = 30
+					else if xper .eq. "4" .or. xper .eq. "6" .or. xper .eq. "9" .or. xper .eq. "11"
+						int day = 31
+					end if
+					if xper .eq. "02"
+						int day = 28 
+					else if xper .eq. "2" 
+						int day = 28
+					end if
+				else if salcal .eq. "Custom"
+					int day = prdef.xperend("zid='"+#id+"'")+1 
+				end if
+				
+	          	set tmpdate = xyear+"-"+xper+"-"+day
+	          	set temp = #days(tmpdate)+1
+	          	set xpaydate=#longtodate(temp)
+				set xpaydate=xpaydate
+	            set zemail=#user
+	            set xemail=""
+			end if            
+          end event
+        end field
+
+		field xpaydate
+			//default #date
+			display const
+			event after
+				set globals(xpaydate)=xpaydate
+			end event
+		end field
+
+         field xremarks
+            display area
+            caption Payment Description
+            width 34
+            height 3
+         end field
+
+          embed onsubmit="submitit(this)"
+          field Detail
+           embed onclick="clicked(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b)
+        {
+          detail="EMPCode"
+        }
+        function pickvalue(b){
+          detail="pick"
+        }
+        function submitit(form)
+        {
+	        if (detail=="EMPCode")
+          {
+            form.page.value = "prmsg"
+            form.searchbutton.value="Find xpaydate=?"
+            //return false
+          }
+	        if (detail=="pick")
+          {
+            document.one.xpaydate.value=xpaydate
+            return true
+          }
+        }
+
+        </script>
+     end script
+
+	valid valid
+		config
+			//print #cyear+" "+#cper
+			//set xpaydate = xyear+"-"+xper+"-"+prdef.xperend("zid='"+#id+"'")
+		end config
+	end valid
+
+end page

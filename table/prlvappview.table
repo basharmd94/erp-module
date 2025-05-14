@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table prlvappview
+	caption "prpaymentdt Description View"
+
+	columns xemp,xname,xdesig,xleave,xfdate,xtdate,xdaysreq
+			
+	sql create view prlvappview (xemp,xname,xdesig,xleave,xfdate,xtdate,xdaysreq) ~
+		as select ~
+		prlvapp.xemp,prlvapp.xname,prlvapp.xdesig,prlvapp.xleave,~
+		prlvapp.xfdate,prlvapp.xtdate,prlvapp.xdaysreq ~
+	from prlvapp
+end table
+

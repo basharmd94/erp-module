@@ -1,0 +1,262 @@
+page immocost
+
+    caption "Synchronization  the value of MO"
+    sections form imtrn,script myscript,method upd_log
+
+    form imtrn
+      caption "<font color=cyan>Synchronization  the value of Mo</font>"
+      return "Main"
+      layout 1
+      objects ~
+              Process,"<p>",~
+              xfdate default(#date),xtdate default(#date)
+
+  
+
+   
+
+      field process
+        event before
+            set globals(ErrChk)=""
+            
+            //if globals(ErrChk) .ne. "1"
+              //     class osbcustom(#time(tmptime))
+               //if tmptime .le. "18:00:00"
+                 // set globals(ErrChk) = "1"
+                  //error "Please Run this Process after 6PM."
+               //end if
+            //end if
+            
+            if globals(ErrChk) .ne. "1"
+                call upd_log
+            end if
+
+            
+            if globals(ErrChk) .ne. "1"
+                if xfdate .eq. #maxdate
+                    set globals(ErrChk)="1"
+                    error "Wrong Date Range Entered"
+                end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+                if xtdate .eq. #maxdate
+                    set globals(ErrChk)="1"
+                    error "Wrong Date Range Entered."
+                end if
+            end if
+			
+			if globals(ErrChk) .ne. "1"
+				set mysql="select count(xbom) from bmbom where zid='"+#id+"' and (xstep='' or xstep isnull)"
+				//print mysql
+				set cntnull=0+#sql(mysql)
+				if cntnull<>0
+					set globals(ErrChk)="1"
+					error "Can't "+#command +"<br>Step configaration in bom is Blank."
+				end if
+			end if
+			if globals(ErrChk) .ne. "1"
+				set mysql="select count(xbom) from bmbom where zid='"+#id+"' group by xstep having count(xbom)<>1"
+				set cnt=0+#sql(mysql)
+				if cnt<>0
+					set globals(ErrChk)="1"
+					error "Can't "+#command +"<br>Check Step configaration in bom."
+				end if
+			end if
+			
+			if globals(ErrChk) .ne. "1"
+				set mysql="select xrate from mobyprodrat where zid='"+#id+"' and xrate=0"
+				set ratechk=0+#sql(mysql)
+				if #result .eq. "true"
+					set globals(ErrChk)="1"
+					error "Can't "+#command +"<br>Check Rate carefully."
+				end if
+			end if
+			
+            if globals(ErrChk) .ne. "1"
+			  set step=""
+			  //set mysql="select xstep from bmbom where zid="+#id+" and xstep>'"+step+"' and xstep='Step-18' order by xstep"				
+			  set mysql="select xstep from bmbom where zid="+#id+" and xstep>'"+step+"' order by xstep"				
+			  set step=#sql(str,mysql)
+			  while #result .eq. "true" 
+			  //print step
+				set bom=""
+				set mysql="select xbom from bmbom where zid="+#id+" and xstep='"+step+"'"				
+				set bom=#sql(str,mysql)
+			  //print bom
+			  set datemo=""
+				set mysql="select xdatemo from moord where zid="+#id+" and xitem='"+bom+"' and xdatemo>='"+xfdate+"' and xdatemo<'"+xtdate+"' order by xbom,xdatemo"				
+				set datemo=#sql(mysql)
+				while #result .eq. "true" .and. datemo .ne. ""				
+					set moord=""
+					set mysql="select xmoord from moord where zid='"+#id+"' and xmoord>'"+moord+"' and  xdatemo='"+datemo+"' and xbom='"+bom+"' order by xmoord"
+					set moord=#sql(mysql)					
+					while #result .eq. "true" .and. moord .ne. ""
+						//print moord						
+							set xmorlno=""
+							set xmorlno=#sql("select xmorlno from moodt where zid='"+#id+"' and xmoord='"+moord+"' and xmorlno>'"+xmorlno+"' order by xmorlno")
+							 while #result .eq. "true"
+									set imval=0.0
+								set imqty=0.0
+								set rate=0.0
+								set xitem=#sql("select xitem from moodt where zid='"+#id+"' and xmoord='"+moord+"' and xmorlno='"+xmorlno+"'")
+								set xstype=#sql("select xstype from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+								if xstype .ne. "Non-Stock"
+								
+								str mysql = "select (select xval from imtrn where zid='"+#id+"' and xdocnum='"+moord+"' and xdocrow='"+xmorlno+"' and xsign<0) as strval, ~
+										(select xqty from imtrn where zid='"+#id+"' and xdocnum='"+moord+"' and xdocrow='"+xmorlno+"' and xsign<0) as strqty"
+										//print mysql
+										str esql = ""
+										str info = ""
+										class osbcustom(#sql(mysql, info, esql))
+										if esql .ne. ""
+											// print "<span class=br>"+esql+"</span>"
+										else if info .ne. ""
+											//print ";"+info+";"
+											class osbcustom(#parse(info))
+											class osbcustom(#glob(0, imval))				   
+											//print imval
+											class osbcustom(#glob(1, imqty))				   
+										end if
+				 
+										//print imqty
+										//print imval
+									//set imval=0.0+#sql("select xval from imtrn where zid='"+#id+"' and xdocnum='"+moord+"' and xdocrow='"+xmorlno+"' and xsign<0")
+									//set imqty=0.0+#sql("select xqty from imtrn where zid='"+#id+"' and xdocnum='"+moord+"' and xdocrow='"+xmorlno+"' and xsign<0")
+									set rate=0.0+imval/imqty
+									set rate=#round(rate,4)
+									//set rcv_amt=0.0+rate*imqty
+									set upd_moodt=#sql("update moodt set xrate='"+rate+"' where zid='"+#id+"' and xmoord='"+moord+"' and xmorlno='"+xmorlno+"'")
+									//set upd_imtrn_rcv=#sql("update imtrn set xval='"+rcv_amt+"' where zid='"+#id+"' and xdocnum='"+moord+"' and xdocrow='"+xmorlno+"' and xsign>0 ")
+									//print #result+"upd_imtrn_rcv"
+									else if xstype .eq. "Non-Stock"
+										set rate=#sql("select xprice from caitemprc where zid="+#id+" and xitem='"+xitem+"'  ~
+										and xdatefrom=(select max(xdatefrom) from caitemprc where zid="+#id+" and xitem='"+xitem+"' and xdatefrom<='"+datemo+"')")
+										set upd_moodt=#sql("update moodt set xrate='"+rate+"' where zid='"+#id+"' and xmoord='"+moord+"' and xmorlno='"+xmorlno+"'")
+								end if
+									//print moord+"-test-" xmorlno+" Val "+imval+" qty "+imqty
+									set xmorlno=#sql("select xmorlno from moodt where zid='"+#id+"' and xmoord='"+moord+"' and xmorlno>'"+xmorlno+"' order by xmorlno")
+							end while
+							//by product ???
+							set totval=0.0+#sql("select sum(xrate*xqty) from moodt where zid='"+#id+"' and xmoord='"+moord+"'")
+							set totval=#round(totval,5)
+							//print totval
+							set fgitem=#sql("select xitem from moord where zid='"+#id+"' and xmoord='"+moord+"'")
+							//print fgitem
+							set cnt_byprod=0+#sql("select count(xitem) from moodtr where zid="+#id+" and xbom='"+fgitem+"'")
+							//print cnt_byprod
+							if cnt_byprod>0							
+									str mysql = "select sum(xval) from mobyprodrat where zid='"+#id+"' and xmoord='"+moord+"'"
+									set totalprice=0.0+#sql(mysql)
+									//set totalprice=0.0+#round(totalprice,2)
+									//class osbcustom(#calc(totalprice,1,"*",5,totalprice))
+									//print totalprice
+									set rate_prod=0.0+totval/totalprice									
+									set rate_prod=#round(rate_prod,10)									
+										//set motrn_item=""
+										
+									//print rate_prod+"rateeee"									
+									//print upd_imtrn_prod
+									//print #result
+									set upd_imtrn_prod="update imtrn set xval=round("+rate_prod+"*(select xval from mobyprodrat where zid="+#id+" and xmoord='"+moord+"' and ximtrnnum=imtrn.ximtrnnum),5) ~
+									where zid='"+#id+"' and xdocnum='"+moord+"' and xsign>0"
+									//print upd_imtrn_prod
+									set upd_imtrn_prod=#sql(upd_imtrn_prod)
+									//print #result+"ddd"
+									//print upd_imtrn_prod
+									//set upd_imtrn_prod=#sql("update imtrn set xval='"+totval+"' where zid='"+#id+"' and xdocnum='"+moord+"' and xitem='"+fgitem+"' and xsign>0 ")																											
+								   
+								else
+								set upd_imtrn_prod=#sql("update imtrn set xval='"+totval+"' where zid='"+#id+"' and xdocnum='"+moord+"' and xitem='"+fgitem+"' and xsign>0 ")																											
+							end if
+						
+						set mysql="select xmoord from moord where zid='"+#id+"' and xmoord>'"+moord+"' and  xdatemo='"+datemo+"' and xbom='"+bom+"' order by xmoord"
+						set moord=#sql(mysql)
+					end while
+				set mysql="select xdatemo from moord where zid="+#id+" and xitem='"+bom+"' and xdatemo>='"+xfdate+"' and xdatemo<'"+xtdate+"' and xdatemo>'"+datemo+"' order by xbom,xdatemo"				
+				set datemo=#sql(mysql)
+				end while
+				
+				//set mysql="select xstep from bmbom where zid="+#id+" and xstep>'"+step+"' and xstep='Step-18' order by xstep"				
+				set mysql="select xstep from bmbom where zid="+#id+" and xstep>'"+step+"' order by xstep"				
+			  set step=#sql(str,mysql)
+			  end while			  
+            end if
+           
+        end event
+        even after
+        if globals(ErrChk) .ne. "1"
+            print "<font color=blue size=+1><strong>Processing Completed</strong></font>"
+        end if
+        end event
+      end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = ""
+//            form.searchbutton.value = "Find xvoucher=?"
+            //return false
+          }
+        }
+
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.imtrn.xitem.value=link.text
+          }else{
+            document.imtrn.xitem.value=link.innerText
+          }
+          return false
+        }
+
+
+        function pickBatch(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.imtrn.xbatch.value=link.text
+          }else{
+            document.imtrn.xbatch.value=link.innerText
+          }
+          return false
+        }
+
+        //function keeplastkey(){
+        //document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        //document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        //}
+
+        </script>
+    end script
+    
+    method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,4,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql
+		str tmptime = ""
+		class osbcustom(#time(tmptime))
+        set name=""
+        set name="from date: "+xfdate+" : To date : "+xtdate+": MO Type : "+xmoord
+        //print name
+
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','','','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+tmptime+"','"+page+"','"+name+"')"
+		set tmpstr =#sql(myqry)
+     end method
+
+end page

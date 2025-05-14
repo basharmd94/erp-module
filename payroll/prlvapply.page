@@ -1,0 +1,313 @@
+page prlvapply
+	embed onload="move_caret('one','xemp')"
+	caption "Leave Application Entry of Employee: "+xemp+" Name: "+prmst.xname(xemp)+" Category: "+prmst.xempcat(xemp)+details
+	sidebar list leaveapp
+	section form one,list leave
+
+	list leaveapp
+		caption "Applied Leave"
+		table prlv
+		order xemp,xleave,xdate
+		select "xstatusleave='1-Open'"
+		rows 20
+		
+		objects xemp,xleave,xdate attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xleave=?&xdate=?"), ~
+				xfdate,xtdate,xdaysreq,xdaysapp,xstatusleave
+
+		totals "","Totals","","","",sum,sum,""
+	end list
+
+	list leave
+		caption "All Leave"
+		table prlv
+		order xemp,xleave,xdate
+		rows 20
+		select "xuserc='"+#user+"'"
+		objects xemp,xleave,xdate attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xleave=?&xdate=?"), ~
+				xfdate,xtdate,xdaysreq,xdaysapp,xstatusleave
+
+		totals "","Totals","","","",sum,sum,""
+	end list
+
+	form one
+		valid valid
+		table prlv
+		order xemp,xleave,xdate
+		select "xuserc='"+#user+"'"
+		layout 2
+		objects	Add,Show,Delete,Clear, Previous, Next, Top, Bottom,~
+				xemp attrib(submit),empname attrib(local) display(const),fathername,dept,~
+				desi,doj,xleave,xdate,xfdate,xtdate,xdaysreq display(constant),~
+				xdaysapp display(constant),xphone,xremark,xpurpose,~
+				xnote,xstatusleave,xlvtype,xyear,xper,xrecommendedby,xapprovedby,xcancelreqby,xcancelledby,~
+				xpflag,xuserc,xuseru
+
+    
+		field xremark
+			caption Address while on Leave
+			col 3
+			width 70
+			height 2
+		end field
+    
+		field xphone
+			col 3
+		end field
+		
+		field fathername
+			attrib local
+			display const
+			caption Father Name			
+		end field
+		
+		field dept
+			attrib local
+			display const
+			caption Department
+		end field
+
+		field desi
+			attrib local
+			display const
+			caption Designation
+		end field
+
+		field doj
+			attrib local
+			display const
+			caption Joining Date
+		end field
+
+        
+		field xemp
+			attrib attach
+			coll 3
+			event after
+				set globals(xleave) = xleave
+				set globals(xemp) = xemp
+				set #field(xnote->.display) = "hide"
+				if xemp .eq. ""
+					set #field(Delete.display) = "disable"
+				end if
+				if xstatusleave .eq. "1-Open"
+					set #field(Add.display) = "disable"
+				end if
+			set tot_lv = #sql(int,"select xleavealc from prlvpolicy where zid='"+#id+"' and xempcat='"+xempcat+"' and xleave='"+xleave+"'")
+			set used_lv =#sql(dec,"select sum(xdaysapp) from prlv where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xyear='"+xyear+"' and xleave='"+xleave+"'")
+			set pipeline=#sql(int,"select sum(xdaysreq) from prlv where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xyear='"+xyear+"' and xleave='"+xleave+"' and xstatusleave='2-Recommended'")
+			set avl_lv = 0+tot_lv-used_lv-pipeline
+
+			str details =  "<table width=100%><tr class=bl>~
+			<td bgcolor=#dddddd><font color=green>Leave Code: </font></td><td bgcolor=#ccccff>"+xleave+"</td> ~
+			<td bgcolor=#dddddd><font color=green>Allocated: </font></td><td bgcolor=#ccccff>"+tot_lv+"</td> ~
+			<td bgcolor=#dddddd><font color=green>Consumed: </font></td><td bgcolor=#ccccff>"+used_lv+"</td> ~				
+			<td bgcolor=#dddddd><font color=green>Pipeline: </font></td><td bgcolor=#ccccff>"+pipeline+"</td> ~				
+			<td bgcolor=#dddddd><font color=green>Available: </font></td><td bgcolor=#ccccff>"+avl_lv+"</td> ~
+			</tr></table>"
+				set #field(xnote.display) = "hide"
+			end event
+		end field
+
+		field xdate
+			default #d
+			//display const
+			caption Application Date
+		end field
+
+		field xleave
+			width 10
+			display ocombo
+			pick "select xcode from xcodes where zid="+#id+" and xtype like 'Leave Type' and zactive='1'"
+			default "EL"
+		end field
+
+		field xfdate
+		  caption Leave Start Date
+		end field
+
+		field xtdate
+		  caption Leave End Date
+		end field
+
+		field xlvtype
+			default "1-Full Pay"
+		end field
+
+		field xuserc
+            caption Created by
+            display constant
+		end field
+
+		field xuseru
+            caption Updated by
+            display constant
+		end field
+
+		field add
+			event before
+				//set globals(ErrChk) = ""
+				//set user=#sql(str,"select zemail from zxusers where zid="+#id+"  and xassetid='"+xemp+"'")
+				//if user .ne. #user
+				//	set globals(ErrChk) = "1"
+				//	error "You are not allowed to enter Leave of Another Employee<br>Please Ask Administrator "
+				//end if         
+				
+				set xempcat = #sql("select xempcat from prmst where zid="+#id+" and xemp='"+xemp+"'")
+				set xyear = #sub(xfdate,0,4)
+				set xper = #sub(xfdate,5,2)
+				set samedate= #sql(time,"select xfdate from prlv where zid="+#id+" and xemp='"+xemp+"' and xyear='"+xyear+"' and xper='"+xper+"' and xfdate='"+xfdate+"'")
+				if globals(ErrChk) .ne. "1"
+					if samedate .ne. ""
+						set globals(ErrChk) = "1"
+						error "You have already taken leave From Date </p>" +xfdate+"</p> So it is not possible"
+					end if         
+				end if	
+				if globals(ErrChk) .ne. "1"
+					set chkrec = #sql("select xcode from xcodes where zid="+#id+" and xtype='Leave Type' and zactive='1' and xcode='"+xleave+"'")
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+						error "Wrong Leave Code</p>Cannot "+#command
+					end if
+				end if         
+				if globals(ErrChk) .ne. "1"
+					set chkrec = #sql("select xemp from prlv where zid='"+#id+"' and xemp='"+xemp+"' and xtdate>='"+xfdate+"' and xfdate<='"+xfdate+"'")
+					if #result .eq. "true"
+						set globals(ErrChk) = "1"
+						error "Duplicate Record; Cannot "+#command
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set chkrec = #sql("select xemp from prlv where zid='"+#id+"' and xemp='"+xemp+"' and xtdate>='"+xtdate+"' and xfdate<='"+xtdate+"'")
+					if #result .eq. "true"
+						set globals(ErrChk) = "1"
+						error "Duplicate Record; Cannot "+#command
+					end if
+				end if
+				//if globals(ErrChk) .ne. "1"
+				//	if xfdate .le. #date 
+				//		set globals(ErrChk) = "1"
+				//		error "Applying back date is not allowed</p>Cannot "+#command
+				//	end if
+				//end if
+				if globals(ErrChk) .ne. "1"
+					if xfdate .gt. xtdate 
+						set globals(ErrChk) = "1"
+						error "To Date is less than From Date </p>Cannot "+#command
+					end if
+				end if
+				if globals(ErrChk) .ne. "1"
+					set xname = #sql(str,"select xname from cadate where zid="+#id+" and xdate='"+xfdate+"'")
+					if xname .eq. "Friday" 
+						set globals(ErrChk) = "1"
+						error "Date Range is Already Holiday </p>Cannot "+#command
+					end if
+				end if
+				if globals(ErrChk) .ne. "1"
+					set xremark = #sql(str,"select xremark from cadate where zid="+#id+" and xdate='"+xfdate+"'")
+					if xremark .eq. "Holiday" 
+						set globals(ErrChk) = "1"
+						error "Date Range is Already Government Holiday </p>Cannot "+#command
+					end if
+				end if
+
+				set xdaysreq=#days(xtdate)-#days(xfdate)+1
+
+				set tot_lv = #sql(int,"select xleavealc from prlvpolicy where zid='"+#id+"' and xempcat='"+xempcat+"' and xleave='"+xleave+"'")
+				set used_lv = #sql(int,"select sum(xdaysapp) from prlv where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xyear='"+xyear+"' and xleave='"+xleave+"'")
+				set pipeline=#sql(int,"select sum(xdaysreq) from prlv where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xyear='"+xyear+"' and xleave='"+xleave+"' and xstatusleave='2-Recommended'")
+
+				set avl_lv = 0+tot_lv-used_lv-pipeline
+				
+				if globals(ErrChk).ne."1"		    
+					if xdaysreq > avl_lv
+						set globals(ErrChk) = "1"
+						error "Available Balance for "+xleave+": " +avl_lv+" day(s)</p>Applied for "+xdaysreq+" day(s)</p>Cannot "+#command
+					end if 
+				end if	 
+				if globals(ErrChk) .ne. "1"
+					set zemail=#user
+					set xemail=""           
+					set xlvtype="1-Full Pay"
+					set xstatusleave = "1-Open"
+				end if
+                set xuserc=#user
+                set xuseru=""
+
+				set recid1 = #sql("select xappby1 from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+				set recid2 = #sql("select xappby2 from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+				set recid3 = #sql("select xappby3 from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+				if recid1 .ne. ""
+					set target = #sql("select xemailb from prmst where zid='"+#id+"' and xemp='"+recid1+"'")
+				end if
+				
+				if recid2 .ne. ""
+					set target2 = #sql("select xemailb from prmst where zid='"+#id+"' and xemp='"+recid2+"'")
+				end if
+				
+				if recid3 .eq. ""
+					set target3 = #sql("select xemailb from prmst where zid='"+#id+"' and xemp='"+recid3+"'")
+				end if         		
+							
+				set emailemp = #sql("select xemailb from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+
+				set targetcc = target2+","+target3+","+emailemp
+				set target=target+","+emailemp
+				
+				if target .ne. ""
+					str msg
+					text "lvapply.email","string msg"
+					//mail from=#user;;to=target;;cc=targetcc;;sub="Leave Application by "+prmst.xname(xemp)+" ("+xemp+")" ;;message=msg
+				end if
+			end event
+		end field
+
+		field delete
+			event before
+				set globals(ErrChk) = ""
+				set user=#sql("select zemail from zxusers where zid="+#id+" and xemp='"+xemp+"'")
+				if user .ne. #user
+					//set globals(ErrChk) = "1"
+					//error "You are not allowed to Delete Leave of Another Employee<br>Please Ask Administrator "
+				end if         
+
+				if globals(ErrChk) .ne. "1"
+					if xemp .ne. globals(xemp)
+						set globals(ErrChk) = "1"
+						error "Record pointer mismatch"
+					end if
+				end if
+				if globals(ErrChk) .ne. "1"
+					if xstatusleave .ne. "1-Open"
+						set globals(ErrChk) = "1"
+						error "Already </p>Cannot "+#command
+					end if
+				end if    		
+			end event
+		end field
+	end form
+
+	valid valid
+		mandatory xemp,xleave,xdate,xfdate,xtdate
+		config		
+			set empname = prmst.xname(xemp)
+			set fathername = prmst.xfather(xemp) 
+			set dept = prmst.xdept(xemp)
+			set desi = prmst.xdesig(xemp)
+			set doj = prmst.xjoindate(xemp)
+
+			if xemp .eq. ""
+				set #field(fathername.display) = "hide"
+				set #field(dept.display) = "hide"
+				set #field(desi.display) = "hide"
+				set #field(doj.display) = "hide"
+			end if
+
+			
+			int xyear=#sub(#date,0,4)
+			if globals(ErrChk) .ne. "1"
+				set xempcat = #sql("select xempcat from prmst where zid="+#id+" and xemp='"+globals(xemp)+"'")
+			end if
+		end config
+	end valid
+end page

@@ -1,0 +1,293 @@
+page poreqappim_app
+     //embed onload = "move_caret('one','xtrnporeq')"
+     caption header
+     sidebar list poreqd
+     sections form one,list onea,list oneapp, approv,script myscript
+   		
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+
+     list poreqd
+        caption "<font size=2>Item(s) for "+xcounterno
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=poreqinterd.zid and xitem=poreqinterd.xitem) as itemdesc ~
+			from poreqinterd) as tbl
+        order xcounterno,xrow
+        fixed xcounterno
+        select "zid='"+#id+"'"
+        rows 5
+        objects xrow attrib(link #servlet+"?page=poreqinterd&command=Show&xgrnnum=?&xrow=?"), ~
+                xitem
+
+        totals count,"Totals","",sum,sum
+
+        field itemdesc
+          storage varchar
+          caption Description
+        end field
+        
+        field xqtyreq
+            len 10.2
+        end field
+
+     end list
+    
+    list onea
+        caption "Purchase Requisition Open"
+        table poreqinter
+        order xcounterno desc  
+		select "zid='"+#id+"' and xstatusreq='1-New'"
+        rows 5
+        objects xcounterno attrib(link #servlet+"?page=poreqappim_app&command=Show&xcounterno=?"), ~
+                xdate,xemail1,zemail,xemail
+
+        field xcounterno
+          caption Requisition No.
+        end field
+
+     end list
+
+    list oneapp
+        caption "Approved Requisition"
+        table poreqinter
+        order xcounterno desc  
+		select "zid='"+#id+"' and xstatusreq='6-Approved'"
+        rows 5
+        objects xcounterno attrib(link #servlet+"?page=poreqappim_app&command=Show&xcounterno=?"), ~
+                xdate,xemail1,zemail,xemail
+
+        field xcounterno
+          caption Requisition No.
+        end field
+
+     end list
+
+     form one
+        //caption "<font color=black size=3>Purchase Requisition Entry"
+        valid valid,access
+        table poreqinter
+        order xcounterno DESC   
+		select "zid='"+#id+"'"
+		
+        layout 1
+        objects ~
+                Show,Details,Clear,Update,Previous, Delete,Next,Approve,~ //Ready_For_Requision,Complete,Add,
+					xcounterno,xdate,xsup attrib(submit;attach),sup_name,xemail1,xstatusreq display(const),~
+					zemail display(const),xemail display(const)
+					
+					
+					
+        field show
+        	event before
+        		set globals(hed) = xcounterno
+        	end event
+        	event after
+        		set globals(hed) = xcounterno
+        	end event
+        end field
+		
+		field xcounterno
+			caption Transcation No
+			pick list xisprno
+			event after
+				set globals(xcounterno)=xcounterno
+			end event
+		end field
+		
+		field xemail1
+			caption Mail Address
+		end field
+		
+		field sup_name
+			display const
+			attrib local
+			event afer
+				set sup_name=#sql("select xorg from casup where zid='"+#id+"' and xsup='"+xsup+"'")
+			end event
+		end field
+		
+		
+		field xdate
+			caption Date
+		end field
+
+        field Add
+          event before
+            set globals(ErrChk) = ""
+            
+            
+			
+            if globals(ErrChk) .ne. "1"  
+				str xtrnord="ISPR"
+				str mysql = #sql(str,"select xcounterno from poreqinter where xcounterno like '"+xtrnord+"%' order by xcounterno desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,4,6)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set xcounterno = xtrnord + mysql                
+            end if
+
+			if globals(ErrChk) .eq. ""                
+                set xstatusreq = #status("xstatusreq",1)
+                set xtypepor="Local"
+                set zemail = #user               
+            end if
+          end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk)=""
+
+
+                if globals(ErrChk) .ne. "1"
+                    set xemail=#user
+                end if
+            end event
+        end field
+
+        field Delete
+          event before
+                set globals(ErrChk) = ""
+            end event
+        end field
+		
+		field Approve
+			event before
+				set globals(ErrChk)=""
+				
+				if globals(ErrChk) .ne. "1"
+					set mysql="update poreqinter set xstatusreq='6-Approved' where zid='"+#id+"' and xcounterno='"+xcounterno+"'"
+					set upval=#sql(mysql)
+					action show
+				end if
+				
+		  	if xemail1 .ne. ""
+				str target=xemail1
+          		str msg
+          		text "request.email","string msg"
+          		mail from=#user;;to=target;;cc=targetcc;;sub="Leave Application by "+prmst.xname(xemp)+" ("+xemp+")" ;;message=msg
+          	end if
+				
+				
+			end event
+		end field
+
+		field Complete
+			event before
+				set globals(ErrChk)=""
+				
+				if globals(ErrChk) .ne. "1"
+					set mysql="update poreqinter set xstatusreq='Complete' where zid='"+#id+"' and xcounterno='"+xcounterno+"'"
+					set upval=#sql(mysql)
+					action show
+				end if
+				
+			end event
+		end field
+
+        embed onsubmit="submitit(this)"
+      
+        field Details
+            embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+            $.hotkeys.add('Ctrl+s',function(){
+                //alert('Pressed Ctrl+s');
+                var form=document.forms[0];
+                form.searchbutton.value="Add";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+e',function(){
+                //alert('Pressed Ctrl+e');
+                var form=document.forms[0];
+                form.searchbutton.value="Update";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+d',function(){
+                //alert('Pressed Ctrl+d');
+                var form=document.forms[0];
+                form.searchbutton.value="Delete";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+r',function(){
+                //alert('Pressed Ctrl+r');
+                var form=document.forms[0];
+                form.searchbutton.value="Clear";
+                form.submit();
+            });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "poreqinterd_app"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+     valid valid
+     	//mandatory xwh
+     	config    		
+
+            set globals(pkey)=xcounterno
+
+				
+        	set stat = poreqinter.xstatusreq("zid='"+#id+"' and xcounterno='"+xcounterno+"'")
+        	if stat .ne. "1-New"
+        		set #field(Add.display) = "disable"
+        		set #field(Complete.display) = "disable"
+        		set #field(Update.display) = "disable"
+        		set #field(Delete.display) = "disable"
+        		set #field(Ready_For_Requision.display) = "hide"
+        		set #field(xref.display) = "const"
+        		set #field(xdate->.display) = "const"
+        	end if
+			
+        	if stat .eq. "6-Approved"
+        		set #field(Approve.display) = "disable"
+        	end if
+			
+			
+			
+
+			set chkratecnt= #sql(int,"select count(*) from poreqinterd where zid='"+#id+"' and xcounterno='"+xcounterno+"' and xrate<>0")
+			if chkratecnt==0
+				set #field(Complete.display)="hide"
+			end if
+			
+			
+			set chkrec = #sql(int,"select count(*) from poreqinterd where zid='"+#id+"' and xcounterno='"+xcounterno+"'")
+			if chkrec == 0
+				print "<span class=bl>No Details Entered -- Go to Details and Add record.</span>"
+				set #field(Complete.display) = "disable"
+			end if
+			
+     	    str header="International Requisition Approval"+"<a href='"+#report(poreqinter.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xcounterno+"&prompt2="+xcounterno+"' target='_new'>Preview</a>"
+     	    
+     	end config
+     end valid
+
+
+#include access.valid
+									  
+end page

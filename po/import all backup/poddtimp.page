@@ -1,0 +1,410 @@
+page poddtimp
+     caption "Purchase Return - Details for "+xdrnnum
+     sidebar list delivery, others//,imstk
+     sections form detail,list details, script myscript
+
+
+     list others
+        caption "All Purchase Returns Against MRR No: <font color=red>"+xgrnnum+"</font>"
+		table poddt
+        order xgrnnum,xdrnnum,xrow
+        select " zid='"+#id+"'  and xgrnnum=(select xgrnnum from podrn where zid='"+#id+"' and xdrnnum='"+xdrnnum+"')"
+        rows 5
+        objects xdrnnum attrib(link #servlet+"?page=podrnimp&command=Show&xdrnnum=?"),xrow, ~
+                xitem,desc equals((select xdesc from caitem where zid=poddt.zid and xitem=poddt.xitem)),~
+				xqty,xunitpur,xrate,xlineamt equals(xqty*xrate)
+
+        totals "","","","Totals","","","",sum
+
+        field xqty
+            caption Quantity
+            len 10.2
+        end field
+
+        field xlineamt
+            caption Total Amount
+            len 10.2
+        end field
+
+        field xrate
+            caption Unit Rate
+            len 10.2
+        end field
+
+        field desc
+        	caption Description
+        	 storage varchar
+        end field        
+
+     end list
+
+     list details
+        table poddt
+        order xdrnnum,xrow
+        fixed xdrnnum
+        select " zid='"+#id+"'"
+        rows 5
+        objects xrow attrib(link #servlet+"?page=poddtimp&command=Show&xdrnnum=?&xrow=?"), ~
+                xitem,desc equals((select xdesc from caitem where zid=poddt.zid and xitem=poddt.xitem)),~
+				xqty,xunitpur,xrate,xlineamt equals(xqty*xrate)
+
+        totals "","","Totals","","","","",sum
+
+        field xqty
+            caption Quantity
+            len 10.2
+        end field
+
+        field xlineamt
+            caption Total Amount
+            len 10.2
+        end field
+
+        field xrate
+            caption Unit Rate
+            len 10.2
+        end field
+
+        field desc
+        	caption Description
+        	 storage varchar
+        end field        
+
+     end list
+
+     list delivery
+        caption "MRR Details"
+        table podrnview
+        order xgrnnum,xrow
+        select " zid='"+#id+"'  and xgrnnum=(select xgrnnum from podrn where zid='"+#id+"' and xdrnnum='"+xdrnnum+"')"
+        rows 1000
+        objects  ~
+			xgrnnum attrib(link "javascript:void(0);" embed onclick="return pickDetail(this:xrow#:xitem#:xwh#:xqty#:xqtycrn#:xunitpur#:xcfpur#)"), ~
+			xrow attrib(name xrow#),xitem attrib(name xitem#),xwh attrib(name xwh#),xqty attrib(name xqty#),~
+			xqtycrn attrib(name xqtycrn#),xunitpur attrib(name xunitpur#),xcfpur attrib(name xcfpur#)
+
+        field xgrnnum
+            caption MRR No
+        end field
+
+        field xqty
+            len 10.2
+        end field
+
+        field xqtycrn
+            len 10.2
+        end field
+
+        field xcfpur
+            len 10.2
+        end field
+
+		totals "","","Totals",,sum,sum
+
+     end list
+
+     form detail
+     	valid valid,access
+        //caption "Enter Details for Purchase Returns <font color=black >"+xdrnnum+"</font>",
+        table poddt
+        order xdrnnum,xrow
+        fixed xdrnnum
+        select " zid='"+#id+"'"
+        layout 1
+        objects  ~
+                Show,Clear,Add, Update,Top, Previous, Delete,Next, Bottom,Return,~
+                xtemp,xgrnnum display(hide),xrow attrib(row 0 1),~
+                xitem attrib(attach;readonly),desc attrib(local) display(const),xwh display(hide), ~
+                xqty,xunitpur display(hide),xcfpur display(hide),xrate display(const),~
+                xbin display(hide),xbatch display(hide),~
+                xcode display(hide),xcodebasis display(hide),xlong display(hide), ~
+                xlinks display(hide),xstype display(hide), ~
+                xsup  display(hide),xqtydel display(hide),xqtyinv display(hide),~
+                xpornum display(hide),xsinnum display(hide),~
+                xwtunit display(hide),xunitwt display(hide),xcur display(hide),~
+                xratesys display(hide),xmargin display(hide),xmarginsys display(hide), ~
+                xdisc display(hide),xdiscsys display(hide),xdiscf display(hide),~
+                xcomm display(hide),xcommsys display(hide),xexch display(hide),~
+                xpricebasis display(hide),xcurprice display(hide),~
+                xexchsell display(hide),xprice display(hide),xdatedel display(hide),~
+                xstatuscdt display(hide),xcform display(hide),xtaxcat display(hide),~
+                xtaxcode1 display(hide),xtaxrate1 display(hide),xtaxcode2 display(hide),~
+                xtaxrate2 display(hide),xtaxcode3 display(hide),xtaxrate3 display(hide),~
+                xtaxcode4 display(hide),xtaxrate4 display(hide),xtaxcode5 display(hide),~
+                xtaxrate5 display(hide),xaccret display(hide),~
+                xexpiry display(hide),xnote display(hide),xcurcost display(hide),~
+                xstdcost display(hide),xcost display(hide),xdttax display(hide),~
+                xenduser display(hide),xgitem display(hide),xmodel display(hide),~
+                xserialnum display(hide),xaltqty display(hide),xtypeserial display(hide)
+          
+        field xrow
+			event after
+				set globals(xgrnnum)=xgrnnum
+				set globals(xdrnnum)=xdrnnum
+				set globals(xrow)=xrow
+				set status=podrn.xstatusdrn("zid='"+#id+"' and xdrnnum='"+xdrnnum+"'")
+				if status .eq. #status("xstatusdrn",2) .or. status .eq. #status("xstatusdrn",3)
+					set #field(xgrnnum->.display) = "constant"
+					set #field(Clear.display) = "disable"
+					set #field(Add.display) = "disable"
+					set #field(Update.display) = "disable"
+					set #field(Delete.display) = "disable"
+				end if
+				set globals(xitem)=xitem
+				set globals(xwh)=xwh
+				set globals(xqty)=xqty*xcfpur
+				set globals(returnpage)=page
+				set globals(trnfield)="xdrnnum"
+				set globals(xdrnnum)=xdrnnum
+			end event
+		end field
+		
+		field xitem
+            caption Item Code
+            pick
+		end field
+
+        field xtemp
+            display hide
+            attrib local
+            event after
+            end event
+        end field
+
+        field xqty
+            caption Quantity
+            len 10.2
+        end field
+
+        field xlineamt
+            caption Total Amount
+            len 10.2
+        end field
+
+        field xrate
+            caption Unit Rate
+            len 10.2
+        end field
+
+        field Add
+            event before
+              	set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    set status=podrn.xstatusdrn("zid='"+#id+"' and xdrnnum='"+xdrnnum+"'")
+                    if status .ne. #status("xstatusdrn",1)
+                        set globals(ErrChk)="1"
+                        error "Cannot "+#command+" Status "+status
+                    end if
+                end if
+
+                set xgrnnum=podrn.xgrnnum("zid='"+#id+"' and xdrnnum='"+xdrnnum+"'")
+
+                if globals(ErrChk) .ne. "1"
+                    buffer pogdt
+                    move pogdt=pogdt(xgrnnum,xrow)
+                    buffer poddt
+                    move #form=pogdt(xgrnnum,xrow)
+                    set tmpqty = 0.00+xqty*xcfpur
+                    set tmpval = 0.00+tmpqty*xrate
+                    set temprat=0.0+xtaxrate1/100
+                    set xdttax = 0.0+tmpval*temprat
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    string s="select xitem from podrnview where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'"
+                    set s=#sql(string, s)
+                    if s .ne. xitem
+                    	set globals(ErrChk) = "1"
+                      	error "Invalid Item for return - Not found in MRR line."
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chkitem=#sql(str,"select xalias from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+                    if chkitem .ne. "Current Asset"
+                    	set globals(ErrChk) = "1"
+                      	error "Invalid Item for return<br>Item Type "+chkitem
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set s="select (xqty-xqtycrn)*xcfpur from podrnview where zid='"+#id+"' and  xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'"
+                    double temp=#sql(double, s)
+                    double qty=xqty*xcfpur
+                    if qty <= 0
+                    	set globals(ErrChk) = "1"
+                      	error "Quantity must be more than 0."
+                    else if qty > temp
+                    	set globals(ErrChk) = "1"
+                      	error "Quantity cannot be more than received"
+                	end if
+                end if
+                set xwh=podrn.xwh("zid='"+#id+"' and xdrnnum='"+xdrnnum+"'")
+            end event
+        end field
+
+        field Update
+          event before
+          	set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    set status=podrn.xstatusdrn("zid='"+#id+"' and xdrnnum='"+xdrnnum+"'")
+                    if status .ne. #status("xstatusdrn",1)
+                        set globals(ErrChk)="1"
+                        error "Cannot "+#command+" Status "+status
+                    end if
+                end if
+
+          	if globals(ErrChk) .ne. "1"
+	            string s="select xitem from podrnview where zid='"+#id+"' and  xgrnnum='"+xgrnnum+"' and xrow="+xrow
+	            set s=#sql(string, s)
+	            if s .ne. xitem
+	            	set globals(ErrChk) = "1"
+	              	error "Invalid Item for return - Not found in MRR line."
+	            end if
+          	end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chkitem=#sql(str,"select xalias from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+                    if chkitem .ne. "Current Asset"
+                    	set globals(ErrChk) = "1"
+                      	error "Invalid Item for return<br>Item Type "+chkitem
+                    end if
+                end if
+
+			if globals(ErrChk) .ne. "1"
+	            string s1="select (xqty-xqtycrn)*xcfpur from podrnview where zid='"+#id+"' and  xgrnnum='"+xgrnnum+"' and xrow="+xrow
+	            set temp1=#sql(double, s1)
+	            string s2="select xqty*xcfpur from poddt where zid='"+#id+"' and  xdrnnum='"+xdrnnum+"' and xrow="+xrow
+	            set temp2=#sql(double, s2)
+	            compute temp=temp1+temp2
+	            double qty=xqty*xcfpur
+	            if qty <= 0
+	            	set globals(ErrChk) = "1"
+	              	error "Quantity must be more than 0."
+	            else if qty > temp
+	            	set globals(ErrChk) = "1"
+	              	error "Quantity cannot be more than received"
+	            end if
+			end if
+			
+            if globals(ErrChk) .ne. "1"
+	            set xrate=#sql(double, "select xrate/xcfpur from pogdt where zid='"+#id+"' and  xgrnnum='"+xgrnnum+"' and xrow="+xrow)
+	            set xrate=xrate*xcfpur
+	            set xwh=podrn.xwh("zid='"+#id+"' and xdrnnum='"+xdrnnum+"'")
+	        end if
+         end event
+        end field
+
+        field Delete
+          event before
+          	set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    set status=podrn.xstatusdrn("zid='"+#id+"' and xdrnnum='"+xdrnnum+"'")
+                    if status .ne. #status("xstatusdrn",1)
+                        set globals(ErrChk)="1"
+                        error "Cannot "+#command+" Status "+status
+                    end if
+                end if
+
+         end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+        field SerialNumbers
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript 
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+     
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+//          b.value = "Find xdrnnum=?"
+          detail=b.value
+        }
+        function submitit(form){
+          if (detail=="Return"){
+            form.page.value = "podrnimp"
+            form.searchbutton.value = "Find xdrnnum=?"
+            //return false
+          }
+          if (detail=="SerialNumbers"){
+            form.page.value = "imserout"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+
+        function pickDetail(link, row,item,wh,qty,qtycrn,unitpur,cfpur){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.detail.xgrnnum.value=link.text
+            document.detail.xrow.value=row.text
+            document.detail.xitem.value=item.text
+            document.detail.xwh.value=wh.text
+            document.detail.xunitpur.value=unitpur.text
+            document.detail.xcfpur.value=cfpur.text
+            document.detail.xqty.value=qty.text-qtycrn.text
+            document.detail.xtemp.value=qty.text-qtycrn.text
+          }else{
+            document.detail.xgrnnum.value=link.innerText
+            document.detail.xrow.value=row.innerText
+            document.detail.xitem.value=item.innerText
+            document.detail.xwh.value=wh.innerText
+            document.detail.xunitpur.value=unitpur.innerText
+            document.detail.xcfpur.value=cfpur.innerText
+            document.detail.xqty.value=qty.innerText-qtycrn.innerText
+            document.detail.xtemp.value=qty.innerText-qtycrn.innerText
+          }
+          return false
+        }
+        </script>
+     end script
+     
+     valid valid
+        mendatory xitem
+     	config
+     		set globals(pkey) = xdrnnum+" "+xrow
+     	end config
+     end valid
+
+#include access.valid
+
+end page

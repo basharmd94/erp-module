@@ -1,0 +1,12 @@
+//mo.module
+module MO
+     caption "Manufacturing Order"
+     description "You need to convert orders for manufactured goods from sales or other ~
+                  departments into manufacturing orders on your plants, issue raw materials ~
+                  and components, inspect and record goods receipts and alert ~
+                  beneficiaries informed of the status of your production."
+
+     transactions Manufacturing Order (table:moord:xmoord;default:MO--;Manufacturing Order;GL Voucher;Inventory Transaction Receive;Inventory Transaction Issue)
+     codes
+end module
+

@@ -1,0 +1,9 @@
+     list glcus
+        table cacus
+        order xcus
+        select "(xcus like '%"+zvalue+"%' or xorg like '%"+zvalue+"%' or xcity like '%"+zvalue+"%')"
+        rows 10
+        objects xcus attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+                xorg,xcity,xadd2
+
+     end list

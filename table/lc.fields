@@ -1,0 +1,55 @@
+//FIXED ASSET Fields
+//-------------------------------------------------------------------------------------------------------------------
+name            |caption                            |storage |length|scale|display|hei|wid|form|def|help|doc|det|valid|attrib|font|calc|pick
+//--------------|-----------------------------------|--------|------|-----|-------|---|---|----|---|----|---|---|-----|------|----|----|----
+xlctrnnum     |LC Transation Number    				|varchar |   100|    0|trn LC Transaction		  |  1|10|    |   |    |   |   |     |      |    |    |list lptrn
+xlctype 	  |L/C Type 			 				|varchar |   100|    0|combo  	  |  1|20|    |   |    |   |   |     |      |    |    |code LC Type
+xlcno     	  |L.C. No                              |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |list xlcno
+xlcopndate    |L/C Open Date                        |date    |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xlcclsdate    |L/C Maturity Date                    |date    |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xicno         |IC No                                |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xpinvno       |Proforma Invoice No                  |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xpinvdate     |Proforma Invoice Date                |date    |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xlmemt        |LME M/T                              |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xshipupto     |Shipment Upto                        |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xlcano        |LCA No                               |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xamdno        |Ammendment No                        |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xamddate      |Ammendment Date                      |date    |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xpsino        |PSI No                               |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xlcvalue      |L/C Value                            |decimal |    20|    3|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xfobval       |FOB Value                            |decimal |    20|    3|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xblno         |B/L No                               |varchar |    50|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xbldate       |B/L Date                             |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xshipdate     |Last Shipment Date                   |date  	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xbeno     	  |B/E No               				|varchar |   100|    0|text    	  |  4|20|    |   |    |   |   |     |      |    |    |
+xfreight      |Freight Value                        |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xbedate   	  |B/E Date             				|date	 |    -1|    0|text    	  |  1|10|    |   |    |   |   |     |      |    |    |
+xinscomp      |Insurance Company                    |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xinscvr       |Insurance Cover Note                 |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xindent       |Indent No                            |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xlcamno       |Amendment Number                     |int     |    -1|    0|text       |  1| 4|    |   |    |   |   |     |      |    |    |
+xlcamdate  	  |Amendment Date       				|date	 |    -1|    0|text    	  |  1|10|    |   |    |   |   |     |      |    |    |
+xintbank  	  |Interest on Bank       				|decimal |    20|    2|text    	  |	 1|20|    |   |    |   |   |     |      |    |    |
+xshpdatenew   |New Shipment Date                    |date  	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xbrefdate     |Bank Ref Date                        |date    |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xretdate      |Retirement Letter Date               |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xorgdate      |Original Doc Date                    |date    |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xdemqty       |Demand Qty                           |decimal |    20|    3|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xastbook      |Book No                              |varchar |   100|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xbeno	      |Bill of Entry No                     |varchar |   100|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xsupqty       |Qty On GRN                           |decimal |    20|    3|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xslvval       |Salvage Value                        |decimal |    20|    4|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xmaxload      |Maximum Loading Capacity             |decimal |    20|    3|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xredate       |Date of Revision                     |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xpocode       |Import Cost Code                     |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |list xpocode
+xsubdr        |Debit Sub Account                    |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xpocracc      |Credit Acc for Cost                  |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xsubcr        |Credit Sub Account                   |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xacccat       |Duty Category                        |varchar |   100|    0|combo      |  1|10|    |   |    |   |   |     |      |    |    |
+xcostacc      |Account Code                         |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xpotype       |Cost Type                            |varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |
+xrcvamt       |Net Receivable Amount                |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xcaname    	  |Name Number            				|varchar |   100|    0|text    	  |	 1|10|    |   |    |   |   |     | 		| 	 |	  |list xcaname
+xnamestatus   |Name Status                       	|varchar |   100|    0|checkbox   |  1|20|    |   |    |   |   |     |      |    |    |"1-Customer,2-Dealer,3-Supplier"
+xtrnnam  	  |Name Transaction       				|char    |     4|    0|combo      |  1| 4|    |   |    |   |   |     |      |    |    |select xtrn from xtrn where xtypetrn = 'Name Transaction'
+xbankref      |Bank Ref No                          |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |

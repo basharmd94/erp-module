@@ -1,0 +1,18 @@
+     list xclass
+        table xcodes
+        order xcode
+        select "xtype like 'Class Code%' and zactive='1'"
+        navigators alpha
+        rows 20
+        //objects  xcur attrib(link "Main?page=xcur&command=Show&xcur=?"),
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xclass')"), ~
+                xlong
+
+
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

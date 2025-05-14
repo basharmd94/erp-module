@@ -1,0 +1,15 @@
+product ERP on the Net
+ 
+table princrement
+  caption "Increment History"
+  columns ztime,zutime,zid,xemp,xincno,xdate,xamount,xremarks,zemail,xemail,xref,xtotamt,~
+          xsites,xnewdept,xnewdesig,xlocation,xpostflag,xdatedue
+
+  primary key zid,xemp,xincno
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xemp references prmst.zid,xemp
+  end foreign key
+ 
+end table

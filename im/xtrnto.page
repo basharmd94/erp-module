@@ -1,0 +1,41 @@
+page xtrnto
+	sidebar list one
+	sections form one
+
+	list one
+		table xtrn
+		order xtypetrn,xtrn
+		select "(xtypetrn='Transfer Transaction')"
+		rows 20
+		objects xtypetrn,xtrn attrib(link #servlet+"?page="+page+"&command=Show&xtypetrn=?&xtrn=?"),~
+		xdesc, xaction caption(Type), xinc,zactive
+	end list
+
+	form one
+		caption "Transfer Transactions Codes"
+		table xtrn
+		order xtypetrn, xtrn
+		select "xtypetrn='Transfer Transaction'"
+		layout 1
+		objects Show, Add, Update, Delete, Top, Previous, Next, Bottom,Clear,~
+				xtypetrn display(const), xtrn, xaction, xdesc, xnum, xinc, xformat display(hide),zactive
+
+		field xaction
+			caption <font color=red>Type
+			default "Default"
+			pick "Default,Inter Company"
+		end field
+
+		field Add
+			event before
+				set xtypetrn = "Transfer Transaction"
+			end event
+		end field
+
+		field Update
+			event before
+				set xtypetrn = "Transfer Transaction"
+			end event
+		end field
+	end form
+end page

@@ -1,0 +1,20 @@
+product ERP on the Net
+
+table opordcus
+
+  caption "Customer Order Customer Info"
+  
+  columns ztime,zutime,zid,xordernum,xcus,xshort,xorg,xadd1, xadd2, xcity, xstate,xzip,xcountry,~
+          xsalute, xfirst,xmiddle,xlast, xtitle, xemail, xphone, xfax, xurl, ~
+          xid,xtaxnum,xaccar,xgcus,xgprice,xsic,xtaxscope,xstatuscus,xcrlimit,~
+		  xcreditr,xcrterms,xdisc,xagent,xcomm,xpayins,xbotype
+		  
+  primary key zid, xordernum
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xordernum references opord.zid,xordernum
+        //zid,xordernum,xcus references opord.zid,xordernum,xcus
+  end foreign key
+  
+end table

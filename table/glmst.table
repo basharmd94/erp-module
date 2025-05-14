@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table glmst
+  caption "Chart of Account"
+  columns  ztime,zutime,zid,xacc,xdesc,xacctype, xaccusage, xaccsource, xaccgroup,~
+    xmsttype,xaccgroup1,xcashacc,xcoracc,zemail,xemail,~
+  	xhrc1,xhrc2,xhrc3,xhrc4,xhrc5,xan1,xan2,xan3,xan4,xan5,zactive,~
+  	xteam,xmember,xmanager
+  
+    primary key zid, xacc
+  
+    foreign key
+        zid references zbusiness.zid 
+    end foreign key
+  
+end table

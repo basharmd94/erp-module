@@ -1,0 +1,11 @@
+product ERP on the Net
+
+table lccnf
+  caption "CnF Information"
+  columns  ztime,zutime,zid,xlctrnnum,xline,xdateesc,xdateund,xdatefrom,xdateto,xlong,xname
+  primary key zid, xlctrnnum,xline
+  foreign key
+        zid references zbusiness.zid
+        zid,xlctrnnum references lcmst.zid,xlctrnnum         
+  end foreign key 
+end table

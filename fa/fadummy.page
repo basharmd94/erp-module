@@ -1,0 +1,73 @@
+page fadummy
+
+     caption "Choose Transaction Type"
+     sidebar list one
+     sections form one, script myscript
+
+      list one
+        table xtrn
+        order xtypetrn,xtrn
+        select "xtypetrn='Fixed Asset Transaction'"
+        object xtrn attrib(link "abc" embed onclick="return pickType(this)"),~
+                xdesc,xnum,zactive
+      end list
+
+      form one
+        caption "Choose Transaction Type"
+        //table fatrn
+        //order xvoucher
+        //select        
+        layout 1
+        objects Continue,~
+                xvoucher
+
+        field xvoucher
+          //attrib local
+          display text
+          caption Transaction Type
+          pick
+          event after
+            set globals(xvoucher)=xvoucher
+            //print "1;"+globals(xvtype)
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field continue
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail=""
+
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+
+        function submitit(form){
+    	    if (detail=="clicked"){
+            form.page.value = "fatrn"
+            form.searchbutton.value = "Find xvoucher like '"+globals(xvoucher)+"'"
+          }
+          //return false
+
+        }
+
+        function pickType(linkacctype){
+          if(navigator.appName.indexOf("Netscape")>=0){
+            document.one.xvoucher.value=linkacctype.text
+          }else{
+            document.one.xvoucher.value=linkacctype.innerText
+            //window.alert(linkacctype.innerText)
+          }
+          return false
+        }
+        </script>
+     end script
+  end page

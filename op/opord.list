@@ -1,0 +1,13 @@
+     list opord
+        caption "Customer Orders"
+        table opord
+        order xordernum
+         select "(xordernum like '%"+zvalue+"%') "        
+        navigators alpha
+        rows 10
+        objects xordernum attrib(link "javascript:void(0);" embed onclick="return updateParent(this:'$')"), ~
+          xdate,xcus,xstatusord
+
+     end list
+
+

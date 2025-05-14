@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table glalc
+  caption "Allocation of receipts and payments"
+  columns ztime,zutime,zid,xvoucher,xrow,xalcnum,xalcrow,xdate,xtotamt,xlong,xcur,xinvcur,xexch,xinvexch,xbase,xsamecur,xdifcur
+
+  primary key zid, xvoucher,xrow,xalcnum,xalcrow
+  foreign key
+        zid references zbusiness.zid
+        zid,xvoucher,xrow references gldetail.zid,xvoucher,xrow
+        zid,xalcnum,xalcrow references gldetail.zid,xvoucher,xrow
+
+  end foreign key
+end table

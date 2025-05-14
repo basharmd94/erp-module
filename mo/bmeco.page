@@ -1,0 +1,81 @@
+page Bmeco
+     caption "Engineering Changes"
+     //sidebar text two,list two, text three
+     sections list one,form one, script myscript
+
+
+     list one
+        caption "<br><center><b>"ECO List"</b>"
+        table bmeco
+        order xecotrn
+        //select "xper>0"
+        //fixed xsub
+        navigators alpha //group xsub "select xsub from gldetail where (xprime<xarap)"
+        rows 20
+        objects ~
+         xecotrn attrib(link "Main?page=bmeco&command=Show&xecotrn=?"), ~
+         xref,xdate
+//         headers Invoice List
+     end list
+
+
+     form one
+        caption "<br><center><b>"Engineering Changes"</b>"
+        table bmeco
+        order xecotrn
+        //select
+        return "Main"
+        layout 1
+
+        objects Detail, Show,Clear,Add, Update, Delete, Top, Previous, Next, Bottom,"<p>" ,~
+               xecotrn display(trn EC Number),xref, xauthor, xdate,xdatecom,xlong
+
+      field xecotrn
+          event after
+          set globals(xecotrn)=xecotrn
+            if xecotrn .eq. ""
+              set #field(Details.display) = "hidden"
+              set #field(Delete.display) = "hidden"
+              set #field(Update.display) = "hidden"
+              set #field(Show.display) = "hidden"
+            end if
+         end event
+      end field
+
+        embed onsubmit="submitit(this)"
+      field Detail
+         embed onclick="clicked(this)"
+      end field
+
+      field xref
+        caption Rec By
+      end field
+
+      field xlong
+        caption Remarks
+      end field
+
+  end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+
+	    if (detail=="clicked"){
+            form.page.value = "bmedt"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+
+
+end page

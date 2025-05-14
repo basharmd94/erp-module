@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table pratdview
+	caption "Attendance View"
+
+	columns zid,xdate,xname,xyear,xper,xday,xshift,xemp,xintime,xlotime,xlitime,xouttime,xatdstat,xrem
+
+	primary key zid, xdate
+
+	sql create view pratdview (zid, xdate,xname,xyear,xper,xday,xshift,xemp,xintime,xlotime,xlitime,xouttime,xatdstat,xrem) ~
+		as select cadate.zid, cadate.xdate, cadate.xname,prath.xyear, prath.xper,prath.xper,pratd.xshift, ~
+		pratd.xemp,pratd.xintime,pratd.xlotime,pratd.xlitime,pratd.xouttime,pratd.xatdstat,pratd.xrem ~
+		from cadate left outer join prath on cadate.zid=prath.zid and cadate.xdate=prath.xdate ~
+		left outer join pratd on prath.zid=pratd.zid and prath.xyear=pratd.xyear and prath.xper=pratd.xper and prath.xday=pratd.xday and prath.xshift=pratd.xshift
+end table
+
+

@@ -1,0 +1,23 @@
+product ERP on the Net
+
+table prlvstatus
+	caption "Leave Status View"
+  
+	columns zid,xyear,xemp,xleave,xempcat,xleavealc,,xleavecfd,xdateeff,xdateexp,xdaysob,xdaysexp,xdayscf,xdaysenc,xdayscr,xdayscan,~
+  		xdaysreq,xdaysapp
+          
+	primary key zid,xyear,xemp,xleave
+  
+	sql create view prlvstatus (zid,xyear,xemp,xleave,xempcat,xleavealc,xleavecfd,xdateeff,xdateexp,xdaysob,~
+		xdaysexp,xdayscf,xdaysenc,xdayscr,xdayscan,xdaysreq,xdaysapp) ~
+	as SELECT zid,xyear,xemp,xleave,xempcat,xleavealc,xleavecfd,xdateeff,xdateexp, ~
+        coalesce((select sum(xdaysapp) from prlv where xyear=premp.xyear and xstatusleave like '3%' and xemp=premp.xemp and xleave=premp.xleave and zid=premp.zid),0), ~
+        coalesce((select sum(xdaysapp) from prlv where xyear=premp.xyear and xstatusleave like '3%' and xemp=premp.xemp and xleave=premp.xleave and zid=premp.zid),0), ~
+        coalesce((select sum(xdaysapp) from prlv where xyear=premp.xyear and xstatusleave like '3%' and xemp=premp.xemp and xleave=premp.xleave and zid=premp.zid),0), ~
+        coalesce((select sum(xdaysapp) from prlv where xyear=premp.xyear and xstatusleave like '3%' and xemp=premp.xemp and xleave=premp.xleave and zid=premp.zid),0), ~
+        coalesce((select sum(xdaysapp) from prlv where xyear=premp.xyear and xstatusleave like '3%' and xemp=premp.xemp and xleave=premp.xleave and zid=premp.zid),0), ~
+        coalesce((select sum(xdaysapp) from prlv where xyear=premp.xyear and xstatusleave like '3%' and xemp=premp.xemp and xleave=premp.xleave and zid=premp.zid),0), ~
+        coalesce((select sum(xdaysapp) from prlv where xyear=premp.xyear and xstatusleave not like '3%' and xstatusleave not like 'D%' and xemp=premp.xemp and xleave=premp.xleave and zid=premp.zid),0), ~
+        coalesce((select sum(xdaysapp) from prlv where xyear=premp.xyear and xstatusleave like '3%' and xemp=premp.xemp and xleave=premp.xleave and zid=premp.zid),0) ~			
+    FROM premp 
+end table

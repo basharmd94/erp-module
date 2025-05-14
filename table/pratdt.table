@@ -1,0 +1,13 @@
+product ERP on the Net
+
+table pratdt
+  caption "Default Time Settings"
+  columns ztime,zutime,zid,xshift,xintime,xpnlttime,zemail,xemail,xtssch,xtssch2
+
+  primary key zid,xshift
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table

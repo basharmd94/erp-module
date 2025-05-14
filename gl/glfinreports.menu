@@ -1,0 +1,40 @@
+//GL Reports.menu
+caption "Financial Reports" page 3
+//-------------------------------------------------------------------
+option                           			   |action
+//-------------------------------------------------------------------
+Trial Balance (Acc Sorted)                     |#classPath+"/"+#servlet+"?page=*crystal gltbal(xyear=Year=#glyear,xper=Period=#glper)"
+Trial Balance (Desc Sorted)                    |#classPath+"/"+#servlet+"?page=*crystal gltbal_desc(xyear=Year=#glyear,xper=Period=#glper)"
+Trial Balance Datewise                         |#classPath+"/"+#servlet+"?page=*crystal gltbaldate(xdate=From Date=#d,xdate=To date=#d)"
+Trial Balance With Sub Ledger              	|#classPath+"/"+#servlet+"?page=*crystal gltbaldate_sub(xdate=From Date=#d,xdate=To date=#d)"
+//Sub Code Trial Balance                    	   |#classPath+"/"+#servlet+"?page=*crystal gltbalsub(xyear=Year=#glyear,xper=Period=#glper)"
+Month wise Account Balance      			   |#classPath+"/"+#servlet+"?page=*crystal glmthbal(xyear=Year=,xacc=From Account=,xacc=To Account=)"
+-
+//Cost of Goods Statement                        |#classPath+"/"+#servlet+"?page=*crystal glcstset(xyear=Year=#glyear,xper=Period=#glper)"
+//Year Comparitive Balance Sheet               |#classPath+"/"+#servlet+"?page=*crystal glbscomp(xyear=Year=2004,xper=Period=,xglrpt=Reoprt Type)"
+//Year Comparitive Profit & Loss Stmt          |#classPath+"/"+#servlet+"?page=*crystal glplcomp(xyear=Year=2004,xper=Period=)"
+Balance Sheet                     			   |#classPath+"/"+#servlet+"?page=*crystal glbalsht(xyear=Year=#glyear,xper=Period=#glper,xhrc=Levels,xglrpt=Reoprt Type)"
+Income Statement                      		   |#classPath+"/"+#servlet+"?page=*crystal glpl(xyear=Year=#glyear,xper=Period=#glper,xhrc=Levels,xglrpt=Reoprt Type)"
+//Balance Sheet                                  |#classPath+"/"+#servlet+"?page=*crystal glbalbs(xyear=Year=,xper=Period=,xglrpt=Reoprt Type)"
+//Profit And Loss Statement                      |#classPath+"/"+#servlet+"?page=*crystal glbalpl(xyear=Year=,xper=Period=,xglrpt=Reoprt Type)"
+-
+//Schedule By Account Group        			   |#classPath+"/"+#servlet+"?page=*crystal glschacgr1(xyear=Year=,xper=Period=,xaccgroup=From Second Account Group=,xaccgroup=To Second Account Group=)"
+//Schedule By Second Account Group 			   |#classPath+"/"+#servlet+"?page=*crystal glschacgr2(xyear=Year=,xper=From Period=,xper=To Period=,xaccgroup1=From Second Account Group=,xaccgroup1=To Second Account Group=)"
+//-
+//Daily Receipts and Payments Process     	   |#classPath+"/"+#servlet+"?page=glprocess_rnp_dt"
+//Daily Receipts and Payments Report     		   |#classPath+"/"+#servlet+"?page=*crystal glrcvnpay_day(xdate=(Run Process to get actual result) Date="
+//-
+//Monthly Receipts and Payments Process  		   |#classPath+"/"+#servlet+"?page=glprocess_rnp"
+//Monthly Receipts and Payments Report   		   |#classPath+"/"+#servlet+"?page=*crystal glrcvnpay_mth(xyear=(Run Process to get actual result) Year=#glyear,xper=(Run Process to get actual result) Period=#glper"
+-
+//Yearly Receipts and Payments Process   		   |#classPath+"/"+#servlet+"?page=glprocess_rnp_yr"
+//Yearly Receipts and Payments Report    		   |#classPath+"/"+#servlet+"?page=*crystal glrcvnpay_year(xyear=(Run Process to get actual result) Year=#glyear"
+-
+Cash Flow Process                       	   |#classPath+"/"+#servlet+"?page=glprocess_cf"
+Cash Flow Statement                     	   |#classPath+"/"+#servlet+"?page=*crystal glcashflow(xyear=(Run Process to get actual result) Year=#glyear"
+//-
+//Ratio Analysis                         	   	   |#classPath+"/"+#servlet+"?page=*crystal glratio(xyear=Year=#glyear,xper=Period=#glper)"
+//-
+Code Manual                                    |#classPath+"/"+#servlet+"?page=*crystal glcode"
+//Business 					                   |#classPath+"/"+#servlet+"?page=*crystal zbusiness"
+//-------------------------------------------------------------------

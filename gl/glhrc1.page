@@ -1,0 +1,82 @@
+page glhrc1
+     caption "GL Level 1"
+     sidebar list one
+     sections form one, list two, script myscript
+
+	list one
+        caption "Top Level Accounts Group"
+        table glhrc1
+        order xhrc1
+        rows 20
+      	//navigators alpha
+        objects xhrc1 attrib(link #servlet+"?page=glhrc1&command=Show&xhrc1=?")
+  	end list
+
+	list two
+        caption "List of " +xhrc1
+        table glhrc2
+        order xhrc1,xhrc2
+        fixed xhrc1
+      	//navigators alpha
+        rows 20
+        objects xhrc2 attrib(link #servlet+"?page=glhrc2&command=Show&xhrc1=?&xhrc2=?")
+  	end list
+
+     form one
+        table glhrc1
+        order xhrc1
+        layout 1
+        objects Level 2, ~
+               Show,Clear,Add, Update, Delete, Top, Previous, Next, Bottom,~
+               xhrc1
+               
+              
+        field xhrc1
+          event after
+            set globals(xhrc1)=xhrc1
+          end event
+        end field
+        
+        field add
+        	event before
+        		set globals(ErrChk) = ""
+        	end event
+        end field
+
+        field update
+        	event before
+        		set globals(ErrChk) = ""
+        	end event
+        end field
+        
+        field delete
+        	event before
+        		set globals(ErrChk) = ""
+        	end event
+        end field
+        
+        
+        embed onsubmit="submitit(this)"
+        field Level
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but = ""
+        function clicked(b){
+          but = "clicked"
+        }
+        function submitit(form){
+          if (but == "clicked"){
+            form.page.value = "glhrc2"
+            form.searchbutton.value = "Find xhrc1=?"
+          }
+        }
+
+        </script>
+     end script
+
+end page

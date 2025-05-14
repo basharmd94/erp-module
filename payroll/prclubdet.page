@@ -1,0 +1,117 @@
+page prclubdet
+
+	 embed onload="move_caret('one','xinstut')"
+     caption "<span class=bl>Professional/Club Membership Info for Employee <a href=/da/"+#servlet+"?page=prclubhed&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+     sidebar list one
+     sections form one, script myscript
+
+     list one
+        caption "Added Record(s)"
+        table prclubdet
+        order xemp,xrow
+        fixed xemp
+        rows 60
+        objects xrow attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xrow=?"),~
+                xinstut,xmemtype,xdate,xannfee
+
+        field xmemtype
+            caption Membership No.
+        end field
+        
+        field xdate
+           caption Valid Till
+        end field
+                
+     end list
+
+     form one
+        //caption "<font color=black size=4>Professional/Club Membership Info of <font color=white></p>"+globals(xname)+"</font></font>"
+        table prclubdet
+        order xemp,xrow
+        fixed xemp
+        layout 1
+        objects Add, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,Back,~
+          xrow attrib(row 0 1),xinstut,ztype,xmemtype,xdate,xannfee,xremarks,zemail display(hide),xemail display(hide)
+
+        field xmemtype
+            caption Membership No.
+        end field
+        
+        field ztype
+            caption Membership Type
+            display combo
+            pick select xcode from xcodes where xtype='Membership Type'
+        end field
+        
+        field xremarks
+            caption Address with Phone,Cell & Email
+            width 50
+            height 4
+            col 3
+        end field
+        
+        field next
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow+1
+        		set xrow = 0+nrow
+        		action show
+        		//print xprqano+" "+nrow
+        	end event
+        end field
+
+        field previous
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow-1
+        		set xrow = 0+nrow
+        		action show
+        		//print xprqano+" "+nrow
+        	end event
+        end field
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+        field xdate
+           caption Valid Till
+        end field
+
+          embed onsubmit="submitit(this)"
+          field Back
+            embed onclick="back(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail=""
+
+        function back(b)
+        {
+          details="back"
+        }
+        function submitit(form)
+        {
+          if (details=="back")
+          {
+            form.page.value = "prclubhed"
+            form.searchbutton.value= "Find xemp=?"
+          }
+        }
+        </script>
+     end script
+
+end page

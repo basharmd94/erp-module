@@ -1,0 +1,39 @@
+//PO Reports.menu
+//-------------------------------------------------------------------
+caption "Reports" page 3
+
+option                                  |action
+//-------------------------------------------------------------------
+Supplier Ledger                           |#classPath+"/"+#servlet+"?page=*crystal glledger_supplier(xsup=From Supplier=,xsup=To Supplier=#char(254)=text,~
+                                              xdate=From Date=#d,xdate=To Date=#d)"
+
+Requisition List By Date                  |#classPath+"/"+#servlet+"?page=*crystal porequim(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Import=hide)"
+Approved Requisition List By Date         |#classPath+"/"+#servlet+"?page=*crystal porequ2(xdateapp=From Date=#d,xdateapp=To Date=#d,xtypepor=PO Type=Import)"
+Purchase Order List By Date               |#classPath+"/"+#servlet+"?page=*crystal poordip(xdatereq=From Date=#d,xdatereq=To Date=#d,xsup=From Supplier= ,xsup=To Supplier=zzz,xtypepor=Type=Import=hide)"
+Product Purchase Report(Import)           |#classPath+"/"+#servlet+"?page=*crystal poord_itemip(xdate=From Date=#d,xdate=To Date=#d,xitem=From Item=0,xitem=To Item=zz,xsup=From Supplier=,xsup=To Supplier=)"
+-LC
+LC Opening Information                    |#classPath+"/"+#servlet+"?page=*crystal polcopen_inf(xdate=From Date=#d,xdate=To Date=#d)"
+Insurance Company Information             |#classPath+"/"+#servlet+"?page=*crystal polcinsu_inf(xdate=From Date=#d,xdate=To Date=#d)"
+PSI Information                           |#classPath+"/"+#servlet+"?page=*crystal polcpsi_inf(xdate=From Date=#d,xdate=To Date=#d)"
+Date wise L/C Statement                   |#classPath+"/"+#servlet+"?page=*crystal poilcbnk(xdate=From Date=#d,xdate=To Date=#d)"
+
+Yearly L/C Statement                      |#classPath+"/"+#servlet+"?page=*crystal poilc(xyear=Year)"
+
+Item Wise L/C List                        |#classPath+"/"+#servlet+"?page=*crystal poilcitem(xyear=Year,xitem=Item)"
+
+Bankwise Statement of L/C                 |#classPath+"/"+#servlet+"?page=*crystal poilc_bank(xdate=From Date=#d,xdate=To Date=#d)"
+//-------------------------------------------------------------------
+//Approved SPR List By Date               |#classPath+"/"+#servlet+"?page=*crystal porequ_ap(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Import=hide)"
+//Quotationwise SPR List By Date          |#classPath+"/"+#servlet+"?page=*crystal poquotu(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Import=hide)"
+//Without Quotationwise SPR List By Date  |#classPath+"/"+#servlet+"?page=*crystal porequ_wq(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Import=hide)"
+//Without PO SPR List By Date             |#classPath+"/"+#servlet+"?page=*crystal porequ_wpo(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Import=hide)"
+//Without Purchase Order List By Date     |#classPath+"/"+#servlet+"?page=*crystal poord_wo(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Import=hide)"
+//Challanwise PO List By Date             |#classPath+"/"+#servlet+"?page=*crystal poord_caln(xdatereq=From Date=#d,xdatereq=To Date=#d,xsup=From Supplier= ,xsup=To Supplier=zzz,xtypepor=Type=Import=hide)"
+//Without Challanwise PO List By Date     |#classPath+"/"+#servlet+"?page=*crystal poord_wo_caln(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Import=hide)"
+//Quality Report By Date                  |#classPath+"/"+#servlet+"?page=*crystal pogrnqc(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Import=hide)"
+//Without Quality Report By Date          |#classPath+"/"+#servlet+"?page=*crystal pogrn(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Import=hide)"
+//Currency Wise L/C List                  |#classPath+"/"+#servlet+"?page=*crystal poilccur(xyear=Year)"
+//Statement of L/C Opened by The Defferent Bank      |#classPath+"/"+#servlet+"?page=*crystal poilccur_bnk(xyear=Year)"
+//Currency Wise Item L/C List             |#classPath+"/"+#servlet+"?page=*crystal poilccur_item(xyear=Year)"
+//Yearly L/C Statement                    |#classPath+"/"+#servlet+"?page=*crystal poilc_VAT(xyear=Year)"
+//Delivery Status                         |#classPath+"/"+#servlet+"?page=*crystal poilc_delve(xdate=From Date=#d,xdate=To Date=#d)"

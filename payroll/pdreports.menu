@@ -1,0 +1,14 @@
+//PDReports.menu
+//-------------------------------------------------------------------
+caption "HR Reports" page 3
+option                           |action
+//-------------------------------------------------------------------
+-HR
+Employee List                                  |#classPath+"/"+#servlet+"?page=*crystal prmst(xemp=From Employee=0,xemp=To Employee=z)"
+Employee List with Mobile                      |#classPath+"/"+#servlet+"?page=*crystal prmstm(xemp=From Employee=0,xemp=To Employee=z)"
+Employee List(Status Wise)                     |#classPath+"/"+#servlet+"?page=*crystal prmst_st(xemp=From Employee=0,xemp=To Employee=z,xstatusemp= Employee Status=A-Active )"
+Department Wise Employee List                  |#classPath+"/"+#servlet+"?page=*crystal prmst_dept(xdept=From Department==text=list xdept1,xdept=To Department==text=list xdept1)"
+Employee List(Detail)                  			|#classPath+"/"+#servlet+"?page=*crystal prmst_dept_sal(xemp=From Employee=0,xemp=To Employee=z)"
+Salary Rang Wise Employee List                 |#classPath+"/"+#servlet+"?page=*crystal prmst_sal(xdtwotax=From Salary Rang,xdtwotax=To Salary Rang)"
+Joining Date Wise Employee List                |#classPath+"/"+#servlet+"?page=*crystal prmst_join(xdate=From Joining Date,xdate=To Joining Date)"
+Date Wise Left The Job List                    |#classPath+"/"+#servlet+"?page=*crystal prmst_left(xdate=From Joining Date,xdate=To Joining Date)"

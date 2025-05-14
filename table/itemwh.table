@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table itemwh
+	caption "Item Warehouse View"
+	columns zid,xitem,xwh,xstdcost
+
+	primary key zid,xitem,xwh
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+	sql create view itemwh (zid,xitem,xwh,xstdcost) ~
+		as SELECT caitem.zid, caitem.xitem,xcodes.xcode, caitem.xstdcost ~
+		FROM caitem, xcodes ~
+		WHERE xcodes.xtype = 'Warehouse' AND ~
+		xcodes.zid = caitem.zid and caitem.xtypestk <> 'Non-Stock'
+
+end table

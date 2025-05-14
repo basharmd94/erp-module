@@ -1,0 +1,209 @@
+page cadateup
+
+    caption "Update Date Entries in CADATE"
+
+    sections form one,script myscript
+
+    form one
+        table
+        layout 1
+        objects Process,Clear,hi,~
+               xdate,xdatedue,xremark
+
+        field xdate
+          caption From Date
+        end field
+
+        field xdatedue
+          caption To Date
+        end field
+        
+        field xremark
+		
+              caption Default Holiday
+              display multi
+			  height 7
+              //default "Friday"
+              pick "Friday,Saturday,Sunday,Monday,Tuesday,Wednesday,Thursday"
+			  //event before
+				//set xremarks="Friday,Saturday,Sunday,Monday,Tuesday,Wednesday,Thursday"
+			  //end event
+        end field
+		
+		field hi
+		event before
+			int ta=#parse("tam",xremark,",")
+			int i=0
+			while i<ta
+				set mal=#eval("tam["+i+"]")
+				print mal
+				set i=i+1
+			end while
+		end event
+		end field
+
+        field process
+			event before
+			//error "remarks"+xremark
+			
+			//error ta
+			
+				
+			
+				set tmpdate = ""
+				int day = #days(xdatedue)-#days(xdate)+1
+				int count = 0
+				while count < day
+					set weekofmth=""
+					set dayname=""
+					set holiday=""
+					set count=0+count+1
+					int temp = #days(xdate)+count
+					set tmpdate=#longtodate(temp)
+					set day2=#sub(tmpdate,8,2)
+					int day1=0
+					set day1=0+day2
+					
+					if  day1>=1 .and. day1 <= 7
+						set weekofmth=1
+					else if  day1>=8 .and. day1 <= 14
+						set weekofmth=2
+					else if  day1>=15 .and. day1 <= 21
+						set weekofmth=3
+					else if  day1>=22 .and. day1 <= 28
+						set weekofmth=4
+					else if  day1>=29 .and. day1 <= 31
+						set weekofmth=5
+					end if
+
+					set xyear = #sub(tmpdate,0,4)
+					set xper = #sub(tmpdate,5,2)
+
+					if xper .eq. "01"
+						set mth = "January"
+					else if xper .eq. "02"
+						set mth = "February"
+					else if xper .eq. "03"
+						set mth = "March"
+					else if xper .eq. "04"
+						set mth = "April"
+					else if xper .eq. "05"
+						set mth = "May"
+					else if xper .eq. "06"
+						set mth = "June"
+					else if xper .eq. "07"
+						set mth = "July"
+					else if xper .eq. "08"
+						set mth = "August"
+					else if xper .eq. "09"
+						set mth = "September"
+					else if xper .eq. "10"
+						set mth = "October"          	
+					else if xper .eq. "11"
+						set mth = "November"
+					else if xper .eq. "12"
+						set mth = "December"
+					end if
+					set holiday=""
+					set note=""
+					if xper .eq. "02" .and. day2 .eq. "21"
+						set holiday="Holiday"
+						set note="Shahid Dibosh(International Mother Language Day)"
+					end if
+					if xper .eq. "03" .and. day2 .eq. "17"
+						set holiday="Holiday"
+						set note="Sheikh Mujibur Rahman Birthday"
+					end if
+					if xper .eq. "03" .and. day2 .eq. "26"
+						set holiday="Holiday"
+						set note="Independence Day"
+					end if
+					if xper .eq. "04" .and. day2 .eq. "14"
+						set holiday="Holiday"
+						set note="Pahela Baishakh(Bangla New Year)"
+					end if
+					if xper .eq. "05" .and. day2 .eq. "01"
+						set holiday="Holiday"
+						set note="Labour Day"
+					end if
+					if xper .eq. "05" .and. day2 .eq. "17"
+						set holiday="Holiday"
+						set note="Buddha Purnima"
+					end if
+					if xper .eq. "08" .and. day2 .eq. "15"
+						set holiday="Holiday"
+						set note="National Mourning Day"
+					end if
+					if xper .eq. "08" .and. day2 .eq. "22"
+						set holiday="Holiday"
+						set note="Janmashtami"
+					end if
+					if xper .eq. "12" .and. day2 .eq. "16"
+						set holiday="Holiday"
+						set note="Bijoy Dibosh(Victory Day)"
+					end if
+					if xper .eq. "12" .and. day2 .eq. "25"
+						set holiday="Holiday"
+						set note="Christmas Day"
+					end if
+
+					set myqry = "insert into cadate (ztime,zid,xdate,xname,xremark,xweekmth,xweekno,xyear,xper,xmonthname,xnote)"
+					set myqry = myqry + " values('"+#time+"','"+#id+"','"+tmpdate+"','"+dayname+"','"+holiday+"','"+weekofmth+"','', ~
+					'"+xyear+"','"+xper+"','"+mth+"','"+note+"')"
+					set tmpstr =#sql(myqry)	
+					set chk_dayname=#sql("select weekday from cadatevw where zid='"+#id+"' and xdate='"+tmpdate+"'")
+					if chk_dayname ==1
+						set dayname="Sunday"
+					else if chk_dayname ==2
+						set dayname="Monday"
+					else if chk_dayname ==3
+						set dayname="Tuesday"
+					else if chk_dayname ==4
+						set dayname="Wednesday"
+					else if chk_dayname ==5
+						set dayname="Thursday"
+					else if chk_dayname ==6
+						set dayname="Friday"
+					else if chk_dayname ==7
+						set dayname="Saturday"
+					end if
+
+					set mal=""
+					int ta=#parse("tam",xremark,",")
+					int i=0
+					while i<ta
+						set mal=#eval("tam["+i+"]")
+
+						if dayname .eq. mal
+							set holiday="Holiday"
+						end if
+						set i=i+1						
+					end while
+					
+
+					set week = cadatevw.week("zid='"+#id+"' and xdate='"+tmpdate+"'")                      
+
+					str mysql = "update cadate set xname='"+dayname+"',xweekno='"+week+"',xremark='"+holiday+"' where zid='"+#id+"' and xdate = '"+tmpdate+"'"
+					set tmpstr = #sql(str,mysql)
+
+				end while
+				print count+" days(From "+xdate+" to "+xdatedue+") updated"
+			end event
+        end field
+
+        embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+        //  b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+        }
+
+        </script>
+    end script
+end page

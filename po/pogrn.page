@@ -1,0 +1,830 @@
+page pogrn
+	caption header
+	sidebar list pogdt
+	dependent
+	sections form one, list open,problems,confirmed,sicreated, script myscript
+
+	  text top
+	   "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+	  end text
+
+     list pogdt
+        caption "<font size=2>Item(s) for "+xgrnnum
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=pogdt.zid and xitem=pogdt.xitem) as itemdesc ~
+			from pogdt) as tbl
+        order xgrnnum,xrow
+        fixed xgrnnum 
+        rows 5 //f
+        objects xrow attrib(link #servlet+"?page=pogdt&command=Show&xgrnnum=?&xrow=?"), ~
+                xitem,itemdesc,xqty
+
+        totals count,"Totals","",sum
+
+        field itemdesc
+          storage varchar
+          caption Description
+        end field
+
+     end list
+
+     list returns
+        caption "All Returns Against GRN No: <font color=red>"+xgrnnum+"</font>"
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=poddt.zid and xitem=poddt.xitem) as itemdesc ~
+			from poddt) as tbl
+		
+        order xgrnnum,xdrnnum,xrow
+        fixed xgrnnum
+        rows 5 //f
+        objects xdrnnum,xrow attrib(link #servlet+"?page=poddt&command=Show&xdrnnum=?&xrow=?"), ~
+                xitem,itemdesc,xqty,xunitpur,xrate,xgrnnum,xlineamt equals(xqty*xrate)
+
+        totals "","","","Totals","","","","","",sum
+		
+		field itemdesc
+			caption Description
+			storage varchar
+		end field
+
+     end list
+     
+     list open
+        caption "Open MRRs"
+        select "xstatusgrn like '1%'"
+		table (select *,~
+			(select xorg from casup ~
+			where zid=pogrn.zid and xsup=pogrn.xsup) as name ~
+			from pogrn) as tbl
+        order xgrnnum DESC
+        rows 5 //f
+        objects xgrnnum attrib(link #servlet+"?page=pogrn&command=Show&xgrnnum=?"), ~
+                xsup,name,xdate,xstatusgrn
+
+		field name
+			caption Name
+			storage varchar
+		end field
+		
+     end list     
+     
+     list confirmed
+        caption "Confirmed MRRs"
+        select "(xstatusgrn like '5%') and (xref='')"
+		table (select *,~
+			(select xorg from casup ~
+			where zid=pogrn.zid and xsup=pogrn.xsup) as name ~
+			from pogrn) as tbl
+        order xgrnnum DESC
+        rows 5 //f
+        objects xgrnnum attrib(link #servlet+"?page=pogrn&command=Show&xgrnnum=?"), ~
+                xsup,name,xdate,xstatusgrn
+
+		field name
+			caption Name
+			storage varchar
+		end field
+		 
+     end list
+
+     list sicreated
+        caption "S.I. Created MRRs"
+        select "(xstatusgrn like '5%') and (xref<>'')"
+		table (select *,~
+			(select xorg from casup ~
+			where zid=pogrn.zid and xsup=pogrn.xsup) as name ~
+			from pogrn) as tbl
+        order xgrnnum DESC
+        rows 5 //f
+        objects xgrnnum attrib(link #servlet+"?page=pogrn&command=Show&xgrnnum=?"), ~
+                xsup,name,xdate,xsinnum,xref caption(GL Invoice Number),xstatusgrn
+
+		field name
+			caption Name
+			storage varchar
+		end field
+		
+     end list
+     
+     list problems
+        caption "<font color=red>Problem MRRs</font>"
+        select "xstatusgrn > '6'"
+		table (select *,~
+			(select xorg from casup ~
+			where zid=pogrn.zid and xsup=pogrn.xsup) as name ~
+			from pogrn) as tbl
+
+        order xgrnnum DESC
+        rows 5 //f
+        objects xgrnnum attrib(link #servlet+"?page=pogrn&command=Show&xgrnnum=?"), ~
+                xsup,name,xdate,xstatusgrn
+				
+		field name
+			caption Name
+			storage varchar
+		end field
+
+     end list     
+	   
+	form one
+		valid valid,access
+		table pogrn
+		order xgrnnum DESC
+		layout 2
+		objects ~
+             Show, Details, Cost,Update, Top, Previous, Delete,Next, Bottom,~
+			 Confirm MRR,Invoice,Get Current Rate,~
+             xgrnnum attrib(search), xdate,~
+             xsup display(const),sup_name,xsupref display(hide),xdatesupref display(hide),~
+             xdiv display(const),xsec display(const),xproj display(const),~
+             xwh display(const),xcur,xexch attrib(button Get Current Rate),~
+             xdisc display(hide),xdtwotax display(constant),xdtdisc display(hide),~
+             xdttax display(constant),xval display(hide),xdiscamt display(hide),~
+             xtotamt display(constant),xgrncost display(constant),~
+             xsinnum width(20),xref display(hide),xvoucherlink caption(GL Invoice Number) display(const) attrib(local),~
+             xpornum display(hide),xporlink caption(P.O. Number) display(const) attrib(local),xrem display(hide),~
+             ordqty display(constant) attrib(local), delqty display(constant) attrib(local),~
+             balqty display(constant) attrib(local),detqty display(const) attrib(local),xdatedue,~
+             xstatusqc display(hide),xstatusgrn display(const),xtypepor display(hide)
+             
+			field xgrnnum
+				event after 
+					set globals(xgrnnum)=xgrnnum
+					if xpornum .sw. "IP"
+						set #field(Invoice.display) = "disable"
+					end if
+					
+					if xgrnnum .eq. ""
+						set #field(xdate->.display) = "constant"
+						set #field(Delete.display) = "disable"
+						set #field(Update.display) = "disable"
+						set #field(Confirm.display) = "disable"
+						set #field(Invoice.display) = "disable"
+						set #field(Cost.display) = "disable"
+					else if xstatusgrn .ne. #status("xstatusgrn",5)
+						set #field(Invoice.display) = "disable"  
+						call checkserial
+						if err==0
+							call checkbatch
+						end if
+					end if
+					
+					if xstatusgrn .eq. #status("xstatusgrn",5)
+						set #field(xdate->.display) = "constant"
+						set #field(xsinnum.display) = "text"
+						set #field(Delete.display) = "disable"						
+						set #field(Confirm.display) = "disable"
+						set #field(Cost.display) = "disable"
+						if xsinnum .eq. ""
+							set #field(Invoice.display) = "disable"              	
+						end if
+						if xref .ne. ""
+							set #field(xsinnum.display) = "const"
+							set #field(Invoice.display) = "disable"
+							set #field(Update.display) = "disable"
+						end if
+					else
+						set #field(xsinnum.display)="const"            
+					end if
+					
+					if xstatusgrn .ge. #status("xstatusgrn",6)
+						set #field(Confirm.display) = "disable"
+					end if
+				end event
+			end field
+
+			field xgrncost
+				attrib local
+				caption GRN Cost
+				event after
+					set globals(mode)=mode
+					set globals(returnpage)="pogrn"
+					set globals(trnfield)="xgrnnum"
+					set globals(xtypetrn)="Goods Receipt Note"
+					set globals(xtrnnum)=xgrnnum
+					set xgrncost = #sql(double,"select sum(xcost*xexch) from pogrncost where xgrnnum='"+xgrnnum+"'")
+					//if mode .ne. "Costed"
+					//	set #fields(xcur.display)="hidden"
+					//	set #fields(xexch.display)="hidden"
+					//	set #fields(xtotamt.display)="hidden"
+					//	set #fields(xgrncost.display)="hidden"
+					//	set #fields(Get.display)="hidden"
+					//	set #fields(Cost.display)="hidden"
+					//	set #fields(xexch.attrib)=""
+					//end if
+				end event
+			end field
+
+	       field sup_name
+	          attrib local
+	          display constant
+	          caption Company
+	          event after
+	           set sup_name=#sql(string,"select xorg from casup where xsup = '"+xsup+"'")
+	          end event
+	       end field
+
+	       field xstatusgrn
+	         event after
+	           set globals(xstatusgrn) = xstatusgrn
+	         end event
+	       end field
+
+	       field xval
+	         caption Gross Amount
+	       end field
+
+	       field ordqty
+	         caption Order Qty
+	         event after
+	           str mysql="select sum(xqtyord) from poodt where xpornum='"+xpornum+"'"
+	           set ordqty=#sql(decimal,mysql)
+	           //set ordqty=#round(ordqty,0)
+	         end event
+	      end field
+	
+	      field delqty
+	       caption Receive Qty
+	       event after
+	         str mysql="select sum(xqtygrn) from poodt where xpornum='"+xpornum+"'"
+	         set delqty=#sql(decimal,mysql)
+	         //set delqty=#round(delqty,0)
+	       end event
+	      end field
+	
+	      field balqty
+	         caption Balance Qty
+	         event after
+	           set balqty=0.00+ordqty-delqty
+	         end event
+	      end field
+	
+	      field xdate
+	       event after
+	         set globals(xdate) = xdate
+	       end event
+	      end field
+	
+		   field xdatedue
+		   		display hide
+	    		caption Confirm Date
+	    		event after
+	    		   set globals(xdatedue)=xdatedue
+	    		end event
+		   end field	
+	
+	   	 field detqty
+	         caption Detail Qty
+	 	     event after
+	           set detqty=#sql(decimal,"select sum(xqty) from pogdt where xgrnnum='"+xgrnnum+"'")
+	        end event
+	   	 end field
+	
+	    field Get
+	       display hidden
+	       event after
+	        set xexch=#exch(xcur)
+	        print "<span class=bl>You must click on </span><span class=br>Update</span><span class=bl> to update the record with the new rate!</span>"
+	       end event
+	    end field
+		       
+       field update
+         event before
+           set globals(ErrChk) = ""
+
+           if globals(ErrChk) .ne. "1"
+             if xgrnnum .ne. globals(xgrnnum)
+             	set globals(ErrChk) = "1"
+             	error "Record pointer mismatch"
+             end if 
+           end if
+		   
+		   if globals(ErrChk) .ne. "1"
+				if xstatusgrn .eq. #status("xstatusgrn",5)
+					if xsinnum .eq. ""
+						error "Please enter Supplier Invoice Number"
+					end if
+					
+					string temp=#sql(string,"select xgrnnum from pogrn where zid='"+#id+"' and xgrnnum<>'"+xgrnnum+"' and xsinnum='"+xsinnum+"'")
+					if temp .ne. ""
+						error "Supplier Invoice Number ("+xsinnum+ ") is already entered in GRN No: "+temp
+					end if
+				end if		   
+		   end if  
+         end event
+       end field
+
+       field delete
+         event before
+           set globals(ErrChk) = ""
+
+           if globals(ErrChk) .ne. "1"
+             call chk_rec           
+           end if  
+         end event
+       end field
+
+		field Confirm
+			event before
+				set globals(ErrChk) = ""
+				set globals(Flag) = ""
+				decimal totord=0.0
+				decimal totgrn=0.0
+
+				if globals(ErrChk) .ne. "1"
+					if xgrnnum .ne. globals(xgrnnum)
+						set globals(ErrChk) = "1"
+						error "Record pointer mismatch"
+					end if
+				end if         
+				
+				if globals(ErrChk) .ne. "1"
+		            set status=#sql(str,"select xstatusgrn from pogrn where zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+		            if status .ne. #status("xstatusgrn",1)
+		               set globals(ErrChk) = "1"
+		               error "Cannot "+#command+"</br>Status : "+status
+		            end if  
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set detqty = #sql(decimal,"select sum(xqty) from pogdt where xgrnnum='"+globals(xgrnnum)+"'")
+					if detqty <= 0.0
+						set globals(ErrChk)="1"
+						set xstatusgrn=#status("xstatusgrn","C")
+						action Update
+						error "GRN has No Receipt Qty -- Cencelling GRN No: "+xgrnnum
+					end if
+				end if
+ 
+				if globals(ErrChk) .eq. ""
+					set globals(xtrn)=#sub(xgrnnum,0,4)
+					set xtrncode=#sub(xgrnnum,0,4)
+					set xtrncode=xtrnp.xrel("xtypetrn='Goods Receipt Note' and xtrn='"+xtrncode+"' and xtyperel='Inventory Transaction'")
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+						error "Related Inventory Transaction code not found</p>Cannot "+#command
+					end if
+				end if
+				
+				if globals(ErrChk) .eq. ""
+					set imtrncode = xtrn.xtrn("xtypetrn='Inventory Transaction' and xtrn='"+xtrncode+"'")
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+						error "Inventory Transaction code("+xtrncode+") not found</p>Cannot "+#command
+					end if
+				end if
+
+            
+		         if globals(ErrChk) .eq. ""
+					
+					set mysql = "update pogrn set xstatusgrn='"+#status("xstatusgrn",5)+"' where zid='"+#id+"' and xgrnnum='"+xgrnnum+"'"
+					set updval = #sql(str,mysql)
+					
+					str mysql = "delete from ztemplog where xordernum='"+globals(xgrnnum)+"'" 
+					set tmpstr = #sql(str,mysql)
+							
+					print "MRR/GRN No. "+globals(xgrnnum)+" Confirmed"
+					action show
+		         end if
+			end event
+		end field
+
+		field Invoice
+			event before
+				set globals(ErrChk) = ""
+
+				if globals(ErrChk) .ne. "1"
+					if xgrnnum .ne. globals(xgrnnum)
+						set globals(ErrChk) = "1"
+						error "Record pointer mismatch"
+					end if
+				end if         
+			
+				if globals(ErrChk) .ne. "1"
+		            set status=#sql(str,"select xstatusgrn from pogrn where zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+		            if status .ne. #status("xstatusgrn",5)
+		               set globals(ErrChk) = "1"
+		               error "Cannot "+#command+"</br>Status : "+status
+		            end if  
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set detqty = #sql(decimal,"select sum(xqty) from pogdt where xgrnnum='"+globals(xgrnnum)+"'")
+					if detqty <= 0.0
+						set globals(ErrChk)="1"
+						set xstatusgrn=#status("xstatusgrn","C")
+						action Update
+						error "GRN has No Receipt Qty -- Cencelling GRN No: "+xgrnnum
+					end if
+				end if
+
+	             if globals(ErrChk) .ne. "1"
+	             	if xref .ne. ""
+	             		set globals(ErrChk) = "1"
+	             		error "Cannot create "+#command+"; Invoice exists "+xref
+	             	end if
+	             end if
+	             
+	             if globals(ErrChk) .ne. "1"
+	             	set sinv = pogrn.xsinnum("xgrnnum='"+xgrnnum+"'")
+	             	if sinv .eq. ""
+	             		set globals(ErrChk) = "1"
+	             		error #field(xsinnum.caption)+" not entered"
+	             	else
+						string temp=#sql(string,"select xgrnnum from pogrn where xgrnnum<>'"+xgrnnum+"' and xsinnum='"+xsinnum+"'")
+						if temp .ne. ""
+							set globals(ErrChk) = "1"
+							error "Supplier Invoice Number ("+xsinnum+ ") is already entered in GRN No: "+temp
+						end if
+	             	end if
+	             end if
+
+	             if globals(ErrChk) .ne. "1"
+	             	set xtrn=#sub(xgrnnum,0,4)
+	                set chkrel = #sql(str,"select xrel from xtrnp where xtypetrn='Goods Receipt Note' and xtrn='"+xtrn+"' and xtyperel='GL Voucher'")
+	                if #result .eq. "false"
+	                   set globals(ErrChk) = "1"
+	                   error "Related GL Code not found for "+xtrn
+	                end if
+	             end if
+		 
+	    		 if globals(ErrChk) .ne. "1"
+	    		 	set xaccap = #sql(str,"select xaccap from casup where xsup='"+xsup+"'")
+	    		 	set chkacc = #sql(str,"select xacc from glmst where xacc='"+xaccap+"'")
+	    		 	if #result .eq. "false"
+	    		 		set globals(ErrChk) = "1"
+	    		 		error "Wrong Payable Account"
+	    		 	end if
+	    		 end if
+		 
+	             if globals(ErrChk) .ne. "1"
+	                set chktrn = #sql(str,"select xtrn from xtrn where xtypetrn='GL Voucher' and xtrn='"+chkrel+"'")
+	                if #result .eq. "false"
+	                   set globals(ErrChk) = "1"
+	                   error chkrel+" not found in GL Setup"
+	                end if
+	             end if
+
+	             if globals(ErrChk) .ne. "1"
+	                call chk_interface
+	             end if
+
+	            if globals(ErrChk) .ne. "1"
+	               set chk_voucher = #sql("select xvoucher from glheader where xref='"+globals(xgrnnum)+"'")
+	               if #result .eq. "true"
+						str mysql = "delete from glgrn where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+						set updval = #sql(mysql)
+	
+						str mysql = "delete from gldetail where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+						set updval = #sql(mysql)
+                     
+						str mysql = "delete from glheader where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+						set updval = #sql(mysql)
+	               end if
+	            end if
+            
+	         	if globals(ErrChk) .ne. "1"
+	        		call templog
+	         	end if                         
+
+            	if globals(ErrChk) .ne. "1"
+             		int offset
+             		int per
+					string sysnot=podef.xsysnot("1=1")
+					if sysnot .eq. "1"
+						str date=xdate
+					else
+						str date=#date
+					end if
+             		
+             		int year=#sub(date,0,4)
+
+             		int tempper
+             		int tempyear	            
+             		set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+             		set per=12+#sub(date,5,2)-offset
+             		if per<=12
+                		set tempper=per
+                		set tempyear=year-1
+             		else
+                		set tempper=per-12
+                		set tempyear=year
+             		end if
+             		
+					set costpro = castatus.xnote("xtypestatus='GRN Cost Proration'")
+	                
+			    	set xglcode=chkrel
+			    	set xvoucher = #trn("GL Voucher",xglcode)
+			    	set note = "**System generated Supplier Invoice** GRN Number: "+globals(xgrnnum)
+			    	
+					//str mysql = #sql(str,"select xvoucher from glheader where xvoucher like '"+xglcode+"%' order by xvoucher desc")
+					//if #result .eq. "true" .and. mysql .ne. ""
+					//	set last_num = 0+#sub(mysql,4,6)
+					//end if
+					//set last_num = 0+1+last_num
+					//set mysql = #padl(""+last_num,6,"0")
+					//set xvoucher = xglcode + mysql            
+			    
+                	set myqry = "insert into glheader (zid, xvoucher,xref,xdate,xlong,xpostflag,~
+           				xyear,xper,xstatusjv,xdatedue,xdesc01,xdesc02,xdesc03,xdesc04,xdesc05,xictrnno,dumzid,~
+           				zemail,xemail,xaccdr,xsubdr,xnumofper,xcheque,xpaytype,xstatus,xtrngl,xnote,xteam,xmember,~
+           				xmanager,xapproved,xaction)"
+					set myqry = myqry + " values('"+#id+"','"+xvoucher+"','"+xgrnnum+"','"+date+"',~
+						'"+note+"','','"+tempyear+"','"+tempper+"','Balanced','"+date+"',~
+						'','','','','','',"0",'"+#user+"','','','',"0",'','','','"+xglcode+"','"+note+"',~
+						'','','','','Journal')"
+					set tmpstr =#sql(myqry)                                
+                	if #result .ne. "true"
+                  		set globals(ErrChk) = "1"
+                	end if
+             	end if
+             	
+             	if globals(ErrChk) .ne. "1"
+                	int xrow = 0
+                	int totline=0
+                	int line=0
+                	double totval=0.0
+                	double value=0.0
+                	str glqry="select xrow from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow > '"+xrow+"'"
+                	set xrow=#sql(str,glqry)
+                	while #result .eq. "true"
+                		set xqty = 0.0+pogdt.xqty("zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+                		//print xqty
+                  		if xqty > 0.0                   		
+							set value = pogdt.xlineamt("zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+							set xitem = pogdt.xitem("zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+							set totval = 0.0+value+totval 
+						                     		
+					 		set item_group=#sql("select xgitem from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+                     		set dr_acc=#sql("select xaccpur from pogli where zid='"+#id+"' and xgitem='"+item_group+"'")
+                     		set acc_source=#sql("select xaccsource from glmst where zid='"+#id+"' and xacc='"+dr_acc+"'")
+                     		set acctype=#sql("select xacctype from glmst where zid='"+#id+"' and xacc='"+dr_acc+"'")
+					 		set xsubcr=#sql("select xsubcr from pogli where zid='"+#id+"' and xgitem='"+item_group+"'")
+					 
+                     		set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+                     			xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+                     			xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+                     			xstatus,xtypegl,xinvnum,xoriginal)"							
+                     		set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+xrow+"','"+dr_acc+"','Ledger',~
+                     			'"+acc_source+"','"+xsubcr+"','"+xdiv+"','"+xsec+"','"+xproj+"','"+xcur+"','"+xexch+"',~
+                     			"+value+","+value+",'','','','"+acctype+"','"+#user+"','','','','','','',"0",'',"0",~
+                     			'','','','','','')"
+                     		set tmpstr = #sql(mysql)                    	
+                     		set line = 0+line+1
+                  		end if
+                  		str glqry="select xrow from pogdt where zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow >  '"+xrow+"'"
+                  		set xrow=#sql(str,glqry)
+                	end while
+             	end if
+             	
+             	if globals(ErrChk) .ne. "1"
+                	set totline=0+line+1                 
+                 	set acctype=#sql("select xacctype from glmst where xacc='"+xaccap+"'")
+                 	set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+                 		xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+                 		xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+                 		xstatus,xtypegl,xinvnum,xoriginal)"							
+                 	set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+totline+"','"+xaccap+"','AP',~
+                 		'Supplier','"+xsup+"','"+xdiv+"','"+xsec+"','"+xproj+"','"+xcur+"','"+xexch+"',~
+                 		"+0.0-totval+","+0.0-totval+",'','','','"+acctype+"','"+#user+"','','','','','','',"0",'',"0",~
+                 		'','','','','"+sinv+"','"+xgrnnum+"')"
+                 	set tmpstr = #sql(mysql)                    	                 
+					if #result .eq. "true"
+                 		set mysql = "insert into glgrn (ztime,zid,xvoucher,xrow,xgrnnum,xdate,xtotamt,xlong)"
+                 		set mysql = mysql + " values('"+#time+"','"+#id+"','"+xvoucher+"','"+totline+"','"+xgrnnum+"',~
+						 	'"+date+"','"+totval+"','')"
+                 		set tmpstr = #sql(mysql)                      
+		                 if #result .ne. "true"
+		                   set globals(ErrChk) = "1"
+		                 end if
+		            end if
+		        end if
+             	if globals(ErrChk) .ne. "1"
+                	set tot_prime = #sql(decimal,"select sum(xprime) from gldetail where zid='"+#id+"' and xvoucher='"+xvoucher+"'")
+                	if tot_prime <> 0.0
+                  		set globals(ErrChk) = "1"
+                  		set glheader.xstatusjv="Out of Balance"
+                  		update glheader(xvoucher)
+                  		error "Cannot Update; Out of Balance; Check Error Logs"
+                	end if
+             	end if
+             	if globals(ErrChk) .ne. "1"
+                	str mysql = "update pogrn set xref='"+xvoucher+"' where zid='"+#id+"' and xgrnnum='"+globals(xgrnnum)+"'"
+                	set updval = #sql(mysql)
+                
+					str mysql = "delete from ztemplog where zid='"+#id+"' and xordernum='"+globals(xgrnnum)+"'"
+					set tmpstr = #sql(str,mysql)
+                
+                	action show
+                	print "Supplier Invoice No. "+xvoucher+" Created"
+             	end if
+           	end event
+        end field
+
+        //embed onsubmit="return submitit(this)"
+        embed onsubmit="submitit(this)"
+        field Details
+          embed onclick="clicked(this)"
+        end field
+
+        field Cost
+          embed onclick="cost(this)"
+        end field
+
+  end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+
+          button=b.value
+        }
+        function cost(b){
+        
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Details"){
+            form.page.value = "pogdt"
+            form.searchbutton.value = "Top"
+            //return false
+          }else if (button=="Cost"){
+            form.page.value = "pogrncost"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+        </script>
+     end script
+
+     method chk_rec
+        if xgrnnum .ne. globals(xgrnnum)
+          set globals(ErrChk) = "1"
+          error "Record pointer Mismatch, Try SHOW instead.<br>"
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          if #command .eq. "Confirm GRN"
+          else if #command .eq. "Create S.I."
+            set status=#sql(str,"select xstatusgrn from pogrn where xgrnnum='"+xgrnnum+"'")
+            if status .ne. "Confirmed"
+               set globals(ErrChk) = "1"
+               error "Cannot "+#command+",</p>Status : "+status
+            end if
+          else if #command .eq. "Update"    
+            if globals(xstatusgrn) .ne. "Open"
+               set globals(ErrChk) = "1"
+               error "Cannot "+#command+", Already "+globals(xstatusgrn)
+            end if  
+          end if  
+        end if
+     end method
+     
+     method chk_interface
+        int xrow = 0
+        str mysql = "select xrow from pogdt where zid='"+#id+"' and xgrnnum='"+globals(xgrnnum)+"' and xrow > '"+xrow+"'"
+        set xrow=#sql(str,mysql)
+        while #result .eq. "true"
+        	set xitem = pogdt.xitem("zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+        	set xqty = pogdt.xqty("zid='"+#id+"' and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+	        if xqty != 0.0
+	           set xgitem = #sql(str,"select xgitem from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+	           set xaccpur = #sql(str,"select xaccpur from pogli where zid='"+#id+"' and xgitem='"+xgitem+"'") 
+	           if #result .ne. "true"
+	              set globals(ErrChk) = "1"
+	              error "Interface Table Not Found</br>Process Aborted "//+xitem+" "+xgitem
+	           else
+	              set globals(chk_source)=#sql("select xaccsource from glmst where zid='"+#id+"' and xacc='"+xaccpur+"'")
+	              if globals(chk_source) .eq. "Subaccount"
+	              	set xsubcr = #sql(str,"select xaccpur from pogli where zid='"+#id+"' and xgitem='"+xgitem+"'")
+	                set chk_subacc=#sql("select xsub from glsub where zid='"+#id+"' and xacc='"+xaccpur+"' and xsub='"+xsubcr+"'")
+	                if #result .ne. "true"
+	                    set globals(ErrChk) = "1"
+	                    error "Subaccount not found for A/C Code "+xaccpur+"</br>Process Aborted"
+	                end if
+	              end if
+	           end if
+	        end if
+           str mysql = "select xrow from pogdt where zid='"+#id+"' and xgrnnum='"+globals(xgrnnum)+"' and xrow > '"+xrow+"'"
+           set xrow=#sql(str,mysql)
+        end while
+     end method
+      
+     method templog
+		set myqry = "insert into ztemplog (zid,xordernum,xdate,xtime,xobject,xaction,xemail,xrem)"
+		set myqry = myqry + " values('"+#id+"','"+globals(xgrnnum)+"','"+#date+"','"+#time+"','"+page+"',~
+			'"+#command+"','"+#user+"','')"
+		set tmpstr =#sql(myqry)
+		if #result .eq. "true"
+		else
+			set globals(ErrChk) = "1"
+			error "Error: Contact System Administrator or</p>Run Correction"
+		end if
+     end method
+     
+		method checkserial
+			int err=0
+			int xrow=-1
+			str sql="select xrow from pogdt where zid="+#id+" and xgrnnum='"+xgrnnum+"' and (select xtypeserial from caitem where zid=pogdt.zid and xitem=pogdt.xitem) like '1%' and xrow>"+xrow
+			set xrow=#sql(int,sql)
+			while xrow>0 
+				//print "R: "+xrow
+				set tempcount=#sql(double,"select count(xserialnum) from imser where xtypein='Goods Receipt Note' and xnumin='"+xgrnnum+"' and xrowin='"+xrow+"'")
+				set qtygrn=#sql(double,"select xqty*xcfpur from pogdt where zid="+#id+" and xgrnnum='"+xgrnnum+"' and xrow='"+xrow+"'")
+				double xtempcount=0.00+tempcount
+				double xqtygrn=0.00+qtygrn
+				//print "xtempcount="+xtempcount+"*"+xqtygrn
+				if xtempcount<>xqtygrn
+					set err=1
+					set tempstr=#sql(int,"update pogrn set xstatusgrn='"+#status("xstatusgrn",7)+"' where zid="+#id+" and xgrnnum='"+xgrnnum+"'")
+					set tempstr=#sql(int,"update pogdt set xstatusgdt='"+#status("xstatusgrn",7)+"' where zid="+#id+" and xgrnnum='"+xgrnnum+"' and xrow='"+row+"'")
+					set xstatusgrn=#status("xstatusgrn",7)
+				else if xstatusgrn .eq. #status("xstatusgrn",7)
+					set xstatusgrn=#status("xstatusgrn",1)
+					set tempstr=#sql(int,"update pogrn set xstatusgrn='"+#status("xstatusgrn",1)+"' where zid="+#id+" and xgrnnum='"+xgrnnum+"'")
+					set tempstr=#sql(int,"update pogdt set xstatusgdt='"+#status("xstatusgrn",1)+"' where zid="+#id+" and xgrnnum='"+xgrnnum+"' and xrow='"+row+"'")
+				end if
+				
+				str sql="select xrow from pogdt where zid="+#id+" and xgrnnum='"+xgrnnum+"' and (select xtypeserial from caitem where zid=pogdt.zid and xitem=pogdt.xitem) like '1%' and xrow>"+xrow
+				set xrow=#sql(int,sql)
+			end while
+		end method
+
+		method checkbatch
+			//check for all items
+			int err=0
+			int row = 0	
+			set row=#sql(int,"select xrow from pogdt where zid="+#id+" and xgrnnum='"+xgrnnum+"' and xrow > "+row)
+			if row <= 0
+				if xstatusgrn .eq. #status("xstatusgrn",6)
+					set xstatusgrn=#status("xstatusgrn",1)
+					set tempstr=#sql(int,"update pogrn set xstatusgrn='"+#status("xstatusgrn",1)+"' where xgrnnum='"+xgrnnum+"'")
+					set tempstr=#sql(int,"update pogdt set xstatusgdt='"+#status("xstatusgrn",1)+"' where xgrnnum='"+xgrnnum+"' and xrow='"+row+"'")
+				end if
+			end if
+			
+			while row>0
+				double blankcount=#sql(double,"select sum(xqty) from pogdtbat where xgrnnum='"+xgrnnum+"' and xrow="+row+" and xbatch = ''")
+				double batchcount=#sql(double,"select sum(xqty) from pogdtbat where xgrnnum='"+xgrnnum+"' and xrow="+row+" and xbatch <> ''")
+				double totcount=blankcount+batchcount
+				double qtygrn=#sql(double,"select xqty from pogdt where xgrnnum='"+xgrnnum+"' and xrow='"+row+"'")
+				//print "blank,batch,gdt="+blankcount+"*"+batchcount+"*"+qtygrn+" " +totcount
+				if qtygrn <> totcount
+					set err=1
+				end if
+				if err==0 .and. blankcount > 0
+					//for mandatory batch numbers
+					str batchman =#sql(string,"select (select xbatchman from caitem where zid=pogdt.zid and xitem=pogdt.xitem) from pogdt ~
+						where zid="+#id+" and xgrnnum='"+xgrnnum+"' and xrow= "+row)
+					if batchman .eq. "1"
+						set err=1
+					end if
+				end if
+				
+				if err==1
+					set tempstr=#sql(int,"update pogdt set xstatusgdt='"+#status("xstatusgrn",6)+"' where xgrnnum='"+xgrnnum+"' and xrow='"+row+"'")
+				else
+					set tempstr=#sql(int,"update pogdt set xstatusgdt='"+#status("xstatusgrn",1)+"' where xgrnnum='"+xgrnnum+"' and xrow='"+row+"'")
+				end if
+				set row=#sql(int,"select xrow from pogdt where zid="+#id+" and xgrnnum='"+xgrnnum+"' and xrow > "+row)			
+			end while
+			
+			if err==1
+				set tempstr=#sql(int,"update pogrn set xstatusgrn='"+#status("xstatusgrn",6)+"' where xgrnnum='"+xgrnnum+"'")
+				set xstatusgrn=#status("xstatusgrn",6)
+			else if xstatusgrn .eq. #status("xstatusgrn",6)
+				set xstatusgrn=#status("xstatusgrn",1)
+				set tempstr=#sql(int,"update pogrn set xstatusgrn='"+#status("xstatusgrn",1)+"' where xgrnnum='"+xgrnnum+"'")
+			end if
+		end method     
+     
+     valid valid
+     	config
+     		set globals(pkey) = xgrnnum
+     		set globals(xgrnnum) = xgrnnum
+     		
+            str header="<font color=red>"+mode+"</font> <font color=green>"+xstatusgrn+"</font> Goods Receipt Note "
+			set xvoucherlink="<font size=+1><a href='"+#servlet+"?page=glheader&xvoucher="+xref+"&command=Show&embeddedpage=1' target='Voucher'>"+xref+"</a></font>"
+            str print=podef.xprintgrn()
+			if xtypepor .eq. "Local"
+				set xporlink="<font size=+1 ><a href='"+#servlet+"?page=poordrlocal&xpornum="+xpornum+"&command=Show&embeddedpage=1' target='Voucher'>"+xpornum+"</a></font>"
+			else if xtypepor .eq. "Import"
+				set xporlink="<font size=+1 ><a href='"+#servlet+"?page=poordrimport&xpornum="+xpornum+"&command=Show&embeddedpage=1' target='Voucher'>"+xpornum+"</a></font>"
+			end if
+            if print .ne. "0"            
+              set header=header+"<a href='"+#report(pogrnn.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xgrnnum+"&prompt2="+xgrnnum+"' target='_new'>Print</a>"
+            end if
+     		if balqty < 0
+     			compute balqty = 0.0+balqty*-1
+     			set #field(balqty.caption) = "Excess Delivery"
+     		end if
+     	end config
+     end valid
+     
+#include access.valid
+     
+end page

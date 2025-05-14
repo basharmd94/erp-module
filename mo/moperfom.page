@@ -1,0 +1,564 @@
+page moperfom
+     //embed onload = "move_caret('one','xitem')"
+     caption "Manufacturing Order"
+     sidebar list det,active
+     sections form one,list new,Complte,text one,script myscript
+              
+     text one
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+		list det
+			caption "Details"
+			table moperfomdt
+			order xmoord,xtype
+			fixed xmoord
+			rows 10
+			objects xtype attrib(link #servlet+"?page=moperfomdt&command=Show&xmoord=?&xtype=?"), ~
+					xqty,xdisc
+					
+			field xtype
+				caption Wastage Purpose
+			end field
+			
+			field xqty
+				caption Wastage Qty
+				len 10
+			end field
+			
+			field xdisc
+				caption Wastage(%)
+			end field
+			
+			field zemail
+				caption Created By
+			end field
+			
+			field xemail
+				caption Updated By
+			end field
+					
+
+
+			totals "Total",sum,sum
+
+		end list
+	 
+    list active
+        caption "MO List(s)"
+        table (select *, ~
+				coalesce((select xmoord from moperfom where zid=moord.zid and xmoord=moord.xmoord),'') as xname ~
+				from moord ) tbl
+        order xmoord desc
+        //select "xstatusmor = 'Completed'"
+        select "zid='"+#id+"' and xname=''"
+        rows 5
+        objects ~
+         xmoord attrib(link #servlet+"?page="+page+"&command=Showbr&xmoord=?"), ~
+         xdatemo,xitem,xqtyprd,xdfshift,xstatusmor
+		 
+		 
+     end list
+	 
+     
+    list new
+        caption "New Printing Performance(s)"
+        table moperfom
+        order xmoord desc
+        select "xstatusmor='New'"
+        rows 5
+        objects ~
+         xmoord attrib(link #servlet+"?page="+page+"&command=Show&xmoord=?"), ~
+         xqty,xqtyord,xqtyreq,xdisc,xstatusmor,zemail,xemail
+		 
+		 
+		field xqty
+			caption Total Production
+		end field
+		
+		
+		field xemp
+			caption Shift Supervisor
+		end field
+		
+		field xempf
+			caption Ink In-Charge
+		end field
+
+		field xempt
+			caption Infeed In-Charge
+		end field
+		
+		
+		field xitem
+			caption Name Of Job
+		end field
+		
+		
+		field xqtyord
+			caption Good Production
+		end field
+		
+		field xqtyreq
+			caption Printing Wastage
+		end field
+		
+		field xdisc
+			caption Printing Wagtase (%)
+		end field
+		
+		
+		field zemail
+			caption Entry By
+		end field
+		
+		field xemail
+			caption Updated By
+		end field 
+		 totals "Total",sum,sum
+     end list
+
+    list Complte
+        caption "Complete Printing Performance(s)"
+        table moperfom
+        order xmoord desc
+        select "xstatusmor='Completed'"
+        rows 5
+        objects ~
+         xmoord attrib(link #servlet+"?page="+page+"&command=Show&xmoord=?"), ~
+         xqty,xqtyord,xqtyreq,xdisc,xstatusmor,zemail,xemail
+		 
+		 
+		 
+		field xqty
+			caption Total Production
+		end field
+		
+		
+		field xemp
+			caption Shift Supervisor
+		end field
+		
+		field xempf
+			caption Ink In-Charge
+		end field
+
+		field xempt
+			caption Infeed In-Charge
+		end field
+		
+		
+		field xitem
+			caption Name Of Job
+		end field
+		
+		
+		field xqtyord
+			caption Good Production
+		end field
+		
+		field xqtyreq
+			caption Printing Wastage
+		end field
+		
+		field xdisc
+			caption Printing Wagtase (%)
+		end field
+		
+		
+		field zemail
+			caption Entry By
+		end field
+		
+		field xemail
+			caption Updated By
+		end field 
+		 
+		 totals "Total",sum,sum
+     end list
+
+     form one
+        //caption "<font color=black size=3>Manufacturing Order</font>"
+		valid valid,access
+        table moperfom
+        order xmoord DESC
+        focus xitem
+        layout 2
+        objects Add, Detail, Show,Clear, Update, Previous, Delete, Next,Complete,Showbr display(hide),~
+				xmoord,xitem attrib(submit;attach),item_name,xdate,xshift,xemp attrib(submit;attach),supnum,~
+				xempf attrib(submit;attach),inknum,,xempt attrib(submit;attach),fdnum,~
+				xqty,xqtyord,xqtyreq,xdisc,xrem,xstatusmor,zemail,xemail
+				
+		field xqty
+			caption Total Production
+			display const
+		end field
+		
+		field xmoord
+			event after
+				set globals(xmoord)=xmoord
+			end event
+		end field
+		
+		field supnum
+			display const
+			attrib local
+			event after
+				set supnum=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+			end event
+		end field
+		
+		field inknum
+			display const
+			attrib local
+			event after
+				set inknum=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xempf+"'")
+			end event
+		end field
+		
+		field fdnum
+			display const
+			attrib local
+			event after
+				set fdnum=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xempt+"'")
+			end event
+		end field
+		
+		field xemp
+			caption Shift Supervisor
+			display const
+			event after
+				set xemp=#sql("select xemp from moordshdt where zid='"+#id+"' and xdate='"+xdate+"' and xdfshift='"+xshift+"'")
+			end event
+		end field
+		
+		field xempf
+			caption Ink In-Charge
+			display const
+			event after
+			
+				set xempf=#sql("select xempf from moordshdt where zid='"+#id+"' and xdate='"+xdate+"' and xdfshift='"+xshift+"'")
+			end event
+			
+		end field
+
+		field xempt
+			caption Infeed In-Charge
+			display const
+			event after
+				set xempt=#sql("select xempt from moordshdt where zid='"+#id+"' and xdate='"+xdate+"' and xdfshift='"+xshift+"'")
+			end event
+			
+		end field
+		
+		
+		field xshift
+			display const
+		end field
+		
+		field xitem
+			display const
+			caption Name Of Job
+		end field
+		
+		field item_name
+			display const
+			attrib local
+			event after
+				set item_name=#sql(str,"select xdesc from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+			end event
+		end field
+		
+		field xqtyord
+			caption Good Production
+			display const
+		end field
+		
+		field xqtyreq
+			caption Printing Wastage
+		end field
+		
+		field xdisc
+			caption Printing Wagtase (%)
+			display const
+		end field
+		
+		field xstatusmor
+			display const
+		end field
+		
+		field zemail
+			caption Entry By
+			display const
+		end field
+		
+		field xemail
+			caption Updated By
+			display const
+		end field 
+		
+				
+		field Showbr
+			event before
+				//set xmoord=moord.xmoord("zid='"+#id+"'")
+				set xqty=moord.xqtyprd("zid='"+#id+"' and xmoord='"+xmoord+"'")
+				set xitem=moord.xitem("zid='"+#id+"' and xmoord='"+xmoord+"'")
+				set xdate=moord.xdatemo("zid='"+#id+"' and xmoord='"+xmoord+"'")
+				set xshift=moord.xdfshift("zid='"+#id+"' and xmoord='"+xmoord+"'")
+				//print xmoord+" "+xqty+" "+xitem
+			end event
+		end field
+
+        field Add
+          event before
+            set globals(ErrChk) = ""
+			
+			set xwpeffect = #sql("select xwpeffect from zbusiness where zid='"+#id+"'")
+			set xsysdate=#sub(#date,0,10)
+			set xwpeffect=#sub(xwpeffect,0,10)
+			set xsign=0+#days(xwpeffect)-#days(xsysdate)
+			//error xsign
+			if xsign <= 0
+				set globals(ErrChk)="1"
+				error " "
+			end if
+			
+			if globals(ErrChk) .ne. "1"
+				set xqtyord=0+xqty-xqtyreq
+				compute xdisc=0+(xqtyreq/xqty)*100
+				set xstatusmor="New"
+				set zemail=#user
+				set xemail=""
+			end if
+			
+
+            
+			end event 
+		end field
+            
+        field Update
+          event before
+            set globals(ErrChk) = ""
+			
+			set xwpeffect = #sql("select xwpeffect from zbusiness where zid='"+#id+"'")
+			set xsysdate=#sub(#date,0,10)
+			set xwpeffect=#sub(xwpeffect,0,10)
+			set xsign=0+#days(xwpeffect)-#days(xsysdate)
+			//error xsign
+			if xsign <= 0
+				set globals(ErrChk)="1"
+				error " "
+			end if
+			
+			if globals(ErrChk) .ne. "1"
+				set xqtyord=0+xqty-xqtyreq
+				compute xdisc=0+(xqtyreq/xqty)*100
+				
+				set xemail=#user
+			end if
+			
+
+            
+			end event 
+		end field
+		
+		field Complete
+			event before
+				set globals(ErrChk)=""
+				
+				if globals(ErrChk) .ne. "1"
+					set mysql="update moperfom set xstatusmor='Completed' where zid='"+#id+"' and xmoord='"+xmoord+"'"
+					set upval=#sql(str,mysql)
+					action show
+				end if
+				
+			end event
+		end field
+            
+        embed onsubmit="submitit(this)"
+        field Detail
+           embed onclick="clicked(this)"
+        end field
+
+  end form
+
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but= ""
+
+        function clicked(b){
+          but="clicked"
+        }
+
+        function Wastage(b){
+           but ="Wastage"
+        }
+
+        function submitit(form){
+          if (but=="clicked"){
+            form.page.value = "moperfomdt"
+            form.searchbutton.value = "Top"
+          }else if (but=="Wastage"){
+            form.page.value = "mowaste"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xitem.value=link.text
+          }else{
+            document.one.xitem.value=link.innerText
+          }
+          return false
+        }
+
+      function pickbom(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xbom.value=link.text
+          }else{
+            document.one.xbom.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+     method chk_rec
+        if #command .eq. "Add"
+           if xitem .eq. ""
+              set globals(ErrChk) = "1"
+              error "Item not Selected; Cannot "+#command
+           else if xbom .eq. ""
+              set globals(ErrChk) = "1"
+              error "BOM Key not Selected; Cannot "+#command
+           end if
+           if globals(ErrChk) .ne. "1"
+             if globals(xstatusmor) .ne. "NEW"
+                set globals(ErrChk) = "1"
+                error "Cannot "+#command+"; Clear Screen and Try."
+             end if
+           end if
+        end if
+
+        if #command .eq. "Update" .and. xmoord .ne. globals(xmoord)
+          set globals(ErrChk) = "1"
+          error "Record pointer Mismatch, Try SHOW instead.<br>"
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          if globals(xstatusmor) .ne. "NEW" //.or. globals(xtatusmor) .ne. "Exploded"
+             set globals(ErrChk) = "1"
+             error "Cannot "+#command +"; Already "+globals(xstatusmor)
+          end if
+        end if
+     end method
+
+     method undo_release
+          set status=#sql(str,"select xstatusmor from moord where xmoord='"+globals(xmoord)+"'")
+          if status .eq. "Released"
+          	str mysql="update moord set xstatusmor='Exploded' where xmoord='"+globals(xmoord)+"'"
+          	set updval=#sql(str,mysql)
+            action show
+            print "<font color=blue size=4>"+globals(xmoord)+ " Changed to "+ xstatusmor+"</font>
+          end if
+     end method
+
+     method undo_explode
+          set status=#sql(str,"select xstatusmor from moord where xmoord='"+globals(xmoord)+"'")
+          if status .eq. "Exploded"
+            str mysql="delete from moodt where xmoord='"+globals(xmoord)+"'"
+            set updval=#sql(str,mysql)
+            if #result .eq. "true"
+	          	str mysql="update moord set xstatusmor='New' where xmoord='"+globals(xmoord)+"'"
+	          	set updval=#sql(str,mysql)
+               action show
+               print "<font color=blue size=4>"+globals(xmoord)+ " Changed to "+ xstatusmor+"</font>
+            end if
+          end if
+     end method
+
+     method chk_stock
+        str xmorlno = ""
+        str mysql = "select xmorlno from moodt where xmoord = '"+globals(xmoord)+"' and xmorlno > '"+xmorlno+"'"
+        set xmorlno = #sql(str,mysql)
+        while #result .eq. "true"
+           set stype = #sql("select xstype from moodt where xmoord='"+globals(xmoord)+"' and xmorlno='"+xmorlno+"'")
+           if stype .ne. "Non-Stock"
+	           decimal avlqty=0.0
+	           set xitem=#sql(str,"select xitem from moodt where xmoord='"+globals(xmoord)+"' and xmorlno='"+xmorlno+"'")
+	           set xwh=globals(xcompwh)
+	           set itemqty=#sql(decimal,"select sum(xqty*xcfiss) from moodt where xmoord='"+globals(xmoord)+"' and xmorlno='"+xmorlno+"'")
+	           buffer imstock
+	           move imstock=imstock(xitem,xwh)
+	           if #result .ne. "true"
+	              set globals(ErrChk) = "1"
+	              print "<font color=red size=3>Stock not found for Item : "+xitem+"</font>"
+	           else
+	           	  if #command .eq. "Complete"
+	              	set avlqty = 0.0+imstock.xinhand-imstock.xopord-imstock.xtoout-imstock.xaltqty
+	              	if avlqty<itemqty
+	                 	set globals(ErrChk) = "1"
+	                 	print "<font color=red size=3>Not enough stock for "+xitem+" <br>Available : "+avlqty+"; Required : "+itemqty+"</font>"
+	              	end if
+	              else if #command .eq. "Release"
+	              	set avlqty = 0.0+imstock.xinhand-imstock.xopord-imstock.xtoout-imstock.xaltqty-imstock.xwoalc
+	              	//print avlqty+" "+itemqty
+	              	if avlqty<itemqty
+	                 	set globals(ErrChk) = "1"
+	                 	print "<font color=red size=3>Not enough stock for "+xitem+" <br>Available : "+avlqty+"; Required : "+itemqty+"</font>"
+	              	end if
+	              end if
+	           end if
+	       end if
+           str mysql = "select xmorlno from moodt where xmoord = '"+globals(xmoord)+"' and xmorlno > '"+xmorlno+"'"
+           set xmorlno = #sql(str,mysql)
+        end while
+        set xitem=globals(xitem)
+        set xwh=globals(xwh)
+     end method
+
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql     
+
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(xmoord)+"','','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+#time+"','"+page+"','')"
+		set tmpstr =#sql(myqry)		
+     end method
+       
+     method templog
+		set myqry = "insert into ztemplog (zid,xordernum,xdate,xtime,xobject,xaction,xemail,xrem)"
+		set myqry = myqry + " values('"+#id+"','"+globals(xmoord)+"','"+#date+"','"+#time+"','"+page+"',~
+			'"+#command+"','"+#user+"','')"
+		set tmpstr =#sql(myqry)
+		if #result .eq. "true"
+		else
+			set globals(ErrChk) = "1"
+			error "Error: Contact System Administrator or</p>Run Correction"
+		end if
+     end method
+
+	valid valid
+		config
+			if xstatusmor .eq. "Completed"
+				set #field(Complete.display)="hide"
+				set #field(Add.display)="hide"
+				set #field(Delete.display)="hide"
+				set #field(Update.display)="hide"
+				set #field(xdate->.display)="const"
+			end if
+		end config
+	end valid
+	
+end page

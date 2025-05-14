@@ -1,0 +1,283 @@
+page caitem
+     caption "Item Master"
+     //sidebar list stock,text html
+     sidebar text barcode,list dim,list itemlst,xrf,text mytext //caitemdocsv
+     sections form detail, script myscript
+
+	text barcode
+	  "<font size=2 face=IDAutomationHC39M>"+barcode+"</font>"
+	end text
+  text mytext
+	  #dream(DisplaySet captions,links,"v",200,1) //orientation)
+	end text
+
+	list itemlst
+        caption "Available Item List(s)"
+        table caitem
+        order xitem
+        rows 25
+        objects  xitem attrib(link #servlet+"?page="+page+"&command=Show&xitem=?"),~
+				xdesc,xgitem,xcat								
+     end list
+	
+     list dim
+        caption "Dimensions"
+				empty "No Dimensions Defined"
+        table (select pddim.zid, pditem.xitem,xcontext,pddim.xcpd,xseq,xdim,xrange from pddim,pditem ~
+				       where pddim.zid=pditem.zid and pddim.xcpd=pditem.xcpd) as tbl
+        order xitem,xcontext,xcpd,xseq,xdim
+        
+				fixed xitem
+        //select none
+        navigators none
+        rows 20
+        objects ~
+                xcontext caption(Con),xcpd caption(Cat),xdim caption(Dim),xrange,xseq attrib(hide)
+
+     end list
+     list xrf
+        caption "Cross References"
+				empty "No Cross References Defined"
+        table (select zid,xitem,case when exists(select xorg from cacus where zid=caxrf.zid and xcus=caxrf.xname) then (select xorg from cacus where zid=caxrf.zid and xcus=caxrf.xname) ~
+              else (select xorg from casup where zid=caxrf.zid and xsup=caxrf.xname) end||'<span class=br> ('||xname||')</span>' as xname, xcode from caxrf) as tbl
+        order xitem,xname
+        
+				fixed xitem
+        //select none
+        navigators none
+        rows 20
+        objects ~
+                xname caption(Name),xcode caption(Code)
+
+     end list
+
+     text html
+        "<p><b>Product Information</b><br>"
+        "<object border=0 data="+xlinks+" height=100% width=100% ></object>"
+
+     end text
+
+     valid valid
+      config
+        #include caitemdocs.include
+        set orientation="v"
+
+        //TODO - currency, xunitsel
+        set xpriceweb=caitemweb.xstdprice(xitem)
+        double xtaxweb=caitemweb.xtaxweb(xitem)
+        comp xpricew=xpriceweb/(1 + xtaxweb/100)
+        //print "xtaxweb="+xtaxweb
+        //print "xpricew="+xpricew
+        set xlpp=poodtview.xrate("xitem='"+xitem+"' and xrate>0 order by xdate desc")  
+        if xlpp <= 0
+          set xlpp=xstdcost
+        end if
+        set xapp=#sql(decimal,"select xval/xqty from imtrn where xitem='"+xitem+"' and xqty> 0 order by xdate desc")
+        print xapp
+		if xapp <= 0
+          set xapp=xstdcost
+        end if
+        comp xmarkup=100*(xpricew-xapp)/xapp
+        comp xmargin=100*(xpricew-xapp)/xpricew
+        comp xcostprice=(100*xapp)/(100-xmargincost)
+        str barcode=xbarcode
+        if barcode .eq. ""
+          set barcode=xitem
+        end if
+        
+        //set #fields(xdesc.caption)="<a href='http://www.youtube.com/watch?v=gPRESlT4Ccg' target='besame' >Description</a>"
+        
+      end config
+
+      
+      
+    end valid
+     
+     
+     
+     form detail
+        //caption "Item Master"
+        valid valid
+        table caitem
+        order xitem
+        //select
+        
+        layout 3
+        objects Show, Clear,Add,Update, Delete,Top, Previous, Next, Bottom,Docs,SerialNumbers,~//Warranties,Selling Prices,Purchasing Prices,
+          *block 4 notag,~
+          xitem attrib(search), xhide caption(Visibility) attrib(attach;alt),xstoporder,xcutpcs attrib(alt),xtypedim attrib(alt;attach),~
+          xtypeentry attrib(local) display(const), ~
+          xdesc columns(5) width(65), xbatchman caption(Batch/Matrix) attrib(attach;alt),xmatrix attrib(alt),~
+          xlong columns(5) width(70) height(3), xtypeserial attrib(alt),  ~
+          xnote columns(5) width(70) height(3),xtypestk attrib(alt),~
+          xlinks columns(5) width(70) height(3),xcatful attrib(alt),~
+          xbarcode columns(7) width(100),xstdprice caption(Standard Price) attrib(mandatory),xsrate caption(MRP) ,~
+		  //xbarcode columns(7) width(100),xstdprice caption(Standard Price) attrib(mandatory),xsrate caption(MRP)attrib(mandatory),~
+          *end block,~
+xwh,xunitsel,xunitstk, xunitalt,~
+          xunitiss,xunitpck,xunitsta, ~
+          xcfiss default(1), xcfpck default(1), xcfsta default(1),  ~
+          xgitem attrib(mandatory),xcitem,xcat,xpricecat,xtaxcat, xstype display(hide),xduty, xorigin, xdiv,  ~
+xsup,xwtunit,xwtnet, xunitwt, ~
+          xlife,xminordqty, xminordval, xordmult, xyield, ~
+          xdtf, xptf, xleadf, xleadv, xleadt, ~
+		~//xunitpur,xcfpur default(1),  xcfsel default(1), ~
+xalias, xitemnew, xitemold, xscode, xdrawing, ~
+           xabc, ~
+          xunitlen,xl,xw,xh,xbrand,~ 
+          xstdcost,xminprice caption(Internal Sales Price),~
+          xpriceweb inherits(xamt) attrib(local) display(const) caption(Web Price),~
+          xpricew inherits(xamt) attrib(local) display(const) caption(Web Price before Tax),~
+          xlpp inherits(xamt) attrib(local) display(const) caption(Last Purchase Price),~
+          xapp inherits(xamt) attrib(local) display(const) caption(Average Cost),~
+          xmarkup inherits(xamt) attrib(local) display(const) caption(Markup%),~
+          xmargin inherits(xamt) attrib(local) display(const) caption(Margin%),~
+          xmargincost,xcostmeth display(hide), ~
+          xcostprice inherits(xamt) attrib(local) display(const) caption(Cost Price),xmultisel,xmultipur,xdateeff,xdateexp,xratio caption(Retail Qty),xqtydor caption(Retail Price),xqtyrem caption(Whole Sale Qty),xnetrate caption(Whole Sale Price),xremrate caption(2nd Whole Sale Qty),xremamt caption(2nd Whole Sale Price),xdatearr caption(From Date),xdateacq caption(To Date),xflagrfq caption(Offer Name),xstrip,xloc
+          
+          field xloc
+            caption Bin Locations
+            picklist "select xloc from whloc where xwh='"+xwh+"'"
+            display area//multilist
+            height 4
+            width 10
+          end field
+		  
+		  field Add
+			event before
+				set xstype=xtypestk
+				set xcostmeth="Weighted Average"
+			end event
+		  end field
+		  
+		  field xscode
+			
+				pick "select xcode from xcodes where zid='"+#id+"' and xtype='Offer' and zactive='1'"
+			
+		  end field
+		  
+		  field Update
+			event before
+				set xstype=xtypestk
+			end event
+		  end field
+
+          //columns(3)
+
+        embed onsubmit="submitit(this)"
+
+
+
+      field xcat
+	        display text
+    		pick "select xcode from xcodes where zid='"+#id+"' and xtype='Item Category' and zactive='1'"
+      end field
+	  
+	  field xduty
+			caption Vat Item Group
+	        pick "select xcode from xcodes where zid='"+#id+"' and xtype='Vat Item' and zactive='1'"
+      end field
+    
+	
+	//field xwh
+    //    display text
+    //  pick list xwh
+    //end field
+    //field xcitem
+    //    display text
+    //  pick list xcitem
+    //end field
+    //field xgitem
+    //    display text
+    //  pick list xgitem
+    //end field
+    //field xorigin
+    //    display text
+    //  pick list xorigin
+    //end field
+
+	  field xitem
+//caption Product Code
+//pick list xitemall
+
+//attrib mandatory
+event after
+            if xtypeserial .sw. "1"
+            else
+              set #field(SerialNumbers.display)="disabled"
+            end if
+
+            if xtypestk .ne. "Non-Stock"
+             set #field(Warranties.display)="disabled"
+            end if
+            set globals(xitem)=xitem
+          	set globals(xdesc)=xdesc
+          	set globals(xunitstk)=xunitstk
+
+              set globals(returnpage)="caitem"
+              set globals(trnfield)="xitem"
+              set globals(xtypetrn)="Item"
+              set globals(xtrnnum)=xitem
+
+							int count=#sql(int,"select count(*) from cadocs where xtypetrn='Item' and xtrnnum='"+xitem+"'")
+							if count < 1
+								set #text(caitemdocsv)=""
+							end if
+							
+							call catypeentry
+          end event
+        end field
+
+
+        field Selling
+          embed onclick="clicked(this)"
+        end field
+
+        field Purchasing
+          embed onclick="clicked(this)"
+        end field
+        field Warranties
+          embed onclick="clicked(this)"
+        end field
+        field SerialNumbers
+          embed onclick="clicked(this)"
+        end field
+        field Docs
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail=b.value
+        }
+        function submitit(form){
+          //alert(detail)
+					if (detail=="Selling Prices"){
+            form.page.value = "opstditem"
+            form.searchbutton.value = "Top"
+          }else if (detail=="Purchasing Prices"){
+            form.page.value = "postditem"
+            form.searchbutton.value = "Top"
+          }else if (detail=="Warranties"){
+            form.page.value = "wmcomitem"
+            form.searchbutton.value = "Top"
+          }else if (detail=="Docs"){
+            form.page.value = "xdocs"
+            form.searchbutton.value = "Top"
+          }else if (detail=="SerialNumbers"){
+            form.page.value = "caserial"
+            form.searchbutton.value = "Top"
+					}
+
+        }
+        </script>
+     end script
+
+
+end page

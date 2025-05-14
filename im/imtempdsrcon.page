@@ -1,0 +1,533 @@
+page imtempdsrcon //imtempdsr
+     //embed onload="move_caret('one','xitem')"
+     //caption "<span class=bl>Details for: <a href=/da/main?page=imtemptsr&command=Show&ximtmptrn="+ximtmptrn+">" +ximtmptrn+ "</a></span>"
+     caption "<span class=bl>Details for <a href=/da/"+#servlet+"?page=imtemptsr&command=Show&ximtmptrn="+ximtmptrn+">" +ximtmptrn+ "</a></span>"
+     
+     sidebar list one//,imstk,imbin
+     sections list header, form one, script myscript,text top
+	 
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+
+    list header
+        //caption "<span class=bl>"+trndesc+": <a href=/da/main?page=imtemptsr&command=Show&ximtmptrn="+ximtmptrn+">" +ximtmptrn+ "</a></span>"
+        table imtemptrn
+        order ximtmptrn
+        fixed ximtmptrn
+        rows 2 f
+        objects ~
+                ximtmptrn attrib(link #servlet+"?page=imtemptsr&command=Show&ximtmptrn=?"), ~
+                xref,xwh,xstatustrn
+                
+        field ximtmptrn
+          caption Trn Number
+        end field
+
+        field xstatustrn
+        	caption Status
+        end field
+        
+     end list
+    
+     list one
+        caption "List of Items Added"
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=imtemptdt.zid and xitem=imtemptdt.xitem) as xdesc ~
+			from imtemptdt) as tbl
+
+        order ximtmptrn,xtorlno DESC
+        fixed ximtmptrn
+        rows 5
+        objects xtorlno attrib(link #servlet+"?page="+page+"&command=Show&ximtmptrn=?&xtorlno=?"), ~
+                xitem,xdesc,xqtyreq,xunit,xqtyord
+
+        totals "","Totals",sum,"",sum
+
+        field xtorlno
+           caption Line No.
+        end field
+
+        field xqtyord
+          caption Qty Approved
+        end field
+        
+
+       field xunit
+         caption Unit
+       end field
+       
+       field itemdesc
+       		caption Description
+       		storage varchar
+       end field
+
+       field xval
+         caption Value
+       end field
+   end list
+ 
+  form one
+    //caption "<font color=black size=3>Details for "+globals(ximtmptrn)+" </font>"
+    valid valid,access
+    table imtemptdt
+    order ximtmptrn,xtorlno DESC
+    fixed ximtmptrn
+    focus xitem
+	default Add
+    layout 1
+    objects Show,Add,Clear,Update, Top, Previous, Delete, Next, Bottom,Return,~//SerialNumbers
+            xtorlno attrib(row 0 1; search),"",xitem attrib(attach; submit),desc,xqtyreq attrib(attach),~
+            xunit,xqtyord display(hide), xfrslnum display(hide),xtoslnum display(hide),~
+			xbatch,xbin width(20) display(hide),xrate display(hide),xval display(hide),~
+			xdatesch display(hide),ximtrnnum,xdocnum, zemail display(const),~
+            xemail display(const)
+
+    field xtorlno 
+    	caption Line No.
+      event after
+          set globals(xtorlno) = xtorlno
+          set globals(xwh) = imtemptrn.xwh("zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"'")
+          
+//--for serial number   
+            set globals(returnpage)="imtempdsrcon"
+            set globals(xitem)=xitem
+            set globals(xqty)=xqtyord
+			            
+			set globals(returnpage)=page
+			set globals(trnfield)="ximtmptrn"
+			set globals(trnrowfield)="xtorlno"
+			set globals(xtypeout)="Inventory Trn Issue"
+			set globals(xnumout)=ximtmptrn
+			set globals(xrowout)=xtorlno
+			set globals(xconout)="0"
+			
+			set xtypeserial=caitem.xtypeserial(xitem)
+			set xmethserial=caitem.xmethserial(xitem)
+    //		print xtypeserial+" "+xmethserial
+			if xtypeserial .sw. "1"
+				double qtyser=#sql(double,"select count(*) from imser ~
+					where zid='"+#id+"' and xwh='"+globals(xwh)+"' and xitem='"+xitem+"' and xtypeout='"+globals(xtypeout)+"' and xnumout='"+globals(xnumout)+"' and xrowout="+globals(xrowout)+")
+				if xqtyreq > 0
+					if qtyser <> xqtyreq 
+						print "<span class=br>Serial Number Mismatch -- Please Correct!</span>"
+					end if
+				end if
+			else
+				set #field(SerialNumbers.display)="disable"
+			end if
+			
+//-end of serial number
+          
+          set statustrn = imtemptrn.xstatustrn("ximtmptrn='"+ximtmptrn+"'")
+          if statustrn .eq. #status("xstatustrn",5)
+            set #field(Add.display) = "disable"
+    //        set #field(Update.display) = "disable"
+    //        set #field(Delete.display) = "disable"
+            set #field(xqtyord.display) = "const"
+            set #field(SerialNumbers.display) = "disable"
+          end if
+          
+          if statustrn .eq. #status("xstatustrn",2)
+		  	set xreqapp = #sql("select xreqapp from imdef where zid='"+#id+"'")
+          	if xreqapp .eq. "Yes"			          
+            	set #field(Add.display) = "disable"
+    //        	set #field(Update.display) = "disable"
+    //        	set #field(Delete.display) = "disable"
+		  		set #field(xqtyord.display) = "const"
+			else
+				set #field(xqtyord.display) = "hide"
+			end if 
+          end if
+
+          if statustrn .eq. #status("xstatustrn",1)
+          	if globals(mode) .eq. "Approval"
+          		set #field(xqtyreq.display) = "const"
+          		set #field(Add.display) = "disable"
+    //      		set #field(Delete.display) = "disable"
+          	else
+		  		set #field(xqtyord.display) = "hide"
+			end if 
+          end if
+          
+      	  set #field(zemail.caption) = "Entered By"
+      	  set #field(xemail.caption) = "Last Updated By"                  
+      end event
+      col 3
+    end field
+	
+	field xitem
+		pick list xitem
+	end field
+
+
+    field desc
+      attrib local
+      caption Item Description
+      event after
+        set desc=#sql("select xdesc from caitem where xitem='"+xitem+"'")
+      end event
+      display constant
+    end field
+
+    field xunit
+      display constant
+    end field
+
+    field ximtrnnum
+      caption Inventory Trn
+      display constant
+    end field
+
+    field xdocnum
+      caption Inventory RE Trn
+      display hide
+    end field
+
+    field xqtyord
+      caption Quantity Approved
+    end field
+
+    field Add
+      event before
+        set globals(ErrChk) = ""
+	     call chk_rec
+	     
+	     set globals(oldqty) = 0.0
+	     set xqtyord=0.0+xqtyreq
+        set xunit = caitem.xunitstk("xitem='"+xitem+"'")
+        if xunit .eq. ""
+          set globals(ErrChk) = "1"
+          error "Stocking unit not defined"
+        end if
+        if globals(ErrChk) .ne. "1"
+          if globals(xsign) > 0
+            call chk_cost
+          end if
+        end if
+        if globals(ErrChk) .eq. ""
+          call chk_stk
+        end if
+        if globals(ErrChk) .ne. "1"
+          set binman = caitem.xbinman("zid='"+#id+"' and xitem='"+xitem+"'")
+          if binman .eq. "1"
+          	if xbin .eq. ""
+          		set xbin = caitem.xbin("zid='"+#id+"' and xitem='"+xitem+"'")
+          		set chkbin = #sql("select xbin from caitem where zid='"+#id+"' and xitem='"+xitem+"' and xbin='"+xbin+"' and xbin<>''")
+          		if #result .ne. "true"
+          			set globals(ErrChk) = "1"
+          			error "Bin number required"
+          		end if
+          	end if
+          	if globals(ErrChk) .ne. "1"
+          		set binqty = #sql(double,"select sum(xqty) from imbinv where zid='"+#id+"' and xitem='"+xitem+"' and xbin='"+xbin+"' and xwh='"+xwh+"'")
+          		if xqtyord > binqty
+          			set globals(ErrChk) = "1"
+          			error "Not enough stock on bin "+xbin+"<br>Available: "+binqty+" Required: "+xqtyord
+          		end if
+          	end if
+          end if
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+          set zemail = #user
+          set xval = 0
+        end if
+        if globals(ErrChk) .ne. ""
+          action show
+        end if
+      end event      
+    end field
+
+    field Update
+      event before
+        set globals(ErrChk) = ""
+        
+        call chk_rec
+
+		if globals(ErrChk) .ne. "1"
+			if globals(mode) .eq. "Approval"
+	        else
+				set xqtyord = xqtyreq
+			end if
+		end if
+		
+        if globals(ErrChk) .ne. "1"
+          set globals(oldqty) = 0.0 + imtemptdt.xqtyord("ximtmptrn='"+globals(ximtmptrn)+"' and xtorlno='"+globals(xtorlno)+"'")
+          call chk_stk
+        end if
+        if globals(ErrChk) .ne. "1"
+          set binman = caitem.xbinman("zid='"+#id+"' and xitem='"+xitem+"'")
+          if binman .eq. "1"
+          	if xbin .eq. ""
+          		set xbin = caitem.xbin("zid='"+#id+"' and xitem='"+xitem+"'")
+          		set chkbin = #sql("select xbin from caitem where zid='"+#id+"' and xitem='"+xitem+"' and xbin='"+xbin+"' and xbin<>''")
+          		if #result .ne. "true"
+          			set globals(ErrChk) = "1"
+          			error "Bin number required"
+          		end if
+          	end if
+          	if globals(ErrChk) .ne. "1"
+          		set binqty = #sql(double,"select sum(xqty) from imbinv where zid='"+#id+"' and xitem='"+xitem+"' and xbin='"+xbin+"' and xwh='"+xwh+"'")
+          		if xqtyord > binqty
+          			set globals(ErrChk) = "1"
+          			error "Not enough stock on bin "+xbin+"<br>Available: "+binqty+" Required: "+xqtyord
+          		end if
+          	end if
+          end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          set xemail = #user
+        end if
+
+        if globals(ErrChk) .ne. ""
+          action show
+        end if
+      end event
+    end field
+
+    field delete
+      event before
+        set globals(ErrChk) = ""
+
+        call chk_rec
+        
+        if globals(ErrChk) .ne. "1"
+    		set count = #sql(int,"select count(*) from imser where zid='"+#id+"' and xitem='"+xitem+"' and xnumout='"+globals(xnumout)+"' and xrowout='"+globals(xrowout)+"'")
+    		if count > 0
+    			set globals(ErrChk) = "1"
+				error "You Have Available Serial Numbers -- Cannot Delete!"
+    		end if        
+		end if
+        
+        if globals(ErrChk) .ne. "1"
+          set globals(oldqty) = 0.0 + imtemptdt.xqtyord("ximtmptrn='"+globals(ximtmptrn)+"' and xtorlno='"+globals(xtorlno)+"'")
+          call chk_stk
+        end if
+      end event
+    end field
+
+    embed onsubmit="submitit(this)"
+    field Return
+      embed onclick="clicked(this)"
+    end field
+
+    field SerialNumbers
+      embed onclick="serial(this)"
+    end field
+
+  end form
+
+  script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+		  
+	    <script language="javascript" type="text/javascript">
+	      var but = ""
+	      function clicked(b){
+	        but = "clicked"
+	      }
+	      function serial(b){
+	          but = "serial"
+	      }
+	        
+	      function submitit(form){
+	        if (but == "clicked"){
+	          form.page.value="imtemptsrcon"
+	          form.searchbutton.value = "Find ximtmptrn=?"
+	        }
+	      if (but == "serial"){
+	        form.page.value = "imserout"
+	        form.searchbutton.value = "Top"
+		      }
+	      }
+        function pickBin(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xbin.value=link.text
+          }else{
+            document.one.xbin.value=link.innerText
+          }
+          return false
+        }
+	      
+	    </script>
+  end script
+
+	method chk_rec
+		set statustor = imtemptrn.xstatustrn("ximtmptrn='"+ximtmptrn+"'")
+		if statustor .eq. #status("xstatustrn",5)
+			set globals(ErrChk) = "1"
+			error "Already Confirmed"
+		end if
+	end method
+  
+  method chk_stk
+    decimal avlqty=0.0
+    decimal rqty = 0.0
+    str xwh = globals(xwh)
+
+    if globals(ErrChk) .ne. "1"
+      if #command .eq. "Add"
+        set rqty = 0.0+xqtyord
+      else if #command .eq. "Update"
+        set rqty = 0.0+xqtyord - globals(oldqty)
+      else if #command .eq. "Delete"
+        set rqty = 0.0-globals(oldqty)
+      end if
+
+      if globals(xsign) < 0
+	      buffer imstock
+	      move imstock=imstock(xitem,xwh)
+		  
+	      if #result .ne. "true"
+	         set globals(ErrChk) = "1"
+	         error "Stock not found for this Item"
+	      end if
+	
+	      if globals(ErrChk) .ne. "1"
+	       set avlqty = 0.0+imstock.xinhand-imstock.xopord-imstock.xopdor-imstock.xwoalc-imstock.xwokit-imstock.xtoout-imstock.xaltqty
+	       if avlqty<rqty
+	         set globals(ErrChk) = "1"
+	         error "Not enough stock<br>Available="+avlqty
+	       end if
+	      end if    
+      end if
+    end if
+  end method
+
+	  method upd_value
+	     if globals(xsign) >0
+	        if xval <= 0
+	          set xrate = #sql(decimal,"select xstdcost from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+	          //class osbcustom(#calc(xqtyord,xrate,"*",2,xval))
+	          set xval = 0.00+xqtyord*xrate
+	        else
+	          //class osbcustom(#calc(xqtyord,xrate,"*",2,xval))
+	          set xval = 0.00+xqtyord*xrate
+	        end if
+	     end if
+	  end method
+
+	  method chk_cost
+	    //error #result
+	    set xstdcost = #sql(decimal,"select xstdcost from caitem where xitem='"+xitem+"'")
+	    if xstdcost <= 0
+	      set globals(ErrChk) = "1"
+	      error "Item Cost undefined.<br>"
+	    end if
+	  end method
+     
+     valid valid
+     	config
+        	set globals(pkey) = ximtmptrn+" "+xtorlno
+
+    		set count = #sql(int,"select count(*) from imser where zid='"+#id+"' and xitem='"+xitem+"' and xnumout='"+globals(xnumout)+"' and xrowout='"+globals(xrowout)+"'")
+    		if count > 0
+    			set #field(Delete.display) = "disabled"
+    		end if 
+
+			set trndesc = #sql(str,"select xdesc from xtrn where zid='"+#id+"' and xtypetrn='Im Transaction' and xtrn='"+globals(xtrnimf)+"'")
+     		set desc=#sql("select xdesc from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+     		set xunit = caitem.xunitstk("zid='"+#id+"' and xitem='"+xitem+"'")
+     		set xleadt = caitem.xleadt("zid='"+#id+"' and xitem='"+xitem+"'")
+     		if xleadt > 0
+				int day = #days(#date)+xleadt
+				set xdatesch = #longtodate(day)
+     		end if
+
+			set chkrec = imtemptdt.xtorlno("zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"' and xtorlno='"+xtorlno+"'")
+			if #result .eq. "true"
+			else
+				set #field(SerialNumbers.display)="disable"
+			end if
+			     		
+	        if xrate <= 0
+	          set xrate = #sql(decimal,"select xstdcost from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+	          set xval = 0.00+xqtyord*xrate
+	        else
+	          set xval = 0.00+xqtyord*xrate
+	        end if     		
+	        
+            set atrate = #sql("select xattribrate from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atrate .eq. "Show"
+            else if atrate .eq. "Constant"
+            	set #field(xrate.display) = "const"
+            else if atrate .eq. "Hide"
+            	set #field(xrate.display) = "hide"
+            end if   
+            
+            set atval = #sql("select xattribval from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atval .eq. "Show"
+            else if atval .eq. "Constant"
+            	set #field(xval.display) = "const"
+            else if atval .eq. "Hide"
+            	set #field(xval.display) = "hide"
+            end if   
+
+            set atbatch = #sql("select xattribbatch from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atbatch .eq. "Show"
+            else if atbatch .eq. "Constant"
+            	set #field(xbatch.display) = "const"
+            else if atbatch .eq. "Hide"
+            	set #field(xbatch.display) = "hide"
+            end if                           
+	        
+            set atbbin = #sql("select xattribbin from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atbbin .eq. "Show"
+            else if atbbin .eq. "Constant"
+            	set #field(xbin.display) = "const"
+            else if atbbin .eq. "Hide"
+            	set #field(xbin.display) = "hide"
+            end if                    
+	        
+            set atzemail = #sql("select xattribzemail from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atzemail .eq. "Show"
+            else if atzemail .eq. "Constant"
+            	set #field(zemail.display) = "const"
+            else if atzemail .eq. "Hide"
+            	set #field(zemail.display) = "hide"
+            end if   
+            
+            set atxemail = #sql("select xattribxemail from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atxemail .eq. "Show"
+            else if atxemail .eq. "Constant"
+            	set #field(xemail.display) = "const"
+            else if atxemail .eq. "Hide"
+            	set #field(xemail.display) = "hide"
+            end if                          
+            
+     	end config
+     end valid
+
+#include access.valid
+     
+end page

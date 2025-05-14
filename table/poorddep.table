@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table poorddep
+  caption "Purchase Order Receiving Depot"
+  columns ztime,zutime,zid,xpornum,xsup,xrow,xorg,xadd1, xadd2, xcity, xstate,xzip,xcountry,~
+          xsalute, xfirst,xmiddle,xlast, xtitle, xemail, xphone, xfax, xurl, ~
+          xwh
+          
+  primary key zid, xpornum
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xpornum references poord.zid,xpornum
+  end foreign key
+  
+end table

@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table opordsms
+  caption "Sales Order Via SMS"
+  columns zid,xordernum,xrow,xdate,xcus,xref,xitem,xdesc,xqty,xsp,zactive
+  
+  primary key zid,xordernum,xrow desc
+  
+  foreign key
+        zid references zbusiness.zid
+       // zid,xcus references cacus.zid,xcus
+  end foreign key
+end table
+

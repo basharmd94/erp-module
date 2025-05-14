@@ -1,0 +1,343 @@
+page poquota
+
+     //caption "Quotation Approval"
+     caption header 
+     sidebar list poqudt
+	 dependent
+     sections form one, list one, script myscript,text top
+     
+     text top
+      "<a href=#top title='Back To Top'><font color=blue size=+1>Go Top</font></a>"
+     end text
+
+     list poqudt
+        caption "<font size=2>Supplier(s) for "+xpoqot
+		table (select *,~
+			(select xorg from casup ~
+			where zid=poqudt.zid and xsup=poqudt.xsup) as supdesc ~
+			from poqudt) as tbl		
+        order xpoqot,xrow
+        fixed xpoqot
+        rows 5 f
+        objects xrow attrib(link #servlet+"?page=poqudta&command=Show&xpoqot=?&xrow=?"), ~
+                xsup,supdesc,xcur,xrate
+
+        totals count,"Totals","",""
+
+        field supdesc
+          storage varchar
+          caption Name
+        end field
+
+     end list
+     
+     list one
+     	caption "<font color=blue>Last 5 Records"
+		empty " "
+        table poquot
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=poquot.zid and xitem=poquot.xitem) as itemdesc ~
+			from poquot) as tbl
+		
+        order xpoqot desc
+		select "zid='"+#id+"' "///and xemail1='"+#users+"'"
+        rows 5 
+        objects xpoqot attrib(link #servlet+"?page=poquota&command=Show&xpoqot=?"), ~
+                xdate,xref,xitem,itemdesc,xstatusqot,zactive
+
+        field name
+          caption Name
+          storage varchar
+        end field
+
+        field xref
+          caption Requisition No.
+        end field
+
+        field xpoqot
+          caption Quotation No.
+        end field
+
+     end list
+
+
+    form one
+        //caption "<font color=black size=3>Quotation Approval"
+		valid valid,access
+        table poquot
+        order xpoqot desc
+        
+        layout 2
+        objects Details,Show,Clear,Update, Top, Previous,Delete, Next, Bottom,~
+                xpoqot display(text),xdate default(#d),~
+                xitem attrib(attach),item_name,xdesc,xref,~
+                xdiv display(hide),xsec display(hide),xproj display(hide),xstatusqot display(const),xlong,~
+                zemail display(hide),xemail display(hide),zactive
+        
+        field xpoqot
+          event after
+          	set globals(returnpage)=page
+          	set globals(trnfield)="xpoqot"   			
+            set globals(xpoqot)=xpoqot
+            if xpoqot .eq. ""
+              set #field(Details.display) = "hide"
+              set #field(Update.display) = "hide"
+            end if
+            if xstatusqot .eq. "Order Created"
+              set #field(Delete.display) = "hide"
+              set #field(xdate.display) = "const"
+              set #field(xitem.display) = "const"
+              set #field(xlong.display) = "const"
+              set #field(xdesc.display) = "const"
+              set #field(xref.display) = "const"
+            end if
+            set appstat = #sql("select xrow from poqudt where xpoqot='"+xpoqot+"' and xstatuspdt='Approved'")
+			if #result .eq. "true"
+            	set #field(Add.display) = "disable"
+            	set #field(Update.display) = "disable"
+            	set #field(Delete.display) = "disable"
+            	set #field(Approve.display) = "disable"
+            	set #field(xitem->.display) = "const"
+			end if
+              set #field(xval.caption) = "<font color=red>"+#field(xval.caption)+"</font>"
+              set #field(xdtdisc.caption) = "<font color=red>"+#field(xdtdisc.caption)+"</font>"
+              set #field(xtotamt.caption) = "<font color=red>"+#field(xtotamt.caption)+"</font>"
+              //class osbcustom(osb2crystal("w","poqot","Print Quotation ",xpoqot))
+
+          end event
+        end field
+
+
+        field xcur
+//          display text
+//          pick xcur
+          default "BDT"
+          event after
+            set globals(xcur) = xcur
+          end event
+        end field
+
+        field xexch
+          event after
+            set globals(xexch) = xexch
+          end event
+        end field
+
+        field xlong
+          caption Note/Remarks
+          col 3
+          height 2
+          width 80
+        end field
+
+        field item_name
+          attrib local
+          display const
+          caption Name
+          event after
+            set item_name=#sql(str,"select xdesc from caitem where xitem='"+xitem+"'")
+          end event
+        end field
+
+        field xsupref
+          display hide
+        end field
+
+        field xref
+          caption Requisition Number
+        end field
+
+        field xitem
+          event after
+            set globals(xitem) = xitem
+          end event
+        end field
+
+        field xstatusqot
+          event after
+            set globals(xstatusqot) = xstatusqot
+          end event
+        end field
+
+        field zactive
+          event after
+            set globals(zactive)=zactive
+          end event
+        end field
+
+        field xdatesupref
+          display hide
+        end field
+
+        field Add
+          event before
+             set globals(ErrChk) = ""			 
+			 
+			 if globals(ErrChk) .ne. "1"
+             	call chk_ref
+             end if
+
+             if globals(ErrChk) .eq. ""
+               buffer caitem
+               move caitem=caitem(xitem)
+               if #result .ne. "true"
+                  set globals(ErrChk) = "1"
+                  error "Wrong Item Code"
+               else
+                  set xstatusqot="New"
+                  set zemail=#user
+               end if
+               if globals(ErrChk) .ne. "1"
+                  call upd_req
+               end if
+            end if
+          end event
+        end field
+
+        field Update
+          event before
+            set globals(ErrChk)=""
+            
+            if globals(ErrChk) .ne. "1"
+            	call chkrec
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call chk_ref
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+               if xitem .ne. globals(xitem)
+                  set globals(ErrChk) = "1"
+                  error "Cannot Change Item"
+               end if
+               if xpoqot .ne. globals(xpoqot)
+                  set globals(ErrChk) = "1"
+                  error "Cannot Change Order Number"
+               end if
+            end if
+          end event
+        end field
+        
+        field Delete
+          event before
+            set globals(ErrChk) = ""
+            
+            if globals(ErrChk) .ne. "1"
+            	call chkrec
+            end if
+            if globals(ErrChk) .ne. "1"
+               call upd_req
+            end if
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Details
+          embed onclick="clicked()"
+        end field
+
+   end form
+
+
+    script myscript
+      <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(){
+          detail="clicked"
+        }
+
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "poqudta"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+
+        function pickSup(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xsup.xvalue=link.text
+          }else{
+            document.one.xsup.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+     method chkrec
+
+        if #command .eq. "Update" .and. xpoqot .ne. globals(xpoqot)
+          set globals(ErrChk) = "1"
+          error "Record pointer Mismatch, Try SHOW instead.<br>"
+        end if
+
+        if xstatusqot .eq. "Order Created"
+          if zactive .ne. globals(zactive)
+          else
+            set globals(ErrChk) = "1"
+            error "Cannot "+#command+"<br>Already "+globals(xstatusqot)
+          end if
+        end if
+     end method
+
+     method chk_ref
+        set chk_reqnum = #sql(str,"select xsrqnum from poreq where xref='"+xref+"'")
+//        print chk_reqnum
+          if chk_reqnum .eq. ""
+            set globals(ErrChk) = "1"
+            error "Requisition No. "+xref+" not found; Cannot "+#command
+          end if
+     end method
+
+     method upd_req
+      if #command .ne. "Delete"
+        str mysql="update poreq set xstatusreq = 'Quoted' where zid="+#id+" and xref = '"+xref+"'" 
+        set updval=#sql(mysql)
+      else
+        str mysql="update poreq set xstatusreq = 'New' where zid="+#id+" and xref = '"+xref+"'"
+        set updval=#sql(mysql)
+      end if
+     end method
+	 
+    valid valid
+     	mandatory xitem
+        config
+        
+            set globals(pkey)=xpoqot
+            
+			set chkrec = #sql(int,"select count(*) from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"'")
+			if chkrec == 0
+				print "<span class=bl>No Details Entered -- Go to Details and Add record.</span>"
+			end if
+			
+			set xtrnpoqt = #sql(str,"select xtrn from xtrn where zid='"+#id+"' and xtypetrn='Purchase Quotation' and zactive='1'")
+				        
+			set header = "Quotation Approval"+"<br><a href='"+#report(poquot.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xpoqot+"&prompt2="+xpoqot+"' target='_new'>Print</a>"
+			
+			if xitem .ne. ""
+                set globals(xitem)=xitem
+				set #field(xref.pick)="list xporeq"
+			end if	    
+			
+			set chkrec = #sql(int,"select count(*) from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xstatusqdt='"+#status("xstatusqdt",4)+"'")
+			if chkrec > 0
+                set #field(xdate->.display) = "const"
+				//set #field(xstatusqot.display) = "hide"
+				set #field(update.display) = "disable"
+				set #field(delete.display) = "disable"
+				set appsup = #sql(str,"select xsup from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xstatusqdt='"+#status("xstatusqdt",4)+"'")  
+				set appstat = #sql(str,"select xstatusqdt from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xstatusqdt='"+#status("xstatusqdt",4)+"'")
+			else
+				set #field(appsup.display) = "hide"
+				set #field(appstat.display) = "hide"
+			end if
+        end config
+    end valid
+	
+#include access.valid
+	
+end page

@@ -1,0 +1,16 @@
+table prlv
+	caption "Leave Transaction"
+
+	columns ztime,zutime,zid,xemp,xleave,xdate,xfdate,xtdate,xdaysreq,~
+			xdaysapp,xyear,xper,xphone,xremark,xlvtype,xpurpose,xstatusleave,~
+			xrecommendedby,xapprovedby,xcancelreqby,xcancelledby,xnote,xpflag,~
+			xuserc,xuseru
+
+	primary key zid,xemp,xleave,xdate
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xemp references prmst.zid,xemp
+	end foreign key
+
+end table

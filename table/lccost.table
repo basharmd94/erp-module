@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table lccost
+  caption "L/C Cost Details"
+  columns ztime,zutime,zid,xlctrnnum,xpornum,xline,xpocode,xacccat,xcur,xexch,xdaterel,xcost,xpocracc,xstatusresp,xsubcr,~
+          xcostacc,xsubdr,zactive,xsign,xcheque,xpaytype,xnote,xtrngl,xdesc,xgrnnum,xperc,xdateclr
+
+  primary key zid, xlctrnnum , xline 
+
+  foreign key
+        zid references zbusiness.zid 
+        zid,xlctrnnum references lcmst.zid,xlctrnnum
+        zid,xpocode references pocharge.zid,xpocode
+  end foreign key
+end table

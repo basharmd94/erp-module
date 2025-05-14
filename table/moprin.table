@@ -1,0 +1,29 @@
+product ERP on the Net
+
+table moprin
+	caption "GL Detail View"
+
+	columns ztime,zutime, zid, xmoord,xtype,xqty,xdisc,xqtyord,xqtyreq,xrate,xqtygrn,xdate,~
+				xrem,xshift,xemp,xname,xempf,xdesc,xempt,xorg,xitem,xfirst
+			
+
+	primary key zid, xvoucher, xtype
+
+	sql create view moprin (~
+		ztime,zutime, zid, xmoord,xtype,xqty,xdisc,xqtyord,xqtyreq,xrate,xqtygrn,xdate,xrem,xshift,xemp,xname,xempf,xdesc,xempt,xorg,xitem,xfirst) ~
+		as select  ~
+		moperfomdt.ztime,moperfomdt.zutime, moperfomdt.zid, moperfomdt.xmoord,moperfomdt.xtype,~
+		moperfomdt.xqty, ~
+		moperfomdt.xdisc, ~
+		moperfom.xqty,moperfom.xqtyord,moperfom.xqtyreq,~
+		moperfom.xdisc,moperfom.xdate,moperfom.xrem,moperfom.xshift,moperfom.xemp,~
+		coalesce((select xname from prmst where zid=moperfom.zid and xemp=moperfom.xemp),''),~
+		moperfom.xempf,coalesce((select xname from prmst where zid=moperfom.zid and xemp=moperfom.xempf),''),~
+		moperfom.xempt,coalesce((select xname from prmst where zid=moperfom.zid and xemp=moperfom.xempt),''),xitem, ~
+		coalesce((select xdesc from caitem where zid=moperfom.zid and xitem=moperfom.xitem),'') ~
+		from moperfomdt, moperfom where moperfomdt.zid=moperfom.zid and moperfomdt.xmoord=moperfom.xmoord
+				   
+
+end table
+
+

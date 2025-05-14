@@ -1,0 +1,187 @@
+page cacuscrdlmt
+
+     caption "Credit Limit Entry for "+globals(xcus)
+	 dependent
+	 
+     sidebar list one
+     sections form one,text top, script myscript
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>" 
+     end text
+
+     list one
+     	caption "Added Record(s)"
+        table cacuscrdlmt
+        order xcus,xrow desc
+        fixed xcus
+        rows 5
+        objects xrow attrib(link #servlet+"?page="+page+"&command=Show&xcus=?&xrow=?"),~
+        			 xdatefrom,xcrlimit
+        			 
+           field xdatefrom
+                caption Date
+           end field
+
+     end list
+
+     form one
+        //caption "<font color=black size=3>Credit Limit Entry for </font>"+globals(xcus)
+        valid valid,access
+   	    table cacuscrdlmt
+        order xcus,xrow desc
+        fixed xcus
+		focus xcrlimit
+        layout 1
+		default Add
+        objects Add,Show,Update,Delete,Clear,Top, Previous,Next, Bottom,Return,~
+				xrow attrib(row 0 1),xcrlimit,xdatefrom caption(Date),xdateto display(hide),~
+                zemail display(hide),xemail display(hide),~
+                xapprover display(hide),xtime display(hide)
+				
+        field xrow
+			event after
+				set globals(xrow)=xrow
+			end event
+        end field
+        
+        field Add
+          event before
+          	set globals(ErrChk)=""
+
+          	if globals(ErrChk) .ne. "1"
+          		//if xcrlimit <= 0.0
+          		//	set globals(ErrChk) = "1"
+          		//	error "Key in Amount"
+          		//end if
+          	end if
+          	
+          	set xdatefrom=#date
+          	if xdatefrom .eq. #max .or. xdatefrom .eq. ""
+                set globals(ErrChk) = "1"
+          		error "Invalid Date"
+          	end if
+
+          	if xdateto .eq. #max .or. xdateto .eq. ""
+                //set globals(ErrChk) = "1"
+          		//error "Invalid To Date"
+          	end if
+
+          	if globals(ErrChk) .eq. ""
+            	set zemail=#user
+            	set xtime=#time
+            end if
+			if globals(ErrChk) .eq. ""
+				begin
+			end if
+          end event
+          event after
+				if globals(ErrChk) .ne. "1"
+				    set updsql=#sql(str,"update cacus set xcrlimit='"+xcrlimit+"' where  zid='"+#id+"' and xcus='"+xcus+"'")
+					if #result .eq. "true"
+						commit
+					else
+						rollback
+					end if
+				end if
+          end event
+        end field
+        
+        field Update
+            event before
+                set globals(ErrChk)="1"
+                error " "
+            end event
+        end field
+
+        field Delete
+            event before
+                error " "
+                set globals(ErrChk)="1"
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+        
+     end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+
+		function submitit(form){
+	      if (detail=="clicked"){
+            form.page.value = "cacus"
+            form.searchbutton.value = "Find xcus=?"
+          }
+        }
+        
+        function pickCus(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcus.value=link.text
+          }else{
+            document.one.xcus.value=link.innerText
+          }
+          return false
+        }
+
+        function pickCus1(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcus_ONE.value=link.text.substring(0,4)
+            document.one.xcus_TWO.value=link.text.substring(4)
+          }else{
+            document.one.xcus_ONE.value=link.innerText.substring(0,4)
+            document.one.xcus_TWO.value=link.innerText.substring(4)
+          }
+          return false
+        }
+        
+        </script>
+     end script
+
+	valid valid
+		config
+			set globals(pkey) = xcus+" "+xrow
+		end config
+	end valid
+
+#include access.valid
+
+end page

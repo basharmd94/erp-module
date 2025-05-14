@@ -1,0 +1,10 @@
+Formula of Depreciation Method:
+Reducing Balance Method: Commonly Used
+Net Book Value(WDV)* Depreciation Percent= Depreciation  per month
+WDV=Asset cost – Total Depreciation 
+
+Straight Line Method:
+Amount – Salvage Value/Estimated Life=Depreciation  per month
+
+Sum of the Year Digit Method:
+WDV*Remaining Life/Total Sum of  Remaining Asset Life= Depreciation  per month

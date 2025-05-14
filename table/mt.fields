@@ -1,0 +1,157 @@
+//mt.fields [for machine maintenance]
+//---------------------------------------------------------------------------------------------------------------------------------------------
+name       	  |caption              				|storage |length|scale|display	  |hei|w |form|def|help|doc|det|valid|attrib|font|calc|pick
+//------------|-------------------------------------|--------|------|-----|-----------|---|--|----|---|----|---|---|-----|------|----|----|----
+xmtrqnum      |Maintenance Service Order            |varchar |    100|    0|text  |  1|10|    |   |    |   |   |     |      |    |    |list xmtrqnum
+xwtype        |Type of Work                         |varchar |    100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code Type of Work
+xmaintstat    |Maintenance Status                   |varchar |    100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Partial,Completed,New"
+xplant	   	  |Plant Name           				|varchar |   100|    0|text   	  |  1|40|    |   |    |   |   |     |      |    |    |list xplant
+xparea 	   	  |Plant Area           				|varchar |   100|    0|text   	  |  1|40|    |   |    |   |   |     |      |    |    |list xparea
+xassigntime	  |Assign Time       					|varchar |    20|    0|text   	  |  1|10|    |   |    |   |   |     |      |    |    |
+xfbtime    	  |Feedback Time        				|varchar |    20|    0|text   	  |  1|10|    |   |    |   |   |     |      |    |    |
+xctime     	  |Completion Time      				|varchar |    20|    0|text   	  |  1|10|    |   |    |   |   |     |      |    |    |
+xweekno       |Week of the Year                     |varchar |    100|    0|combo      |  1|2 |    |   |    |   |   |     |      |    |    |"select xweekno from cadate"
+xweeknodm     |Week  Dummy                          |varchar |    100|    0|combo      |  1|2 |    |   |    |   |   |     |      |    |    |"1st,2nd,3rd,4th"
+xmtype        |Machine Usage Area                   |varchar |    100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code
+xmcatg        |Machine Category                     |varchar |    100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code
+xsaction      |Service Action                       |varchar |    100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |
+xschtype      |Schedule Type                        |varchar |    100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |"Every Week,Every 2 Weeks,Every Alternate Week"
+
+xweek01       |Week01                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek02       |Week02                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek03       |Week03                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek04       |Week04                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek05       |Week05                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek06       |Week06                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek07       |Week07                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek08       |Week08                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek09       |Week09                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek10       |Week10                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek11       |Week11                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek12       |Week12                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek13       |Week13                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek14       |Week14                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek15       |Week15                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek16       |Week16                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek17       |Week17                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek18       |Week18                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek19       |Week19                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek20       |Week20                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek21       |Week21                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek22       |Week22                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek23       |Week23                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek24       |Week24                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek25       |Week25                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek26       |Week26                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek27       |Week27                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek28       |Week28                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek29       |Week29                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek30       |Week30                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek31       |Week31                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek32       |Week32                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek33       |Week33                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek34       |Week34                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek35       |Week35                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek36       |Week36                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek37       |Week37                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek38       |Week38                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek39       |Week39                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek40       |Week40                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek41       |Week41                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek42       |Week42                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek43       |Week43                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek44       |Week44                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek45       |Week45                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek46       |Week46                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek47       |Week47                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek48       |Week48                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek49       |Week49                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek50       |Week50                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek51       |Week51                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+xweek52       |Week52                               |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+
+xjswk01       |Job Status Week01                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk02       |Job Status Week02                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk03       |Job Status Week03                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk04       |Job Status Week04                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk05       |Job Status Week05                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk06       |Job Status Week06                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk07       |Job Status Week07                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk08       |Job Status Week08                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk09       |Job Status Week09                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk10       |Job Status Week10                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk11       |Job Status Week11                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk12       |Job Status Week12                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk13       |Job Status Week13                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk14       |Job Status Week14                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk15       |Job Status Week15                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk16       |Job Status Week16                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk17       |Job Status Week17                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk18       |Job Status Week18                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk19       |Job Status Week19                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk20       |Job Status Week20                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk21       |Job Status Week21                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk22       |Job Status Week22                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk23       |Job Status Week23                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk24       |Job Status Week24                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk25       |Job Status Week25                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk26       |Job Status Week26                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk27       |Job Status Week27                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk28       |Job Status Week28                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk29       |Job Status Week29                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk30       |Job Status Week30                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk31       |Job Status Week31                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk32       |Job Status Week32                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk33       |Job Status Week33                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk34       |Job Status Week34                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk35       |Job Status Week35                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk36       |Job Status Week36                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk37       |Job Status Week37                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk38       |Job Status Week38                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk39       |Job Status Week39                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk40       |Job Status Week40                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk41       |Job Status Week41                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk42       |Job Status Week42                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk43       |Job Status Week43                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk44       |Job Status Week44                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk45       |Job Status Week45                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk46       |Job Status Week46                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk47       |Job Status Week47                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk48       |Job Status Week48                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk49       |Job Status Week49                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk50       |Job Status Week50                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk51       |Job Status Week51                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+xjswk52       |Job Status Week52                    |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |
+
+x24h          |24 Hour                              |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x150h         |150 Hour                             |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x300h         |300 Hour                             |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x750h         |750 Hour                             |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x1000h        |1000 Hour                            |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x1500h        |1500 Hour                            |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x3000h        |3000 Hour                            |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x4500h        |4500 Hour                            |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x6000h        |6000 Hour                            |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x7500h        |7500 Hour                            |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x12000h       |12000 Hour                           |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x15000h       |15000 Hour                           |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x24000h       |24000 Hour                           |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x30000h       |30000 Hour                           |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x36000h       |36000 Hour                           |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x45000h       |45000 Hour                            |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+x60000h       |60000 Hour                           |varchar |     1|    0|checkbox   |  1| 1|    |   |    |   |   |     |      |    |    |"Yes"
+
+xmthour       |Maintenance Hour                     |varchar |    100|    0|combo       |  1|20|    |   |    |   |   |     |      |    |    |code Hour
+xwkhour       |Hour                                 |varchar |    100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xjobstat      |Status                               |varchar |    100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |"Cancelled,Done,Not Done"
+xmtjob	      |Maintenance Job Number               |varchar |    100|    0|trn MT Voucher|1|10|   |   |    |   |   |     |      |    |    |list xmtjob
+xmtjobd	      |Maintenance Job Number Dummy         |varchar |    100|    0|text       |1|10|      |   |    |   |   |     |      |    |    |list xmtjob
+xdaysch       |Daily Schedule                       |varchar |    100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Yes,No"
+xfrtsch       |Fort-Nightly Schedule                |varchar |    100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Yes,No"
+xweksch       |Weekly Schedule                      |varchar |    100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Yes,No"
+xmonsch       |Monthly Schedule                     |varchar |    100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Yes,No"
+xqrtsch       |Quarterly Schedule                   |varchar |    100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Yes,No"
+xhyrsch       |Half Yearly Schedule                 |varchar |    100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Yes,No"
+xyrsch        |Yearly Schedule                      |varchar |   100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Yes,No"
+xdayrow       |Row                                  |int     |    -1|    0|text       |  1| 4|    |   |    |   |   |     |      |    |    |
+xwekrow       |Row                                  |int     |    -1|    0|text       |  1| 4|    |   |    |   |   |     |      |    |    |

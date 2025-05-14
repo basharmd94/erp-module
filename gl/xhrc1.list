@@ -1,0 +1,11 @@
+     list xhrc1
+        caption "Account group level 1"
+        table glhrc1
+        order xhrc1
+        navigators alpha
+        rows 10
+        objects ~
+         xhrc1 attrib(link "javascript:void();" embed onclick="return updateParent(this:'xhrc1')")
+     end list
+
+

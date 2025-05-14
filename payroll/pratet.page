@@ -1,0 +1,170 @@
+page pratet
+
+    embed onload="move_caret('one','xemp')"
+
+     caption "Employee wise Time Settings"
+     sections form one, list one, text top,script myscript,~
+              method chkemp, method chkshift
+
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        table pratet
+        caption "Available Entries"
+        order xemp,xshift
+        rows 20
+        navigators
+        objects xemp,tmpname equals((select xname from prmst where prmst.zid=pratet.zid and prmst.xemp=pratet.xemp)),~
+                xshift attrib(link #servlet+"?page=pratet&form=one&command=Show&xemp=?&xshift=?"),~
+                xintime,xpnlttime
+
+        field tmpname
+          storage varchar
+          caption Employee Name
+        end field
+     end list
+
+
+
+     form one
+        caption "Employee-wise Default Time"
+        table pratet
+        order xemp,xshift
+        layout 1
+        objects Add, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+                xemp,tmpname,xshift,dummy_1,xintime,xpnlttime,zemail display(hide),xemail display(hide)
+
+
+        field xemp
+          width 15
+          event after
+            set globals(xemp) = xemp
+          end event
+        end field
+
+        field tmpname
+          attrib local
+          display constant
+          caption Employee Name
+          event after
+            set tmpname = #sql("select xname from prmst where xemp='"+globals(xemp)+"'")
+          end event
+        end field
+
+        field xshift
+          display combo
+          pick "select xcode from xcodes where xtype like 'Shift%'" //list xshift
+          width 10
+          event after
+            set globals(xshift) = xshift
+          end event
+        end field
+
+        field dummy_1
+          attrib local
+          display constant
+          caption Shift Description
+          event after
+            set dummy_1 = #sql("select xlong from xcodes where xtype='Shift' and xcode='"+globals(xshift)+"'")
+          end event
+        end field
+
+        field add
+          event before
+            set globals(ErrChk) = ""
+            call chkemp
+            if globals(ErrChk) .eq. ""
+              call chkshift
+            end if
+              set zemail=#user
+              set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set globals(ErrChk) = ""
+            call chkemp
+            if globals(ErrChk) .eq. ""
+              call chkshift
+            end if
+
+            if globals(ErrChk) .eq. ""
+              if xshift .eq. globals(xshift) .and. xemp .eq. globals(xemp)
+              else
+                error "Record Pointer Mismatch<br>Try Show instead"
+              end if
+            end if
+              set xemail=#user
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+
+     end form
+
+
+     script myscript
+        <script language="javascript" type="text/javascript">
+
+        var detail=""
+
+        function clicked(b){
+          detail = "show_detail"
+        }
+
+        function cont(form){
+          detail = "cont"
+          //window.alert("in fcont:"+document.one.xattype.value)
+        }
+
+        function submitit(form){
+          if (detail == "cont"){
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+
+
+     method chkemp
+            if xemp .eq. ""
+              set globals(ErrChk) = "1"
+            else
+              set mysql = "select xemp from prmst where xemp='"+xemp+"'"
+              set tmpchk = #sql(str, mysql)
+              if #result .ne. "true"
+                set globals(ErrChk) = "1"
+              end if
+            end if
+
+            if globals(ErrChk) .ne. ""
+              error "Wrong Employee Code<br>Pick from the list"
+            end if
+     end method
+
+
+     method chkshift
+            if xshift .eq. ""
+              set globals(ErrChk) = "1"
+            else
+              set mysql = "select xcode from xcodes where xtype='Shift' and xcode='"+xshift+"'"
+              set tmpchk = #sql(str, mysql)
+              if #result .ne. "true"
+                set globals(ErrChk) = "1"
+              end if
+            end if
+
+            if globals(ErrChk) .ne. ""
+              error "Wrong Shift Code<br>Pick from the list"
+            end if
+     end method
+
+end page
+

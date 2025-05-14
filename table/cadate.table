@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table cadate
+	caption "Calendar Table"
+
+	columns ztime,zutime,zid,xdate,xname,xremark,xweekno,xyear,xper,xweekmth,xmonthname,xnote
+
+	primary key zid,xdate
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+end table

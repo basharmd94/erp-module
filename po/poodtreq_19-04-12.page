@@ -1,0 +1,453 @@
+page poodtreq
+    embed onload = "move_caret('one','xqty')"
+
+    caption "<font color=black size=3>Requisition Details for "+xpornum
+    
+    sidebar list Item_Details
+    
+    sections form one,list one, text top, script myscript
+
+    text top
+        "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list Item_Details
+        caption "<br><center><b><font size=3>"Requisition Details"</b></font>"
+        table poqotvw
+        order xporeqnum,xrow
+        select "zid='"+#id+"' and xitem = '"+globals(xitem)+"' and xstatusreqd<>'1-New'"
+        rows 5
+        objects xrow attrib(link "abc" embed onclick="return pickItem(this:xporeqnum#:xitem#:qty#)"),~
+                xporeqnum attrib(name xporeqnum#),xref,~
+                xitem attrib(name xitem#),xporeq attrib(name qty#),xqtyord,xlong
+
+        field xbalqty
+            caption Bal. Qty
+            storage double
+            len 10.2
+        end field
+        
+        field xporeq
+            len 10.2
+            caption Required Qty
+        end field
+
+        field xqtyord
+            len 10.2
+        end field
+		
+        field xref
+            caption Reference
+            storage varchar
+        end field
+
+        field xporeqnum
+            caption Requisition No.
+        end field
+
+    end list
+
+    list one
+        caption "<br><center><b><font size=3>"Entry(s)"</b></font>"
+        table poodtreq
+        order xpornum,xrow,xline
+        fixed xpornum,xrow
+        select "zid='"+#id+"'"
+        rows 20
+        objects  xline attrib(link #servlet+"?page=poodtreq&command=Show&xbom=?&xoption=?&xline=?"), ~
+            xitem ,desc equals((select xdesc from caitem where zid=poodtreq.zid and xitem=poodtreq.xitem)),~
+            xqty,xunit,xporeqnum,xmorlno
+
+        field desc
+            caption Description
+            storage varchar
+        end field
+
+        field xporeqnum
+            caption Requisition No.
+        end field
+
+        field xqty
+            len 10.2
+        end field
+
+    end list
+
+
+    form one
+        valid valid,access
+        table poodtreq
+        order xpornum,xrow,xline
+        fixed xpornum,xrow
+        select "zid='"+#id+"'"
+        layout 2
+        objects Show,Add,Update,Clear,Delete, Top, Previous, Next, Bottom,Return,~
+                xline attrib(row 0 10),"",xitem attrib(attach),itemdesc,xqty attrib(attach),~
+                xunit display(const),xporeqnum ,~
+                xmorlno attrib(readonly),zemail attrib(hidden),xemail attrib(hidden)
+
+		field show
+			event before
+				set globals(temp) = xline
+			end event
+			event after
+				set globals(temp) = xline
+			end event
+		end field
+
+		field Top
+			event before
+				set globals(temp) = xline
+			end event
+			event after
+				set globals(temp) = xline
+			end event
+		end field
+
+        field xline
+            col 3
+            event after
+                set globals(xline)=xline
+                set statuspor=#sql("select xstatuspor from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                if statuspor .ne. #status("xstatuspor",1)
+                    set #field(Update.display) = "disabled"
+                    set #field(Delete.display) = "disabled"
+                    set #field(Add.display) = "disabled"
+                end if
+            end event
+        end field
+
+        field xporeqnum
+            display text
+            pick
+            width 20
+            attrib readonly
+            caption Requisition No.
+        end field
+
+        field xmorlno
+            caption Req. Row No.
+            attrib readonly
+        end field
+        
+        field xitem
+            caption Item Code
+            width 20
+            attrib readonly
+            pick
+        end field
+
+        field itemdesc
+            caption Description
+            attrib local
+            event after
+                set itemdesc=#sql("select xdesc from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+            end event
+            display constant
+        end field
+
+        field xqty
+            len 10.2
+            event after
+                set globals(xqty) = xqty
+            end event
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk) = ""
+                if globals(ErrChk) .ne. "1"
+                    str tmprow = poodtreq.xline("zid='"+#id+"' and xpornum='"+globals(xpornum)+"' and xrow='"+globals(xrow)+"' and xline='"+xline+"'")
+                    if tmprow .eq. "null"
+                    else if tmprow .eq. ""
+                    else if tmprow .eq. "0"
+                    else
+                        set globals(ErrChk) = "1"
+                        error "Duplicate Record, Cannot Insert"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                   set req_status = #sql(str,"select xstatusreq from poreq where zid='"+#id+"' and xporeqnum = '"+xporeqnum+"'")
+                   if req_status .eq. "6-Approved" .or. req_status .eq. "Adjusted" .or. req_status .eq. "Quoted" .or. req_status .eq. "3-PO Created"
+                   else
+                  	set globals(ErrChk) = "1"
+                  	error "Cannot "+#command+" Status : "+req_status
+                   end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chkqty
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set zemail = #user
+                    set xunit = #sql(str,"select xunitpur from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+                end if
+            end event
+            event after
+                set req_status = #sql(str,"select xstatusreq from poreq where zid='"+#id+"' and xporeqnum = '"+xporeqnum+"'")
+                if req_status .ne. "3-PO Created"
+                    str myqry="update poreq set xstatusreq='3-PO Created' where zid='"+#id+"' and xporeqnum='"+xporeqnum+"'"
+                    set updalc=#sql(str,myqry)
+                end if
+
+                set totreqd=0.0+#sql(dec,"select sum(xqty) from poodtreq where zid='"+#id+"' and xporeqnum='"+xporeqnum+"' and xmorlno='"+xmorlno+"'")
+                str myqry="update poreqd set xqtyord='"+totreqd+"' where zid='"+#id+"' and xporeqnum='"+xporeqnum+"' and xrow='"+xmorlno+"'"
+                set updalc=#sql(str,myqry)
+                str myqry="update poreqd set xstatusreqd='3-PO Created' where zid='"+#id+"' and xporeqnum='"+xporeqnum+"' and xrow='"+xmorlno+"'"
+                set updalc=#sql(str,myqry)
+            end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk)=""
+
+        		if globals(ErrChk) .ne. "1"
+        			if xline .ne. globals(xline)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xline .ne. globals(temp)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+                if globals(ErrChk) .ne. "1"
+                    set statuspor = poord.xstatuspor("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if statuspor .ne. #status("xstatuspor",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"</p>Status "+statuspor
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                   set req_status = #sql(str,"select xstatusreq from poreq where zid='"+#id+"' and xporeqnum = '"+xporeqnum+"'")
+                   if req_status .eq. "6-Approved" .or. req_status .eq. "Adjusted" .or. req_status .eq. "Quoted" .or. req_status .eq. "3-PO Created"
+                   else
+                  	set globals(ErrChk) = "1"
+                  	error "Cannot "+#command+" Status : "+req_status
+                   end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chkqty
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xemail = #user
+                end if
+            end event
+            event after
+                set req_status = #sql(str,"select xstatusreq from poreq where zid='"+#id+"' and xporeqnum = '"+xporeqnum+"'")
+                if req_status .ne. "3-PO Created"
+                    str myqry="update poreq set xstatusreq='3-PO Created' where zid='"+#id+"' and xporeqnum='"+xporeqnum+"'"
+                    set updalc=#sql(str,myqry)
+                end if
+
+                set totreqd=0.0+#sql(dec,"select sum(xqty) from poodtreq where zid='"+#id+"' and xporeqnum='"+xporeqnum+"' and xmorlno='"+xmorlno+"'")
+                str myqry="update poreqd set xqtyord='"+totreqd+"' where zid='"+#id+"' and xporeqnum='"+xporeqnum+"' and xrow='"+xmorlno+"'"
+                set updalc=#sql(str,myqry)
+                str myqry="update poreqd set xstatusreqd='3-PO Created' where zid='"+#id+"' and xporeqnum='"+xporeqnum+"' and xrow='"+xmorlno+"'"
+                set updalc=#sql(str,myqry)
+            end event
+        end field
+
+        field delete
+            event before
+                set globals(ErrChk)=""
+
+        		if globals(ErrChk) .ne. "1"
+        			if xline .ne. globals(xline)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xline .ne. globals(temp)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+                if globals(ErrChk) .ne. "1"
+                    set statuspor = poord.xstatuspor("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if statuspor .ne. #status("xstatuspor",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"</p>Status "+statuspor
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chkqty
+                end if
+
+            end event
+            event after
+                set totreqd=0.0+#sql(dec,"select sum(xqty) from poodtreq where zid='"+#id+"' and xporeqnum='"+xporeqnum+"' and xmorlno='"+xmorlno+"'")
+                str myqry="update poreqd set poreqd.xqtyord='"+totreqd+"' where poreqd.zid='"+#id+"' and poreqd.xporeqnum='"+xporeqnum+"' and xrow='"+xmorlno+"'"
+                set updalc=#sql(str,myqry)
+                if totreqd>0
+                    str myqry="update poreq set xstatusreq='3-PO Created' where zid='"+#id+"' and xporeqnum='"+xporeqnum+"'"
+                    set updalc=#sql(str,myqry)
+                    
+                    str myqry="update poreqd set xstatusreqd='3-PO Created' where poreqd.zid='"+#id+"' and poreqd.xporeqnum='"+xporeqnum+"' and xrow='"+xmorlno+"'"
+                    set updalc=#sql(str,myqry)
+                else
+                    set chkqot=#sql("select xpoqot from poquot where zid='"+#id+"' and xref='"+xporeqnum+"' and xitem='"+xitem+"'")
+                    if chkqot .eq. "true"
+                        str myqry="update poreq set xstatusreq='6-Approved' where zid='"+#id+"' and xporeqnum='"+xporeqnum+"'"
+                        set updalc=#sql(str,myqry)
+                        
+                        str myqry="update poreqd set xstatusreqd='2-Quoted' where poreqd.zid='"+#id+"' and poreqd.xporeqnum='"+xporeqnum+"' and xrow='"+xmorlno+"'"
+                        set updalc=#sql(str,myqry)
+                    else
+                        str myqry="update poreq set xstatusreq='6-Approved' where zid='"+#id+"' and xporeqnum='"+xporeqnum+"'"
+                        set updalc=#sql(str,myqry)
+                        
+                        str myqry="update poreqd set xstatusreqd='6-Approved' where poreqd.zid='"+#id+"' and poreqd.xporeqnum='"+xporeqnum+"' and xrow='"+xmorlno+"'"
+                        set updalc=#sql(str,myqry)
+                    end if
+                end if
+            end event
+        end field
+
+        embed onsubmit="return submitit(this)"
+
+        field Return
+            embed onclick="clicked(this)"
+        end field
+
+    end form
+
+    script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+            $.hotkeys.add('Ctrl+s',function(){
+            //alert('Pressed Ctrl+s');
+            var form=document.forms[0];
+            form.searchbutton.value="Add";
+            form.submit();
+        });
+            $.hotkeys.add('Ctrl+e',function(){
+            //alert('Pressed Ctrl+e');
+            var form=document.forms[0];
+            form.searchbutton.value="Update";
+            form.submit();
+        });
+            $.hotkeys.add('Ctrl+d',function(){
+            //alert('Pressed Ctrl+d');
+            var form=document.forms[0];
+            form.searchbutton.value="Delete";
+        form.submit();
+        });
+            $.hotkeys.add('Ctrl+r',function(){
+            //alert('Pressed Ctrl+r');
+            var form=document.forms[0];
+            form.searchbutton.value="Clear";
+            form.submit();
+        });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+            b.value = "Top"
+        detail="clicked"
+        }
+
+        function back(b){
+            b.value = "Top"
+        detail="back"
+        }
+
+        function submitit(form){
+            if (detail=="clicked"){
+                form.page.value= "poodt"
+                form.searchbutton.value = "Find xrow=?"
+            }
+        }
+
+        function pickItem(link,poreqnum,item,qty,proj){
+        if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xmorlno.value=link.text
+            document.one.xporeqnum.value=poreqnum.text
+            document.one.xitem.value=item.text
+            document.one.xqty.value=qty.text
+        }else{
+            document.one.xmorlno.value=link.innerText
+            document.one.xporeqnum.value=poreqnum.innerText
+            document.one.xitem.value=item.innerText
+            document.one.xqty.value=qty.innerText
+        }
+        return false
+        }
+
+        </script>
+    end script
+
+    method chkqty
+        decimal bal_qty=0.0
+        decimal new_qty=0.0
+
+        if #command .eq. "Add"
+            set new_qty = 0.0+xqty
+        else if #command .eq. "Update"
+            set new_qty = 0.0+xqty-globals(xqty)
+        else // *** for DELETE
+            set new_qty = 0.0-globals(xqty)
+        end if
+
+        set rowno=0+#sql(int,"select xrow from poreqd where zid='"+#id+"' and xporeqnum='"+xporeqnum+"' and xrow='"+xmorlno+"'")
+        if rowno<=0
+            set globals(ErrChk) = "1"
+            error "Requisition detail not found, Cannot Continue"
+        else
+            set reqqtyord=0.0+#sql(dec,"select xqtyord from poreqd where zid='"+#id+"' and xporeqnum='"+xporeqnum+"' and xrow='"+xmorlno+"'")
+            set reqqtyreq=0.0+#sql(dec,"select xqtyreq from poreqd where zid='"+#id+"' and xporeqnum='"+xporeqnum+"' and xrow='"+xmorlno+"'")
+        end if
+
+        if globals(ErrChk) .ne. "1"
+            set act_qty=reqqtyord+new_qty
+            set bal_qty=0.0+reqqtyreq-act_qty+xqty
+            if act_qty > reqqtyreq
+                set globals(ErrChk)="1"
+                error "Qty for this line cannot be more than "+bal_qty
+            end if
+        end if
+
+        if globals(ErrChk) .ne. "1" .and. #command .ne. "Delete"
+            set odt_qty = #sql(decimal,"select xqtyord from poodt where zid='"+#id+"' and xpornum = '"+globals(xpornum)+"' and xrow = '"+globals(xrow)+"'")
+            if new_qty > odt_qty
+                set globals(ErrChk) = "1"
+                error "Qty cannot be more than Detail Qty"
+            end if
+        end if
+
+    end method
+
+    valid valid
+        config
+            set globals(pkey) = xpornum+" "+xrow+" "+xline
+            set tpage = "poodtreq"
+            set itemdesc = #sql("select xdesc from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+
+        end config
+    end valid
+
+#include access.valid
+
+end page

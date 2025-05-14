@@ -1,0 +1,9 @@
+list xleave
+  table xcodes
+  order xcode
+  select "xtype like 'Leave%' and zactive='1'"
+//  select "xtype='Leave Code'"
+
+  ojbect xcode attrib(link "abc" embed onclick="return updateParent(this:'') )//,~
+        // xlong
+end list

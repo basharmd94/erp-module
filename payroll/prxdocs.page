@@ -1,0 +1,145 @@
+page prxdocs
+     caption "Docs"
+     sidebar list docs
+     sections form docs,text mydoc, script myscript
+
+     text mydoc
+        "<p><b>"+xdoc+"</b><br>"
+        "<iframe  border=0 src='"+xlink+"'  height=800px width=100% ></iframe>"
+
+     end text
+
+     list docs
+        caption "<p class=bl>Documents for <font color=red > "+xtrnnum+"</font><br>"
+        table cadocs
+        order xtypetrn,xtrnnum,xdoc
+        fixed xtypetrn,xtrnnum
+        rows 50
+        objects  xdoc  attrib(link #servlet+"?page=prxdocs&command=Show&xtypetrn=?&xtrnnum=?&xdoc=?"), ~
+                xlink attrib(url)
+     end list
+
+     form docs
+        caption "Documents for <span class=br>"+xtrnnum+"</span>"
+        table cadocs
+        order xtypetrn,xtrnnum,xdoc
+        fixed xtypetrn,xtrnnum
+        layout 3
+        objects ~
+                Return,Clear,Show, ~
+                Add,Update, Delete, Top, Previous, Next, Bottom, *Upload,~
+                returnpage,trnfield,xdoc width(20),xfile, zactive,~
+				xfolder,xlink width(40)
+
+			field returnpage
+				attrib local
+				caption Return Page
+				display hide
+				event after
+					set returnpage=globals(returnpage)
+					if xlink .eq. ""
+						set #text(mydoc)=""
+					end if
+					set xfolder="docs/x"+#id+"/"
+				end event
+			end field
+
+			field trnfield
+				attrib local
+				caption Transaction Field
+				display hide
+				event after
+					set trnfield=globals(trnfield)
+					//console "trnfield="+trnfield
+				end event
+			end field
+
+			field xfolder
+				attrib local
+				display const
+				caption Default Folder
+				default "docs/x"+#id+"/"
+			end field
+
+			field xfile
+				embed onblur=setLink(this)
+				attrib local
+			end field
+
+			field *Upload
+				embed onclick="clicked(this);"
+				event after
+					buffer cadocs=#form
+					insert cadocs
+					if #result .eq. "false"
+						update cadocs(xtypetrn,xtrnnum,xdoc)
+					end if
+				end event
+			end field
+
+
+        embed onsubmit="return submitit(this)"
+
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+
+				var filename
+				var i
+				var j
+        function setLink(f){
+					//alert("in="+f);
+					filename=getName(document.docs.xfile.value)
+					//alert("fn="+filename)
+					document.docs.xlink.value=document.docs.xfolder.value+filename
+					//alert("ln="+document.docs.xlink.value)
+        }
+
+				function getName(fn){
+          i=fn.lastIndexOf("\\");
+          j=fn.length
+
+					fn = fn.substring(i+1,j)
+					return fn;
+				}
+
+        function clicked(b){
+
+          button=b.value;
+        }
+        function submitit(form){
+          if (button == "Return"){
+            form.page.value = form.returnpage.value
+            form.searchbutton.value = "Find "+form.trnfield.value+"=?"
+
+          }else if (button=="Upload"){
+            button="";
+						var f=form.xfile.value
+						var l=form.xlink.value
+            var i=f.lastIndexOf('.')
+						f=f.substring(i,f.length)
+            var i=l.lastIndexOf(".")
+						l=l.substring(i,l.length)
+						if (f.toLowerCase()==l.toLowerCase()){
+							return true;
+						}else{
+							alert("The file extensions for source("+f+") and destination("+l+") does not match. Correct and try again.");
+							return false;
+						}
+						return false
+          }else{
+						button="";
+					}
+					return true;
+				}
+        </script>
+     end script
+
+end page

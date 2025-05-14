@@ -1,0 +1,9 @@
+//hr.menu
+caption "LC Management"
+//-------------------------------------------------------------------
+option                           |action
+LC Info Entry 		              |#classPath+"/"+#servlet+"?page=lcmst&nexttab=Info"                   |common
+LC Cost Entry 		              |#classPath+"/"+#servlet+"?page=lcmstac"                   |common
+Codes                            |#classPath+"/"+#servlet+"?menu=lccodes"                |common
+Reports                          |#classPath+"/"+#servlet+"?menu=lcreport"                   |common
+

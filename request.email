@@ -1,0 +1,13 @@
+//lvrecomm.email
+
+Dear Concern,
+
+You have a request for Price Update this Requisition No :'"+xporeqnum+"'
+Please Click this link or Copy this address and Paste in Address Bar :http://114.130.45.139:8080/da/portal
+
+
+
+Regards.
+""+zbusiness.xshort()+" Automated Leave Routing Service"
+""+zbusiness.zorg()
+""+zbusiness.xcity()

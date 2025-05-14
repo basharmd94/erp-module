@@ -1,0 +1,15 @@
+Product ERP on the net
+
+table prtaxslab
+   caption "Tax Rate Slab Table"
+   
+   columns  ztime,zutime,zid,xrow,xdateeff,xdateexp,xtotamt,xpercent,~
+            xremark,zemail,xemail
+
+   primary key zid,xrow
+
+   foreign key
+      zid references zbusiness.zid
+   end foreign key
+   
+end table

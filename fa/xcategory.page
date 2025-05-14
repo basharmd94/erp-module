@@ -1,0 +1,64 @@
+page xcategory
+     caption header
+     sidebar list one//,list two, text three
+     sections form one ,method chk_access
+
+
+     list one
+        table xcodes
+        order xtype,xcode
+        select "(xtype='FA Category')"
+        
+        rows 20 f
+        objects  xtype,xcode attrib(link #servlet+"?page="+page+"&command=Show&xtype=?&xcode=?"), ~
+                 xdescdet, xprops,zactive
+
+
+     end list
+
+     form one
+        //caption "FA Category(s)"
+		valid valid,access
+        table xcodes
+        order xtype,xcode
+        select "xtype='FA Category'"
+        layout 1
+        objects Show, Add, Update, Delete, Top, Previous, Next, Bottom,~
+                xtype display(const), xcode, xdescdet, xprops,zactive
+                
+	field Add
+           event before
+              set globals(ErrChk) = ""
+              set xtype="FA Category"
+              call chk_access
+           end event
+	end field
+
+	field Update
+           event before
+              set globals(ErrChk) = ""
+              call chk_access
+           end event
+	end field
+
+	field Delete
+           event before
+              set globals(ErrChk) = ""
+              call chk_access
+           end event
+	end field
+
+end form
+     
+	 valid valid
+     	config
+			set globals(pkey)=xtype+" "+xcode
+			
+			set header = "<font color=green size=4+>FA Category(s)</font><br>"
+		
+     	end config
+     end valid
+
+#include access.valid
+	 
+end page

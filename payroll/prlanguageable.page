@@ -1,0 +1,172 @@
+page prlanguageable
+
+  embed onload="move_caret('one','xprcourse')"
+  caption "<span class=bl>Language Ability of Employee <a href=/da/"+#servlet+"?page=prothskills&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+  sidebar list one
+  section form one,script myscript
+
+  list one
+    table prqualific
+    order xemp,xprqano
+    select "(xstatustor='Ability')"
+    fixed xemp
+    row 60
+    //navigators alpha
+    object xprqano attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xprqano=?"),~
+      xprcourse,xprqad
+
+    field xprqano
+      width 4
+      caption Course Level
+    end field
+    
+    field xprqayr
+        caption Passed Year
+    end field
+
+    field xprcourse
+        caption Language
+    end field
+
+    field xprqad
+      caption Ability
+    end field
+
+  end list
+
+  form one
+    //caption "<font color=black size=4>Educational Background of <font color=white></p>"+globals(xname)+"</font></font>"
+    table prqualific
+    order xemp,xprqano
+    select "(xstatustor='Ability')"
+    fixed xemp
+    layout 1
+
+    object Add,Clear,Show,Update, Next,Delete, Previous, Top, Bottom,Back,~
+           xprqano,xprcourse,xprqaint display(hide),xprqayr display(hide),xprqad,xedition display(hide),xdate display(hide),xexpiry display(hide),xremarks display(hide),xstatustor display(hide),zemail display(hide),xemail display(hide)
+
+    field xprqano
+      caption Course Level
+      event after
+        set globals(xprqano)=xprqano
+        //set #field(xprqad.caption) = "<font color=red>"+#field(xprqad.caption)+"</font>"
+      end event
+    end field
+
+    field xremarks
+      caption Result/Remarks
+      width 60
+      height 2
+    end field
+    
+    field xprcourse
+        caption Language
+        display combo
+        pick select xcode from xcodes where xtype='Language'
+    end field
+    
+    field xdate
+        caption Exam Date
+    end field
+    
+    field xexpiry
+        caption Certificate Exp. Date
+    end field
+    
+    field xprqayr
+        caption Passed Year
+        display hide
+    end field
+    
+    field xprqad
+      //display hide
+      display combo
+      caption Ability
+      pick select xcode from xcodes where xtype='Ability'
+      width 30
+    end field
+    
+    field xprqaint
+        caption Name of Institute
+    end field
+    
+    field xedition
+        display hide
+        caption Marks Obtained
+    end field
+
+    embed onsubmit="submitit(this)"
+    field back
+      embed onclick="back(this)"
+    end field
+    
+    field next
+    	event before
+    		int nrow = 0
+    		set nrow = 0+xprqano+1
+    		set xprqano = 0+nrow
+    		action show
+    		//print xprqano+" "+nrow
+    	end event
+    end field
+
+    field previous
+    	event before
+    		int nrow = 0
+    		set nrow = 0+xprqano-1
+    		set xprqano = 0+nrow
+    		action show
+    		//print xprqano+" "+nrow
+    	end event
+    end field
+
+
+     field add
+       event before
+         set zemail=#user
+         set xemail=""
+         set xstatustor="Ability"
+         
+         int last_num=0
+         set last_num = #sql(int,"select xprqano from prqualific where xstatustor='Ability' and xemp='"+xemp+"' order by xprqano desc")
+            if #result .eq. "true"
+                set xprqano = 0+1+last_num
+            else
+                set xprqano = 0+1
+            end if
+       end event
+     end field
+
+     field Update
+      event before
+        set globals(ErrChk)=""
+        if xprqano .ne. globals(xprqano)
+           set globals(ErrChk)="1"
+           error "Record pointer mismatch</p>Cannot "+#command
+        else
+           set xemail=#user
+        end if
+      end event
+     end field
+
+  end form
+
+  script myscript
+    <script Ability="javascript" type="text/javascript">
+    var detail
+    function back(b)
+    {
+      detail="back"
+    }
+    function submitit(form)
+    {
+      if (detail=="back")
+      {
+        form.page.value="prothskills"
+        form.searchbutton.value="Find xemp=?"
+      }
+    }
+    </script>
+  end script
+
+end page

@@ -1,0 +1,219 @@
+page praptrn
+
+	 embed onload="move_caret('one','xemp')"
+     //sidebar text one
+     caption "Performance Appraisal"
+     section form one,list one, script myscript,~
+         method mustcheck
+
+
+	list one
+        caption "Performance Appraisal"
+        table praptrn
+        order xemp,xdatefrom,xdateto,xaprstype
+        rows 20
+        objects xemp,xdatefrom,xdateto,xaprstype attrib(link #servlet+"?page=praptrn&command=Show&xemp=?&xdatefrom=?&xdateto=?&xaprstype=?"),~
+                name equals((select xname from prmst where prmst.zid=praptrn.zid and prmst.xemp=praptrn.xemp))
+
+         field name
+           storage varchar
+           caption Employee Name
+         end field
+   end list
+
+  form one
+    //caption "<font color=black size=4>Performance Appraisal</font>"
+    table praptrn
+    order xemp,xdatefrom,xdateto,xaprstype
+    layout 2
+    objects Show,Add,Clear,Details,Update,Delete,  Previous, Next, Top, Bottom,~
+            xemp,emp_name,desig,dept,costcent,joindate,xdatefrom,xdateto,xaprstype,~
+            xtempstr1,xappamt display(const),xstataprs display(const),xremarks,xrem,zemail display(hide),xemail display(hide)
+
+          field xemp
+            //caption Employee ID
+            width 15
+            event after
+               set globals(xemp)=xemp
+               set globals(xdatefrom)=xdatefrom
+               set globals(xdateto)=xdateto
+               set globals(xtype)=xtype
+               set #field(xstataprs.caption) = "<font color=red>"+#field(xstataprs.caption)+"</font>"
+               set #field(xappamt.caption) = "<font color=red>"+#field(xappamt.caption)+"</font>"
+               set #field(xtempstr1.caption) = "<font color=red>"+#field(xtempstr1.caption)+"</font>"
+               //class osbcustom(osb2crystal("","w","praptrn","Print",xemp,xdatefrom,xdateto,xaprstype))
+            end event
+          end field
+          
+          field emp_name
+             attrib local
+             display constant
+             caption Name
+             event after
+               set emp_name=#sql(str,"select xname from prmst where xemp='"+xemp+"'")
+               set globals(name)=emp_name
+             end event
+          end field
+
+          field desig
+             attrib local
+             display constant
+             caption Designation
+             event after
+               set desig=#sql(str,"select xdesig from prmst where xemp='"+xemp+"'")
+             end event
+          end field
+
+          field dept
+             attrib local
+             display constant
+             caption Department
+             event after
+               set dept=#sql(str,"select xdept from prmst where xemp='"+xemp+"'")
+             end event
+          end field
+
+          field costcent
+             attrib local
+             display constant
+             caption Location
+             event after
+               set costcent=#sql(str,"select xcostcent from prmst where xemp='"+xemp+"'")
+             end event
+          end field
+
+          field joindate
+             attrib local
+             display constant
+             caption Date of Joining
+             event after
+               set joindate=#sql(str,"select xjoindate from prmst where xemp='"+xemp+"'")
+             end event
+          end field
+
+           field totpoint
+             attrib local
+             caption Total point
+             display constant
+             event after
+               set totpoint=#sql(decimal,"select sum(xamount) from praptrnd where xyear='"+xyear+"' and xemp='"+xemp+"'")
+             end event
+           end field
+
+           field avgpoint
+             attrib local
+             caption Average point
+             display constant
+             event after
+               set totpoint=#sql(decimal,"select sum(xamount) from praptrnd where xyear='"+xyear+"' and xemp='"+xemp+"'")
+               set totfact=#sql(decimal,"select count(xamount) from praptrnd where xyear='"+xyear+"' and xemp='"+xemp+"'")
+                set avgpoint=0.0+totpoint/totfact
+                set avgpoint=0.0+#round(avgpoint,2)
+              end event
+           end field
+
+           field xaprstype
+              event after
+                set globals(xaprstype)=xaprstype
+              end event
+           end field
+           
+           field xrem
+              caption
+              width 80
+              height 3
+              col 3
+           end field
+
+           field xremarks
+              caption Area(s) need to be Developed
+              width 80
+              height 3
+              col 3
+           end field
+           
+           field xappamt
+              caption Performance Evaluation Score
+           end field
+           
+           field xtempstr1
+              caption Grading
+              display const
+           end field
+
+         field Add
+            event before
+              set globals(ErrChk)=""
+              if globals(ErrChk) .eq. ""
+                call mustcheck
+              end if
+            end event
+         end field
+
+         field Update
+            event before
+              set globals(ErrChk)=""
+              if globals(ErrChk) .eq. ""
+                call mustcheck
+              end if
+            end event
+         end field
+
+         embed onsubmit="submitit(this)"
+         field Details
+           embed onclick="clicked(this)"
+         end field
+
+  end form
+
+   text one
+      //"<object border=0 data=images/"+xemp+".gif type=""text/images"" height=100% width=100% ></object>"
+      "<img border=1 src=html/images/"+xemp+".jpg>"
+      "<p><b>"+xname+"</b><br>"
+   end text
+
+  script myscript
+
+     <script language="javascript" type="text/javascript">
+     var detail
+
+     function clicked(b){
+       detail="clicked"
+     }
+     function submitit(form){
+       if (detail=="clicked"){
+         form.page.value = "praptrnd"
+         form.searchbutton.value = "Top"
+         //return false
+       }
+     }
+     </script>
+   end script
+
+   method mustcheck
+      set type = #sql(str,"select xaprstype from praprstype where xaprstype='"+xaprstype+"'")
+      if #result .eq. "false"
+        set globals(ErrChk) = "1"
+        error "Please enter/select "+#field(xaprstype.caption)
+      end if
+
+      if globals(ErrChk) .ne. "1"
+         if xdatefrom .eq. #max .or. xdatefrom .eq. ""
+           set globals(ErrChk) = "1"
+           error "Please enter/select "+#field(xdatefrom.caption)
+         else if xdateto .eq. #max .or. xdateto .eq. ""
+           set globals(ErrChk) = "1"
+           error "Please enter/select "+#field(xdateto.caption)
+         end if
+      end if
+
+      if globals(ErrChk) .eq. ""
+        if xdateto .lt. xdatefrom
+          set globals(ErrChk) = "1"
+          error #field(xdateto.caption)+" must be >= "+#field(xdatefrom.caption)
+        end if
+      end if
+
+   end method
+   
+end page

@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table mgaddview
+	caption "Address Book View"
+
+	columns zid, xfrom,xto,xgroups,xname
+
+	primary key zid, xfrom,xto
+
+	sql create view mgaddview (zid, xfrom,xto,xgroups,xname) ~
+				as SELECT mgadd.zid, xfrom,xto,xgroups,xname ~
+				FROM mgadd, xusers where xusers.zemail=mgadd.xto and xusers.zid=mgadd.zid
+
+end table

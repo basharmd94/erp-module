@@ -1,0 +1,519 @@
+page imtdtic
+     //embed onload="move_caret('one','xitem')"
+     caption "<span class=bl>Details for: <a href=/da/main?page=imtor&command=Show&ximtor="+globals(ximtor)+">" +ximtor+ "</a></span>"
+     sidebar list one//,imstk,imbin
+     sections  list header, form one,script myscript,text top, ~
+               method chk_stk,method chk_rec
+
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+
+    list header
+        caption "<span class=bl>Transfer Order: <a href=/da/main?page=imtor&command=Show&ximtor="+ximtor+">" +ximtor+ "</a></span>"
+        table imtor
+        order ximtor
+        fixed ximtor
+        rows 2
+        objects ~
+                ximtor attrib(link "main?page=imtoric&command=Show&ximtor=?"), ~
+                xfwh,xtwh,xstatustor
+                
+        field ximtmptrn
+          caption Trn Number
+        end field
+
+        field xstatustor
+        	caption Status
+        end field
+        
+     end list
+    
+     list one
+        caption "List of Item(s) Added"
+        table imtdt
+        order ximtor,xtorlno DESC
+        fixed ximtor
+        rows 5
+        objects xtorlno attrib(link "main?page="+page+"&command=Show&ximtor=?&xtorlno=?"), ~
+                xitem,itemdesc equals((select xdesc from caitem where zid=imtdt.zid and xitem=imtdt.xitem)),~
+                xqtyord,xunit
+                
+
+        field xunit
+          caption Unit
+        end field
+
+        field xtorlno
+        	caption Line No.
+        end field
+        
+        field itemdesc
+          storage varchar
+          caption Description
+        end field
+                
+     end list
+
+  form one
+    //caption "<font color=black size=3>Details for "+globals(ximtor)+" </font>"
+    valid valid,access
+    table imtdt
+    order ximtor,xtorlno DESC
+    fixed ximtor
+    return "Main"
+    layout 1
+    objects Add,Show,Clear,Update, Delete, Top, Previous, Next, Bottom,SerialNumbers,Return,~
+            xtorlno attrib(row 0 1; search),xitem attrib(submit; attach),desc,~
+			xqtyord attrib(attach),xunit,~
+			xqtyalc display(const),xqtycom display(const),xbatch,xbin, xtbin,~
+			xval display(hide),ximtrnnum,xdocnum,zemail display(const),xemail display(const)
+            
+    field xtorlno
+      event after
+        set globals(xtorlno) = xtorlno
+
+//--for serial number
+            set globals(returnpage)="imtdt"
+            set globals(xitem)=xitem
+			set globals(xwh)=xwh
+            set globals(xqty)=xqtyord
+            set globals(xbatch)=xbatch
+			            
+			set globals(xdesc)=xdesc
+			set globals(returnpage)=page
+			set globals(trnfield)="ximtor"
+			set globals(trnrowfield)="xtorlno"
+			set globals(xtypeout)="Transfer Order"
+			set globals(xnumout)=imtor.xictrnno("zid='"+#id+"' and ximtor='"+globals(ximtor)+"'")
+			set globals(xrowout)=xtorlno
+			set globals(xconout)="0"
+			
+            set tempserial=caitem.xtypeserial("xitem='"+xitem+"'")
+            
+			if tempserial .sw. "1"
+				double qtyser=#sql(double,"select count(*) from imser ~
+					where xwh='"+globals(xwh)+"' and xitem='"+xitem+"' and xtypeout='"+globals(xtypeout)+"' and xnumout='"+globals(xnumout)+"' and xrowout="+globals(xrowout)+")
+				if xqtyord > 0
+					if qtyser <> xqtyord 
+						print "<span class=br>Serial Number Mismatch -- Please Correct!</span>"
+					end if
+				end if
+			else
+				set #field(SerialNumbers.display)="hide"
+			end if
+			
+//-end of serial number
+						
+            set statustor=imtor.xstatustor("ximtor='"+ximtor+"'")
+            if statustor .eq. #status("xstatustor",2)
+              set #field(add.display)="disable"
+              set #field(delete.display)="disable"
+              set #field(update.display)="disable"
+              set #field(xitem.display)="constant"
+              set #field(xqty.display)="constant"
+              set #field(xbatch.display)="constant"
+            end if
+            if statustor .eq. #status("xstatustor",5)
+              set #field(add.display)="disable"
+              set #field(add.display)="disable"
+              set #field(delete.display)="disable"
+              set #field(update.display)="disable"
+              set #field(xitem.display)="constant"
+              set #field(xqty.display)="constant"
+              set #field(xbatch.display)="constant"
+            end if
+	      	set #field(zemail.caption) = "Entered By"
+	      	set #field(xemail.caption) = "Last Updated By"      
+      end event
+    end field
+
+    field desc
+      attrib local
+      caption Item Description
+      event after
+        set desc=#sql("select xdesc from caitem where xitem='"+xitem+"'")
+      end event
+      display constant
+    end field
+
+    field xunit
+      display constant
+    end field
+
+    field ximtrnnum
+      caption Inventory IS Trn
+      display constant
+    end field
+
+    field xdocnum
+      caption Inventory RE Trn
+      display constant
+    end field
+
+    field Add
+      event before
+        set globals(ErrChk) = ""
+        set globals(oldqty) = 0.0
+        set globals(xictrnno) = imtor.xictrnno("zid='"+#id+"' and ximtor='"+globals(ximtor)+"'")
+        
+        if globals(ErrChk) .ne. "1"
+	        set xunit = caitem.xunitstk("xitem='"+xitem+"'")
+          	set xmethserial=caitem.xmethserial(xitem)
+          	set xtypeserial=caitem.xtypeserial(xitem)
+	        
+	        if xunit .eq. ""
+	          set globals(ErrChk) = "1"
+	          error "Stocking unit not defined"
+	        end if
+		end if
+		
+        if globals(ErrChk) .ne. "1"
+        	if xqtyord <= 0.0
+        		set globals(ErrChk) = "1"
+        		error "Please key in Quantity"
+        	end if
+        end if  
+		
+		if globals(ErrChk) .ne. "1"
+			set chkitem = #sql("select xitem from caitem where zid='"+globals(dumzid)+"' and xitem='"+xitem+"'")
+			if #result .ne. "true"
+				set dumorg = zbusiness.zorg("zid='"+globals(dumzid)+"'")
+				set globals(ErrChk)="1"
+				error "Item ("+xitem +") not found in "+globals(dumzid)+" ("+dumorg+")"
+			end if
+		end if     		
+
+        if globals(ErrChk) .eq. ""
+          call chk_stk
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+          set binman = caitem.xbinman("zid='"+#id+"' and xitem='"+xitem+"'")
+          if binman .eq. "1"
+          	if xbin .eq. ""
+          		set xbin = caitem.xbin("zid='"+#id+"' and xitem='"+xitem+"'")
+          		set chkbin = #sql("select xbin from caitem where zid='"+#id+"' and xitem='"+xitem+"' and xbin='"+xbin+"' and xbin<>''")
+          		if #result .ne. "true"
+          			set globals(ErrChk) = "1"
+          			error "Bin number required"
+          		end if
+          	end if
+          	if xtbin .eq. ""
+          		set xtbin = xbin
+          	end if
+          	
+          	if globals(ErrChk) .ne. "1"
+          		set binqty = #sql(double,"select sum(xqty) from imbinv where zid='"+#id+"' and xitem='"+xitem+"' and xbin='"+xbin+"' and xwh='"+globals(xfwh)+"'")
+          		if xqtyord > binqty
+          			set globals(ErrChk) = "1"
+          			error "Not enough stock on bin "+xbin+"<br>Available: "+binqty+" Required: "+xqtyord
+          		end if
+          	end if
+          end if
+        end if
+        
+      end event
+        event after
+        	if globals(ErrChk) .ne. "1"
+        		if xtypeserial .sw. "1" .and. xmethserial .sw. "1"
+        			if xqtyord > 0
+        				int count = 0
+        				while count < xqtyord
+        					set count = 0+count+1
+
+							set xnumin = #sql("select xnumin from imser where xitem='"+xitem+"' and xconin='1' and xconout='0' and xwh='"+globals(xwh)+"' order by xnumin")
+							set xserialnum = #sql("select xserialnum from imser where xitem='"+xitem+"' and xconin='1' and xconout='0' and xwh='"+globals(xwh)+"' order by xnumin")
+        					
+							str mysql = "update imser set xtypeout='"+globals(xtypeout)+"',xnumout='"+globals(xnumout)+"',xrowout="+xtorlno+",xconout='1' ~
+								where xitem='"+xitem+"' and xconin='1' and xconout='0' and xwh='"+globals(xwh)+"' and xserialnum='"+xserialnum+"' and xnumin='"+xnumin+"'"
+							set tmpstr =#sql(mysql)
+						end while	
+        			end if
+				end if 
+        	end if  
+			if globals(ErrChk) .ne. "1"
+				set mysql = "insert into imtdt (ztime,zid, ximtor,xtorlno,xitem,xqtyord,xunit,ximtrnnum,~
+					xdocnum,xbatch,zemail,xemail,xbin,xqtycom,xqtyalc,xval)"
+				set mysql = mysql + " values('"+#time+"','"+globals(dumzid)+"','"+globals(xictrnno)+"',~
+					'"+xtorlno+"','"+xitem+"','"+xqtyord+"','"+xunit+"','"+ximtrnnum+"','"+xdocnum+"','"+xbatch+"',~
+					'"+#user+"','','"+xbin+"','"+xqtycom+"','"+xqtyalc+"','"+xval+"')"
+				set insdata =#sql(mysql) 
+				//print #result+" "+mysql
+			end if    
+        end event
+    end field
+
+    field Update
+      event before
+        set globals(ErrChk) = ""
+		set globals(xictrnno) = imtor.xictrnno("zid='"+#id+"' and ximtor='"+globals(ximtor)+"'")
+		
+        if globals(ErrChk) .ne. "1"
+        	if xtorlno .ne. globals(xtorlno)
+        		set globals(ErrChk) = "1"
+        		error "Record pointer mismatch"
+        	end if
+        end if
+                
+        if globals(ErrChk) .ne. "1"
+        	call chk_rec
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+        	if xqtyord <= 0.0
+        		set globals(ErrChk) = "1"
+        		error "Please key in Quantity"
+        	end if
+        end if       
+                
+        if globals(ErrChk) .ne. "1"
+        	set globals(newqty) = 0.0 + xqtyord - imtdt.xqtyord("ximtor='"+globals(ximtor)+"' and xtorlno='"+globals(xtorlno)+"'")
+        	if globals(newqty) != 0.0
+          		set globals(oldqty) = 0.0 + imtdt.xqtyord("ximtor='"+globals(ximtor)+"' and xtorlno='"+globals(xtorlno)+"'")
+          		call chk_stk
+          	end if
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+          set binman = caitem.xbinman("zid='"+#id+"' and xitem='"+xitem+"'")
+          if binman .eq. "1"
+          	if xbin .eq. ""
+          		set xbin = caitem.xbin("zid='"+#id+"' and xitem='"+xitem+"'")
+          		set chkbin = #sql("select xbin from caitem where zid='"+#id+"' and xitem='"+xitem+"' and xbin='"+xbin+"' and xbin<>''")
+          		if #result .ne. "true"
+          			set globals(ErrChk) = "1"
+          			error "Bin number required"
+          		end if
+          	end if
+          	if xtbin .eq. ""
+          		set xtbin = xbin
+          	end if
+          	
+          	if globals(ErrChk) .ne. "1"
+          		set binqty = #sql(double,"select sum(xqty) from imbinv where zid='"+#id+"' and xitem='"+xitem+"' and xbin='"+xbin+"' and xwh='"+globals(xfwh)+"'")
+          		if xqtyord > binqty
+          			set globals(ErrChk) = "1"
+          			error "Not enough stock on bin "+xbin+"<br>Available: "+binqty+" Required: "+xqtyord
+          		end if
+          	end if
+          end if
+        end if
+                
+        if globals(ErrChk) .ne. "1"
+        	if globals(newqty) != 0.0
+	          	set xmethserial=caitem.xmethserial(xitem)
+	          	set xtypeserial=caitem.xtypeserial(xitem)        
+        		if xtypeserial .sw. "1" .and. xmethserial .sw. "1"
+	      			str mysql = "update imser set xtypeout='',xnumout='',xrowout="0",xconout='0' where ~
+					  	zid='"+#id+"' and xitem='"+xitem+"' and xtypeout='Transfer Order' and xnumout='"+globals(ximtor)+"' and xrowout='"+xtorlno+"'"
+	      			set tmpstr = #sql(mysql)
+	      			
+    				int count = 0
+    				while count < xqtyord
+    					set count=0+count+1
+						set xnumin = #sql("select xnumin from imser where xitem='"+xitem+"' and xconin='1' and xconout='0' and xwh='"+globals(xwh)+"' order by xnumin")
+						set xserialnum = #sql("select xserialnum from imser where xitem='"+xitem+"' and xconin='1' and xconout='0' and xwh='"+globals(xwh)+"' order by xnumin")
+    					
+						str mysql = "update imser set xtypeout='"+globals(xtypeout)+"',xnumout='"+globals(xnumout)+"',xrowout="+xtorlno+",xconout='1' ~
+							where xitem='"+xitem+"' and xconin='1' and xconout='0' and xwh='"+globals(xwh)+"' and xserialnum='"+xserialnum+"' and xnumin='"+xnumin+"'"
+						set tmpstr =#sql(mysql)
+					end while	          				
+				end if  
+        	end if
+		end if
+      end event
+      event after
+      	if globals(ErrChk) .ne. "1"
+      		str mysql = "update imtdt set xitem='"+globals(xitem)+"',xqtyord='"+xqtyord+"',~
+			  	xbatch='"+globals(xbatch)+"' ~
+				where zid='"+dumzid+"' and ximtor='"+globals(xictrnno)+"' and xtorlno='"+globals(xtorlno)+"'"
+			set tmpstr = #sql(str,mysql)      		
+      	end if
+      end event
+    end field
+
+    field Delete
+      event before
+        set globals(ErrChk) = ""
+        set globals(xictrnno) = imtor.xictrnno("zid='"+#id+"' and ximtor='"+globals(ximtor)+"'")
+	
+        if globals(ErrChk) .ne. "1"
+        	if xtorlno .ne. globals(xtorlno)
+        		set globals(ErrChk) = "1"
+        		error "Record pointer mismatch"
+        	end if
+        end if
+                
+        if globals(ErrChk) .ne. "1"
+        	call chk_rec
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+          set globals(oldqty) = 0.0 + imtdt.xqtyord("ximtor='"+globals(ximtor)+"' and xtorlno='"+globals(xtorlno)+"'")
+          call chk_stk
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+      		set xmethserial=caitem.xmethserial(xitem)
+      		set xtypeserial=caitem.xtypeserial(xitem)
+			if xtypeserial .sw. "1" .and. xmethserial .sw. "1"              
+      			str mysql = "update imser set xtypeout='',xnumout='',xrowout="0",xconout='0' where ~
+				  	zid='"+#id+"' and xitem='"+xitem+"' and xtypeout='Transfer Order' and xnumout='"+globals(ximtor)+"' and xrowout='"+xtorlno+"'"
+      			set tmpstr = #sql(mysql)
+      		end if
+		end if
+
+		if globals(ErrChk) .ne. "1"
+			int count=#sql(int,"select count(*) from imser where zid="+#id+" and xtypeout='Transfer Order' and xnumout='"+globals(ximtor)+"' and xrowout='"+xtorlno+"'")
+			if count>0
+				set globals(ErrChk) = "1"
+				error "You Have Available Serial Numbers -- Cannot Delete!"
+			end if
+		end if		
+		
+		if globals(ErrChk) .ne. "1"
+			str mysql = "delete from imtdt where zid='"+globals(dumzid)+"' and ximtor='"+globals(xictrnno)+"' and xtorlno='"+globals(xtorlno)+"'"
+			set tmpstr = #sql(str,mysql)
+		end if			          
+      end event
+    end field
+
+    embed onsubmit="submitit(this)"
+    field Return
+      embed onclick="clicked(this)"
+    end field
+
+    field SerialNumbers
+      embed onclick="serial(this)"
+    end field
+  end form
+
+  script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+  
+	    <script language="javascript" type="text/javascript">
+	        var detail
+	
+	        function clicked(b){
+	          detail="clicked"
+	        }
+	        function serial(b){
+	          detail="serial"
+	        }
+	        function submitit(form){
+	          if (detail=="clicked"){
+	            form.page.value = "imtoric"
+	            form.searchbutton.value = "Find ximtor=?"
+	          }
+	          if (detail=="serial"){
+	            form.page.value = "imserout"
+	            form.searchbutton.value = "Top"
+	          }
+	        }
+	    </script>
+  end script
+
+  method chk_rec
+    if globals(xstatustor) .eq. "Confirmed"
+      set globals(ErrChk) = "1"
+      error "Already Confirmed"
+    end if
+  end method
+
+  method chk_stk
+    decimal avlqty=0.0
+    decimal rqty = 0.0
+    set xwh = globals(xwh)
+
+    if globals(ErrChk) .ne. "1"
+      if #command .eq. "Add"
+        set rqty = 0.0+xqtyord
+      else if #command .eq. "Update"
+        set rqty = 0.0+xqtyord - globals(oldqty)
+      else if #command .eq. "Delete"
+        set rqty = 0.0-globals(oldqty)
+      end if
+
+      buffer imstock
+      move imstock=imstock(xitem,xwh)
+      if #result .ne. "true"
+         set globals(ErrChk) = "1"
+         error "Stock not found for "+xitem
+      end if
+
+      if globals(ErrChk) .ne. "1"
+        set avlqty = 0.0+imstock.xinhand-imstock.xwoalc-imstock.xwokit-imstock.xaltqty
+        if avlqty<rqty
+          set globals(ErrChk) = "1"
+          error "Not enough stock<br>Available="+avlqty
+        end if
+      end if
+    end if
+  end method
+
+     valid valid
+     	config
+     		set globals(pkey) = globals(ximtor)+" "+xtorlno
+     		set trndesc = #sql(str,"select xdesc from xtrn where xtypetrn='TO Number' and xtrn='"+globals(xtrnimto)+"'")
+     		set desc=#sql("select xdesc from caitem where xitem='"+xitem+"'")
+     		set xunit = caitem.xunitstk("xitem='"+xitem+"'")
+     		
+            set atbatch = #sql("select xattribbatch from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atbatch .eq. "Show"
+            else if atbatch .eq. "Constant"
+            	set #field(xbatch.display) = "const"
+            else if atbatch .eq. "Hide"
+            	set #field(xbatch.display) = "hide"
+            end if                           
+            
+            set atzemail = #sql("select xattribzemail from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atzemail .eq. "Show"
+            else if atzemail .eq. "Constant"
+            	set #field(zemail.display) = "const"
+            else if atzemail .eq. "Hide"
+            	set #field(zemail.display) = "hide"
+            end if   
+            
+            set atxemail = #sql("select xattribxemail from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atxemail .eq. "Show"
+            else if atxemail .eq. "Constant"
+            	set #field(xemail.display) = "const"
+            else if atxemail .eq. "Hide"
+            	set #field(xemail.display) = "hide"
+            end if                          
+            
+     	end config
+     end valid
+          
+#include access.valid
+          
+end page

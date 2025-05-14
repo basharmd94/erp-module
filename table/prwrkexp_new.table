@@ -1,0 +1,13 @@
+table prwrkexp_new
+  caption "Work Experiance"
+
+  columns zid,ztime,zutime,xemp,xrow,xfdate,xtdate,xcompany,xadd,xcountry,~
+          xoccu,xsalary,xremarks,zemail,xemail,xleftre
+
+  primary key zid,xemp,xrow
+
+  foreign key
+    zid references zbusiness.zid
+  end foreign key
+  
+end table

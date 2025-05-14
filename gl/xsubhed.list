@@ -1,0 +1,10 @@
+     list xsubhed
+        table glsub
+        order xacc,xsub
+     	  //fixed xacc
+        select "xacc='"+globals(xaccdr)+"'"
+        navigators alpha//, group xacc
+        rows 50
+        objects xsub attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+                xdesc
+     end list

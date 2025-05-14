@@ -1,0 +1,2629 @@
+page prmstdb
+     
+    caption "<table cellspacing=1 width=100%><tr class=bl>~
+                <td bgcolor=#dddddd><font color=gray>"+switch+" Employee Code:</font></td><td bgcolor=#ccccff><font color=green>"+xemp+"</font></td>~
+                <td bgcolor=#dddddd align=right><font color=gray>Name:</font></td><td bgcolor=#ccccff><font color=green>"+xsalute+" "+globals(xname)+" "+xmiddle+" "+xlast+"</font></td>~
+                <td bgcolor=#dddddd align=right><font color=gray>Designation:</font></td><td bgcolor=#ccccff><font color=green>"+xdesig+"</font></td>~
+                <td bgcolor=#dddddd align=right><font color=gray>Department:</font></td><td bgcolor=#ccccff><font color=green>"+xdept+"</font></td>~
+                <td bgcolor=#dddddd align=right><font color=gray>~
+    	        <a href='"+#report(prmst.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xemp+"&prompt2="+xemp+"' target='_new'>Print</a>~
+    	        </font></td>~ 
+            </tr></table>"
+                	
+     layout mylayout 1 1 3 //columns rows  tabrows
+       //group prmst,praddinfo,prfamily,prdetail,prref,preducation,prexperience,prpay,prtrain,princrement,prdiscipline,prmember,prdocs,primage,premp (1,1)
+	   group prmst,praddinfo,prdetail,prref,prfamily,preducation,prexperience,prpay,prtrain,princrement,prdiscipline,prmember,prdocs,primage,premp (1,1)
+       script myscript,conscript ~
+       method save,search ~
+       (0,0)
+     end layout
+	    
+     group prmst 2 1 "General" //columns rows caption select
+       form prmst  (1, 1)//(col,row,colspan,rowspan,width,height)
+       text primage  (2, 1)//(col,row,colspan,rowspan,width,height)
+       keys "Find xemp=?"
+       //access " xemp .ne. "+#char(34)+#char(34)
+     end group
+
+     group praddinfo 2 1 "Additional Info" //columns rows caption select
+       form praddinfo (1, 1)//(col,row,colspan,rowspan,width,height)
+       keys "Find xemp=?"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group    
+
+     group prdetail 2 1 "Employment Info" //columns rows caption select
+       form prdetail  (1, 1)//(col,row,colspan,rowspan,width,height)
+       keys "Find xemp=?"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group        
+
+     group prref 2 2 "References" //columns rows caption select
+       form prref (1, 1)//(col,row,colspan,rowspan,width,height)
+       list prref (1, 2)
+       keys "Find xemp=?"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group
+	 	      
+     group prfamily 2 2 "Family" //columns rows caption select
+       form prfamily (1, 1)//(col,row,colspan,rowspan,width,height)
+       list prfamily (1, 2)
+       keys "Find xemp=?"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group    
+     
+     group preducation 2 2 "Education" //columns rows caption select
+       form preducation (1, 1)//(col,row,colspan,rowspan,width,height)
+       list preducation (1, 2)
+       keys "Find xemp=?"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group  
+
+     group prexperience 2 2 "Experience" //columns rows caption select
+       form prexperience (1, 1)//(col,row,colspan,rowspan,width,height)
+       list prexperience (1, 2)
+       keys "Find xemp=?"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group  
+
+     group prpay 2 1 "Pay Package" //columns rows caption select
+       form prpay (1, 1)//(col,row,colspan,rowspan,width,height)
+       list prpay (2, 1)
+       keys "Find xemp=?"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group
+
+     group prtrain 2 2 "Training" //columns rows caption select
+       form prtrain (1, 1)//(col,row,colspan,rowspan,width,height)
+       list prtrain (1, 2)
+       keys "Find xemp=?"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group
+     
+     group princrement 2 2 "Increment" //columns rows caption select
+       form princrement (1, 1)//(col,row,colspan,rowspan,width,height)
+       list princrement (1, 2)
+       keys "Find xemp=?"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group
+     
+     group prdiscipline 2 1 "Disciplinary Action" //columns rows caption select
+       form prdiscipline (1, 1)//(col,row,colspan,rowspan,width,height)
+       list prdiscipline (1, 2)
+       keys "Find xemp=?"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group
+                            
+     group prmember 2 2 "Membership" //columns rows caption select
+       form prmember (1, 1)//(col,row,colspan,rowspan,width,height)
+       list prmember (1, 2)
+       keys "Find xemp=?"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group
+
+     group primage 2 1 "Image Upload" //columns rows caption select
+       form primage  (1, 1)//(col,row,colspan,rowspan,width,height)
+       text primage (2,1)
+       keys "Find xemp=?"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group     
+                             
+     group premp 2 1 "Employees" //columns rows caption select
+       form premp  (1, 1)//(col,row,colspan,rowspan,width,height)
+       list premp  (2,1)
+     end group
+                                          
+     group prdocs 2 2 "Documents" //columns rows caption select
+       form prdocs  (1, 1,2)//(col,row,colspan,rowspan,width,height)
+       
+       text xdocs  (2, 2)//(col,row,colspan,rowspan,width,height)
+       list prdocs  (2, 1)//(col,row,colspan,rowspan,width,height)
+       keys "Top"
+       access " xemp .ne. "+#char(34)+#char(34)
+     end group
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text          
+	
+     text primage
+        "<img border=0 src='"+xlink+"' height='200' width='150'>"
+        // "<img border=0 src='"+xlink+"'>"
+     end text
+     
+     form prmst       
+        caption "General"
+        valid prmst,access
+        table prmst
+        order xemp
+        return "Main"
+        layout 2
+        //select "(xemp<>'')"
+        objects Show,Add,Update, Clear, Delete, Top, Previous, Next, Bottom, ~
+          dum3,xtrnemp col(3),xemp attrib(search),~
+		  xname,xshort,xid display(hide),xfirst display(hide),xmiddle display(hide),xlast display(hide),~
+		  xfather,xmother,xcitizen,xdtbirth,xplbirth,xbloodgrp,xsex,xcat,xfadd,xadd,xpadd,xdisease,~
+          xphonec,xmobile,xmobile1,xemaila,xemailb,xreligi,xmstatus,xdtmarr,dum5,~
+		  xprovider caption(Contact Person) width(30),xcontactd,xfax,xoffice1,xoffice,xphoneb, ~
+          xtype display(hide),xtinno display(hide),xtasks display(hide),xremarks display(hide),~
+          xproj display(hide),xdiv display(hide),xpayscl display(hide),xpaytyp display(hide),xsec display(hide),~
+          xbank display(hide),zemail display(hide),xemail display(hide),~
+          xexpiry display(hide),xjoindate display(hide),xempnature display(hide),~
+          xcondate display(hide),xgrade display(hide),xobjective display(hide),xkeyarea display(hide),xrepto display(hide),~
+          xempnew display(hide),xnewdept display(hide),xnewdesig display(hide),xlocation display(hide),dumzid display(hide),xdateto display(hide),~
+          xpfflag display(hide),xstatusemp display(hide),xpsclcode display(hide),xdtwotax display(hide),xunionmem display(hide),~
+          xwelfund display(hide),xquarter display(hide),~
+          xshift display(hide),xspitno display(hide),xfphone display(hide),~
+          xleftdate display(hide),xleftre display(hide),xresignstat display(hide),xsepmode display(hide),~
+          xcardno,xpostflag display(hide),xlink width(25),xpost display(hide),xphone display(hide),~
+          xrace display(hide),ximage display(hide),xdesig display(hide),xdept display(hide)
+          
+        field show
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+          	 if globals(ErrChk) .ne. "1"
+	           	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+	           	 set stype=#prop(xprops,"security")          	 
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Undo_Import.display) = "hide"
+		                set #field(Detail.display) = "hide"		  
+		                set #field(Confirm.display) = "hide"
+						set #field(Transfer.display) = "hide"		                                	                
+						set #field(Create.display) = "hide"	                
+						set #field(Sub.display) = "hide"		                
+						set #field(Post.display) = "hide"
+						set #field(Docs.display) = "hide"
+						set #field(Manual.display) = "hide"
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if           
+           end event
+           event after
+	         if globals(ErrChk) .ne. "1"
+	         	set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+	         	if #result .ne. "true"
+	                set #field(Details.display) = "hide"
+	                set #field(Top.display) = "hide"
+	                set #field(Bottom.display) = "hide"
+	                set #field(Next.display) = "hide"
+	                set #field(Previous.display) = "hide"
+	                set #field(Show.display) = "hide"
+	                set #field(Add.display) = "hide"
+	                set #field(Update.display) = "hide"
+	                set #field(Delete.display) = "hide"
+	                set #field(Clear.display) = "hide"
+	                set #field(Create.display) = "hide"
+	                set #field(Import.display) = "hide"		                
+	                set #field(Undo_Import.display) = "hide"
+	                set #field(Detail.display) = "hide"		
+	                set #field(Confirm.display) = "hide"
+					set #field(Transfer.display) = "hide"		                                	                
+					set #field(Create.display) = "hide"	                
+					set #field(Sub.display) = "hide"
+					set #field(Post.display) = "hide"
+					set #field(Docs.display) = "hide"
+					set #field(Manual.display) = "hide"					
+	                class osbcustom(clear)                		                
+	         	end if
+	         end if             
+           end event           
+        end field
+
+        field Top
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+          	 if globals(ErrChk) .ne. "1"
+	           	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+	           	 set stype=#prop(xprops,"security")          	 
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Create.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Undo_Import.display) = "hide"
+		                set #field(Detail.display) = "hide"		
+		                set #field(Confirm.display) = "hide"
+						set #field(Transfer.display) = "hide"		                                	                
+						set #field(Create.display) = "hide"
+						set #field(Post.display) = "hide"
+						set #field(Docs.display) = "hide"
+						set #field(Manual.display) = "hide"						
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if           
+           end event
+           event after
+	         if globals(ErrChk) .ne. "1"
+	         	set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+	         	if #result .ne. "true"
+	                set #field(Details.display) = "hide"
+	                set #field(Top.display) = "hide"
+	                set #field(Bottom.display) = "hide"
+	                set #field(Next.display) = "hide"
+	                set #field(Previous.display) = "hide"
+	                set #field(Show.display) = "hide"
+	                set #field(Add.display) = "hide"
+	                set #field(Update.display) = "hide"
+	                set #field(Delete.display) = "hide"
+	                set #field(Clear.display) = "hide"
+	                set #field(Import.display) = "hide"		                
+	                set #field(Undo_Import.display) = "hide"
+	                set #field(Detail.display) = "hide"		
+	                set #field(Confirm.display) = "hide"
+					set #field(Transfer.display) = "hide"		                                	                
+					set #field(Create.display) = "hide"	                
+					set #field(Sub.display) = "hide"
+					set #field(Post.display) = "hide"
+					set #field(Docs.display) = "hide"
+					set #field(Manual.display) = "hide"
+	                class osbcustom(clear)                		                
+	         	end if
+	         end if             
+           end event
+        end field
+        
+        field xdisease
+              width 35
+              height 3
+        end field
+        
+        field xemaila
+              caption Personal Email
+        end field
+        
+        field xcontactd
+              caption Relation With Employee
+        end field
+        
+        field xemailb
+              caption Official Email
+              //col 3
+        end field
+					
+        field xid
+              caption Card id
+        end field
+        
+        field xcat
+            caption Section
+            display hide
+            pick select xcode from xcodes where xtype='Religion Section'
+        end field
+        
+        field xfax
+              caption Phone No.1
+              width 20
+              //col 3
+        end field
+        
+        field xoffice1
+              caption Phone No.2
+        end field
+        
+        field xoffice
+              caption Phone No.3
+              col 3
+        end field
+        
+        field xphoneb
+              caption Phone No.4
+              display hide
+        end field
+        
+        field xspppno
+            caption Place of Birth
+            width 20
+        end field
+        
+        feild xfadd
+              caption Mailing Address
+              width 35
+              height 3
+        end field
+
+        field xphonec
+              caption Phone
+              width 20
+        end field
+        
+      field xcardno
+            caption CV Code
+            display hide
+            col 3
+            display const
+      end field
+      
+      field xmobile
+            caption Personal Mobile
+      end field
+      
+      field xmobile1
+            caption Official Mobile
+      end field
+        
+      field xemp
+        caption Employee Master Code
+        width 10
+        event after
+           set globals(xemp)=xemp
+           set globals(xname)=xname
+        end event
+      end field
+        
+        field xfather
+            width 40
+        end field
+        
+        field xbloodgrp
+            display combo
+            pick select xdescdet from xcodes where xtype='Blood Group'
+        end field
+        
+        field xreligi
+            width 20
+            pick select xcode from xcodes where xtype='Religion'
+        end field
+        
+        field xsex
+            width 20
+            caption Gender
+        end field
+        
+        field xcitizen
+            width 20
+        end field
+        
+        field xmstatus
+            width 20
+        end field
+        
+        field xmother
+            width 40
+        end field
+        
+        field dum3
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum3 = "<font color=red>________________________________ Personal Information (Basic) _______________________________</font>"
+         end event
+        end field
+        
+        field dum5
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum5 = "<font color=red>_________________________________ Emergency Contact Information ______________________________</font>"
+         end event
+        end field
+
+        field xtype
+           caption License Type
+           display hide
+           width 30
+           pick
+        end field
+
+		field xtrnemp
+			default "EMP-"
+		end field
+		
+        field xadd
+           width 35
+           height 3
+        end field
+        
+        field xpadd
+           width 35
+           height 3
+        end field
+        
+        field xpaytyp
+           col 3
+        end field
+        
+        field xcondate
+          caption Date of Confirmation
+        end field
+  
+		field xdesig
+			display text
+			pick list xdesig
+			//pick select xcode from xcodes where xtype='Designation'
+		end field
+
+        field xdesigdesc
+          attrib local
+          display constant
+          event after
+          set xdesigdesc=#sql("select xlong from xcodes where xtype='Designation' and xcode='"+xdesig+"'")
+          end event
+        end field
+
+        field xdeptdesc
+          attrib local
+          display constant
+          event after
+          set xdeptdesc=#sql("select xlong from xcodes where xtype='Department' and xcode='"+xdept+"'")
+          end event
+        end field
+
+        field xcatdesc
+          attrib local
+          display constant
+          event after
+          set xcatdesc=#sql("select xlong from xcodes where xtype='Category' and xcode='"+xcat+"'")
+          end event
+        end field
+
+          field xfirst
+            width 40
+            caption Name
+            event after
+              //set globals(xname)=xname
+            end event
+          end field
+          
+          field xpayscl
+            width 10
+            default "General"
+            pick list payscal
+          end field
+
+		field xlink
+			//default "docs"+#sep+"x"+#id+#sep+xemp+".jpg"
+			event after
+				if xlink .eq. "" .and. xemp .ne. ""
+					set xlink="docs"+#sep+"x"+#id+#sep+xemp+".jpg"
+				end if
+			end event
+		end field
+		
+        field add
+          event before
+          	set globals(ErrChk) = ""
+          	
+          	call chk_access
+          	         	
+          	if globals(ErrChk) .ne. "1"
+	            set xautoemp = #sql("select xautoemp from cadef where zid='"+#id+"'")
+	            if xautoemp .eq. "1"
+					str mysql = #sql(str,"select xemp from prmst where xemp like '"+xtrnemp+"%' order by xemp desc")
+					if #result .eq. "true" .and. mysql .ne. ""
+						set last_num = 0+#sub(mysql,6)
+					end if
+					set last_num = 0+1+last_num
+					set mysql = #padl(""+last_num,6,"0")
+					set xemp = xtrnemp + mysql            
+				else
+					set chkemp = #sql("select xemp from prmst where xemp='"+xemp+"'")
+					if #result .eq. "true"
+						set globals(ErrChk) = "1"
+						error "Duplicate Record"
+					end if
+				end if          	
+	            set zemail=#user
+	            set xemail=""
+          	end if
+          end event
+        end field
+
+        field update
+        	event before
+        		set globals(ErrChk) = ""
+
+        		call chk_access
+
+        		if globals(ErrChk) .ne. "1"
+        			if globals(xemp) .ne. xemp
+        				set globals(ErrChk) = "1"
+        			error "Record pointer mismatch"
+               		end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			//call chk_kin
+        		end if
+
+        	    if globals(ErrChk) .ne. "1"
+                        //set xfirst=xname+" "+xmiddle+" "+xlast
+        		set xemail=#user
+        	    end if
+        	end event
+        end field
+
+        field delete
+        	event before
+        		set globals(ErrChk) = ""
+
+        		call chk_access
+
+        		if globals(ErrChk) .ne. "1"
+        			if globals(xemp) .ne. xemp
+        				set globals(ErrChk) = "1"
+        			error "Record pointer mismatch"
+               		end if
+        		end if
+        	end event
+        end field
+		
+		embed onsubmit="submitit(this)"
+		
+  end form
+	
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+          button=b.value
+          //alert("clicked"+button);
+        }
+        function submitit(form){
+                 //alert("submitit");
+                 if (button=="Upload"){
+                    button="";
+					var f=form.xfile.value
+					var l=form.xlink.value
+					//alert(f+"*"+l);
+                    var i=f.indexOf('.')
+					//alert("I am here")
+					f=f.substring(i,f.length)
+                    var i=l.indexOf(".")
+					l=l.substring(i,l.length)
+					//alert(f+"*"+l)
+					if (f.toLowerCase()==l.toLowerCase()){
+						return true;
+					}else{
+						alert("The file extensions for source("+f+") and destination("+l+") does not match. Correct and try again.");
+						return false;
+					}
+					return false
+                 }else{
+					button="";
+				}
+             }
+             
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "prmst"
+            form.searchbutton.value = "Find xemp=?"
+          }else if (detail=="auth"){
+            form.page.value = "prauth"
+            form.searchbutton.value = "Find xemp=?"
+          }
+        }             
+        </script>
+     end script
+
+//****praddinfo***********************************************************************************
+
+     form praddinfo
+     	caption "Additional Info"
+        table prmst
+        order xemp
+        fixed xemp
+        return "Main"
+        layout 2
+        objects Show,Update,~
+            dum1,xpassport,xplaceiss,xdateiss,xppexpdt,dum2,xbank,xpayact,xbankbr,xcardnum,~
+			dum3,xlicense,xlicentype,xtemdate caption(Date Issued),xexpiry,xvhclass,xplace,~
+			dum4,xwpno,xwptype,xwpeffect,xwpexpire
+            
+        field xbank
+              pick select xcode from xcodes where xtype='Bank'
+        end field
+        
+        field xcardnum
+              caption ATM Card No.
+              width 20
+        end field
+        
+        field xpassport
+              width 20
+        end field
+           
+        field xlicentype
+              default "Local"
+        end field
+        
+        field xlicense
+           caption License No.
+           width 20
+           pick
+        end field
+           
+           
+        field dum1
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum1 = "<font color=red>_______________________________________ Passport Information __________________________________________________________</font>"
+         end event
+        end field
+        
+        field dum2
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum2 = "<font color=red>_______________________________________ Salary Account Information ____________________________________________________</font>"
+         end event
+        end field
+
+        field dum3
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum3 = "<font color=red>_______________________________________ Driving License Information ___________________________________________________</font>"
+         end event
+        end field
+
+        field dum4
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum4 = "<font color=red>_______________________________________ Work Permit/Employment Pass Information _______________________________________</font>"
+         end event
+        end field
+
+
+        field xname
+           width 30
+           display const
+        end field
+           
+        field xjoindate
+          caption Date of Joining
+        end field
+        
+        field xlicentype
+              default "Local"
+        end field
+		
+		field xvhclass
+			pick "Light Vehicle,Heavy Vehicle"
+		end field        
+		
+		field xplace
+			caption Place of Issue
+		end field
+
+  end form
+//****end of praddinfo**********************************************************
+
+//****prdetail******************************************************************
+     form prdetail
+     	valid detail
+        caption "Employment Info"
+        table prmst
+        order xemp
+        fixed xemp
+        return "Main"
+        layout 2
+        objects Show,Update,Authority,~
+            xdesig ,xdept,xlocation,xdiv,xcostcent,xsec,xempcat,xcat,xrepto attrib(attach),name,~
+    		    xshift,xjoindate attrib(mandatory),xempnature,~
+          	xdtwotax,xsalary,xunionmem display(hide),xwelfund,xquarter,xstatusemp,~
+          	xpaytyp attrib(mandatory),xgrade display(hide),xpayscl display(hide),xpsclcode attrib(mandatory),~
+			      xtypepay,xprobtodate,xprobfrdate,~
+          	xcondate,xpfflag,xempnew display(hide),xnewdept display(hide),xnewdesig display(hide),~
+          	dumzid display(hide),xdateto display(hide),xuserid display(hide),xuserid1 display(hide),xotflag,~
+          	xleftdate display(const),xsepmode display(const),xleftre display(const),xresignstat display(hide)
+        
+        field dum3
+         caption
+         col 3
+         display const
+         attrib local
+         event after
+            set dum3 = "<font color=red>_______Employment Confirmation_______</font>"
+         end event
+        end field
+        
+		field xshift
+			pick select xcode from xcodes where xtype='Shift'
+		end field
+		
+		field xtypepay
+			caption Disbursement Method
+            pick "Cash,Cheque,Bank Transfer"
+        end field
+        
+        field dum4
+         caption
+         //col 3
+         display const
+         attrib local
+         event after
+            set dum4 = "<font color=red>_______________Information______________</font>"
+         end event
+        end field        
+        
+        field xprobfrdate
+              caption Extension of Probationary Period
+        end field
+        
+        field xlocation
+           caption Location
+           display text
+           pick list xlocation
+           width 20
+        end field
+
+        field xpsclcode
+        	caption Salary Scale /Grade
+        end field
+        
+        field xdtwotax
+              caption Gross Salary
+        end field
+        
+        field xempcat
+            caption Employee Type
+        end field
+        
+        field xgrade
+        	display hide
+        	caption Employee Grade
+       		pick select xcode from xcodes where xtype='Employee Grade'
+        end field
+        
+        field xdiv
+              caption Name of Office
+        end field
+
+        field xcostcent
+            display combo
+            //pick "select xcostcent from prlochier where zid='"+#id+"' and xdiv='"+globals(xdiv)+"' and xlocation='"+globals(xlocation)+"'"
+            pick select xcode from xcodes where xtype='Cost Center'
+        end field
+        
+        field xcat
+        	//caption Job Weight/Grade
+        	caption Grade Step
+        	display combo
+        	pick select xcode from xcodes where xtype='Job Weight'
+        end field
+              
+        field xquarter
+//           col 3
+        end field
+        
+        field xpadd
+           width 35
+           height 3
+        end field
+        
+        field xcondate
+          caption Date of Confirmation
+          //col 3
+        end field
+
+          field xemp
+            width 10
+            event after
+               set globals(xemp)=xemp
+            end event
+          end field
+
+          field xname
+            width 50
+            event after
+              set globals(xname)=xname
+            end event
+          end field
+          
+          field xpayscl
+            width 10
+            default "General"
+            pick list payscal
+          end field
+          
+          field xrepto
+          	display text
+          	pick list xemp
+          	width 10
+          end field
+          
+          field xrecto
+          	display text
+          	pick list xemp
+          	width 10
+          end field
+          
+          field xstatusemp
+          	pick "A-Active,D-Dismissed,H-Hold,R-Resigned,T-Terminated"
+          	default "A-Active"
+          end field
+          
+          field name
+          	caption
+          	display const
+          	attrib local
+          	event after
+          		set name = #sql("select xfirst from prmst where xemp='"+xrepto+"'")
+          	end event
+          end field
+          
+          field name1
+          	caption
+          	display const
+          	attrib local
+          	event after
+          		set name1 = #sql("select xname from prmst where xemp='"+xrecto+"'")
+          	end event
+          end field
+	      
+           field xleftre
+           		caption Reason
+           		width 30
+           		height 2
+           		col 3
+           end field
+		   	      
+			field update
+				event before
+					set globals(ErrChk) = ""
+					if globals(xemp) .ne. xemp
+						set globals(ErrChk) = "1"
+						error ""
+					end if
+					if globals(ErrChk) .ne. "1"
+						if xpsclcode .eq. ""
+							set globals(ErrChk) = "1"
+							error "Key in "+#field(xpsclcode.caption)
+						else
+							set chkpscl=prpayscal.xpsclcode("xpsclcode='"+xpsclcode+"'")
+							if #result .ne. "true"
+								set globals(ErrChk) = "1"
+								error "Key in "+#field(xpsclcode.caption)
+							end if
+						end if
+					end if
+					if globals(ErrChk) .ne. "1"
+						if xrepto .ne. ""
+							set chkemp = #sql("select xemp from prmst where xemp='"+xrepto+"'")
+							if #result .ne. "true"
+								//set globals(ErrChk) = "1"
+								//error "Wrong Eployee ID selected"
+							else
+								set xuserid = #sql("select zemail from xusers where xemp='"+xrepto+"'")
+							end if
+						end if
+						if xstatusemp .eq. " "
+						  set xstatusemp = "A-Active"
+                        end if
+					end if
+					if globals(ErrChk) .ne. "1"
+            			if xlocation .ne. ""
+//                            set xcostcent=prlochier.xcostcent("xlocation='"+xlocation+"'")
+//                            set xdiv=prlochier.xdiv("xlocation='"+xlocation+"'")
+            			end if
+                    end if
+				end event
+			end field
+
+	      embed onsubmit="submitit(this)"
+	      field Authority
+	        embed onclick="auth(this)"
+	      end field
+			
+  end form
+
+//****end of prdetail***********************************************************
+
+//****prfamily******************************************************************     
+
+     list prfamily
+      caption "<p class=bl>Family Details of <font color=red > "+globals(xemp)+" "+globals(xname)+"</font><br>"
+      table prfamily
+      order xemp,xkin
+      fixed xemp
+      rows 10
+      object xkin attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xemp=?&xkin=?"), ~
+             xdob,xplbirth,xbloodgrp,xrelation,xspocc,xspppno,xmobile,xphone,xemail,xdependant,xnominee
+			   
+        field xspocc
+        	caption Occupation
+        end field
+        
+        field xspppno
+        	caption Passport Numnber
+		end field
+		
+        field xkin
+            caption Name of Family Member
+        end field		
+			   
+     end list
+      
+     form prfamily
+        caption "Family"
+        table prfamily
+        order xemp,xkin
+        fixed xemp
+        return "Main"
+        layout 2
+        objects Show, Add, Clear, Show,  Update,  Top,Delete, Previous, Next, Bottom,~
+          xkin,xdob,xplbirth,xbloodgrp,xrelation,xspocc,xspppno,xmobile,xphone,xemail,~
+		  xdependant,xnominee,xnote display(hide),zemail display(hide)
+          
+        field xkin
+            caption Name of Family Member
+        end field
+        
+        field xspocc
+        	caption Occupation
+        end field
+        
+        field xspppno
+        	caption Passport Numnber
+		end field
+        
+        field xbloodgrp
+              display combo
+              pick "select xcode from xcodes where zid='"+#id+"' and xtype='Blood Group'"
+        end field
+        
+        field xrelation
+        	pick "Child,Spouse,Father,Mother,Brother,Sister"
+        end field
+        
+        field xremarks
+        	width 40
+    		height 2
+        end field
+        
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+          end event
+        end field
+
+     end form
+
+//****prfamily ends*************************************************************
+
+
+//****preducation*************************************************************
+
+        list preducation
+            caption "<p class=bl>Education Details"
+            table preducation
+            order xemp,xrow
+            fixed xemp
+            rows 10
+            objects xrow attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xemp=?&xrow=?"), ~
+                xyearq,xorg,xcourse,xdatefrom,xdateto,xdegree,xgrade
+            
+            field xorg
+                caption Institute
+            end field
+        
+        end list
+      
+    	form preducation
+            caption "Education"
+            table preducation
+            order xemp,xrow
+            fixed xemp
+            return "Main"
+            layout 2
+            objects Show,Add, Update, Delete, Top, Previous, Next,Clear, Bottom,~
+    				xrow attrib(row 0 1),xyearq,xorg,xcourse,xdatefrom,xdateto,xdegree,xgrade,xissuedby display(hide)
+    
+            field xrow
+              event after
+                set globals(xrow)=xrow
+              end event
+            end field
+    
+            field xorg
+                  caption Institute
+            end field
+            
+    	end form
+
+//****preducation ends*************************************************************     
+
+//****prexperience*****************************************************************
+
+      list prexperience
+           caption "Working Experience"
+           table prwrkexp
+           order xemp,xrow
+           fixed xemp
+           rows 10
+           object xrow attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xemp=?&xrow=?"),~
+             xcompany,xoccu,xfdate,xtdate,xsalary
+             
+            field xcompany
+              caption Company
+            end field
+                         
+      end list
+      
+      form prexperience
+        caption "Experience"
+        table prwrkexp
+        order xemp,xrow
+        fixed xemp
+        layout 1
+        object Show, Add,Clear, Update,Delete,Previous,Next,Top,Bottom,~
+              xrow attrib(row 0 1),xfdate,xtdate,xcompany,xadd,xoccu,xcountry,xsalary,~
+              xremarks,zemail display(hide),xemail display(hide)
+    
+            field add
+              event before
+                set zemail=#user
+                set xemail=""
+              end event
+            end field
+    
+            field update
+              event before
+                set xemail=#user
+              end event
+            end field
+       
+            field xcompany
+              caption Company
+            end field
+            
+            field xsalary
+              caption Salary
+            end field
+            
+            field xadd
+              caption Address
+              width 40
+              height 2
+            end field
+            
+            field xremarks
+              width 40
+              display area
+              height 2
+            end field
+    
+      end form
+
+//****prexperience ends*************************************************************     
+
+//****prpay******************************************************************     
+
+        list prpay       
+            caption "Pay Package"
+            table prpaymentdt
+            order xemp,xpaycode
+            fixed xemp
+            rows 10
+            objects xpaycode attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xemp=?&xpaycode=?"),~
+                    desc equals((select xdesc from prpayhead where prpayhead.zid=prpaymentdt.zid and prpayhead.xpaycode=prpaymentdt.xpaycode)),~
+                    xamount
+            
+            totals ,"Totals",sum
+            
+            field desc
+                  caption Description
+                  storage varchar 
+            end field
+        
+        end list
+      
+     form prpay
+          caption "Pay Package"
+          table prpaymentdt
+          order xemp,xpaycode
+          fixed xemp
+          return "Main"
+          layout 1
+          objects Show, Add, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+                xpaycode,xdumdesc,xamount,zemail display(hide),xemail display(hide)
+
+          field xpaycode
+            display text
+            width 10
+            pick list xpaycode
+          end field
+
+          field xdumdesc
+            attrib local
+            display constant
+            caption Description
+            event after
+              set xdumdesc = #sql(str,"select xdesc from prpayhead where xpaycode='"+xpaycode+"'")
+            end event
+          end field
+
+          field Add
+            event before
+              set globals(ErrChk) =""
+              buffer prpayhead
+              move prpayhead=prpayhead(xpaycode)
+              if #result .ne. "true"
+                 set globals(ErrChk) = "1"
+                 error "Invalid Payment Code"
+              end if
+
+              set zemail=#user
+              set xemail=""
+            end event
+          end field
+
+          field Update
+            event before
+              set globals(ErrChk) =""
+              buffer prpayhead
+              move prpayhead=prpayhead(xpaycode)
+              if #result .ne. "true"
+                 set globals(ErrChk) = "1"
+                 error "Invalid Payment Code"
+              end if
+              set xemail=#user
+            end event
+          end field
+
+     end form
+     
+//****prpay ends*************************************************************     
+
+//****prtrain****************************************************************
+
+  list prtrain
+  	caption "Training History"
+   table prtraingdet
+   order xemp,xtypeevent,xrow
+   fixed xemp
+   select "xtypeevent='Previous'"
+   row 60
+   object xtypeevent display(hide),~
+   		xrow attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xemp=?&xtypeevent=?&xrow=?"),~
+		xtraining,xinstut,xtraintype,xdatefrom,xdateto,xdayab,xpass
+         
+    field xamount
+      caption Training Cost
+    end field
+
+    field xtype
+      caption Expense Beared By
+    end field
+
+    field xdayab
+      caption Duration of Training(Days)
+      display const
+    end field
+
+    field xinstut
+      caption Training Institute/Body
+    end field
+    
+    field xpass
+      caption Passed
+    end field
+
+    field xmarks
+      caption Marks Obtained
+    end field
+
+  end list
+
+  form prtrain
+    caption "Training"
+    table prtraingdet
+    order xemp,xtypeevent,xrow
+    fixed xemp
+    select "xtypeevent='Previous'"
+    layout 2
+    object Show,Add,Update,Clear,Previous,Next,Delete,Top,Bottom,~
+          xrow attrib(row 0 1),xtraining,xinstut,xtraintype,xdatefrom,xdateto,xdayab,xtype,xamount,~
+          xpass,xmarks,~
+          xremarks,xdegcom display(const) caption(Confirm Status),~
+		  zemail display(hide),xemail display(hide),xtypeevent display(hide)
+
+    field xrow      
+      caption Row No
+      event after
+        set globals(xrow) = xrow
+        set globals(xdatefrom) = xdatefrom
+        set globals(xdateto) = xdateto
+        if xdegcom .eq. "Confirmed"
+        	set #field(Add.display) = "disable"
+        	set #field(Update.display) = "disable"
+        	set #field(Delete.display) = "disable"
+        	set #field(Confirm.display) = "disable"
+        end if
+      end event
+    end field
+
+    field xamount
+      caption Training Cost
+      display hide
+//      col 3
+    end field
+    
+    field xtype
+      caption Expense Beared By
+      //display combo
+      //pick "Company,Self,Other"
+      display hide
+    end field
+    
+    field xtraintype
+      //pick "Local,Abroad"
+      pick select xcode from xcodes where xtype='Training Type'
+    end field
+    
+    field xdayab
+      caption Duration of Training(Days)
+      display const
+    end field
+    
+    field xinstut
+      caption Training Institute/Body
+    end field
+
+    field xremarks
+      caption Achievement
+      columns 3
+      width 80
+      display area
+      height 3
+    end field
+    
+    field xpass
+      caption Result
+      display text
+      pick
+      //display combo
+      //pick "Yes, NO"
+    end field
+
+    field xmarks
+      caption Marks Obtained
+      col 3
+      display hide
+    end field
+    
+     field add
+       event before
+       		set globals(ErrChk) = ""
+       		
+       		call chk_access
+       		
+       		if globals(ErrChk) .ne. "1"
+	         	if xdatefrom .gt. xdateto
+	         		set globals(ErrChk) = "1"
+	         		error "<font color=red>Invalid Date Range</p>Cannot "+#command+"</font>"
+	         	end if       		
+       		end if       		
+       		
+       		if globals(ErrChk) .ne. "1"
+	         	set chkrec = #sql("select xrow from prtraingdet where xemp='"+xemp+"' and xtypeevent='Previous' and xdateto>='"+xdatefrom+"' and xdatefrom<='"+xdatefrom+"'")
+	         	//print #result
+	         	if #result .eq. "true"
+	         		set globals(ErrChk) = "1"
+	         		error "<font color=red>Duplicate Record</p>Cannot "+#command+"</font>"
+	         	end if
+	        end if
+
+       		if globals(ErrChk) .ne. "1"
+	         	set chkrec = #sql("select xrow from prtraingdet where xemp='"+xemp+"' and xtypeevent='Previous' and xdateto>='"+xdateto+"' and xdatefrom<='"+xdateto+"'")
+	         	//print #result
+	         	if #result .eq. "true"
+	         		set globals(ErrChk) = "1"
+	         		error "<font color=red>Duplicate Record</p>Cannot "+#command+"</font>"
+	         	end if
+	        end if
+       		
+       		if globals(ErrChk) .ne. "1"	
+			    set xdayab = #days(xdateto)-#days(xdatefrom)+1		   	       							    			
+				set zemail = #user
+				set xemail = ""
+				set xtypeevent = "Previous" 
+			end if
+       end event
+     end field
+     
+     field update
+       event before
+       		set globals(ErrChk) = ""
+       		
+       		call chk_access
+       		
+       		if globals(ErrChk) .ne. "1"
+	         	if xdatefrom .gt. xdateto
+	         		set globals(ErrChk) = "1"
+	         		error "<font color=red>Invalid Date Range</p>Cannot "+#command+"</font>"
+	         	end if       		
+       		end if       		
+       		
+       		if globals(ErrChk) .ne. "1"
+				if xdatefrom .eq. globals(xdatefrom) .and. xdateto .eq. globals(xdateto)
+				else       		
+		         	set chkrec = #sql("select xrow from prtraingdet where xemp='"+xemp+"' and xtypeevent='Previous' and xdateto>='"+xdatefrom+"' and xdatefrom<='"+xdatefrom+"'")
+		         	if #result .eq. "true"
+		         		set globals(ErrChk) = "1"
+		         		error "<font color=red>Duplicate Record</p>Cannot "+#command+"</font>"
+		         	end if
+		        end if
+	        end if
+
+       		if globals(ErrChk) .ne. "1"
+				if xdatefrom .eq. globals(xdatefrom) .and. xdateto .eq. globals(xdateto)
+				else
+	         		set chkrec = #sql("select xrow from prtraingdet where xemp='"+xemp+"' and xtypeevent='Previous' and xdateto>='"+xdateto+"' and xdatefrom<='"+xdateto+"'")
+		         	if #result .eq. "true"
+		         		set globals(ErrChk) = "1"
+		         		error "<font color=red>Duplicate Record</p>Cannot "+#command+"</font>"
+		         	end if
+		        end if
+	        end if
+       		
+       		if globals(ErrChk) .ne. "1"	
+			    set xdayab = #days(xdateto)-#days(xdatefrom)+1		   	       							    			
+				set xemail = #user
+				set xtypeevent = "Previous"
+			end if
+       end event
+     end field
+     
+     field Confirm
+     	event before
+     		set globals(ErrChk) = ""
+     		
+     		call chk_access
+     		
+     		if globals(ErrChk) .ne. "1"
+     			if xdegcom .eq. "Confirmed"
+     				set globals(ErrChk) = "1"
+     				error "Cannot "+#command+"; Already Confirmed"
+     			end if
+			end if
+     		
+       		if globals(ErrChk) .ne. "1"
+	         	if xdatefrom .lt. #date .or. xdateto .lt. #date
+	         		set globals(ErrChk) = "1"
+	         		error "Invalid Date Range</p>Cannot "+#command
+	         	end if       		
+       		end if      
+			        		
+     		if globals(ErrChk) .ne. "1"
+     			set rem = xtraintype+" "+xtraining+"@"+xinstut
+     			int i = 0
+     			while i<xdayab
+     				set i=i+1
+	       			
+	       			set dayinc = #days(xdatefrom)+i
+	       			set globals(xdate) = #longtodate(dayinc)
+	       			
+	       			set xyear = #sub(globals(xdate),0,4)
+	       			set xper = #sub(globals(xdate),5,2)
+	       			set xday = #sub(globals(xdate),8,2)
+	       			
+	       			//print globals(xdate)+" "+xyear+" "+xper+" "+xday
+	            	set chkrec = #sql("select xdate from prath where xdate='"+globals(xdate)+"'")
+	            	if #result .ne. "true"
+						set myqry = "insert into prath (zid,xyear,xper,xday,xdate,xshift,xatdrem,zemail,xemail)"
+						set myqry = myqry + " values('"+#id+"','"+xyear+"','"+xper+"','"+xday+"','"+globals(xdate)+"',~
+						'Default','','"+#user+"','')"
+						set tmpstr = #sql(myqry)
+						//print #result		            		
+	            	end if          
+	       			
+	          		set chkrec = #sql("select xemp from pratd where where xdate='"+globals(xdate)+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update pratd set xatdstat='On Training' where xdate='"+globals(xdate)+"' and xemp='"+globals(xemp)+"'"
+						set tmpstr = #sql(mysql)						
+	          		else
+						set myqry = "insert into pratd (ztime,zid,xyear,xper,xday,xdate,xshift,xemp,~
+            				xintime,xouttime,xlotime,xlitime,xatdstat,xpflag,zemail,xemail,xrem)"
+						set myqry = myqry + " values('"+#time+"','"+#id+"','"+xyear+"','"+xper+"','"+xday+"','"+globals(xdate)+"',~
+							'Default','"+globals(xemp)+"','','','','','On Training','','"+#user+"','',~
+							'"+rem+"')"
+						set tmpstr = #sql(myqry)								
+	          		end if	   					  
+	          	end while
+	          	
+	          	str mysql = "update prtraingdet set xdegcom='Confirmed' where xemp='"+globals(xemp)+"' and xrow='"+globals(xrow)+"'"
+	          	set tmpstr = #sql(mysql)
+	          	action show
+     		end if
+     		
+     	end event
+     end field
+
+  end form
+//****prtain ends************************************************************
+
+//****princrement************************************************************
+
+        list princrement
+            caption "Increment History"
+            table princrement
+            order xemp,xincno
+            fixed xemp
+            rows 10
+            objects xincno attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xemp=?&xincno=?"),~
+                xamount,xtotamt,xdate,xref,xnewdesig,xlocation
+            
+            field xamount
+                caption Increment Amount
+            end field
+            
+            field xtotamt
+                caption Revised Gross Salary
+            end field
+            
+            field xdate
+                caption Increment Effective Date
+            end field
+            
+            field xref
+                caption Increment Letter Reference
+            end field
+            
+            field xlocation
+                caption New Location
+            end field
+            
+        end list
+    
+     form princrement
+        caption "Increment"
+        table princrement
+        order xemp,xincno
+        fixed xemp
+        return "Main"
+        layout 1
+        objects Show,Clear, Next,Previous,Top,Bottom,~
+                xincno attrib(row 0 1),xamount,xtotamt,xdate,xref,xremarks,~
+                zemail display(hide),xemail display(hide),xsites,xnewdept,xnewdesig,xlocation,xpostflag 
+
+       field xincno
+         event after
+           set globals(xincno)=xincno
+         end event
+       end field
+       
+       field xpostflag
+            caption Confirmation Status
+            display const
+       end field
+       
+       field xamount
+         caption Increment Amount
+       end field
+       
+       field xsites
+            caption Promotional Status
+            display combo
+            pick "Yes,No"
+       end field
+
+       field xtotamt
+         caption Revised Gross Salary
+       end field
+       
+       field xlocation
+            caption New Location
+       end field
+
+       field xdate
+         caption Increment Effective Date
+       end field
+
+       field xref
+         caption Increment Letter Reference
+       end field
+
+       field xremarks
+         caption Comments
+         width 40
+         height 2
+       end field
+       
+          field Confirm
+          
+         // xtotamt
+                event before
+
+                   if xpostflag .ne. ""
+                      set globals(ErrChk)="1"
+                      error "Already Confirmed</p>Cannot "+#command
+                   
+                   else if xsites .eq. "Yes"
+                    str mysql = "update prmst set xcostcent = '"+xlocation+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+
+                    str mysql = "update prmst set xdept = '"+xnewdept+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+
+                    str mysql = "update prmst set xdesig = '"+xnewdesig+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+                    
+                    //set cur_gross=#sql(str,"select xdtwotax from prmst where xemp='"+xemp+"'")
+                    //set cur_gross=0.0+cur_gross+xamount
+                    
+
+                    str mysql = "update prmst set xdtwotax = '"+xtotamt+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+
+                    str mysql = "update princrement set xpostflag='Confirmed' where xemp='"+xemp+"' and xincno='"+globals(xincno)+"' "
+                    set updval = #sql(str,mysql)
+
+                    action show
+                   else
+                   
+                    str mysql = "update prmst set xdtwotax = '"+xtotamt+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+
+                    str mysql = "update princrement set xpostflag='Confirmed' where xemp='"+xemp+"' and xincno='"+globals(xincno)+"' "
+                    set updval = #sql(str,mysql)
+                    
+                    action show
+
+                   end if
+               end event
+          end field
+
+           field add
+             event before
+             
+               set zemail=#user
+               set xemail=""
+               set xpostflag = ""
+               
+               set cur_gross=#sql(str,"select xdtwotax from prmst where xemp='"+xemp+"'")
+               set xtotamt=0.0+cur_gross+xamount
+             end event
+           end field
+
+       field Update
+         event before
+           set globals(ErrChk)=""
+           
+           if xpostflag .ne. ""
+              set globals(ErrChk)="1"
+              error "Already Confirmed</p>Cannot "+#command
+           end if
+           
+           if xincno .ne. globals(xincno)
+              set globals(ErrChk)="1"
+              error "Record pointer mismatch</p>Cannot "+#command
+           else
+              set xemail=#user
+              set cur_gross=#sql(str,"select xdtwotax from prmst where xemp='"+xemp+"'")
+              set xtotamt=0.0+cur_gross+xamount
+           end if
+         end event
+       end field
+       
+       field Delete
+         event before
+
+           if xpostflag .ne. ""
+              set globals(ErrChk)="1"
+              error "Already Confirmed</p>Cannot "+#command
+           end if
+         end event
+       end field
+       
+     end form    
+
+//****princrement ends*******************************************************
+
+//****prdiscipline***********************************************************
+
+  list prdiscipline
+  	caption "Disciplinary Action(s)"
+   	table prdiscpldet
+   	order xemp,xrow
+   	fixed xemp
+   	rows 60
+   	object xrow attrib(link "main?page="+page+"&command=Show&xrow=?"),~
+          xdiscpmeth,xdatefrom,xdateto,xdayab
+         
+    field xamount
+      caption Training Cost
+    end field
+   
+    field xdayab
+    	caption Days
+    end field
+
+  end list
+
+  form prdiscipline
+  	caption "Disciplinary Action"
+    table prdiscpldet
+    order xemp,xrow
+    fixed xemp
+    layout 1
+    object Show,Clear,Previous,Next,Top,Bottom,~
+           xrow attrib(row 0 1),xdate,xdiscpmeth,xaction,xdatefrom default(#d),xdateto default(#d) attrib(attach),~
+		   xdayab display(const),xreason,xremarks,xamount display(hide),~
+           xtype,xnewdesig,xdept,xnewdept display(hide),~
+           zemail display(hide),xemail display(hide)
+
+    field xdiscpmeth
+    	attrib mandatory
+        caption Disciplinary Action
+    end field
+    
+    field xaction
+    	attrib mandatory
+    	caption Salary Deduction Basis
+    	display combo
+    	pick "Basic,Gross,Full Pay"
+    	//default "Basic"
+    end if
+
+    field xamount
+      caption Amount
+    end field
+    
+    field xdept
+        display hide
+    end field
+    
+    field xtype
+      caption Salary for Demotion
+      display hide
+      pick "Decreased,Not Decreased"
+    end field
+    
+    field xdayab
+      caption Total Days
+      display hide
+    end field
+    
+    field xremarks
+      height 2
+      width 60
+      col 3
+    end field
+    
+    field xnewdesig
+      caption Demoted Position
+      display hide
+    end field
+    
+    field xreason
+      height 2
+    end field
+    
+    field xrow
+    	event after
+    		set globals(xrow) = xrow
+    		set globals(xdatefrom) = xdatefrom
+    		set globals(xdateto) = xdateto
+    	end event
+	end field
+    
+     field add
+       event before
+       		set globals(ErrChk) = ""
+       		
+       		call chk_access
+       		
+       		if globals(ErrChk) .ne. "1"
+       			set chkmeth = #sql("select xcode from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+       			if #result .ne. "true"
+       				set globals(ErrChk) = "1"
+       				error "<font color=red>Wrong "+#field(xdiscpmeth.caption)+"</font>"
+       			end if
+       		end if       		
+       		
+       		if globals(ErrChk) .ne. "1"
+	         	if xdatefrom .gt. xdateto
+	         		set globals(ErrChk) = "1"
+	         		error "Invalid Date Range</p>Cannot "+#command
+	         	end if       		
+       		end if       		
+       		
+       		if globals(ErrChk) .ne. "1"
+	         	set chkrec = #sql("select xrow from prdiscpldet where xemp='"+xemp+"' and xdateto>='"+xdatefrom+"' and xdatefrom<='"+xdatefrom+"'")
+	         	//print #result
+	         	if #result .eq. "true"
+	         		set globals(ErrChk) = "1"
+	         		error "Duplicate Record</p>Cannot "+#command
+	         	end if
+	        end if
+
+       		if globals(ErrChk) .ne. "1"
+	         	set chkrec = #sql("select xrow from prdiscpldet where xemp='"+xemp+"' and xdateto>='"+xdateto+"' and xdatefrom<='"+xdateto+"'")
+	         	//print #result
+	         	if #result .eq. "true"
+	         		set globals(ErrChk) = "1"
+	         		error "Duplicate Record</p>Cannot "+#command
+	         	end if
+	        end if
+      		
+       		if globals(ErrChk) .ne. "1"
+	       		if xdiscpmeth .eq. "1-Suspension"
+					set xprops = #sql("select xprops from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+					set stype=#prop(xprops,"Deduction%") 
+				    
+	       			set per = #sub(xdatefrom,5,2)
+	       			if per .eq. "01" .or. per .eq. "03" .or. per .eq. "05" .or. per .eq. "07" .or. per .eq. "08" .or. per .eq. "10" .or. per .eq. "12"
+	       				set xday = "31"
+					else if  per .eq. "04" .or. per .eq. "04" .or. per .eq. "06" .or. per .eq. "09" .or. per .eq. "11"
+						set xday = "30"
+					else if per .eq. "02"
+						set xday = "28"
+					end if
+					
+	       			set xdayab = #days(xdateto)-#days(xdatefrom)+1
+	       			set xpaydate = #sub(xdatefrom,0,8)+xday
+	       			//print xdayab+" "+xpaydate
+	       			
+	            	set chkrec = #sql("select xpaydate from prpay where xpaydate='"+xpaydate+"'")
+	            	if #result .ne. "true"
+						set myqry = "insert into prpay (zid,xpaydate,xremarks,zemail,xemail,xyear,xper)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','','"+#user+"','','"+xyear+"','"+xper+"')"
+						set tmpstr = #sql(myqry)		            		
+	            	end if          
+	       			
+	          		set chkrec = #sql("select xpaydate from prmsg where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update prmsg set xdaysuspend="+xdayab+",xsuspendf='"+stype+"' where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+						set tmpstr = #sql(mysql)						
+	          		else
+						set myqry = "insert into prmsg (zid,xpaydate,xemp,xremarks,xdayab,xdaylv,xnhour,~
+	          				xgvothour,xnoothour,xresth,xpflag,xadvflag,zemail,xemail,xratev,xday,xdate,xdaysuspend,~
+							xdaysuspenq,xsuspendf,xsuspenqf)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','"+xemp+"','',"0","0","0",~
+							"0","0","0",'','Yes','"+#user+"','',"0","0",'"+#date+"',"+xdayab+","0",'"+stype+"',"0")"
+						set tmpstr = #sql(myqry)		
+						//print #result
+	          		end if	       			
+	       		else if xdiscpmeth .eq. "2-Suspension Pending Enquiry"
+					set xprops = #sql("select xprops from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+					set stype=#prop(xprops,"Deduction%") 
+				    
+	       			set per = #sub(xdatefrom,5,2)
+	       			if per .eq. "01" .or. per .eq. "03" .or. per .eq. "05" .or. per .eq. "07" .or. per .eq. "08" .or. per .eq. "10" .or. per .eq. "12"
+	       				set xday = "31"
+					else if  per .eq. "04" .or. per .eq. "04" .or. per .eq. "06" .or. per .eq. "09" .or. per .eq. "11"
+						set xday = "30"
+					else if per .eq. "02"
+						set xday = "28"
+					end if
+					
+	       			set xdayab = #days(xdateto)-#days(xdatefrom)+1
+	       			set xpaydate = #sub(xdatefrom,0,8)+xday
+	       			//print xdayab+" "+xpaydate
+	       			
+	            	set chkrec = #sql("select xpaydate from prpay where xpaydate='"+xpaydate+"'")
+	            	if #result .ne. "true"
+						set myqry = "insert into prpay (zid,xpaydate,xremarks,zemail,xemail,xyear,xper)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','','"+#user+"','','"+xyear+"','"+xper+"')"
+						set tmpstr = #sql(myqry)		            		
+	            	end if          
+	       			
+	          		set chkrec = #sql("select xpaydate from prmsg where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update prmsg set xdaysuspenq="+xdayab+",xsuspenqf='"+stype+"' where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+						set tmpstr = #sql(mysql)						
+	          		else
+						set myqry = "insert into prmsg (zid,xpaydate,xemp,xremarks,xdayab,xdaylv,xnhour,~
+	          				xgvothour,xnoothour,xresth,xpflag,xadvflag,zemail,xemail,xratev,xday,xdate,xdaysuspend,~
+							xdaysuspenq,xsuspendf,xsuspenqf)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','"+xemp+"','',"0","0","0",~
+							"0","0","0",'','Yes','"+#user+"','',"0","0",'"+#date+"',"0","+xdayab+","0",'"+stype+"')"
+						set tmpstr = #sql(myqry)
+					end if	       		
+	       		end if
+	       	else
+				set xdatefrom=""
+				set xdateto=""
+       		end if       		
+
+			if globals(ErrChk) .ne. "1"
+				set zemail=#user
+				set xemail=""
+			end if
+			       		      		
+       end event
+     end field
+
+     field Update
+       event before
+			set globals(ErrChk)=""
+						
+			if xrow .ne. globals(xrow)
+				set globals(ErrChk)="1"
+				error "Record pointer mismatch</p>Cannot "+#command
+			end if
+         
+       		call chk_access
+       		
+       		if globals(ErrChk) .ne. "1"
+       			set chkmeth = #sql("select xcode from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+       			if #result .ne. "true"
+       				set globals(ErrChk) = "1"
+       				error "<font color=red>Wrong "+#field(xdiscpmeth.caption)+"</font>"
+       			end if
+       		end if       		
+       		
+       		if globals(ErrChk) .ne. "1"
+	         	if xdatefrom .gt. xdateto
+	         		set globals(ErrChk) = "1"
+	         		error "Invalid Date Range</p>Cannot "+#command
+	         	end if       		
+       		end if       		
+       		
+       		if globals(ErrChk) .ne. "1"
+				if xdatefrom .eq. globals(xdatefrom) .and. xdateto .eq. globals(xdateto)
+				else		
+		         	set chkrec = #sql("select xrow from prdiscpldet where xemp='"+xemp+"' and xdateto>='"+xdatefrom+"' and xdatefrom<='"+xdatefrom+"'")
+		         	if #result .eq. "true"
+		         		set globals(ErrChk) = "1"
+		         		error "Duplicate Record</p>Cannot "+#command
+		         	end if
+				end if       		
+       		end if
+			   
+			if globals(ErrChk) .ne. "1"
+				if xdatefrom .eq. globals(xdatefrom) .and. xdateto .eq. globals(xdateto)
+				else
+		         	set chkrec = #sql("select xrow from prdiscpldet where xemp='"+xemp+"' and xdateto>='"+xdateto+"' and xdatefrom<='"+xdateto+"'")
+		         	if #result .eq. "true"
+		         		set globals(ErrChk) = "1"
+		         		error "Duplicate Record</p>Cannot "+#command
+		         	end if
+				end if		
+			end if			       		
+       		
+       		if globals(ErrChk) .ne. "1"
+	       		if xdiscpmeth .eq. "1-Suspension"
+					set xprops = #sql("select xprops from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+					set stype=#prop(xprops,"Deduction%") 
+				    
+	       			set per = #sub(xdatefrom,5,2)
+	       			if per .eq. "01" .or. per .eq. "03" .or. per .eq. "05" .or. per .eq. "07" .or. per .eq. "08" .or. per .eq. "10" .or. per .eq. "12"
+	       				set xday = "31"
+					else if  per .eq. "04" .or. per .eq. "04" .or. per .eq. "06" .or. per .eq. "09" .or. per .eq. "11"
+						set xday = "30"
+					else if per .eq. "02"
+						set xday = "28"
+					end if
+					
+	       			set xdayab = #days(xdateto)-#days(xdatefrom)+1
+	       			set xpaydate = #sub(xdatefrom,0,8)+xday
+	       			//print xdayab+" "+xpaydate
+	       			
+	            	set chkrec = #sql("select xpaydate from prpay where xpaydate='"+xpaydate+"'")
+	            	if #result .ne. "true"
+						set myqry = "insert into prpay (zid,xpaydate,xremarks,zemail,xemail,xyear,xper)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','','"+#user+"','','"+xyear+"','"+xper+"')"
+						set tmpstr = #sql(myqry)		            		
+	            	end if          
+	       			
+	          		set chkrec = #sql("select xpaydate from prmsg where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update prmsg set xdaysuspend="+xdayab+",xsuspendf='"+stype+"' where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+						set tmpstr = #sql(mysql)						
+	          		else
+						set myqry = "insert into prmsg (zid,xpaydate,xemp,xremarks,xdayab,xdaylv,xnhour,~
+	          				xgvothour,xnoothour,xresth,xpflag,xadvflag,zemail,xemail,xratev,xday,xdate,xdaysuspend,~
+							xdaysuspenq,xsuspendf,xsuspenqf)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','"+xemp+"','',"0","0","0",~
+							"0","0","0",'','Yes','"+#user+"','',"0","0",'"+#date+"',"+xdayab+","0",'"+stype+"',"0")"
+						set tmpstr = #sql(myqry)		
+						//print #result
+	          		end if	       			
+	       		else if xdiscpmeth .eq. "2-Suspension Pending Enquiry"
+					set xprops = #sql("select xprops from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+					set stype=#prop(xprops,"Deduction%") 
+				    
+	       			set per = #sub(xdatefrom,5,2)
+	       			if per .eq. "01" .or. per .eq. "03" .or. per .eq. "05" .or. per .eq. "07" .or. per .eq. "08" .or. per .eq. "10" .or. per .eq. "12"
+	       				set xday = "31"
+					else if  per .eq. "04" .or. per .eq. "04" .or. per .eq. "06" .or. per .eq. "09" .or. per .eq. "11"
+						set xday = "30"
+					else if per .eq. "02"
+						set xday = "28"
+					end if
+					
+	       			set xdayab = #days(xdateto)-#days(xdatefrom)+1
+	       			set xpaydate = #sub(xdatefrom,0,8)+xday
+	       			//print xdayab+" "+xpaydate
+	       			
+	            	set chkrec = #sql("select xpaydate from prpay where xpaydate='"+xpaydate+"'")
+	            	if #result .ne. "true"
+						set myqry = "insert into prpay (zid,xpaydate,xremarks,zemail,xemail,xyear,xper)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','','"+#user+"','','"+xyear+"','"+xper+"')"
+						set tmpstr = #sql(myqry)		            		
+	            	end if          
+	       			
+	          		set chkrec = #sql("select xpaydate from prmsg where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update prmsg set xdaysuspenq="+xdayab+",xsuspenqf='"+stype+"' where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+						set tmpstr = #sql(mysql)						
+	          		else
+						set myqry = "insert into prmsg (zid,xpaydate,xemp,xremarks,xdayab,xdaylv,xnhour,~
+	          				xgvothour,xnoothour,xresth,xpflag,xadvflag,zemail,xemail,xratev,xday,xdate,xdaysuspend,~
+							xdaysuspenq,xsuspendf,xsuspenqf)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','"+xemp+"','',"0","0","0",~
+							"0","0","0",'','Yes','"+#user+"','',"0","0",'"+#date+"',"0","+xdayab+","0",'"+stype+"')"
+						set tmpstr = #sql(myqry)
+					end if	       		
+	       		end if
+	       	else
+				set xdatefrom=""
+				set xdateto=""
+       		end if       		
+
+			if globals(ErrChk) .ne. "1"
+				set zemail=#user
+				set xemail=""
+			end if
+       end event
+     end field
+
+     field Delete
+       event before
+			set globals(ErrChk)=""
+			
+			if xrow .ne. globals(xrow)
+				set globals(ErrChk)="1"
+				error "Record pointer mismatch</p>Cannot "+#command
+			end if
+         
+       		call chk_access
+       		
+       		if globals(ErrChk) .ne. "1"
+	       		if xdiscpmeth .eq. "1-Suspension"
+					set xprops = #sql("select xprops from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+					set stype=#prop(xprops,"Deduction%") 
+				    
+	       			set per = #sub(xdatefrom,5,2)
+	       			if per .eq. "01" .or. per .eq. "03" .or. per .eq. "05" .or. per .eq. "07" .or. per .eq. "08" .or. per .eq. "10" .or. per .eq. "12"
+	       				set xday = "31"
+					else if  per .eq. "04" .or. per .eq. "04" .or. per .eq. "06" .or. per .eq. "09" .or. per .eq. "11"
+						set xday = "30"
+					else if per .eq. "02"
+						set xday = "28"
+					end if
+					
+	       			set xdayab = #days(xdateto)-#days(xdatefrom)+1
+	       			set xpaydate = #sub(xdatefrom,0,8)+xday
+	       			//print xdayab+" "+xpaydate
+	       			
+	          		set chkrec = #sql("select xpaydate from prmsg where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update prmsg set xdaysuspend="0",xsuspendf="0" where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+						set tmpstr = #sql(mysql)						
+	          		end if	       			
+	       		else if xdiscpmeth .eq. "2-Suspension Pending Enquiry"
+					set xprops = #sql("select xprops from xcodes where xtype='Discipline' and xcode='"+xdiscpmeth+"'")
+					set stype=#prop(xprops,"Deduction%") 
+				    
+	       			set per = #sub(xdatefrom,5,2)
+	       			if per .eq. "01" .or. per .eq. "03" .or. per .eq. "05" .or. per .eq. "07" .or. per .eq. "08" .or. per .eq. "10" .or. per .eq. "12"
+	       				set xday = "31"
+					else if  per .eq. "04" .or. per .eq. "04" .or. per .eq. "06" .or. per .eq. "09" .or. per .eq. "11"
+						set xday = "30"
+					else if per .eq. "02"
+						set xday = "28"
+					end if
+					
+	       			set xdayab = #days(xdateto)-#days(xdatefrom)+1
+	       			set xpaydate = #sub(xdatefrom,0,8)+xday
+	       			//print xdayab+" "+xpaydate
+	       			
+	          		set chkrec = #sql("select xpaydate from prmsg where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	          		if #result .eq. "true"
+						set mysql = "update prmsg set xdaysuspenq="0",xsuspenqf="0" where xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+						set tmpstr = #sql(mysql)						
+	          		end if	    
+				end if   			
+       		end if       		
+
+			if globals(ErrChk) .ne. "1"
+				set zemail=#user
+				set xemail=""
+			end if
+       end event
+     end field
+
+  end form
+
+//****end of prdescipline****************************************************
+
+//****membership*************************************************************
+
+     list prmember
+        caption "Professional/Club Membership Info "
+        table prclubdet
+        order xemp,xrow
+        fixed xemp
+        rows 10
+        objects xrow attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xempnum=?&xrow=?"), ~
+                xinstut,xmemtype,xdate,xannfee
+
+        field xmemtype
+            caption Membership No.
+        end field
+        
+        field xdate
+           caption Valid Till
+        end field
+                
+     end list
+
+     form prmember
+        caption "Membership"
+        table prclubdet
+        order xemp,xrow
+        fixed xemp
+        return "Main"
+        layout 1
+        objects Show, Add, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+          xrow attrib(row 0 1),xinstut,ztype,xmemtype,xdate,xannfee,xremarks,zemail display(hide),xemail display(hide)
+
+        field xmemtype
+            caption Membership No.
+        end field
+        
+        field ztype
+            caption Membership Type
+            display combo
+            pick select xcode from xcodes where xtype='Membership Type'
+        end field
+        
+        field xremarks
+            width 50
+            height 2
+        end field
+        
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+        field xdate
+           caption Valid Till
+        end field
+
+     end form
+     
+//***prmember ends*********************************************************************************
+
+//***prref*****************************************************************************************     
+
+        list prref
+            caption "References"
+            table prref
+            order xemp,xrow
+            fixed xemp
+            rows 10
+            objects xrow attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xemp=?&xrow=?"), ~
+                xname,xorg,xoccu,xrelation,xfeedback
+                    
+        end list
+      
+        form prref
+            caption "References"
+            table prref
+            order xemp,xrow
+            fixed xemp
+            return "Main"
+            layout 1
+            objects Show,Add,Clear, Update, Delete, Top, Previous, Next,Bottom,~
+                xrow attrib(row 0 1),xname,xorg,xoccu,xrelation,xdate display(hide),xfeedback
+            
+			field xrow
+				event after
+					set globals(xrow)=xrow
+				end event
+			end field
+            
+        end form
+
+//****prref ends*************************************************************     
+
+//****primage****************************************************************
+
+    form primage
+         caption "Image Upload"
+         table prmst
+         order xemp
+         objects *Upload,Show,Top,Previous,Next,Bottom,~
+         xslaute display(hide), ~
+         xfirst display(hide), ~
+         xmiddle display(hide), ~
+         xlast display(hide), ~
+         xemp attrib(readonly),~
+         xfile,xlink width(40)
+    
+        field xfile
+              attrib local
+        end field
+                                   
+		field xlink
+			default "docs"+#sep+"x"+#id+#sep+xemp+".jpg"
+			//attrib local
+			event after
+				if xlink .eq. ""
+					set xlink="docs"+#sep+"x"+#id+#sep+xemp+".jpg"
+					print xemp
+				end if
+				//call save
+			end event
+		end field
+    
+        field *Upload   
+            event before
+            end event
+        end field
+    
+    end form
+			
+//****primage ends************************************************************
+
+//****premp******************************************************************
+
+		 form premp
+		 	caption "Employees"
+			layout 4
+			objects Show,xempcat,xdept,xdesig
+		 
+				field xdept
+					display multi
+					height 5
+				end field
+				
+				field xdesig
+					display multi
+					height 5
+				end field
+				
+				field xcostcent
+					display multi
+					height 5
+				end field
+                      
+                field xempcat
+                      display mulit
+                      height 5
+                end field
+                		
+				field Show
+    				event before
+    					call search
+    					if s .ne. ""
+    						set #list(premp.select)=#char(34)+s+#char(34)
+    					end if
+                        console "mylist="+#list(premp.select)
+    				end event
+				end field			
+			
+			end form
+     
+            list premp
+                caption "Employee List"
+                table prmst
+                order xemp
+                rows 10
+                objects xemp attrib(link "Main?page="+page+"&nexttab=General&command=Show&xemp=?"),xname,xdesig,xdept,xempcat
+            
+            end list
+
+//****premp ends*************************************************************
+
+
+//****prdocs*****************************************************************
+
+     list prdocs
+        caption "<p class=bl>Documents for "+xtypetrn+" <font color=red > "+globals(xemp)+"</font>"
+        table cadocs
+        order xtypetrn,xtrnnum,xdoc
+        select "(xtrnnum = '"+globals(xemp)+"')"
+        //fixed xtypetrn,xtrnnum
+        rows 50
+        objects xdoc attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xtypetrn=?&xtrnnum=?&xdoc=?"), ~
+                xlink,zactive
+     end list
+
+     form prdocs
+        //caption "Documents for <span class=br>"+xtrnnum+"</span>"
+        caption "Documents"
+        table cadocs
+        order xtypetrn,xtrnnum,xdoc
+        fixed xtypetrn,xtrnnum
+        layout 4
+        objects ~
+                Clear,Show, ~
+                Add,Update, Delete, Top, Previous, Next, Bottom, ,~
+                returnpage,trnfield,xdoc width(20), xlink width(40),zactive
+
+        field returnpage
+          attrib local
+          caption Return Page
+          display hide
+          event after
+            set returnpage=globals(returnpage)
+          end event
+        end field
+
+        field trnfield
+          attrib local
+          caption Transaction Field
+          display hide
+          event after
+            set trnfield=globals(trnfield)
+			 console "trnfield="+trnfield
+          end event
+        end field
+
+    	field *Upload
+			event before
+				call makelink
+				//print xlink
+			end event
+		end field
+
+        field xlink
+        //  display const
+		end field
+
+		field xprefix
+          	caption Prefix
+			event after
+				call getname
+            	call makelink
+            	call save
+			end event
+		end field
+
+        field Add
+			event before
+			//	call getname
+			//	call makelink
+			call save
+			end event
+		end field
+
+		field Update
+			event before
+			//	call makelink
+			end event
+		end field
+
+     end form
+
+     method getname
+		set xprefix="docs"+#sep+"x"+#id+#sep+xemp+"_"
+		//int len=#length(xprefix)
+        //set xname=#sub(xlink,len)
+		//print "Name "+xname+" L"+len
+     end method
+
+     method makelink
+		set xlink=xprefix+xname
+        set globals(xlink)=xlink
+     end method
+
+     method save
+	  	  set globals(xid)=xid
+        set globals(xemp)=xemp
+		    set globals(returnpage)="prmst"
+        set globals(trnfield)="xemp"
+		    set globals(xtypetrn)="Employee Number"
+        set globals(xtrnnum)=xemp
+     end method
+
+//****prdocs ends************************************************************
+
+     method chk_access
+     	set stype = ""
+       	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+       	 set stype=#prop(xprops,"security")          	 
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          
+			  set myqry = "insert into xcriminal (zid,xwornum,xemail,xdate,xtime,xobject)"
+			  set myqry = myqry + " values('"+#id+"','"+mysql+"','"+#user+"','"+#date+"',~
+				'"+#time+"','"+page+"')"
+			  set tmpstr =#sql(myqry)		
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+	
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	else if excomm .eq. "Allocate"
+     		set #field(Allocate.display) = "hide"
+     	end if    
+     end method
+     
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql     
+				
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(xmmtrnnum)+"','"+xrow+"','"+#command+"',~
+					'"+#user+"','"+#date+"','"+#time+"','"+page+"','')"
+		set tmpstr =#sql(myqry)		
+     end method	
+     
+	 method search
+        str s="("
+        				
+        if xdept .ne. ""
+           if s .ne. "("
+              set s = s + " and "
+           end if
+           set s = s+" xdept = '"+xdept+"' "
+        end if
+        
+        if xempcat .ne. ""
+           if s .ne. "("
+              set s = s + " and "
+           end if
+           set s = s+" xempcat = '"+xempcat+"' "
+        end if
+					
+        if xdesig .ne. ""
+            if s .ne. "("
+                set s = s + " and "
+            end if
+            set s = s+" xdesig = '"+xdesig+"' "
+        end if        
+        
+        if s .ne. "("
+           set s = s + ")"
+        else
+            set s = ""
+        end if
+        console "s="+s
+		 
+      end method
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function auth(b){
+          detail="auth"
+        }
+        function submitit(form){
+          if (detail=="auth"){
+            form.page.value = "prauth"
+            form.searchbutton.value = "Find xemp=?"
+          }
+        }
+        </script>
+     end script
+
+	valid prmst         
+		config	
+			set globals(pkey)=xemp
+			set primsg = "" 	            
+            set xautoemp = cadef.xautoemp("zid='"+#id+"'")
+            if xautoemp .eq. "0"
+                set #fields(xtrnemp.display)="hide"
+            end if
+            
+			set paytype = prmst.xpaytyp("xemp='"+xemp+"'")
+            if paytype .eq. ""
+            	set primsg = #field(xpaytyp.caption)
+            end if
+			
+			set joindate = prmst.xjoindate("xemp='"+xemp+"'")
+            if joindate .eq. #max .or. joindate .eq. "" 
+            	set primsg = primsg+", "+#field(xjoindate.caption)
+            end if
+
+			set payscale = prmst.xpsclcode("xemp='"+xemp+"'")
+            if payscale .eq. "" 
+            	set primsg = primsg+", "+#field(xpsclcode.caption)
+            end if
+			
+            set chkemp = prmst.xemp("xemp='"+xemp+"'")
+            if #result .eq. "true" .and. chkemp .ne. ""
+                if primsg .ne. ""
+    				print "<tr bgcolor=black align=center><td><font color=white><b>Go to Employment Info & Key In mandatory fields </font><font color=red>"+primsg+"</b></font></td></tr>"
+                end if
+            end if
+		end config
+	end valid
+	
+	valid detail
+		config
+			if xstatusemp .eq. "A-Active" .or. xstatusemp .eq. "H-Hold"
+				set #field(xleftdate.display) = "hide"
+				set #field(xleftre.display) = "hide"
+				set #field(xresignstat.display) = "hide"
+				set #field(xsepmode.display) = "hide"
+//			else
+//				set #field(xstatusemp.display) = "const"
+			end if
+			
+			if xlocation .ne. ""
+                //set xcostcent=prlochier.xcostcent("xlocation='"+xlocation+"'")
+                //set xdiv=prlochier.xdiv("xlocation='"+xlocation+"'")
+                set globals(xlocation)=xlocation
+                if xdiv .ne. ""
+                    set globals(xdiv)=xdiv
+                end if
+			end if
+			
+			set paytype = prmst.xpaytyp("xemp='"+xemp+"'")
+            if paytype .eq. ""
+            	set primsg = #field(xpaytyp.caption)
+            end if
+			
+			set joindate = prmst.xjoindate("xemp='"+xemp+"'")
+            if joindate .eq. #max .or. joindate .eq. "" 
+            	set primsg = primsg+", "+#field(xjoindate.caption)
+            end if
+
+			set payscale = prmst.xpsclcode("xemp='"+xemp+"'")
+            if payscale .eq. "" 
+            	set primsg = primsg+", "+#field(xpsclcode.caption)
+            end if
+
+            set chkemp = prmst.xemp("xemp='"+xemp+"'")
+            if #result .eq. "true" .and. chkemp .ne. ""
+                if primsg .ne. ""
+				    print "<tr bgcolor=black align=center><td><font color=white><b>Key in mandatory fields </font><font color=red>"+primsg+"</b></font></td></tr>"
+                end if
+            end if
+			
+		end config
+	end valid        
+	
+#include access.valid
+
+end page

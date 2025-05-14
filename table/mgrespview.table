@@ -1,0 +1,21 @@
+product ERP on the Net
+
+table mgrespview
+	caption "Responses"
+	columns zid, xmsgidsrc,xmsgid,ztime,xfrom,xto,xcc,xsubject,xmsg,xdatesch,xdatecom,~
+			xdateprom,xamtprom,xsendemail,xsendsms,xrecur,xteam,xmember ,xmanager
+
+	primary key zid,xmsgidsrc,xmsgid
+
+	sql create view mgrespview (zid, xmsgidsrc,xmsgid,ztime,xfrom,xto,xcc,xsubject,xmsg,xdatesch,xdatecom,~
+		xdateprom,xamtprom,xsendemail,xsendsms,xrecur,xteam,xmember ,xmanager) ~
+		as SELECT mgresp.zid, mgresp.xmsgidsrc,mgresp.xmsgid,mgmsg.ztime,mgmsg.xfrom,~
+		mgmsg.xto,mgmsg.xcc,mgmsg.xsubject,mgmsg.xmsg,mgmsg.xdatesch,mgmsg.xdatecom,~
+		mgmsg.xdateprom,mgmsg.xamtprom,mgmsg.xsendemail,mgmsg.xsendsms,mgmsg.xrecur,mgmsg.xteam,~
+		mgmsg.xmember ,mgmsg.xmanager ~
+		FROM mgresp,mgmsg ~
+		WHERE mgresp.zid = mgmsg.zid and mgresp.xmsgid=mgmsg.xmsgid
+
+end table
+
+

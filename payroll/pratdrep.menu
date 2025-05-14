@@ -1,0 +1,12 @@
+//Attendance Sub Menu
+//---------------------------------------------------------------------------------------
+caption "Attendance Report" page 3
+option                  |action                                          |modules|models
+ //---------------------------------------------------------------------------------------
+Daily Attendance Sheet(in)  |#classPath+"/"+#servlet+"?page=*crystal pratd_in(xdate=Date=#d,xemp=From Employee=0,xemp=To Employee=z,xdept=From Department,xdept=To Department)"
+Daily Attendance Sheet  |#classPath+"/"+#servlet+"?page=*crystal pratdm(xdate=Date=#d,xemp=From Employee=0,xemp=To Employee=z,xdept=From Department,xdept=To Department)"
+//Monthly Attendance Sheet  |#classPath+"/"+#servlet+"?page=*crystal pratdmon(xdate=From Date=#d,xdate=To Date=#d,xemp=From Employee=0,xemp=To Employee=z)"
+//Employee Wise Attendance Sheet  |#classPath+"/"+#servlet+"?page=*crystal pratemp(xemp=Employee=,xdate=From Date=#d,xdate=To Date=#d)"
+//Att. Posting            |#classPath+"/"+#servlet+"?page=*data prdum,add"
+//Attendance Posting      |#classPath+"/"+#servlet+"?page=prtxtupdn"                  |
+//---------------------------------------------------------------------------------------

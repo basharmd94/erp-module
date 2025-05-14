@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table mtmachine
+	caption "Products and Items Master"
+	columns ztime,zutime,zid,xproduct,xdesc,xdrawing, xlong,xgitem, xcitem,~
+			xorigin, xdiv,xdept,xsup,xserialnum,xunitstk,xbrand,xplant,xparea,xmaxload,xmodel,~
+			zemail,xemail,xmtype,xmcatg,xmfgyear
+
+	primary key zid, xproduct
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+end table

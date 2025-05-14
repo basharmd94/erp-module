@@ -1,0 +1,186 @@
+page prlochier
+     //embed onload="move_caret('one','xitem')"
+     caption "Location Hierarchy"
+     sidebar 
+     sections  form one,list one,script myscript,text top
+
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+
+     list one
+        caption "List of Entry(s)"
+        table prlochier
+        order xlocation
+        rows 20
+        objects xlocation attrib(link #servlet+"?page=prlochier&command=Show&xlocation=?"), ~
+                xdiv,xcostcent
+                
+        field xlocation
+            caption Location
+        end field
+        
+        field xcostcent
+            caption Group Office
+        end field
+        
+        field xdiv
+            caption Office Type
+        end field
+                
+     end list
+
+  form one
+    valid valid,access
+    table prlochier
+    order xlocation
+    layout 1
+    objects Add,Show,Clear,Update, Delete, Top, Previous, Next, Bottom,~
+            xlocation,xdiv,xcostcent,xdesc display(hide),zemail display(hide),xemail display(hide)
+            
+
+    field xlocation
+        caption Location
+        display text
+        width 25
+        pick "select xcode from xcodes where zid='"+#id+"' and xtype='Location'"
+    end field
+
+    field xcostcent
+        caption Group Office
+        width 25
+        pick "select xcode from xcodes where zid='"+#id+"' and xtype='Cost Center'"
+    end field
+
+    field xdiv
+        caption Office Type
+        display text
+        width 25
+        pick "select xcode from xcodes where zid='"+#id+"' and xtype='Division'"
+    end field
+
+    field Add
+      event before
+        set globals(ErrChk) = ""
+        if globals(ErrChk) .ne. "1"
+            if xcostcent .eq. ""
+                set globals(ErrChk) = "1"
+            	error "Invalid Group Office"
+            end if
+        end if
+        if globals(ErrChk) .ne. "1"
+            if xdiv .eq. ""
+                set globals(ErrChk) = "1"
+            	error "Invalid Divisional Office"
+            end if
+        end if
+        if globals(ErrChk) .ne. "1"
+            set zemail=#user
+        end if
+      end event
+    end field
+
+    field Update
+      event before
+        set globals(ErrChk) = ""
+
+        if globals(ErrChk) .ne. "1"
+        	if xlocation .ne. globals(xlocation)
+        		set globals(ErrChk) = "1"
+        		error "Record pointer mismatch"
+        	end if
+        end if
+        if globals(ErrChk) .ne. "1"
+            if xcostcent .eq. ""
+                set globals(ErrChk) = "1"
+            	error "Invalid Group Office"
+            end if
+        end if
+        if globals(ErrChk) .ne. "1"
+            if xdiv .eq. ""
+                set globals(ErrChk) = "1"
+            	error "Invalid Divisional Office"
+            end if
+        end if
+        if globals(ErrChk) .ne. "1"
+            set xemail=#user
+        end if
+      end event
+    end field
+
+    field Delete
+      event before
+        set globals(ErrChk) = ""
+	
+        if globals(ErrChk) .ne. "1"
+        	if xlocation .ne. globals(xlocation)
+        		set globals(ErrChk) = "1"
+        		error "Record pointer mismatch"
+        	end if
+        end if
+
+      end event
+    end field
+
+    embed onsubmit="submitit(this)"
+    field Return
+      embed onclick="clicked(this)"
+    end field
+
+  end form
+
+  script myscript
+    <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function serial(b){
+          detail="serial"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtor"
+            form.searchbutton.value = "Find ximtor=?"
+          }
+          if (detail=="serial"){
+            form.page.value = "imserout"
+            form.searchbutton.value = "Top"
+          }
+        }
+    </script>
+  end script
+
+    valid valid
+     	config
+            set atbatch = #sql("select xattribbatch from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atbatch .eq. "Show"
+            else if atbatch .eq. "Constant"
+            	set #field(xbatch.display) = "const"
+            else if atbatch .eq. "Hide"
+            	set #field(xbatch.display) = "hide"
+            end if                           
+            
+            set atzemail = #sql("select xattribzemail from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atzemail .eq. "Show"
+            else if atzemail .eq. "Constant"
+            	set #field(zemail.display) = "const"
+            else if atzemail .eq. "Hide"
+            	set #field(zemail.display) = "hide"
+            end if   
+            
+            set atxemail = #sql("select xattribxemail from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atxemail .eq. "Show"
+            else if atxemail .eq. "Constant"
+            	set #field(xemail.display) = "const"
+            else if atxemail .eq. "Hide"
+            	set #field(xemail.display) = "hide"
+            end if                          
+            
+     	end config
+     end valid
+          
+#include access.valid
+          
+end page

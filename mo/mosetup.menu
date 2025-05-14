@@ -1,0 +1,12 @@
+//MO Setup.menu
+//---------------------------------------------------------------------------------------
+caption "Manufacturing Setup" page 3
+option                  |action                                          |modules|models
+//---------------------------------------------------------------------------------------
+//MO to GL Interface Table for Non-Stock Items|#classPath+"/"+#servlet+"?page=mogli" |
+Manufacturing Order Codes             |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=MO Number)"
+Manufacturing Order Parameters        |#classPath+"/"+#servlet+"?page=xtrnp(xtypetrn=MO Number)"
+Manufacturing Shifting Setup              |#classPath+"/"+#servlet+"?page=xcodes(xtype=Manufacturing Shifting)"  	
+Wastage Purpose              |#classPath+"/"+#servlet+"?page=xcodes(xtype=Wastage Purpose)"  	
+//-------------------------------------------------------------------
+

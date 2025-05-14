@@ -1,0 +1,16 @@
+product ERP on the Net
+
+
+table pradvdadj
+	caption "Advance Information"
+
+	columns ztime,zutime,zid,xemp,xpaycode,xrow,xline,xdatesch,xpayamt,zemail,xemail,xrem	
+
+	primary key zid,xemp,xpaycode,xrow,xline
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xemp,xpaycode,xrow references pradvd.zid,xemp,xpaycode,xrow
+	end foreign key
+
+end table

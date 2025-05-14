@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table opdor
+  caption "Customer Delivery Order"
+  columns ztime,zutime,zid,xdornum,xordernum,xinvnum,xvoucher,xdate,xcus,xcuspo,xdatecuspo,xdiv,xsec,xproj,~
+          xstatusdor,xappamt,xappcode,xdatedue,xdateord,xcur,xexch,xdisc,xdiscf,xwh,xdelsite,xshipcode,xvehicle,~
+          xpacktype,xdtwotax,xdtdisc,xdttax,xval,xdiscamt,xtotamt,zemail,xemail,xdatecom,xdateto,xsalescat,~
+          xdtcomm,xteam,xmember,xmanager,xinvrule,xquoteby,xwhoption,xsp,xref,xnote
+          
+  primary key zid, xdornum
+  
+  unique zid, xdornum,xordernum
+
+  foreign key
+    zid references zbusiness.zid
+    zid,xcus references cacus.zid,xcus
+  end foreign key
+
+end table

@@ -1,0 +1,692 @@
+page poordimp
+     caption "Import Purchase Order Entry"
+     sidebar list poodt,live,poreqin
+     sections form one,list grncreated, list partial,list finish, text top,script myscript
+     
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+	
+    list poreqin
+        caption "International Purchase Requisition Complete"
+        table poreqinter
+        order xcounterno desc  
+		select "zid='"+#id+"' and xstatusreq='Complete'"
+        rows 5
+        objects xcounterno attrib(link #servlet+"?page=poordimp&command=Showbr&xcounterno=?"), ~
+                xdate,xsup,xemail1,zemail,xemail
+
+        field xcounterno
+          caption Requisition No.
+        end field
+
+     end list
+	
+
+     list poodt
+        caption "<font size=2>Item(s) for "+xpornum
+        //table poodt
+        table (select * , ~
+					(select xdesc from caitem where caitem.zid=poodt.zid and caitem.xitem=poodt.xitem) as Item_Name ~
+				 from poodt) as tbl
+		
+        order xpornum,xrow
+        fixed xpornum
+        rows 5
+        objects xrow attrib(link #servlet+"?page=poodtimp&command=Show&xpornum=?&xrow=?"), ~
+                xitem,Item_Name,~
+                xqtyord,xrate,xdtwotax,xdttax,xlineamt
+
+        totals count,"Totals","",sum
+
+        field itemdesc
+          storage varchar
+          caption Description
+        end field
+
+     end list
+     
+    list live
+        caption "Active POs"
+        table poord
+        //navigator alpha
+        order xpornum desc
+        select "xtypepor='Import' and (xstatuspor<>'COMPLETED' and xstatuspor<> 'Partial Received' and xstatuspor<> 'Received')"
+        rows 5
+        objects  xpornum attrib(link #servlet+"?page=poordimp&command=Show&xpornum=?"), ~
+                xdate,xsup,~
+                desc equals((select xorg from casup where casup.zid=poord.zid and casup.xsup=poord.xsup)),~
+                xsupref,xstatuspor
+
+        field xpornum
+          caption Purchase Order
+        end field
+
+        field desc
+          caption Company
+          storage varchar
+        end field
+
+     end list
+
+    list grncreated
+        caption "GRN Created POs"
+        table poord
+        order xpornum desc
+        select "(xtypepor='Import') and (xstatuspor='Received')"
+        rows 5
+        objects xpornum attrib(link #servlet+"?page=poordimp&command=Show&xpornum=?"), ~
+                xdate,xsup,~
+                desc equals((select xorg from casup where casup.zid=poord.zid and casup.xsup=poord.xsup)),~
+                xsupref,xstatuspor
+
+        field xpornum
+          caption Purchase Order
+        end field
+
+        field desc
+          caption Company
+          storage varchar
+        end field
+
+     end list
+
+    list partial
+        caption "Partial Received POs"
+        table poord
+        order xpornum desc
+        select "(xtypepor='Import') and (xstatuspor='Partial Received')"
+        rows 5
+        objects xpornum attrib(link #servlet+"?page=poordimp&command=Show&xpornum=?"), ~
+                xdate,xsup,~
+                desc equals((select xorg from casup where casup.zid=poord.zid and casup.xsup=poord.xsup)),~
+                xsupref,xstatuspor
+
+        field xpornum
+          caption Purchase Order
+        end field
+
+        field desc
+          caption Company
+          storage varchar
+        end field
+
+     end list
+
+    list finish
+        caption "GRN Completed POs"
+        table poord
+        order xpornum desc
+        select "(xtypepor='Import') and (xstatuspor='Completed')"
+        rows 5
+        objects  xpornum attrib(link #servlet+"?page=poordimp&command=Show&xpornum=?"), ~
+                xdate,xsup,~
+                desc equals((select xorg from casup where casup.zid=poord.zid and casup.xsup=poord.xsup)),~
+                xsupref,xstatuspor
+
+        field xpornum
+          caption Purchase Order
+        end field
+
+        field desc
+          caption Company
+          storage varchar
+        end field
+
+     end list
+
+     form one
+		valid valid,access
+        //caption "<font color=black size=3>Import Purchase Order Entry"
+        table poord
+        order xpornum
+        select "xtypepor='Import'"
+        layout 2
+        objects ~
+                Add,Details,Show,Top, Previous, Next, Bottom, Update,Showbr display(hide),~
+                Delete, Clear,Create GRN,~
+                xtrnpor,xpornum display(text),xdate,~
+                xcounterno,xsup attrib(attach),sup_name,xsupref,xdatesupref default(#d),xcur display(constant),~
+                xexch display(constant),xwh,xdiv,xsec,xproj,xpartial,xdisc display(hide),~
+                xrem,xdtdisc display(hide),xdtwotax display(constant),xdttax display(constant),~
+                xval,xdiscamt display(const),xtotamt display(constant) ,~
+                xappamt display(hide),xcoststat display(const),xtempstr1 display(hide),xstatuspor,~
+                zemail display(hide),xemail display(hide),xtypepor display(hide)
+
+        field Supplier_search
+          event before
+            class osbcustom(search(xsup,"s","casup","xsup:xorg","pickSup","xsup:xorg:xadd1","yes","Code:Name:Address"))
+          end event
+        end field
+		
+		field xcounterno
+			caption International Purchase Req. No
+			event after
+				set globals(xcounterno)=xcounterno
+			end event
+		end field
+		
+		field Showbr
+			event after
+				set xcounterno=xcounterno
+				set xsup=poreqinter.xsup("zid='"+#id+"' and xcounterno='"+xcounterno+"'")
+				set xdate=#date
+				set xtrnpor="IP--"
+				set xcur="BDT"
+				set xexch="1"
+				///print  xcounterno+" "+xsup
+			end event
+		end field
+
+                
+        field xpornum
+           //default "IP--"
+           event after
+              set globals(xpornum)=xpornum
+              set #field(xsup.caption) = "<font color=red>"+#field(xsup.caption)+"</font>"
+              set #field(xwh.caption) = "<font color=red>"+#field(xwh.caption)+"</font>"
+              //class osbcustom(osb2crystal("","w","poord","Print Supplier Order ",xpornum))
+              if xstatuspor .eq. "Received" .or. xstatuspor .eq. "Partial Received"
+                  set #field(Update.display) = "disable"              
+                  set #field(Delete.display) = "disable"
+              else if xstatuspor .eq. "Received" .or. xstatuspor .eq. "Completed"
+                  set #field(Update.display) = "disable"
+                  set #field(Create.display) = "disable"
+                  set #field(Delete.display) = "disable"
+              end if
+              if xpornum .ne. ""
+              	set #field(xtrnpor.display) = "const"
+              end if
+           end event
+        end field
+        
+        field xsup
+          event after
+            set globals(xsup)=xsup
+          end event
+        end field
+
+        field xdate
+          default #date
+          event after
+            set globals(xdate)=xdate
+          end event
+        end field
+
+        field xval
+          display constant
+          caption Gross Amount
+        end field
+
+        field sup_name
+          attrib local
+          caption Company
+          display constant
+          event after
+            set sup_name=#sql(string,"select xorg from casup where xsup = '"+xsup+"'")
+          end event
+        end field
+
+        field xpartial
+          display hide
+          default "Allowed"
+        end field
+
+        field xrem
+          caption Notes
+          width 80
+          height 2
+          col 3
+        end field
+
+        field xstatuspor
+          display const
+          event after
+            set globals(xstatuspor)=xstatuspor
+          end event
+        end field
+
+        field xcur
+          display combo
+          default "BDT"
+          width 4
+          event after
+            set globals(xcur)=xcur
+          end event
+        end field
+
+        field xexch
+         display text
+         event after
+            set globals(xexch)=xexch
+         end event
+        end field
+
+        field xsec
+          default "Any"
+          display hide
+        end field
+
+        field xproj
+	      display ocombo
+		  attrib mandatory
+		  pick "select xcode from xcodes where zid='"+#id+"' and xtype='Project'"
+		  wide 4
+        end field
+
+        field xtrnpor
+        	caption P.O. Prefix
+        	default "IP--"
+        end field
+        
+        field Add
+          event before
+            set globals(ErrChk) = ""
+
+            call chk_access
+            
+            if globals(ErrChk) .ne. "1"
+             	set chktrn = #sql("select xtrn from xtrn where xtypetrn='Purchase Order' and zactive='1' and xtrn='"+xtrnpor+"'")
+             	if #result .ne. "true"
+	             	set globals(ErrChk) = "1"
+	             	error "Wrong Transaction Prefix</p>Cannot "+#command
+             	end if
+            end if            
+            
+            if globals(ErrChk) .ne. "1"
+            	if xtrnpor .ne. "IP--"
+            		set globals(ErrChk)="1"
+            		error "Wrong Code</p>'IP--' is meant for import purchase only"
+            	end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+               call chkwh
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+            	set chkcur = #sql("select xcur from xcur where xcur='"+xcur+"'")
+            	if #result .eq. "false"
+            		set globals(ErrChk)="1"
+            		error "Wrong Currency code selected</p>Cannot "+#command
+            	end if
+            end if
+
+            if globals(ErrChk) .eq. ""
+               buffer casup
+               move casup=casup(xsup)
+               if #result .ne. "true"
+                  set globals(ErrChk) = "1"
+                  error "Wrong Supplier Code"
+               else if #result .eq. "true" .and. casup.xstatussup .eq. "Hold"
+                  set globals(ErrChk) = "1"
+                  error "Cannot Add; Supplier Status is : "+casup.xstatussup
+               else
+                  if xcur .eq. ""
+                     set xcur=casup.xcur
+                  end if
+                  set xstatuspor=#status("xstatuspor",1)
+                  set xdtwotax = 0
+                  set xdttax = 0
+                  set xdtdisc = 0
+                  set xdiscamt = 0
+                  set xval = 0
+                  set xtotamt = 0
+                  set xappamt = 0
+                  set xappcode=""
+                  set zemail=#user                  
+                  set xexch=#exch(xcur)
+                  set xtypepor = "Import"
+				  str mysql = #sql(str,"select xpornum from poord where xpornum like '"+xtrnpor+"%' order by xpornum desc")
+				  if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,6)
+				  end if
+				  set last_num = 0+1+last_num
+				  set mysql = #padl(""+last_num,6,"0")
+				  set xpornum = xtrnpor + mysql                                  
+               end if
+            end if
+          end event
+		  
+		  event after
+				set mysql="update poreqinter set xstatusreq='PO Create' where zid='"+#id+"' and xcounterno='"+xcounterno+"'"
+				set upval=#sql(str,mysql)
+				action show
+		  end event
+		  
+        end field
+
+        field Update
+          event before
+            set globals(ErrChk)=""
+
+            call chk_access
+
+            if globals(ErrChk) .ne. "1"
+            	set trncode = #sub(xpornum,0,4)
+            	if trncode .eq. "IP--"
+            		set globals(ErrChk)="1"
+            		error "Wrong Code</p>'IP--' is meant for import purchase only"
+            	end if
+            end if
+                       
+            if globals(ErrChk) .ne. "1"
+            	set chkcur = #sql("select xcur from xcur where xcur='"+xcur+"'")
+            	if #result .eq. "false"
+            		set globals(ErrChk)="1"
+            		error "Wrong Currency code selected</p>Cannot "+#command
+            	end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+               call chkrec
+            end if
+
+            if globals(ErrChk) .ne. "1"
+               if xsup .ne. globals(xsup)
+                  set globals(ErrChk) = "1"
+                  error "Cannot Change Supplier"
+               end if
+               if xpornum .ne. globals(xpornum)
+                  set globals(ErrChk) = "1"
+                  error "Cannot Change Order Number"
+               end if
+            end if
+            if globals(ErrChk) .ne. "1"
+            	call upd_log
+            end if
+          end event
+        end field
+
+        field Delete
+          event before
+            set globals(ErrChk) = ""
+
+            call chk_access
+            
+            if globals(ErrChk) .ne. "1"
+              call chkrec
+            end if
+            if globals(ErrChk) .ne. "1"
+            	call upd_log
+            end if
+          end event
+		  
+		  
+		  event after
+				set mysql="update poreqinter set xstatusreq='Complete' where zid='"+#id+"' and xcounterno='"+xcounterno+"'"
+				set upval=#sql(str,mysql)
+				action show
+		  end event
+			
+		  end event
+        end field
+
+        field xwh
+          event after
+            set globals(xwh)=xwh
+          end event
+        end field
+
+        field Create
+          event before
+              set globals(ErrChk) = ""
+              set globals(Flag) = ""
+              
+              call chk_access
+              
+              if globals(ErrChk) .eq. ""
+              	call chkrec    
+              end if
+      
+              if globals(ErrChk) .eq. ""
+                 set globals(trncode)=#sub(xpornum,0,4)
+                 set xtrncode=#sub(xpornum,0,4)
+                  
+                 if xtrncode .sw. "IP" .and. xcoststat .eq. "LC Opened"
+                    set globals(ErrChk) = "1"
+                    error "LC Costing not yet Completed"
+                 end if
+
+                if globals(ErrChk) .ne. "1"
+                	set detqty = #sql(decimal,"select sum(xqtyord) from poodt where xpornum='"+globals(xpornum)+"'")
+                	if detqty <= 0.0
+                		set globals(ErrChk)="1"
+                		error "Detail has no record</p>Cannot "+#command
+                	end if
+                end if
+
+                 if globals(ErrChk) .eq. ""
+                    set xtrncode=xtrnp.xrel("xtypetrn='Purchase Order' and xtrn='"+xtrncode+"' and xtyperel='Goods Receipt Note'")
+                    if #result .ne. "true"
+                       set globals(ErrChk) = "1"
+                       error "Related GRN code not found</p>Cannot "+#command
+                    end if   
+                 end if
+               
+                 if globals(ErrChk) .eq. ""
+                     set grncode = xtrn.xtrn("xtypetrn='Goods Receipt Note' and xtrn='"+xtrncode+"'")
+                     if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "GRN code("+grncode+") not found</p>Cannot "+#command
+                     end if
+                 end if 
+              end if
+          
+              if globals(ErrChk) .eq. ""
+                 //set xgrnnum = #trn("Goods Receipt Note",grncode)
+				 str mysql = #sql(str,"select xgrnnum from pogrn where xgrnnum like '"+grncode+"%' order by xgrnnum desc")
+				 
+				 if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,4,6)
+				 end if
+				 
+				 set last_num = 0+1+last_num
+				 
+				 set mysql = #padl(""+last_num,6,"0")
+				 
+				 set xgrnnum = grncode + mysql                                  
+                 
+                 buffer pogrn
+                 move pogrn=poord(xpornum)
+                 set pogrn.xgrnnum=xgrnnum
+                 set pogrn.xdate=#date
+                 set pogrn.xdatedue=#date
+                 set pogrn.xstatusgrn="1-Open"
+                 set pogrn.xcur="BDT"
+                 set pogrn.xexch=0.0+1
+                 set pogrn.xstatusqc="1-New"
+                 insert pogrn
+				 //print #result
+                 if #result .ne. "true"
+                   set globals(ErrChk) = "1"
+                   error "Error in creating GRN Header</p>Cannot proceed"
+                 else
+                   set globals(Flag) = "1" 
+                 end if
+              end if            
+
+              if globals(ErrChk) .eq. ""
+                  decimal ordqty=0.0
+                  decimal grnqty=0.0
+                  decimal balqty=0.0
+                  decimal totval=0.0
+                  
+                  str xrow=0
+                  set mysql = "select xrow from poodt where xpornum = '"+xpornum+"' and xrow > '"+xrow+"' order by xrow " 
+                  set xrow=#sql(str, mysql)
+				  
+                  while #result .eq. "true"
+                     set grnqty = #sql(decimal,"select sum(xqtygrn) from poodt where xpornum='"+globals(xpornum)+"' and xrow='"+xrow+"'")
+                     set ordqty = #sql(decimal,"select sum(xqtyord) from poodt where xpornum='"+globals(xpornum)+"' and xrow='"+xrow+"'")
+                     set rate = #sql(decimal,"select xrate from poodt where xpornum='"+globals(xpornum)+"' and xrow='"+xrow+"'")
+                     set xtaxrate1 = #sql(decimal,"select xtaxrate1 from poodt where xpornum='"+globals(xpornum)+"' and xrow='"+xrow+"'")
+                     set landcost = #sql(decimal,"select xlandcost from poodt where xpornum='"+globals(xpornum)+"' and xrow='"+xrow+"'")
+                     set balqty = 0.00+ordqty-grnqty  
+
+                     if ordqty > grnqty
+                        buffer pogdt
+                        move pogdt=poodt(xpornum,xrow)
+                        set pogdt.xgrnnum=pogrn.xgrnnum
+                        set pogdt.xqty = 0.00+ordqty-grnqty
+                        set pogdt.xqtygrn = 0.00+ordqty-grnqty
+                        set pogdt.xcur="BDT"
+                        set pogdt.xexch=0.0+1
+//                        if globals(trncode) .sw. "IP"
+//                           decimal tmpval = 0.0
+//                           compute tmpval = 0.00+balqty*landcost
+//                           compute pogdt.xdtwotax = 0.0+balqty*landcost
+//                           compute pogdt.xlineamt = 0.0+balqty*landcost
+//                           set totval = 0.0+totval+tmpval
+//                        else
+                           decimal tmpval = 0.00
+                           decimal tmp = 0.00
+                           decimal taxamt = 0.00
+                           compute tmpval = 0.00+balqty*rate
+                           compute pogdt.xdtwotax = 0.00+balqty*rate
+                           compute pogdt.xdttax = 0.00+(xtaxrate1/100)*tmpval
+                           compute pogdt.xlineamt = 0.00+balqty*rate
+                           set totval = 0.00+totval+tmpval+taxamt
+                           set tottempv = 0.00+tottempv+tmpval 
+//                        end if
+                        insert pogdt
+						//error #result
+                     end if
+                     if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Error in creating GRN Details</p>Cannot proceed"
+                     else
+                        set globals(globals(Flag) = "1"   
+                     end if
+                  set mysql = "select xrow from poodt where xpornum = '"+xpornum+"' and xrow > '"+xrow+"' order by xrow "
+                  set xrow=#sql(str, mysql)
+                end while
+              end if
+              
+              if globals(ErrChk) .eq. ""
+                  if globals(Flag) .eq. "1"
+                  	 str mysql = "update pogrn set xdtwotax="+tottempv+",xval="+totval+",xtotamt="+totval+" where xgrnnum="+xgrnnum+"'"
+                  	 set tmpstr = #sql(str,mysql)
+                     str mysql = "update poord set xstatuspor='Received' where xpornum='"+globals(xpornum)+"'"
+                     set updval = #sql(str,mysql)
+                     action show
+                     print "<span class=bl>GRN No <a href=/da/"+#servlet+"?page=pogrnimp&command=Show&xgrnnum="+xgrnnum+">" +xgrnnum+ "</a> Created.</span>"
+                  end if
+              end if 
+          end event
+        end field
+
+      	embed onsubmit="submitit(this)"
+        field Details
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+//          b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "poodtimp"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+
+        function pickCur(link, exch){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcur.value=link.text
+            document.one.xexch.value=exch.text
+          }else{
+            document.one.xcur.value=link.innerText
+            document.one.xexch.value=exch.innerText
+          }
+          return false
+        }
+
+        function pickSup(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xsup.xvalue=link.text
+          }else{
+            document.one.xsup.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+     method chkrec
+        if xpornum .ne. globals(xpornum)
+            set globals(ErrChk) = "1"
+            error "Record pointer mismatch</p>Cannot "+#command
+        end if
+
+        if globals(ErrChk) .ne. "1" 
+          if #command .ne. "Create GRN"
+           if xstatuspor .eq. "Received" .or. xstatuspor .eq. "Partial Received" .or. xstatuspor .eq. "Completed"
+             set globals(ErrChk) = "1"
+             error "Cannot "+#command+"</p>Already "+globals(xstatuspor)
+           end if  
+          end if 
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+         set status=#sql(str,"select xstatuspor from poord where xpornum='"+xpornum+"'")
+         if #command .eq. "Create GRN"
+           if status .eq. "Received" .or. status .eq. "Completed"
+             set globals(ErrChk) = "1"
+             error "Cannot "+#command+"</p>Already "+status
+           end if
+         end if 
+        end if
+        
+     end method
+
+     method mth_check
+        buffer xlocals
+        set globals(xtypelocal)="Module"
+        set globals(xname)="gl"
+        move xlocals=xlocals(xtypelocal,xname)
+        int offset
+        int per
+        int year=#sub(globals(xdate),0,4)
+        set offset=#prop(xlocals.xprops,"offset")
+        set per=12+#sub(globals(xdate),5,2)-offset
+        if per<=12
+           set xper=per
+           set xyear=year-1
+        else
+           set xper=per-12
+           set xyear=year
+        end if
+
+        set mth_status = #sql(str,"select xpflag from pomthend where xyear='"+xyear+"' and xper='"+xper+"'")
+        if mth_status .eq. "1"
+          set globals(ErrChk) = "1"
+          error xyear+"("+xper+") Already Closed; Cannot "+#command
+        end if   
+     end method
+     
+     method chkwh
+        set chkwh = #sql("select xcode from xcodes where xtype='Warehouse' and xcode='"+xwh+"'")
+        if #result .ne. "true"
+           set globals(ErrChk) = "1"
+           error "Invalid Warehouse Code Selected: "+xwh
+        end if
+     end method
+
+	valid valid
+		config
+
+		end config
+	end valid
+
+#include access.valid
+
+end page

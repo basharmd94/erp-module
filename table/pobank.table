@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table pobank
+    caption "Bank Information"
+
+    columns ztime,zutime,zid,xpornum,xrow,xbankref,xbrefdate,xdaterec,xpaydate,xretdate,~
+            xorgdate,xdaterel,xrem,zemail,xemail
+            
+    primary key zid, xpornum,xrow
+
+    foreign key
+        zid references zbusiness.zid
+        zid,xpornum references poilc.zid,xpornum
+    end foreign key
+    
+end table

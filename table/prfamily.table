@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table prfamily
+  caption "Family Details"
+  columns ztime,zutime,zid,xemp,xkin,xdob,zemail,xrelation,xdependant,xnominee,xbloodgrp,~
+  	xspocc,xspppno,xplbirth,xmobile,xphone,xemail,xnote
+
+  primary key zid,xemp,xkin
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xemp references prmst.zid,xemp
+  end foreign key
+ 
+end table

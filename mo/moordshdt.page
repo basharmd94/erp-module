@@ -1,0 +1,229 @@
+page moordshdt
+
+     caption "Manufacturing Order Shedule Details"
+     sidebar list moordshdt
+     sections list sheden,form one,script myscript
+              
+     text one
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+		list moordshdt
+			caption "Details"
+			table (select *,~
+				(select xdesc from caitem ~
+					where zid=moordshdt.zid and xitem=moordshdt.xitem) as itemdesc ~
+					from moordshdt) as tbl
+
+			order xdate,xdfshift,xitem
+			fixed xdate
+			rows 10
+			objects xdfshift attrib(link #servlet+"?page=moordshdt&command=Show&xdfshift=?&xitem=?&xdate=?"), ~
+					xitem,itemdesc,xqty
+
+			field itemdesc
+				caption Description
+				storage varchar
+			end field
+
+			totals ,,"Total",sum,,,	
+
+		end list
+     
+
+		list sheden
+			caption "Shedule Entry Screen"
+			table moordsh
+			order xdate desc
+			rows 5
+			objects xdate attrib(link #servlet+"?page=moordsh&command=Show&xdate=?"), ~
+				zemail
+		end list
+
+
+		form one
+			valid valid,access
+			table moordshdt
+			order xdate,xdfshift,xitem DESC
+			fixed xdate
+			layout 1
+			objects Add,Show,Clear, Update,Previous, Delete, Next,Return,~
+					xdfshift,xitem attrib(submit;attach),item_nemae,xqty,xemp attrib(submit;attach),supnum,xempf attrib(submit;attach),inknum,,xempt attrib(submit;attach),fdnum,~
+					zemail display(const), xemail display(const)
+
+
+
+			field xdfshift
+				display ocombo
+				pick "select xcode from xcodes where zid='"+#id+"' and xtype='Manufacturing Shifting'"
+			end field
+			
+			field item_nemae
+				attrib local
+				display const
+				event after
+					set item_nemae=#sql("select xdesc from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+				end event
+			end field
+			
+			field supnum
+				display const
+				attrib local
+				event after
+					set supnum=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+				end event
+			end field
+			
+			field inknum
+				display const
+				attrib local
+				event after
+					set inknum=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xempf+"'")
+				end event
+			end field
+			
+			field fdnum
+				display const
+				attrib local
+				event after
+					set fdnum=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xempt+"'")
+				end event
+			end field
+			
+			field xemp
+				caption Shift Supervisor
+			end field
+			
+			field xempf
+				caption Ink In-Charge
+				pick list xemp
+			end field
+
+			field xempt
+				caption Infeed In-Charge
+				pick list xemp
+			end field
+
+			field xitem
+				event after
+					set globals(xitem)=xitem
+				end event
+			end field
+			
+			field zemail
+				caption Created By
+			end field
+			
+			field xemail
+				caption Updated By
+			end field
+
+
+			field xitdesc
+				caption Description
+				attrib local
+				event after
+					set xitdesc=#sql("select xdesc from caitem where xitem='"+xitem+"'")
+				end event
+				display constant
+			end field
+
+
+			field Add
+				event before
+					set globals(ErrChk) = ""
+					
+					if globals(ErrChk) .ne. "1"
+						set chkitem=#sql("select xitem from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+						if #result .ne. "true"
+							set globals(ErrChk)="1"
+							error "<font color=red size=+2>Invalid Item Code"
+						end if
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						set zemail=#user
+					end if
+	
+				end event
+			end field
+
+			field Update
+				event before
+					set globals(ErrChk) = ""
+
+					if globals(ErrChk) .ne. "1"
+						set chkitem=#sql("select xitem from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+						if #result .ne. "true"
+							set globals(ErrChk)="1"
+							error "<font color=red size=+2>Invalid Item Code"
+						end if
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						set xemail=#user
+					end if
+					
+				end event
+			end field
+
+			field delete
+				event before
+					set globals(ErrChk) = ""
+				end event
+			end field
+
+			embed onsubmit="submitit(this)"
+
+			field Return
+				embed onclick="clicked(this)"
+			end field
+
+		end form
+
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but= ""
+
+        function clicked(b){
+          but="clicked"
+        }
+
+        function submitit(form){
+
+	    if (but=="clicked"){
+            form.page.value = "moordsh"
+            form.searchbutton.value = "Find xdate=?"
+          }
+        }
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xitem.value=link.text
+          }else{
+            document.one.xitem.value=link.innerText
+          }
+          return false
+        }
+
+      function pickbom(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xbom.value=link.text
+          }else{
+            document.one.xbom.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+	valid valid
+		config
+			
+		end config
+	end valid
+	
+end page

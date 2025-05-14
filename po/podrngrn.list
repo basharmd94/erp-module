@@ -1,0 +1,11 @@
+      list podrndo
+        caption "Debit Notes against Fully Returned GRN Number: <font color=red >"+xgrnnum+"</font>"
+        table podrn
+        order xgrnnum,xdate desc
+        select "xgrnnum='"+xgrnnum+"'"
+        rows 20
+        objects ~
+                xgrnnum, xdrnnum attrib(link "javascript:void(0);" embed onclick="return updateParent(this:'')"), ~
+                xdate,xsup,xstatusdrn
+
+     end list

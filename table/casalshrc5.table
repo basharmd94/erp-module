@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table casalshrc5
+  caption "Sale Representative Sales"
+  columns ztime,zutime,zid,xtype,xstate,xdiv,xdistrict,xthana,xemp,xdescdet,xcode,xname,zemail,zactive
+
+  primary key zid,xstate,xdiv,xdistrict,xthana,xemp
+  
+  foreign key
+        zid references zbusiness.zid
+		zid,xstate,xdiv,xdistrict,xthana references casalshrc4.zid,xstate,xdiv,xdistrict,xthana
+  end foreign key
+  
+end table

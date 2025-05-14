@@ -1,0 +1,16 @@
+     list lvtype
+		caption "Leave Type"
+        table xcodes
+        order xcode
+        select "xtype='Leave Type'"
+        navigators alpha
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'')")
+                
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

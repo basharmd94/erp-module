@@ -1,0 +1,78 @@
+page Bmedt
+     caption "ECO Details"
+     sidebar\\ list item
+     sections form one, script myscript
+
+
+     form one
+        caption "<br><center><b>"ECO Details"</b>"
+        table bmedt
+        order xecotrn,xecoline
+        fixed xecotrn
+        //select
+        return "Main"
+        layout 1
+        objects Show,Clear,Add, Update, Delete, Top, Previous, Next, Bottom,Complete,"<p>" ,~
+                xecoline attrib(row 0 10;search),xbom,xbomopt
+
+
+        field xecotrn
+         event after
+          set globals(xecotrn)=xecotrn
+         end event
+        end field
+
+        field xecoline
+         event after
+          set globals(xecoline)=xecoline
+         end event
+        end field
+
+
+        //embed onsubmit="return submitit(this)"
+
+
+//        field Add
+//          event before
+
+//            set check=""
+            //set xsign=1
+   //Item Check
+
+//            buffer caitem
+//            move caitem=caitem(xitem)
+//
+//            if xitem .ne. caitem.xitem
+//              set check="1"
+//              error "Invalid Item"
+//             end if
+//            end event
+//        end field
+
+
+   end form
+
+
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+
+//	    if (detail=="clicked"){
+//            form.page.value = "bmopt"
+            //return false
+//          }
+        }
+
+        </script>
+     end script
+
+
+
+end page

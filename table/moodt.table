@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table moodt
+  caption "Manufacturing Details"
+  columns ztime,zutime,zid,xmoord,xmorlno,xitem,xwh,xqty,xunit,xrate,xstype,ximtrnnum,xcfiss,~
+  xemail,zemail,xbatch,xqtyord
+
+  primary key zid, xmoord, xmorlno
+
+  foreign key
+        zid references zbusiness.zid
+      	zid,xmoord references moord.zid,xmoord
+        zid,xitem references caitem.zid,xitem
+  end foreign key
+
+end table

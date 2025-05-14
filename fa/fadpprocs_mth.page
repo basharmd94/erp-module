@@ -1,0 +1,211 @@
+page fadpprocs_mth
+   
+	caption "Monthly Depreciation Process"
+    sections  form one, method chk_access,~
+   		method dep_sl
+    list one
+      table facode
+      order xcode
+      rows 10
+      objects  xtype,xcode attrib(link #servlet+"?page=facode&command=Show&xtype=?&xcode=?"),xdesc
+    end list
+
+	form one
+      //caption "<font color=black size=3>Monthly Depreciation Process"
+      table
+      order
+      layout 1      
+
+      objects Process,Clear,,~
+              xyear,xper,xitemold,xitem
+
+		field xitemold
+			caption From Asset Code
+			pick list famst2
+		end field
+		
+		field xitem
+			caption To Asset Code
+			pick list famst1
+			default "zzz"
+		end field
+
+		field process
+			event before
+				set globals(ErrChk) = ""
+				set globals(PurMsg) = ""
+				set globals(DepCom) = ""
+				set globals(Estlife) = ""
+				set globals(Slvval) = ""
+				set globals(PriMsg) = ""
+				str lastdate = ""
+				
+				call chk_access
+				
+				if globals(ErrChk) .ne. "1"			
+					if xyear<=0 .or. xper<=0
+						set globals(ErrChk)="1"
+						error "Wrong Year/Per"
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+		            set globals(xcode) = xitemold
+		            set mysql = "select xcode from famst where xassetstat='In Use' and xcode>='"+globals(xcode)+"' and xcode<='"+xitem+"' order by zid,xcode"
+		            set globals(xcode) = #sql(str,mysql)
+					while #result .eq. "true" .and. globals(xcode) .ne. ""
+						set xastname = #sql("select xastname from famst where xcode='"+globals(xcode)+"'")
+						str mysql = "delete from fatrn where xyear='"+xyear+"' and xper='"+xper+"' and xcode='"+globals(xcode)+"' and xvoucher like 'DE%'"
+						set tmpstr = #sql(str,mysql)
+						
+						set xdepmeth = #sql("select xdepmeth from famst where xcode='"+globals(xcode)+"'")
+						if xdepmeth .sw. "SL"
+							call dep_sl
+							//print globals(xcode)+" "+xdepmeth
+						end if	
+			            set mysql = "select xcode from famst where xassetstat='In Use' and xcode>'"+globals(xcode)+"' and xcode<='"+xitem+"' order by zid,xcode"
+			            set globals(xcode) = #sql(str,mysql)
+					end while
+				end if
+				if globals(PurMsg) .ne. ""
+					print "<font color=red size=3> "+globals(PurMsg)+"</p>Purchased after "+xyear+"("+xper+")"
+				end if
+				if globals(DepCom) .ne. ""
+					print "<font color=red size=3> Depriciation already completed for</p>"+globals(DepCom)
+				end if
+				if globals(Estlife) .ne. ""
+					print "<font color=red size=3> Estimated Life not found for</p>"+globals(Estlife)
+				end if
+				if globals(Slvval) .ne. ""
+					print "<font color=red size=3> Salvage value not found for</p>"+globals(Slvval)
+				end if
+				if globals(PriMsg) .ne. ""
+					print "<font color=blue size=3> Depreciation for "+xyear+"("+xper+") completed for</p>"+globals(PriMsg)
+				end if
+			end event
+		end field
+
+	end form
+
+     method chk_access
+     	set stype = ""
+	  	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          buffer xcriminal
+	          set xcriminal.xwornum = mysql
+	          set xcriminal.xemail = #user
+	          set xcriminal.xdate = #date
+	          str tmptime = ""
+	          class osbcustom(#time(tmptime))
+	          set xcriminal.xtime = tmptime
+	          set xcriminal.xobject = page
+	          insert xcriminal
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+	
+     method dep_sl
+     	set globals(ErrFree) = ""
+     	//print "sohel",xestlife,xslvval
+     	set xestlife = #sql(decimal,"select xestlife from famst where xcode='"+globals(xcode)+"'")
+     	set xslvval = #sql(decimal,"select xslvval from famst where xcode='"+globals(xcode)+"'")
+     	set totdep = #sql(decimal,"select count(xvoucher) from fatrn where xcode='"+globals(xcode)+"' and xvoucher like 'DE%'")
+     	if xestlife <= 0
+     		set globals(ErrFree)="1"
+     		set globals(Estlife)=globals(xcode)+", "+globals(Estlife)
+     	end if
+     	if globals(ErrFree) .ne. "1"
+     		if xslvval <= 0
+     			set globals(ErrFree)="1"
+     			set globals(Slvval)=globals(xcode)+", "+globals(Slvval)
+     		end if
+     	end if
+     	if globals(ErrFree) .ne. "1"
+     		if xestlife == totdep
+     			set globals(ErrFree)="1"
+     			set globals(DepCom)=globals(xcode)+", "+globals(DepCom)
+     		end if
+     	end if
+     	if globals(ErrFree) .ne. "1"
+			class osbcustom(lastdate(xyear,xper,lastdate))
+			set lastdate = #sub(lastdate, 0,10)
+     	
+     		set pur_year = #sql(int,"select xyear from fmast where xcode='"+globals(xcode)+"'")
+     		set pur_per = #sql(int,"select xper from fmast where xcode='"+globals(xcode)+"'")
+     		set pur_yrpr = 0+pur_year+pur_per
+     		set cur_yrpr = 0+xyear+xper
+     		if cur_yrpr < pur_yrpr
+     			set globals(ErrFree)="1"
+     			set globals(PurMsg)=globals(xcode)+", "+globals(PurMsg)
+     		end if
+     	end if
+     	if globals(ErrFree) .eq. ""
+     		decimal temp = 0.0
+     		decimal dep_amt = 0.0
+     		set base_amt = #sql(decimal,"select xbase from famst where xcode='"+globals(xcode)+"'")
+     		set add_amt = #sql(decimal,"select sum(xbase) from fatrn where xcode='"+globals(xcode)+"' and xvoucher like 'AD%' and xdate<='"+lastdate+"'") 
+     		set tot_dep = #sql(decimal,"select sum(xbase) from fatrn where xcode='"+globals(xcode)+"' and xvoucher like 'DE%'") 
+     		set asset_val = 0.0+base_amt+add_amt
+     		set act_val = 0.0+asset_val-tot_dep
+     		//class osbcustom(#calc(asset_val,xslvval,"-",2,temp))
+     		set temp=0.0+asset_val-xslvval
+     		//class osbcustom(#calc(temp,xestlife,"/",2,dep_amt))
+     		set dep_amt=0.0+temp/xestlife
+     		if act_val > dep_amt
+     		else
+     			set dep_amt = 0.0+act_val
+     		end if
+     		//print globals(xcode)+" "+dep_amt+" "+add_amt+" "+lastdate
+     		//Amount – Salvage Value/Estimated Life=Depreciation  per month
+     		
+ 			set xcode=globals(xcode)
+     		buffer famst
+ 			move famst=famst(xcode)
+ 			
+ 			if #result .eq. "true" .and. dep_amt > 0.0 .and. act_val > 0.0
+	     		set vouchernum = #trn("Fixed Asset Transaction","DE--")
+				set myqry = "insert into fatrn (zid, xvoucher,xdate,xyear,xper,xcode,xastname,~
+					xastcatg,xastbook,xasttype,xastunit,xastbr,xastloc,xdiv,xsec,xproj,xdepmeth,xpurdate,~
+					xcur,xexch,xprime,xbase,xsup,xinvno,xnomlife,xestlife,xslvval,xretdate,xdepfactor,~
+					xprvunit,xprvbr,xprvloc,xprvdiv,xprvsec,xprvproj,xglref,xlong,~
+					xleasestat,xmortgstat,xassetstat,xpornum,xdateto,xcus,xmodel,xcondition,~
+					xmaxload,xunitalt,xmfgyear,xorigin,xmanufacturer,xarea,xthana,xmouza,~
+					xareagovt,xareaphys,xaruntgovt,xaruntphys,xdistrict,xdept,xsubdept,xdateord,~
+					xname,xalias)"
+				set myqry = myqry + " values('"+#id+"','"+vouchernum+"','"+lastdate+"','"+xyear+"','"+xper+"','"+globals(xcode)+"',~
+					'"+xastname+"','"+famst.xastcatg+"','"+famst.xastbook+"','"+famst.xasttype+"','"+famst.xastunit+"',~
+					'"+famst.xastbr+"','"+famst.xastloc+"','"+famst.xdiv+"','','','"+famst.xdepmeth+"','"+famst.xpurdate+"',~
+					'BDT',"1.0",'"+dep_amt+"','"+dep_amt+"','','',~
+					'"+famst.xnomlife+"','"+famst.xestlife+"','"+famst.xslvval+"','"+famst.xretdate+"',~
+					'"+famst.xdepfactor+"','','','','','','','','"+famst.xlong+"','"+famst.xleasestat+"',~
+					'"+famst.xmortgstat+"','"+famst.xassetstat+"','"+xpornum+"','"+globals(xdate)+"',~
+					'','"+famst.xmodel+"','"+famst.xcondition+"','"+famst.xmaxload+"','"+famst.xunitalt+"',~
+					'"+famst.xmfgyear+"','"+famst.xorigin+"','"+famst.xmanufacturer+"','"+famst.xarea+"',~
+					'"+famst.xthana+"','"+famst.xmouza+"','"+famst.xareagovt+"','"+famst.xareaphys+"',~
+					'"+famst.xaruntgovt+"','"+famst.xaruntphys+"','"+famst.xdistrict+"','"+famst.xdept+"',~
+					'"+famst.xsubdept+"','"+famst.xdateord+"','"+famst.xname+"','"+famst.xalias+"')"
+				set tmpstr =#sql(myqry)				     		
+				if #result .eq. "true"
+					set globals(PriMsg) = globals(xcode)+", "+globals(PriMsg)
+				end if
+			end if
+     	end if
+     end method
+     
+end page

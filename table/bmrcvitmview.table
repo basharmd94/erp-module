@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table bmrcvitmview
+	caption "bmrcvitm Detail View"
+
+	//columns ztime,zutime,zid,xbom,xoption,xline,xitem,item_desc,item_group,xqty,xunit,xstype,zemail,xemail,xpercent
+	columns ztime,zutime,zid,xbom,xline,xitem,item_desc,item_group,xqty,xunit,xstype,zemail,xemail
+
+	sql create view bmrcvitmview (ztime,zutime,zid,xbom,xline,xitem,item_desc,item_group,xqty,xunit,xstype,zemail,xemail) ~
+		as select ~
+		bmrcvitm.ztime,bmrcvitm.zutime,bmrcvitm.zid,bmrcvitm.xbom,bmrcvitm.xline,bmrcvitm.xitem,~
+        (select xdesc from caitem where zid=bmrcvitm.zid and xitem=bmrcvitm.xitem),~
+        (select xgitem from caitem where zid=bmrcvitm.zid and xitem=bmrcvitm.xitem),~
+		bmrcvitm.xqty,bmrcvitm.xunit,bmrcvitm.xstype,bmrcvitm.zemail,bmrcvitm.xemail ~
+		FROM bmrcvitm
+end table

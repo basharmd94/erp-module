@@ -1,0 +1,259 @@
+page leasecomp
+     embed onload = "move_caret('one','xdesc01')"
+     caption "Lease"
+     sections form one,text top, script myscript,~
+     list one
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list one
+        table fatrnlease
+        order xvoucher,xrow
+        fixed xvoucher
+        rows 10
+        objects  xrow attrib(link #servlet+"?page=leasecomp&command=Show&xvoucher=?&xrow=?"),~
+                xdesc01,xbuddt,xbudramt1
+                
+        field xdesc01
+            caption Voucher No.
+        end field
+        
+        field xbuddt
+            caption Voucher Date
+        end field
+        
+        field xbudramt1
+            caption Installment Amount
+        end field
+
+     end list
+
+     form one
+        //caption "<font color=black size=4>Lease Schedule(Land)"</b>"
+        table fatrnlease
+        order xvoucher,xrow
+        fixed xvoucher        
+        layout 1
+        objects "Lease Schedule(Computer & Others) <font color=red >"+xvoucher,"</font>",~
+                Add,Update,Clear,Show, Top, Previous, Delete, Next, Bottom,Complete,~
+                xrow attrib(row 0 10;search),xdesc01,xbuddt,xbudramt1
+
+
+        field show
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+             
+          	 if globals(ErrChk) .ne. "1"
+            	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Create.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Detail.display) = "hide"		                		                
+		                set #field(LC_search.display) = "hide"		                
+		                set #field(Shipment.display) = "hide"		                
+		                set #field(Close_LC.display) = "hide"		                
+		                set #field(Bank.display) = "hide"		                
+		                set #field(Cnf.display) = "hide"		                
+		                set #field(Cost.display) = "hide"		                
+		                set #field(Run.display) = "hide"		                
+		                set #field(Create.display) = "hide"		                		                
+		             end if
+		             call chk_access
+            	end if
+          	 end if           
+           end event
+        end field
+
+        field Top
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+             
+          	 if globals(ErrChk) .ne. "1"
+            	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Create.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Detail.display) = "hide"		                	                
+		                set #field(LC_search.display) = "hide"		                
+		                set #field(Shipment.display) = "hide"		                
+		                set #field(Close_LC.display) = "hide"		                
+		                set #field(Bank.display) = "hide"		                
+		                set #field(Cnf.display) = "hide"		                
+		                set #field(Cost.display) = "hide"		                
+		                set #field(Run.display) = "hide"		                
+		                set #field(Approve.display) = "hide"		                
+		                set #field(Create.display) = "hide"		                		                
+		             end if
+		             call chk_access
+            	end if
+          	 end if           
+           end event
+        end field
+        
+        field xdesc01
+            caption Voucher No.
+            width 10
+        end field
+        
+        field xbudramt1
+            caption Installment Amount
+        end field
+        
+        field xbuddt
+            caption Voucher Date
+        end field
+        
+        field add
+          event before
+           set globals(ErrChk) = ""
+            
+//            call chk_access
+  
+          end event
+        end field
+
+       field update
+          event before
+            set globals(ErrChk) = ""
+        //    call chk_access
+          end event
+        end field
+        
+        field Delete
+        	event before
+        		set globals(ErrChk)=""
+                //call chk_access
+        	end event
+        end field
+        
+        embed onsubmit="submitit(this)"
+
+        field complete
+          embed onclick="clicked(this)"
+        end field
+
+  end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        
+       function clicked(b){
+          detail="clicked"
+        }
+
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "faacqcomp"
+            form.searchbutton.value = "Find xvoucher=?"
+          }
+        }
+        </script>
+     end script
+     
+     method chk_access
+     	set stype = ""
+	  	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+    	//print "P"+stype
+    	if stype .eq. "Yes"
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          buffer xcriminal
+	          set xcriminal.xwornum = mysql
+	          set xcriminal.xemail = #user
+	          set xcriminal.xdate = #date
+	          str tmptime = ""
+	          class osbcustom(#time(tmptime))
+	          set xcriminal.xtime = tmptime
+	          set xcriminal.xobject = page
+	          insert xcriminal
+
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if
+     end method
+
+
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	else if excomm .eq. "Approve"
+     		set #field(Approve.display) = "hide"
+     	end if    
+     end method
+     
+end page

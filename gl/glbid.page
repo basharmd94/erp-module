@@ -1,0 +1,149 @@
+page glbid
+
+     caption "Company ID Master"
+     sidebar list one
+     sections form one,script myscript
+     
+     list one
+		table (select *,~
+			(select zorg from zbusiness ~
+			where zid=glbid.dumzid) as name ~
+			from glbid) as tbl
+
+		  caption "<center>Available Companies</center>"
+		  order dumzid
+		  //navigators alpha
+		  object dumzid attrib(link #servlet+"?page=glbid&command=show&dumzid=?"),name
+
+      field dumzid
+        caption Company ID
+      end field
+      
+      field name
+      	storage varchar
+      	caption Company Name
+      end field
+
+     end list
+
+     form one
+     	valid access,valid
+        table glbid
+        order dumzid
+        //select
+        
+        layout 1
+        objects Add,Show,Clear,Update,Top, Previous, Next, Bottom,Delete,~
+               dumzid caption(Business ID) attrib(search), xorg display(const),~
+			   zemail display(hide),xemail display(hide)
+               
+        field add
+          event before
+          	set globals(ErrChk)=""
+          	
+			if globals(ErrChk) .ne. "1"
+				set busid = #sql("select zorg from zbusiness where zid='"+dumzid+"'")
+				if #result .ne. "true"
+					set globals(ErrChk)="1"
+					error "Business ID not found"
+				end if
+			end if
+
+			if globals(ErrChk) .ne. "1"
+				set ownbusid = #sql("select zorg from zbusiness where zid='"+#id+"'")
+				if #result .ne. "true"
+					set globals(ErrChk)="1"
+					error "Own Business ID not required"
+				end if
+			end if
+			
+          	if globals(ErrChk) .ne. "1"
+				set xorg = #sql("select zorg from zbusiness where zid='"+dumzid+"'")
+            	set zemail=#user
+            	set xemail=""
+            end if	
+          end event
+        end field
+
+        field update
+          event before
+          	set globals(ErrChk)=""
+          	if globals(ErrChk) .ne. "1"
+            	set xemail=#user
+				set xorg = #sql("select zorg from zbusiness where zid='"+dumzid+"'")
+				print #result+" "+xorg
+            end if	
+          end event
+        end field
+
+        field delete
+          event before
+          	set globals(ErrChk)=""
+          end event
+        end field
+        
+        field dumzid
+          pick
+        end field
+
+        field xorg
+          caption Company Name
+        end field
+
+        embed onsubmit="submitit(this)"
+
+     end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+        
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+        //  b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+        }
+
+        </script>
+     end script
+	
+	valid valid
+		mandatory dumzid
+		config
+			set globals(pkey)=dumzid
+		end config
+	end valid
+     
+#include access.valid
+     
+end page

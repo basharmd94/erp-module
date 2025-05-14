@@ -1,0 +1,11 @@
+caption "Setup" page 3
+//---------------------------------------------------------------------------------------
+option                  |action                                   modules|models
+//---------------------------------------------------------------------------------------
+Leave Entry Administrator  	|#classPath+"/"+#servlet+"?page=prlv"      
+Leave Type              	|#classPath+"/"+#servlet+"?page=xcodes(xtype=Leave Type)"
+Leave Year              	|#classPath+"/"+#servlet+"?page=prlvyear"
+Year End Processing     	|#classPath+"/"+#servlet+"?page=pryearcls"
+User Entry Problem      	|#classPath+"/"+#servlet+"?page=zxusersproblem"      
+//----------------------------------------------------------------------------------------
+ 

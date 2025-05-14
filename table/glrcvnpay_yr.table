@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table glrcvnpay_yr
+
+  caption "Yearly Receipts & Payments"
+  columns ztime,zutime,zid,xyear,xtype,xrow,xacc,xprime,xcashacc,xbase
+
+  primary key zid,xyear,xtype,xrow
+  
+  foreign key
+     zid references zbusiness.zid
+  end foreign key
+  
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+
+end table

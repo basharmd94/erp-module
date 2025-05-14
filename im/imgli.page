@@ -1,0 +1,213 @@
+page imgli
+     caption "IM to GL Interface"
+     //sidebar list detail
+     sections form one,list detail, text top, script myscript
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+     
+       list detail
+	   caption "Added List"
+        table imgli
+			  
+        order ximtrn,xwh,xgitem,xvgroup
+        rows 50
+        objects  ximtrn attrib(link #servlet+"?page=imgli&command=Show&ximtrn=?&xwh=?&xgitem=?&xvgroup=?"), ~
+                 xwh,xgitem,xaccdr,xsubdr,xacccr,xsubcr,xtrngl,xproj,xvgroup
+				 
+				 //ximtrn	xwh	xgitem	xaccdr	xsubdr	xacccr	xsubcr	xtrngl	xvgroup	xgltmp0
+
+        
+        field xvgroup
+              caption Inter Company<br>(For ISTS)
+              //display combo
+       end field
+
+     end list
+
+
+     form one
+        caption "<br><center><b>"IM to GL Interface"</b>"
+        table imgli
+        order ximtrn,xwh,xgitem,xvgroup       
+        
+        layout 2
+        objects  Add,Show,Clear,Update, Delete, Top, Previous, Next, Bottom,"<p>" ,~
+                 ximtrn display(ocombo),xwh,xgitem display(ocombo),xvgroup,xaccdr,xdum2,xsubdr,xdum3,xacccr,xdum4,xsubcr,xdum5,~
+				 xproj display(ocombo),xtrngl display(ocombo),xgltmp0
+				 
+				 
+				 field xproj
+					pick "select xcode from xcodes where xtype='Project'"
+				 end field
+
+          field ximtrn
+          //	col 3
+          	pick select xtrn from xtrn where xtypetrn='Inventory Transaction'
+          end field
+
+   field xaccdr
+      display text
+      pick list xaccdr
+      event after
+        set globals(xaccdr)=xaccdr
+      end event
+   end field
+
+   field xacccr
+      display text
+      pick list xacccr
+      event after
+        set globals(xacccr)=xacccr
+      end event
+   end field
+
+   field xsubdr
+      display text
+      //pick list xsubdr
+      pick list xsubhed
+      event after
+       set globals(xsubdr)=xsubdr
+      end event
+   end field
+
+   field xsubcr
+      display text
+      pick list xsubcr
+      //pick list xsubhedcr
+      event after
+       set globals(xsubcr)=xsubcr
+      end event
+   end field
+
+   field xdum1
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum1=#sql("select xlong from xcodes where xtype='Item Group' and xcode='"+xgitem+"'")
+      end event
+   end field
+
+   field xdum2
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum2=#sql("select xdesc from glmst where xacc='"+xaccdr+"'")
+      end event
+   end field
+
+   field xdum3
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum3=#sql("select xdesc from glsub where xsub='"+xsubdr+"'")
+      end event
+   end field
+
+   field xdum4
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum4=#sql("select xdesc from glmst where xacc='"+xacccr+"'")
+      end event
+   end field
+
+   field xdum5
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum5=#sql("select xdesc from glsub where xsub='"+xsubcr+"'")
+      end event
+   end field
+   
+   field xtrngl
+         dispaly ocombo
+         caption Voucher Prefix
+         pick "select xtrn from xtrn where xtypetrn='GL Voucher'"
+   end field
+   
+   field xvgroup
+       caption Inter Company<br>(For ISTS)
+       display text
+	   pick list idlist
+	   //inherits dumzid
+	   caption Corresponding Business ID <br> For ICTO
+   end field
+   
+   field xgltmp0
+       caption Check Departmental <br>Interface
+       default "No"
+	   display hide
+   end field
+
+   field add
+    event after
+      set xacc=globals(xaccdr)
+      buffer glmst
+      move glmst=glmst(xacc)
+      if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+         print "Please update record with correct Debit Sub Account"
+      end if
+
+      set xacc=globals(xacccr)
+      buffer glmst
+      move glmst=glmst(xacc)
+      if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+         print "Please update record with correct Credit Sub Account"
+      end if
+    end event
+   end field
+
+   field update
+    event before
+      buffer imgli
+      move imgli=imgli(ximtrn,xwh,xgitem)
+      if #result .eq. "true"
+        if imgli.xaccdr .ne. xaccdr
+          set xacc=xaccdr
+          buffer glmst
+          move glmst=glmst(xacc)
+          if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+             print "Please update record with correct Debit Sub Account"
+          else
+            set xsubdr=""
+          end if
+        end if
+
+        if imgli.xacccr .ne. xacccr
+          set xacc=xacccr
+          buffer glmst
+          move glmst=glmst(xacc)
+          if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+             print "Please update record with correct Credit Sub Account"
+          else
+            set xsubcr=""
+          end if
+        end if  
+      end if
+
+    end event
+   end field
+
+end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        </script>
+     end script
+
+
+
+end page

@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table mtjobh
+
+	caption "Maintenance Register"
+
+	columns ztime,zutime,zid,xmtjob,xdate,xyear,xper,xweekno,xproduct,xdept,xtype,xtime,zemail,xemail,xjobstat,xmthour
+
+	primary key zid, xmtjob
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+end table

@@ -1,0 +1,240 @@
+page pogli
+     caption "GL Interface"
+     sections form one,list one, text top, script myscript,~
+          method chk_cracc, method chk_crsubacc,~
+    	  method chk_access, method chk_command          
+          
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list one
+      caption "<br><center><b>"Interface Table"</b>"
+		table (select *,~
+			(select xdesc from glmst where zid=pogli.zid and xacc=pogli.xaccpur) as acc_desc, ~
+			(select xdesc from glsub where zid=pogli.zid and xacc=pogli.xaccpur and xsub=pogli.xsubcr) as sub_desc ,~ 			
+			(select xdesc from glmst where zid=pogli.zid and xacc=pogli.xdiscacc) as discacc, ~
+			(select xdesc from glsub where zid=pogli.zid and xacc=pogli.xdiscacc and xsub=pogli.xdiscsub) as discsub ~
+			from pogli) as tbl
+	  
+      //table pogli
+      order xgitem
+      //navigators alpha
+      rows 30
+      objects xgitem attrib(link #servlet+"?page=pogli&command=Show&xgitem=?"),~
+              xaccpur,acc_desc,xsubcr,sub_desc,xdiscacc,discacc //,xdiscsub,discsub
+
+      field xsubcr
+         caption Sub Account
+      end field
+      
+      field acc_desc
+         caption Description
+         storage varchar
+      end field
+      
+      field sub_desc
+         caption Description
+         storage varchar
+      end field
+	  
+      field discacc
+         caption Description
+         storage varchar
+      end field
+
+     end list
+
+
+     form one
+        //caption "<br><center><b>"GL Interface"</b>"
+        valid valid,access
+        table pogli
+        order xgitem
+        layout 2
+        objects  Show,Add,Clear,Update, Delete, Top, Previous, Next, Bottom,~
+                 xgitem attrib(submit),gitemdesc,xaccpur attrib(submit),xdum1,xsubcr,xdum2,~
+				 xdiscacc,discacc,xdiscsub,discsub
+
+                 
+    	field xgitem
+          caption Item Group
+          display text
+          pick list xgitem
+        end field
+        
+        field gitemdesc
+            display const
+            attrib local
+            caption Description
+            event after
+                set gitemdesc=#sql(str,"select xdescdet from xcodes where zid='"+#id+"' and xtype='Item Group' and xcode='"+xgitem+"'")
+            end event
+        end field
+
+        field xaccpur
+          display text
+          pick list xacc
+          event after
+            set globals(xaccpur) = xaccpur
+          end event
+        end field
+
+        field xdum1
+          attrib local
+          display constant
+          caption Description
+          event after
+            set xdum1=#sql(str,"select xdesc from glmst where xacc='"+xaccpur+"'")
+          end event
+        end field
+
+        field xsubcr
+            caption Sub Account
+            pick list xsubdr
+        end field
+
+        field xdum2
+          attrib local
+          display constant
+          caption Description
+          event after
+            set xdum2=#sql(str,"select xdesc from glsub where xacc='"+xaccpur+"' and xsub='"+xsubcr+"'")
+          end event
+        end field
+		
+		field xdiscacc
+			attrib submit			
+			pick list xdiscacc
+			event after
+				set globals(xdiscacc)=xdiscacc
+			end event
+		end field
+		
+		field discacc
+			caption Description
+			attrib local
+			display const
+			storage varchar
+		end field
+		
+		field xdiscsub
+			attrib submit
+			event after
+				set globals(xdiscsub)=xdiscsub
+			end event
+		end field
+		
+		field discsub	
+			caption Description
+			attrib local
+			display const
+			storage varchar
+		end field
+
+        field Add
+          event before
+            set globals(ErrChk) = ""
+            call chk_cracc
+            if globals(ErrChk) .ne. "1"
+              call chk_crsubacc
+            end if
+          end event
+        end field
+
+        field Update
+          event before
+            set globals(ErrChk) = ""
+            call chk_cracc
+            if globals(ErrChk) .ne. "1"
+              call chk_crsubacc
+            end if
+          end event
+        end field
+
+     end form
+
+     script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+        $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+        });
+        $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+        });
+        $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+        });
+        $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+        });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        </script>
+     end script
+
+     method chk_cracc
+        set xacc=xaccpur
+        buffer glmst
+        move glmst=glmst(xacc)
+        if #result .ne. "true"
+           set globals(ErrChk)="1"
+           error "Wrong Account Code Chosen"
+        else
+            if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+               if xsubcr .eq. ""
+                  print "<font color=blue size=4>Please update record with correct Sub Account"
+                end if
+            end if
+        end if
+     end method
+
+     method chk_crsubacc
+        set xacc=xaccpur
+        set xsub=xsubcr
+        if xsubcr .ne. ""
+          buffer glsub
+          move glsub=glsub(xacc,xsub)
+          if #result .ne. "true"
+             set globals(ErrChk)="1"
+             error "Wrong Sub Account Code Chosen"
+          end if   
+        end if
+     end method
+
+
+    valid valid
+        config
+        	set globals(pkey) = xgitem
+			
+			set discacc=#sql(str,"select xdesc from glmst where zid='"+#id+"' and xacc='"+xdiscacc+"' ")
+			set discsub=#sql(str,"select xdesc from glsub where zid='"+#id+"' and xacc='"+xdiscacc+"' and xsub='"+xdiscsub+"'")
+        end config
+    end valid
+
+#include access.valid
+
+end page

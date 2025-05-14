@@ -1,0 +1,176 @@
+page praccmsg
+      embed onload="move_caret('one','xemp')"
+	  caption header
+     
+     sidebar list saldetail ///text two,list two, text three
+     sections form one, list one, script myscript, text top
+
+
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+	 
+     list saldetail
+        caption "Amount Details for "Emloyee Code: ""+xemp+"   Name:"+xdumname
+        //table practrndt
+		table (select *,~
+			(select xdesc from prpayhead ~
+			where zid=practrndt.zid and xpaycode=practrndt.xpaycode) as tmpdesc ~
+			from practrndt) as tbl
+
+        order xpaydate,xemp,xpaycode
+//	      navigators alpha
+        fixed xpaydate,xemp
+        rows 20
+        //objects  xpaycode attrib(link #servlet+"?page=prtrndt&command=Show&xpaycode=?")
+        objects xpaycode,tmpdesc,xamount
+
+        field xpaycode
+         width 10
+         end field
+
+        field xamount
+         caption Amount
+        end field
+
+        field xlong
+         caption Description
+        end field
+
+        field tmpdesc
+          storage varchar
+          caption Description
+        end field
+
+     end list
+	 
+
+     list one
+        //table prmsg
+		table (select *,~
+			(select xname from prmst ~
+			where zid=prmsg.zid and xemp=prmsg.xemp) as tmpname, ~
+			(select xdesig from prmst ~
+			where zid=prmsg.zid and xemp=prmsg.xemp) as tmpdesig, ~
+			(select xdept from prmst ~
+			where zid=prmsg.zid and xemp=prmsg.xemp) as tmpdept ~
+			from prmsg) as tbl
+		
+        order xpaydate,xemp
+        fixed xpaydate
+        //select none
+        navigators alpha
+        rows 20
+        objects xemp attrib(link #servlet+"?page=praccmsg&command=Show&xpaydate=?&xemp=?"),~
+                tmpname,tmpdesig,tmpdept
+
+
+        field tmpname
+          storage varchar
+          caption Employee Name
+        end field
+
+        field tmpdept
+          storage varchar
+          caption Department
+        end field
+
+        field tmpcat
+          storage varchar
+          caption Category
+        end field
+
+        field tmpdesig
+          storage varchar
+          caption Designation
+        end field
+     end list
+
+
+     form one
+		valid valid
+        table prmsg
+        order xemp
+        fixed xpaydate
+        layout 1
+        objects  Show, Detail, Return,Clear, Top, Previous, Next, Bottom,~
+                 xemp,xdumname,xadvflag display(constant),xdayab display(const),~
+                 xdaylv display(const),xratev,~
+                 xpflag display(constant)
+                 // xnhour,xgvothour,xnoothour,xresth
+
+          field xemp
+            Pick list xemp
+            width 10
+            event after
+              set globals(xemp)=xemp
+            end event
+          end field
+
+          field xratev
+            caption Leave Day (w/o Pay)
+            display const
+          end field
+
+
+          field xresth
+            colums 3
+          end field
+
+          field xdumname
+            attrib local
+            display constant
+            caption Employee Name
+            event after
+              set xdumname=#sql(str,"select xname from prmst where xemp='"+xemp+"'")
+            end event
+          end field
+
+          embed onsubmit="submitit(this)"
+
+          field Return
+           embed onclick="clicked(this)"
+          end field
+
+          field Detail
+            embed onclick="Detail(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+          var detail=" "
+
+          function clicked(b){
+            detail="Back"
+          }
+
+          function Detail(b){
+            detail="Detail"
+          }
+
+          function submitit(form){
+            if (detail=="Back"){
+              form.page.value = "pracc"
+              form.searchbutton.value="Find xpaydate=?"
+              //return false
+            }
+            if (detail=="Detail"){
+              form.page.value = "practrndt"
+              form.searchbutton.value="Find xpaydate=?&xemp=?"
+            }
+          }
+
+        </script>
+     end script
+
+	 valid valid
+		config
+			set header = "<span class=bl>Payment Date <a href=/da/"+#servlet+"?page=pracc&command=Show&xpaydate="+xpaydate+">" +xpaydate+ "</a></span>"
+		end config
+	 end valid
+	 
+end page

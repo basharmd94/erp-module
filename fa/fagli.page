@@ -1,0 +1,182 @@
+page fagli
+     caption "FA to GL Interface"
+//     sidebar list item
+     sections form one,list one, text top, script myscript
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list one
+	caption "<br><center><b>"FA to GL Interface"</b>"
+	table fagli
+	order xfatrn,xastcatg
+	navigator alpha
+	object xfatrn,xastcatg,xaccdr,xsubdr,xacccr,xsubcr
+     end list
+     
+     form one
+        caption "<br><center><b>"FA to GL Interface"</b>"
+        table fagli
+        order xfatrn,xastcatg
+        layout 2
+        objects  Add,Show,Clear,Update, Delete, Top, Previous, Next, Bottom,~
+                 xfatrn attrib(search),xdum,xastcatg,xdum1,xaccdr,xdum2,xsubdr,xdum3,xacccr,xdum4,xsubcr,xdum5
+
+
+
+
+   field xdum
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum=#sql("select xdesc from xtrn where xtypetrn='Fixed Asset Transaction' and xtrn='"+xfatrn+"'")
+      end event
+   end field
+
+
+
+        field xastcatg
+          pick list facat
+        end field
+	
+
+
+
+   field xaccdr
+      display text
+      pick list xaccdr
+      event after
+        set globals(xaccdr)=xaccdr
+      end event
+   end field
+
+   field xacccr
+      display text
+      pick list xacccr
+      event after
+        set globals(xacccr)=xacccr
+      end event
+   end field
+
+   field xsubdr
+      display text
+      pick list xsubdr
+   end field
+
+   field xsubcr
+      display text
+      pick list xsubcr
+   end field
+
+   field xdum1
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum1=#sql("select xlong from xcodes where xtype='FA Category' and xcode='"+xastcatg+"'")
+      end event
+   end field
+
+   field xdum2
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum2=#sql("select xdesc from glmst where xacc='"+xaccdr+"'")
+      end event
+   end field
+
+   field xdum3
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum3=#sql("select xdesc from glsub where xsub='"+xsubdr+"'")
+      end event
+   end field
+
+   field xdum4
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum4=#sql("select xdesc from glmst where xacc='"+xacccr+"'")
+      end event
+   end field
+
+   field xdum5
+      attrib local
+      caption Description
+      display constant
+      event after
+        set xdum5=#sql("select xdesc from glsub where xsub='"+xsubcr+"'")
+      end event
+   end field
+
+   field add
+    event after
+      set xacc=globals(xaccdr)
+      buffer glmst
+      move glmst=glmst(xacc)
+      if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+         print "Please update record with correct Debit Sub Account"
+      end if
+
+      set xacc=globals(xacccr)
+      buffer glmst
+      move glmst=glmst(xacc)
+      if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+         print "Please update record with correct Credit Sub Account"
+      end if
+    end event
+   end field
+
+   field update
+    event before
+      buffer fagli
+      move fagli=fagli(xfatrn,xastcatg)
+      if #result .eq. "true"
+        if fagli.xaccdr .ne. xaccdr
+          set xacc=xaccdr
+          buffer glmst
+          move glmst=glmst(xacc)
+          if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+             print "Please update record with correct Debit Sub Account"
+          else
+            set xsubdr=""
+          end if
+        end if
+
+        if fagli.xacccr .ne. xacccr
+          set xacc=xacccr
+          buffer glmst
+          move glmst=glmst(xacc)
+          if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+             print "Please update record with correct Credit Sub Account"
+          else
+            set xsubcr=""
+          end if
+        end if  
+      end if
+
+    end event
+   end field
+
+end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        </script>
+     end script
+
+
+
+end page

@@ -1,0 +1,12 @@
+     list xacccr
+        table glmst
+        order xacc
+        select "(xacc like '%"+zvalue+"%' or xdesc like '%"+zvalue+"%')"
+        //select "(xacctype='Revenue' and xmsttype='Earning')and (xacc like '%"+zvalue+"%' or xdesc like '%"+zvalue+"%')"
+        navigators alpha
+        rows 10
+        objects xacc attrib(link "abc" embed onclick="return updateParent(this:'xacccr')"), ~
+                xdesc
+     end list
+
+

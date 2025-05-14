@@ -1,0 +1,11 @@
+//op.menu
+caption "Sales Return" page 3
+//-------------------------------------------------------------------
+option                         |action
+//---------------------------------------------------------------
+Sales Return                   |#classPath+"/"+#servlet+"?page=opcrn&command=clear"
+Accept Returns                  |#classPath+"/"+#servlet+"?page=opcrn_acc&command=clear"
+Issue CRN                   |#classPath+"/"+#servlet+"?page=opcrn_crn&command=clear"
+Return Verify                   |#classPath+"/"+#servlet+"?page=opcrnr"
+
+//---------------------------------------------------------------

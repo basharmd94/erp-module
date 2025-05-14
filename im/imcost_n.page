@@ -1,0 +1,245 @@
+page imcost_n
+
+    caption "Weighted Average Process"
+    sections form imtrn,script myscript
+
+     
+    form imtrn
+      caption "<font color=cyan>Costing Run Process (New) (Weighted Average)</font>"      
+      layout 1
+      objects ~
+              Process,Clear,"<p>",~
+              xwh,xfdate,xtdate default(#d),xitem,xgazitem,xgitem display(ocombo)
+
+      field xwh
+        caption WareHouse
+      end field
+
+      field xitem
+        caption From Item
+        default "0"
+      pick list xitem
+      end field
+
+      field xgazitem
+        caption To Item
+        display text
+        default "z"
+        pick list xgazitem
+      end field
+	  
+	  
+	  field process
+        event before
+		
+			set globals(ErrChk)=""      
+                    
+          if globals(ErrChk) .ne. "1"
+            set chk_gitem=#sql("select xcode from xcodes where zid='"+#id+"' and xtype='Item Group' and xcode='"+xgitem+"'")
+            if #result .eq. "false"
+                set globals(ErrChk)="1"
+                error "Wrong Item group Selected"
+            end if
+          end if
+          
+          if globals(ErrChk) .ne. "1"
+            set chk_wh=#sql("select xcode from xcodes where zid='"+#id+"' and xtype='Warehouse' and xcode='"+xwh+"'")
+            if #result .eq. "false"
+                set globals(ErrChk)="1"
+                error "Wrong Warehouse Selected"
+            end if
+          end if
+          if globals(ErrChk) .ne. "1"
+          set item=#sql("select xitem from caitem where zid='"+#id+"' and xitem>='"+xitem+"' and xitem<='"+xgazitem+"' and xitem >'"+item+"' and xgitem='"+xgitem+"' order by xitem")
+          while #result .eq. "true" .and. item .ne. ""
+			set datetime=xfdate
+			//print item
+			  set mysql="select xdate from imtrn where zid='"+#id+"' and xitem= '"+item+"' and xdate>='"+xfdate+"' and xdate<='"+xtdate+"' and xdate>='"+datetime+"' and xwh='"+xwh+"' and xsign<0  and isnull(xdoctype,'') <>'Purchase Return' order by xdate"
+			  //print mysql
+              set datetime=#sql(mysql)
+			  //print datetime
+			  set datetime=#sub(datetime,0,10)				
+					while #result .eq. "true" .and. datetime .ne. ""										
+					//print datetime+"Sdt"                    
+					//set mysql = "select sum(xqty*xsign) as strqty,sum(xval*xsign) as strval from imtrn where zid='"+#id+"' and xwh='"+xwh+"' and xdate<'"+datetime+"' and xitem='"+item+"'"                 
+					//set mysql = mysql+" select sum(xqty*xsign) as strqtyc,sum(xval*xsign) as strvalc from imtrn where zid='"+#id+"' and xwh='"+xwh+"' and xdate='"+datetime+"' and xitem='"+item+"' and xsign>0"                 
+					 str mysql = "select (select sum(xqty*xsign) from imtrn where zid='"+#id+"' and xwh='"+xwh+"' and xdate<'"+datetime+"' and xitem='"+item+"') as strqty, ~
+										(select sum(xval*xsign) from imtrn where zid='"+#id+"' and xwh='"+xwh+"' and xdate<'"+datetime+"' and xitem='"+item+"') as strval, ~
+										(select sum(xqty*xsign) from imtrn where zid='"+#id+"' and xwh='"+xwh+"' and xdate='"+datetime+"' and xitem='"+item+"' and xsign>0) as strqtyc,~
+										(select sum(xval*xsign) from imtrn where zid='"+#id+"' and xwh='"+xwh+"' and xdate='"+datetime+"' and xitem='"+item+"' and xsign>0) as strvalc,~
+										(select sum(xqty*xsign) from imtrn where zid='"+#id+"' and xwh='"+xwh+"' and xdate='"+datetime+"' and xitem='"+item+"' and xsign<0 and isnull(xdoctype,'')='Purchase Return') as strqtyretc,~
+										(select sum(xval*xsign) from imtrn where zid='"+#id+"' and xwh='"+xwh+"' and xdate='"+datetime+"' and xitem='"+item+"' and xsign<0 and isnull(xdoctype,'')='Purchase Return') as strvalretc"
+                
+					//print mysql
+					set obqty=0.0
+					set obval=0.0
+					set curpurqty=0.0
+					set curpurval=0.0
+					set qtyretc=0.0
+					set valretc=0.0
+                 str esql = ""
+                 str info = ""
+                 class osbcustom(#sql(mysql, info, esql))
+				 //print ";"+info+";"
+                 if esql .ne. ""
+                   // print "<span class=br>"+esql+"</span>"
+                 else if info .ne. ""
+                   //print ";"+info+";"
+                   class osbcustom(#parse(info))
+                   class osbcustom(#glob(0, obqty))				   
+                   class osbcustom(#glob(1, obval))				   
+				   //print obqty
+				   //print obval
+				   class osbcustom(#glob(2, curpurqty))				   
+                   class osbcustom(#glob(3, curpurval))
+				   class osbcustom(#glob(4, qtyretc))				   
+                   class osbcustom(#glob(5, valretc))
+				   //print valretc
+                 end if
+				 
+					
+                    set rate=0.0
+					set tot_amt=0.0
+					set tot_qty=0.0
+					set tot_qty=0.0+obqty+curpurqty+qtyretc
+					set tot_amt=0.0+obval+curpurval+valretc
+					
+                    set rate=0.0+tot_amt/tot_qty					
+					//print rate
+                    set updatstr="update imtrn set xval=round(xqty*'"+rate+"',2) where zid='"+#id+"' and xwh='"+xwh+"' and xdate='"+datetime+"' and xsign<0 and xitem='"+item+"' and isnull(xdoctype,'')<>'Purchase Return'"
+					
+					set updat=#sql(str,updatstr)
+					//print updatstr
+					
+                        set mysql="select xdate from imtrn where zid='"+#id+"' and xitem= '"+item+"' and xdate>='"+xfdate+"' and xdate<='"+xtdate+"' and xdate>'"+datetime+"' and xwh='"+xwh+"' and xsign<0  and isnull(xdoctype,'') <>'Purchase Return' order by xdate"
+                        set datetime=#sql(mysql)
+						set datetime=#sub(datetime,0,10)
+						//print datetime+" Edt"
+                    end while
+                    set item=#sql("select xitem from caitem where zid='"+#id+"' and xitem>='"+xitem+"' and xitem<='"+xgazitem+"' and xitem >'"+item+"' and xgitem='"+xgitem+"' order by xitem")
+            end while
+            end if
+        end event
+        even after
+        if globals(ErrChk) .ne. "1"
+            print "<font color=blue size=+1><strong>Processing Completed</strong></font>"
+        end if
+        end event
+		
+		end event
+		end field
+
+      field process_old
+        event before
+            set globals(ErrChk)=""
+            
+                       
+          
+          
+          if globals(ErrChk) .ne. "1"
+            set chk_gitem=#sql("select xcode from xcodes where zid='"+#id+"' and xtype='Item Group' and xcode='"+xgitem+"'")
+            if #result .eq. "false"
+                set globals(ErrChk)="1"
+                error "Wrong Item group Selected"
+            end if
+          end if
+          
+          if globals(ErrChk) .ne. "1"
+            set chk_wh=#sql("select xcode from xcodes where zid='"+#id+"' and xtype='Warehouse' and xcode='"+xwh+"'")
+            if #result .eq. "false"
+                set globals(ErrChk)="1"
+                error "Wrong Warehouse Selected"
+            end if
+          end if
+          if globals(ErrChk) .ne. "1"
+          set item=#sql("select xitem from caitem where zid='"+#id+"' and xitem>='"+xitem+"' and xitem<='"+xgazitem+"' and xitem >'"+item+"' and xgitem='"+xgitem+"' order by xitem")
+          while #result .eq. "true" .and. item .ne. ""
+          //print item
+              set datetime=""
+              //set mysql="select xdate+xtime from imtrn where zid='"+#id+"' and xitem= '"+item+"' and xdate>='"+xfdate+"' and xdate<='"+xtdate+"' and xdate+xtime>'"+datetime+"' and xwh='"+xwh+"' and xsign<0 order by xdate+xtime"
+			  set mysql="select xdate+right(xtime,8) from imtrn where zid='"+#id+"' and xitem= '"+item+"' and xdate>='"+xfdate+"' and xdate<='"+xtdate+"' and xdate+right(xtime,8)>'"+datetime+"' and xwh='"+xwh+"' and xsign<0 order by xdate+right(xtime,8)"
+              set datetime=#sql(mysql)
+			  //print datetime
+			  //set mysql1="select xdate+right(xtime,8) from imtrn where zid='"+#id+"' and xitem= '"+item+"' and xdate>='"+xfdate+"' and xdate<='"+xtdate+"' and xdate+right(xtime,8)='"+datetime+"' and xwh='"+xwh+"' and xsign<0 order by xdate+right(xtime,8)"
+			  //print mysql1
+              //set datetime1=#sql(mysql1)
+			  //print datetime1+"dd"
+			  
+                    while #result .eq. "true" .and. datetime .ne. ""
+					//print datetime
+                    //set totamt=0.0+#sql("select sum(xval*xsign) from imtrn where zid='"+#id+"' and xwh='"+xwh+"' and xdate+right(xtime,8)<'"+datetime+"' and xitem='"+item+"'")
+					set totamtstr="select sum(xval*xsign) from imtrn where zid='"+#id+"' and xwh='"+xwh+"' and xdate+right(xtime,8)<'"+datetime+"' and xitem='"+item+"'"
+					set totamt=0.0+#sql(str,totamtstr)
+					//print totamt
+					//print totamt
+                    set totqtystr="select sum(xqty*xsign) from imtrn where zid='"+#id+"' and xwh='"+xwh+"' and xdate+right(xtime,8)<'"+datetime+"' and xitem='"+item+"'"
+					set totqty=0.0+#sql(str,totqtystr)
+					//print totqty
+                    set rate=0.0
+                    set rate=0.0+totamt/totqty
+                    set updatstr="update imtrn set xval=xqty*'"+rate+"' where zid='"+#id+"' and xwh='"+xwh+"' and xdate+right(xtime,8)='"+datetime+"' and xsign<0 and xitem='"+item+"'"
+					set updat=#sql(str,updatstr)
+                        set mysql="select xdate+right(xtime,8) from imtrn where zid='"+#id+"' and xitem= '"+item+"' and xdate>='"+xfdate+"' and xdate<='"+xtdate+"' and xdate+right(xtime,8)>'"+datetime+"' and xwh='"+xwh+"' and xsign<0 order by xdate+right(xtime,8)"
+                        set datetime=#sql(mysql)
+                    end while
+                    set item=#sql("select xitem from caitem where zid='"+#id+"' and xitem>='"+xitem+"' and xitem<='"+xgazitem+"' and xitem >'"+item+"' and xgitem='"+xgitem+"' order by xitem")
+            end while
+            end if
+        end event
+        even after
+        if globals(ErrChk) .ne. "1"
+            print "<font color=blue size=+1><strong>Processing Completed</strong></font>"
+        end if
+        end event
+      end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+//            form.searchbutton.value = "Find xvoucher=?"
+            //return false
+          }
+        }
+
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.imtrn.xitem.value=link.text
+          }else{
+            document.imtrn.xitem.value=link.innerText
+          }
+          return false
+        }
+
+
+        function pickBatch(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.imtrn.xbatch.value=link.text
+          }else{
+            document.imtrn.xbatch.value=link.innerText
+          }
+          return false
+        }
+
+        function keeplastkey(){
+        document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        }
+
+        </script>
+    end script
+    
+    
+
+end page

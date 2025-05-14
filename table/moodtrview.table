@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table moodtrview
+	caption "moodtr Detail View"
+
+	columns ztime,zutime,zid,xmoord,xmorlno,xitem,item_desc,xwh,xqty,xunit,xrate,xstype,ximtrnnum,xcfiss,~
+			xemail,zemail,xbatch,xqtyrej,xqtymor,xqtyalc,xdocnum
+
+	sql create view moodtrview (ztime,zutime,zid,xmoord,xmorlno,xitem,item_desc,xwh,xqty,xunit,xrate,xstype,ximtrnnum,xcfiss,~
+		xemail,zemail,xbatch,xqtyrej,xqtymor,xqtyalc,xdocnum) ~
+		as select ~
+		moodtr.ztime,moodtr.zutime,moodtr.zid,moodtr.xmoord,moodtr.xmorlno,moodtr.xitem,~
+        (select xdesc from caitem where zid=moodtr.zid and xitem=moodtr.xitem),~
+		moodtr.xwh,moodtr.xqty,moodtr.xunit,moodtr.xrate,moodtr.xstype,moodtr.ximtrnnum,moodtr.xcfiss,~
+		moodtr.xemail,moodtr.zemail,moodtr.xbatch,moodtr.xqtyrej,moodtr.xqtymor,moodtr.xqtyalc,moodtr.xdocnum ~
+		FROM moodtr
+end table

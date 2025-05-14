@@ -1,0 +1,27 @@
+//Order Codes.menu
+caption "Codes & Setup" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+OP Defaults                      |#classPath+"/"+#servlet+"?page=opdef"  
+Quotation			 |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Sales Quotation)"
+-Orders
+Customer Order Codes             |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Customer Order)"
+CO Parameters        |#classPath+"/"+#servlet+"?page=xtrnp(xtypetrn=Customer Order)"
+Customer Order Titles            |#classPath+"/"+#servlet+"?page=xcodes(xtype=Customer Order Title)"
+Sales Person             |#classPath+"/"+#servlet+"?page=xcodes(xtype=Salesperson)"
+-
+-DOs
+DO Codes             |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Delivery Order)"
+DO Parameters        |#classPath+"/"+#servlet+"?page=xtrnp(xtypetrn=Delivery Order)"
+DO Titles             |#classPath+"/"+#servlet+"?page=xcodes(xtype=Delivery Order Title)"
+-Invoices
+Invoice Codes                    |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Invoice)"
+Invoice Parameters               |#classPath+"/"+#servlet+"?page=xtrnp(xtypetrn=Invoice)"
+Invoice Titles             |#classPath+"/"+#servlet+"?page=xcodes(xtype=Invoice Title)"
+-Returns
+SR Codes              |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Sales Returns)"
+SR Parameters         |#classPath+"/"+#servlet+"?page=xtrnp(xtypetrn=Sales Returns)"
+SR Titles             |#classPath+"/"+#servlet+"?page=xcodes(xtype=Sales Returns Title)"
+Interface Table                      |#classPath+"/"+#servlet+"?page=opgli"  
+//-------------------------------------------------------------------

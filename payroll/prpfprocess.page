@@ -1,0 +1,147 @@
+page prpfprocess
+
+    embed onload = "move_caret('one','xdate')"
+
+    caption "P.F. Process"
+    section form one, method getPSamt, method getESamt, method getTRamt, method getADVamt
+
+    form one
+      //caption "P.F. Process"
+      layout 1
+      object  Process,~
+              xdate,xempf,xempt
+
+      field xdate
+         caption  Pay Date
+         default #date
+         event before
+            //set globals(xdate)=xdate
+         end event
+      end field
+
+      field xempf
+         pick list xfemp
+         width 10
+         event before
+            //set globals(xfemp)=xfemp
+         end event
+      end field
+
+      field xempt
+         pick list xtemp
+         width 10
+         //def #char(254)
+         event before
+            //set globals(xtemp)=xtemp
+         end event
+      end field
+
+      field Process
+        event before
+          set globals(ErrChk) = ""
+          set globals(PMsgY) = ""
+          set globals(PMsgN) = ""
+
+          str startdate = ""
+          str xpaydate = xdate
+          set payyr = #sub(xdate,0,4)
+          set paypr = #sub(xdate,5,2)
+          str payyrpr = ""+payyr+""+paypr
+          int offday = 0
+
+          if globals(ErrChk) .ne. "1"
+   	 		 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='pr'")
+   	 		 set pfrate = #prop(xprops,"PF_rate")    	 		           
+             if pfrate <= 0.0
+              //set globals(ErrChk)="1"
+              //error "Employer's contribution(%) for P.F. not found in the setting</p>Please contact System Administrator"
+             else
+             	set pfrate = 10.0
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+       	 		 set xprops = #sql("select xprops from xlocals where xtypelocal='Module' and xname='pr'")
+       	 		 set bprop = #prop(xprops,"basic")                  
+                 set basic_code = #sql(str,"select xpaycode from prpayhead where xpaycode='"+bprop+"'")
+                 if #result .eq. "false"
+                    set globals(ErrChk) = "1"
+                    error "Basic Code ("+bprop +") not found in Payment Head Table"
+                 end if
+             end if
+
+             if globals(ErrChk) .ne. "1"
+       	 		 set xprops = #sql("select xprops from xlocals where xtypelocal='Module' and xname='pr'")
+       	 		 set bprop = #prop(xprops,"pf")                  
+                 set pf_code = #sql(str,"select xpaycode from prpayhead where xpaycode='"+bprop+"'")
+                 if #result .eq. "false"
+                    set globals(ErrChk) = "1"
+                    error "P.F. Code ("+bprop +") not found in Payment Head Table d"
+                 end if             
+             end if
+          end if
+          
+          if globals(ErrChk) .ne. "1"
+          	//print xyear+" "+xper+" "+xday
+            set globals(xemp) = xempf
+            set mysql = "select xemp from prmst where zid='"+#id+"' and xstatusemp='Active' and xemp>='"+globals(xemp)+"' and xemp<='"+xempt+"' order by zid,xemp"
+            set globals(xemp) = #sql(str,mysql)
+
+            while #result .eq. "true" .and. globals(xemp) .ne. ""
+                decimal basic_amt = 0.0
+                decimal pf_amt = 0.0
+                decimal comp_cont = 0.0
+                decimal totamt = 0.0
+                
+                set pflag = #sql(str,"select xpflag from prmsg where xpaydate='"+xdate+"' and xemp='"+globals(xemp)+"'")
+                if pflag .eq. "1"
+                  set globals(PMsgY)=globals(xemp)+", "+globals(PMsgY)
+                else
+                  set globals(PMsgN)=globals(xemp)+", "+globals(PMsgN)
+                end if
+
+                if pflag .eq. "1"
+                  set xemp=globals(xemp)
+                  set basic_amt = #sql(decimal,"select xamount from practrndt where xpaydate='"+xdate+"' and xemp='"+globals(xemp)+"' and xpaycode='"+basic_code+"'")
+                  set pf_amt = #sql(decimal,"select xamount from practrndt where xpaydate='"+xdate+"' and xemp='"+globals(xemp)+"' and xpaycode='"+pf_code+"'")
+                  //print basic_amt+" "+pf_amt+" "+basic_code+" "+pf_code
+                  if basic_amt != 0.0 .and. pf_amt != 0.0
+                    //class osbcustom(#calc(tprop,100,"/",2,tmp))
+                    //class osbcustom(#calc(basic_amt,tmp,"*",0,comp_cont))
+					
+                    compute comp_cont = basic_amt*(pfrate/100)
+					
+                    set totamt= 0.0+pf_amt+comp_cont
+                                        
+                    set chkrec = #sql("select xdate from prpf where xemp='"+globals(xemp)+"' and xdate='"+xdate+"'")
+                    if #result .eq. "true"
+                    	str mysql = "delete from prpf where xemp='"+globals(xemp)+"' and xdate='"+xdate+"'"
+                    	set tmpstr = #sql(str,mysql)
+                    end if
+                    
+					set myqry = "insert into prpf (zid,xemp,xdate,xtypetrn,xdesc,xsign,xpfempcont,xpfcomcont,~
+    					xtotamt,xremark,zemail,xemail)"
+					set myqry = myqry + " values('"+#id+"','"+globals(xemp)+"','"+xdate+"','AD','Addition',"1",~
+						"+pf_amt+","+comp_cont+","+totamt+",'','"+#user+"','')"
+					set tmpstr = #sql(myqry)		
+                  end if
+                end if
+                
+                set mysql = "select xemp from prmsg where zid='"+#id+"' and xstatusemp='Active' and xpaydate='"+xdate+"' and xemp>'"+globals(xemp)+"' and xemp<='"+xempt+"'"
+                set globals(xemp) = #sql(str,mysql)
+            end while
+          end if
+          
+          if globals(ErrChk) .ne. "1"
+              if globals(PMsgY) .ne. ""
+                print "<font color=blue size=4>P.F. Processing Completed for </p>"+globals(PMsgY)+"</font>"
+              end if
+              if globals(PMsgN) .ne. ""
+                print "<font color=red size=4></p>Before running P.F. Processing;</p>Please Run </font><font color=blue size=4>'Payroll Process-Final Run'</font><font color=red size=4> for </p>"+globals(PMsgN)
+              end if
+           end if
+        end event
+      end field
+
+   end form
+
+end page

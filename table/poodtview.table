@@ -1,0 +1,21 @@
+product ERP on the Net
+
+table poodtview
+  caption "PO Details View"
+  columns  zid,xpornum,xrow,xdate,xsup,xcur,xexch,~
+          xcode,xitem,xlong,xstype,xwh, ~
+          xqtyord,xrate,xdisc,xcomm
+
+  primary key zid, xpornum,xrow
+  
+  sql create view poodtview (~
+			zid,xpornum,xrow,xdate,xsup,xcur,xexch,~
+          	xcode,xitem, xlong,xstype,xwh, ~
+          	xqtyord,xrate,xdisc,xcomm) ~
+        as select  ~
+			poodt.zid,poodt.xpornum,poodt.xrow,poord.xdate,poord.xsup,poord.xcur,poord.xexch,~
+          	poodt.xcode,poodt.xitem,poodt.xlong,poodt.xstype,poodt.xwh, ~
+          	poodt.xqtyord,poodt.xrate,poodt.xdisc,poodt.xcomm ~
+        from poodt, poord where poodt.zid=poord.zid and poodt.xpornum=poord.xpornum
+
+end table

@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table prsalslabview
+	caption "prsalslab Description View"
+
+	columns ztime,zutime,zid,xempcat,xpaycode,paycode_desc,xpcode,xpercent,xremark,zemail,xemail
+			
+	sql create view prsalslabview (ztime,zutime,zid,xempcat,xpaycode,paycode_desc,xpcode,xpercent,xremark,zemail,xemail) ~
+		as select ~
+		prsalslab.ztime,prsalslab.zutime,prsalslab.zid,prsalslab.xempcat,prsalslab.xpaycode,~
+		(select xdesc from prpayhead where zid=prsalslab.zid and xpaycode=prsalslab.xpaycode),~
+		prsalslab.xpcode,prsalslab.xpercent,prsalslab.xremark,prsalslab.zemail,prsalslab.xemail ~
+	from prsalslab
+	
+end table

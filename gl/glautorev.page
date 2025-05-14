@@ -1,0 +1,247 @@
+page glautorev
+
+    caption "Voucher Auto Reverse"
+    sections form imtrn,script myscript,~
+    	method chk_access, method chk_command
+
+    form imtrn
+      //caption "<font color=black size=3>Voucher Auto Reverse</font>"
+      layout 1
+      objects ~
+              xordernum,ximtrnnum,Create,Top,Show
+              
+      field xordernum
+        pick list xvoucher
+        caption From Voucher
+      end field
+      
+      field ximtrnnum
+        pick list xvoucher
+        caption To Voucher
+        default "zzz"
+      end field
+
+      field Create
+        event before
+        	set globals(ErrChk) = ""
+            set globals(PriMsg) = ""
+            set globals(BalMsg) = ""
+            set globals(DetMsg) = ""
+            set globals(xvoucher) = xordernum
+            set globals(RevMsg) = ""
+            
+            call chk_access
+            
+			if globals(ErrChk) .eq. ""            
+	            set mysql = "select xvoucher from glheader where zid='"+#id+"' and xvoucher>='"+globals(xvoucher)+"' and xvoucher<='"+ximtrnnum+"' order by zid,xvoucher"
+	            set globals(xvoucher) = #sql(str,mysql)
+	            while #result .eq. "true"
+		            set globals(ErrMsg) = ""
+		            set autostat = #sql(str,"select xdesc01 from glheader where xvoucher='"+globals(xvoucher)+"'")
+		            if autostat .ne. ""
+		            	set globals(ErrMsg) = "1"
+		            	set globals(RevMsg) = globals(xvoucher)+";"+globals(RevMsg)
+		            end if
+	            	decimal drtot = 0.0
+	            	set drtot = #sql(decimal,"select sum(xprime) from gldetail where xvoucher='"+globals(xvoucher)+"' and xprime>'"+drtot+"'")
+	            	if drtot > 0.0
+	                  set jv_stat = #sql(decimal,"select sum(xprime*xexch) from gldetail where zid="+#id+" and xvoucher = '"+globals(xvoucher)+"'")
+	                  if jv_stat == 0.0
+	                  else
+	                  	 set globals(ErrMsg) = "1"
+	                     set globals(BalMsg) = globals(xvoucher)+";"+globals(BalMsg)
+	                  end if
+	                else
+	                	set globals(ErrMsg) = "1"
+	                	set globals(DetMsg) = globals(xvoucher)+";"+globals(DetMsg)
+	                end if
+	                  
+					if globals(ErrMsg) .eq. ""
+						set xvoucher = globals(xvoucher)
+						set globals(xtrn) = #sub(globals(xvoucher),0,4)
+						
+						str mysql = #sql(str,"select xvoucher from glheader where xvoucher like '"+globals(xtrn)+"%' order by xvoucher desc")
+						if #result .eq. "true" .and. mysql .ne. ""
+							set last_num = 0+#sub(mysql,6)
+						end if
+						set last_num = 0+1+last_num
+						set mysql = #padl(""+last_num,6,"0")
+						set globals(newvoucher) = globals(xtrn) + mysql     
+										
+						set note = "Auto Reverse of "+globals(xvoucher)
+						buffer glheader
+						move glheader = glheader(xvoucher)
+						if #result .eq. "true"
+							set mysql = "insert into glheader (zid,xvoucher,xref,xdate,xyear,xper,dumzid,xlong,xstatusjv,~
+								xpostflag,xdatedue,xictrnno,xdesc01,xdesc02,xdesc03,xdesc04,xdesc05,xaccdr,xsubdr,xnumofper,~
+								zemail,xemail,xcheque,xpaytype,xstatus,xtrngl,xnote,xteam,xmember,xmanager,xapproved)"
+							set mysql = mysql + " values('"+#id+"','"+globals(newvoucher)+"','"+glheader.xref+"',~
+								'"+glheader.xdate+"','"+glheader.xyear+"','"+glheader.xper+"','"+#id+"','"+glheader.xlong+"',~
+								'"+glheader.xstatusjv+"','"+glheader.xpostflag+"','"+glheader.xdatedue+"',~
+								'"+globals(xvoucher)+"','"+note+"','"+glheader.xdesc02+"','"+glheader.xdesc03+"','"+glheader.xdesc04+"',~
+								'"+glheader.xdesc05+"','"+glheader.xaccdr+"','"+glheader.xsubdr+"',"0",'"+#user+"','',~
+								'"+glheader.xcheque+"','"+glheader.xpaytype+"','"+glheader.xstatus+"','"+glheader.xtrngl+"',~
+								'"+glheader.xnote+"','"+glheader.xteam+"','"+glheader.xmember+"','"+glheader.xmanager+"',~
+								'"+glheader.xapproved+"')"
+							set tmpstr =#sql(mysql)
+							if #result .eq. "true"							
+								set mysql = "update xtrn set xnum='"+lastnum+"' where xtypetrn='GL Voucher' and xtrn='"+globals(xtrn)+"'"
+								set tmpstr = #sql(mysql)
+							end if
+							
+							str xrow = ""
+							str mysql = "select xrow from gldetail where xvoucher='"+globals(xvoucher)+"' and xrow>'"+xrow+"'"
+							set xrow = #sql(str,mysql)
+							while #result .eq. "true"
+								buffer gldetail
+								move gldetail=gldetail(xvoucher,xrow)
+								if #result .eq. "true"
+									set prime_amt = 0.0 - gldetail.xprime
+									set base_amt = 0.0 - gldetail.xbase
+									str myqry="insert gldetail (zid,xvoucher,xrow,xacc,xsub,xaccusage,xaccsource,xicacc,~
+										xicsub,xcur,xexch,xprime,xbase,xlong,xacctype,zemail,xemail,xstatusrfp,~
+										xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xtypegl) ~
+									values('"+#id+"','"+globals(newvoucher)+"','"+xrow+"','"+gldetail.xacc+"',~
+										'"+gldetail.xsub+"','"+gldetail.xaccusage+"','"+gldetail.xaccsource+"',~
+										'','','"+gldetail.xcur+"','"+gldetail.xexch+"',"+prime_amt+",~
+										"+base_amt+",'"+gldetail.xlong+"','"+gldetail.xacctype+"','"+#user+"',~
+										'','','','','','','0.0','','0.0','')"
+									set tmpstat=#sql(myqry)
+								end if
+								str mysql = "select xrow from gldetail where xvoucher='"+globals(xvoucher)+"' and xrow>'"+xrow+"'"
+								set xrow = #sql(str,mysql)
+							end while
+							
+							decimal tmptot=#sql(decimal, "select sum(xprime*xexch) from gldetail where xvoucher='"+globals(newvoucher)+"'")
+							set tmptot = #round(tmptot,2)
+							if tmptot==0
+								str myqry="update glheader set xstatusjv='Balanced' where xvoucher='"+globals(newvoucher)+"'"
+								set tmpstat=#sql(myqry)
+							else
+								str myqry="update glheader set xstatusjv='Out of Balance' where xvoucher='"+globals(newvoucher)+"'"
+								set tmpstat=#sql(myqry)
+							end if
+							set spnote = "Auto Reverse Created ("+globals(newvoucher)+")"
+							str mysql = "update glheader set xdesc01='"+spnote+"' where xvoucher='"+globals(xvoucher)+"'"
+							set tmpstr = #sql(str,mysql)
+							
+							str mysql = "update glheader set xictrnno='"+globals(newvoucher)+"' where xvoucher='"+globals(xvoucher)+"'"
+							set tmpstr = #sql(str,mysql)							
+							
+							set globals(PriMsg) = globals(xvoucher)+", "+globals(PriMsg)
+						end if						
+					end if
+						                
+	                set mysql = "select xvoucher from glheader where zid='"+#id+"' and xvoucher>'"+globals(xvoucher)+"' and xvoucher<='"+ximtrnnum+"' order by zid,xvoucher"
+		            set globals(xvoucher) = #sql(str,mysql)
+	            end while
+						            
+	            if globals(PriMsg) .ne. ""
+	               print "<font color=blue size=2></p>Voucher(s) "+globals(PriMsg)+"</p> Reverse Voucher(s) Created Successfully</font>"
+	            end if
+	            
+	            if globals(BalMsg) .ne. ""
+	               print "<font color=red size=2></p>Voucher(s) "+globals(BalMsg)+"</p> Out of balance; Cannot Reverse</font>"
+	            end if
+
+	            if globals(RevMsg) .ne. ""
+	               print "<font color=red size=2></p>Voucher(s) "+globals(RevMsg)+"</p> Already Reversed; Cannot Reverse again</font>"
+	            end if
+	            	            
+	            if globals(DetMsg) .ne. ""
+	               print "<font color=purple size=2></p>Voucher(s) "+globals(DetMsg)+"</p> Detail has no record; Cannot Reverse</font>"
+	            end if	            
+	        end if
+        end event
+      end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+          }
+        }
+        </script>
+    end script
+
+	method chk_access
+		set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+		if #result .ne. "true"
+			set globals(ErrChk) = "1"
+			error //"Please log in before you may access the system"
+		end if				
+	
+		if globals(ErrChk) .ne. "1"
+			set stype = ""
+			class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+			//print "P"+stype
+			if stype .eq. "Yes"    
+				set type = "Page"
+				set object = page
+				set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+				if #result .ne. "true"
+					set tmp = "REC-"
+					str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+					if #result .eq. "true" .and. mysql .ne. ""
+						set last_num = 0+#sub(mysql,6)
+					end if
+					set last_num = 1+last_num
+					set mysql = #padl(""+last_num,6,"0")
+					set mysql=tmp+mysql
+					
+					set myqry = "insert into xcriminal (zid,xwornum,xemail,xdate,xtime,xobject)"
+					set myqry = myqry + " values('"+#id+"','"+mysql+"','"+#user+"','"+#date+"','"+#time+"','"+page+"')"
+					set tmpstr =#sql(myqry)		
+					
+					set globals(ErrChk) = "1"
+					error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+				end if
+			end if  
+		end if  
+	end method
+     
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	end if    
+     end method
+    
+end page

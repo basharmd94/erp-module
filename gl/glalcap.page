@@ -1,0 +1,259 @@
+page glalcap
+
+     caption "AP Allocation -- SubAccount: "+xsub+"/Currency="+xinvcur
+     sidebar list allocated //text two,list two, text three
+     sections  form one, list unallocated, script myscript
+
+     list allocated
+        caption "<br><center><b>"Allocated Voucher List"</b>"
+        table (select *,(select xinvnum from gldetail where zid=glalc.zid and xvoucher=glalc.xalcnum and xrow=glalc.xalcrow ) as xinvnum from glalc) as tbl
+        order xvoucher,xrow,xalcnum,xalcrow
+        fixed xvoucher,xrow
+        rows 20
+        objects ~
+         xalcnum  attrib(link #servlet+"?page=glalcap&command=Show&xalcnum=?&xalcrow=?"),xalcrow,xinvnum,xcur,xexch,xtotamt,xinvcur,xinvexch
+	   totals "Total","","","","",sum,"",""
+
+     end list
+
+     list unallocated
+        caption "<font color=red>"+xinvcur+"</font> Unallocated Voucher List"
+        table glalcap
+        order xsub,xinvcur,xalcnum,xalcrow
+        fixed xsub,xinvcur //,xcur
+        select " cast(coalesce(xprime-xallocation,0) as float) >.009 and xtypegl not like '2%'" // and xinvcur='"+xinvcur+"' "
+        rows 10
+        objects ~
+         xalcnum attrib(link #servlet+"?page=glalcap&command=Add&xalcnum=?&xalcrow=?&xinvcur=?&xinvexch=?&xtotamt=?"),~
+         xdate,xalcrow,xinvnum,xref,xoriginal,~
+         xacc,xsub,xinvcur,xinvexch,xprime,xallocation ,xtotamt equals(xprime-xallocation),xexchval
+
+     end list
+
+     form one
+     	valid valid
+        table glalc
+        order xvoucher,xrow,xalcnum,xalcrow
+        fixed xvoucher,xrow
+        select "xlong <> 'Dummy Allocation'"
+        
+        layout 2
+        objects Return, Show,Clear,Add, Update, Delete, Top, Previous, Next, Bottom,~
+               xalcnum attrib(submit),xalcrow,xdate,xtotamt,xlong display(const),xbalance display(const),xcur display(const),xexch display(const),xinvcur  display(combo) attrib(submit) default(xcur),xinvexch  display(const),xsamecur display(const),xdifcur display(const)
+
+               
+        field Clear
+          event after
+            set globals(xinvcur)=globals(xcur)
+          end event
+        end field
+        
+        
+        field xalcnum
+        	pick list xalcnumap
+        end field
+		        
+        field xlong
+          height 1
+        end field
+        field xbalance
+          attrib local;attach
+          event after
+            decimal allocation=#sql(decimal, "select sum(xtotamt) from glalc where xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")
+            decimal amount=gldetail.xprime("xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")-allocation
+            set xbalance=amount
+//            Print "Remaining Amount : "+xcur+" "+amount
+          end event
+        end field
+        field xinvcur
+          default xcur
+        end field
+        field xcur
+          event after
+            set xcur=gldetail.xcur("xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")
+            set xexch=gldetailview.xexchval("xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")
+          end event
+          event before
+            set xcur=gldetail.xcur("xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")
+            set xexch=gldetailview.xexchval("xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")
+            if xinvcur .eq. ""
+              set xinvcur=globals(xinvcur)
+            end if
+            set globals(xinvcur)=xinvcur  
+            set globals(xinvexch)=xinvexch
+          end event
+        end field
+
+        //embed onsubmit="return submitit(this)"
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+
+        field update
+          event before
+            set tempstr=#sql(string,"select xalcnum from glalcap where xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")
+            if  #result .eq. "false"
+              error "Wrong invoice number"
+            else
+
+              decimal lastamt=#sql(decimal, "select xtotamt from glalc where xvoucher='"+xvoucher+"' and xrow='"+xrow+"' and xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")
+              decimal recbal=gldetail.xprime("xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")-#sql(decimal, "select sum(xtotamt) from glalc where xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")+#sql(decimal, "select xtotamt from glalc where xvoucher='"+xvoucher+"' and xrow='"+xrow+"' and xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")
+              if xcur .eq. xinvcur
+                set xsamecur="1"
+                set xdifcur="0"
+                decimal invbal=#sql(decimal, "select xprime-xallocation from glalcap where xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")
+              else
+                set xsamecur="0"
+                set xdifcur="1"
+                decimal invbal=#sql(decimal, "select xprime-xallocation from glalcap where xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")*#sql(decimal, "select xexch from glalcap where xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")/gldetailview.xexchval("xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")
+              end if
+              set invbal=invbal+lastamt
+              if xtotamt > invbal
+                set xtotamt=invbal
+              end if
+              if xtotamt > recbal .and. recbal > 0
+                 set xtotamt=recbal
+                 print "Partially allocating : "+"  "+ recbal
+              else if  xtotamt < 0
+                 error "No credit to allocate"
+              else if recbal == 0
+                 error "No credit to allocate"
+              end if
+          end event
+        end field
+
+        field add
+          event before
+            set tempstr=#sql(string,"select xalcnum from glalcap where xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")
+            if  #result .eq. "false"
+              error "Wrong invoice number"
+            else
+
+              decimal recbal=gldetail.xprime("xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")-#sql(decimal, "select sum(xtotamt) from glalc where xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")
+              if xcur .eq. xinvcur
+                set xsamecur="1"
+                set xdifcur="0"
+                decimal invbal=#sql(decimal, "select xprime-xallocation from glalcap where xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")
+              else
+                set xsamecur="0"
+                set xdifcur="1"
+               //decimal invbal=#sql(decimal, "select xprime-xallocation from glalcap where xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")*#sql(decimal, "select xexch from glalcap where xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")/gldetailview.xexchval("xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")
+
+               decimal invexch1=#sql(decimal, "select xinvexch from glalcap where xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")
+               decimal invexch2=gldetailview.xexchval("xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")
+               decimal invbalraw=#sql(decimal, "select xprime-xallocation from glalcap where xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")
+               decimal invbal = 0
+               set invbal = invbalraw*invexch1/invexch2
+
+
+
+              end if
+              if xtotamt > invbal
+                set xtotamt=invbal
+              end if
+              if xtotamt > recbal .and. recbal > 0
+                 set xtotamt=recbal
+                 print "Partially allocating : "+"  "+ recbal
+              else if  xtotamt < 0
+                 error "No credit to allocate"
+                else if recbal == 0
+                 error "No credit to allocate"
+              end if
+            end if
+            set xinvexch=glalcap.xexchval("xalcnum='"+xalcnum+"' and xalcrow='"+xalcrow+"'")
+               if xdate .eq. #maxdate
+                set xdate=#date
+               end if
+
+
+          end event
+        end field
+
+     end form
+
+
+
+
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+//        alert (form.xlong.value)
+	    if (detail=="clicked"){
+            form.page.value = "gldetailpv"
+            form.searchbutton.value = "Find xrow=?"
+           //return false
+          }
+        }
+
+        function pickDetail(link, row,primebal,cur,exch){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xalcnum.value=link.text
+            document.one.xalcrow.value=row.text
+            document.one.xtotamt.value=primebal.text
+            if (document.one.xexch.value <= 0) document.one.xexch.value = 1.00;
+            if (document.one.xcur.value == cur.text){
+              document.one.xtotamt.value=primebal.text;
+              document.one.xsamecur.value=1;
+              document.one.xdifcur.value=0;
+            }else{
+              var temp = primebal.text.replace(',','');
+              //alert(temp);
+              document.one.xtotamt.value=temp*exch.text/document.one.xexch.value;
+              document.one.xsamecur.value=0;
+              document.one.xdifcur.value=1;
+            }
+            document.one.xinvcur.value=cur.text
+            document.one.xinvexch.value=exch.text
+          }else{
+            document.one.xalcnum.value=link.innerText
+            document.one.xalcrow.value=row.innerText
+            if (document.one.xexch.value <= 0) document.one.xexch.value = 1.00;
+            if (document.one.xcur.value == cur.innerText){
+              document.one.xtotamt.value=primebal.innerText;
+              document.one.xsamecur.value=1;
+              document.one.xdifcur.value=0;
+            }else{
+              var temp = primebal.innerText.replace(',','');
+              //alert(temp);
+              document.one.xtotamt.value=temp*exch.innerText/document.one.xexch.value;
+              document.one.xsamecur.value=0;
+              document.one.xdifcur.value=1;
+            }
+            document.one.xinvcur.value=cur.innerText
+            document.one.xinvexch.value=exch.innerText
+          }
+          return false
+        }
+
+
+        </script>
+     end script
+
+	valid valid
+		config
+			set globals(xsub) = gldetail.xsub("zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"' and xrow='"+globals(xrow)+"'")
+			set chkalc = #sql("select xalcnum from glalcap where xalcnum='"+xalcnum+"' and xsub='"+globals(xsub)+"' and (xprime-xallocation) > 0.009")			
+			if #result .ne. "true"
+				set #field(Add.display) = "disable"
+				set #field(Update.display) = "disable"
+				print "Please enter Allocation Number"
+			else
+				set xalcrow = glalcap.xalcrow("xalcnum='"+xalcnum+"' and xsub='"+globals(xsub)+"'")
+				set xinvexch = glalcap.xinvexch("xalcnum='"+xalcnum+"' and xsub='"+globals(xsub)+"'")
+				set xtotamt = 0.0+glalcap.xprime("xalcnum='"+xalcnum+"' and xsub='"+globals(xsub)+"'") - glalcap.xallocation("xalcnum='"+xalcnum+"' and xsub='"+globals(xsub)+"'")
+				move #form = glalcap(xalcnum,xalcrow)
+			end if
+		end config
+	end valid
+
+
+
+end page

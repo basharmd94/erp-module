@@ -1,0 +1,9 @@
+     list glsup
+        table casup
+        order xsup
+        select "(xsup like '%"+zvalue+"%' or xorg like '%"+zvalue+"%')"
+        rows 10
+        objects xsup attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+                xorg
+
+     end list

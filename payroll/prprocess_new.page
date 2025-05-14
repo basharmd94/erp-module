@@ -1,0 +1,434 @@
+page prprocess
+    embed onload = "move_caret('one','xempf')"
+    caption "Payroll Process"
+    section form one,method getPSamt,method getESamt,method getTRamt,method getADVamt
+
+    form one
+		layout 1
+		object Process,Show,~
+		xpaydate,xempf,xempt
+
+
+		field xempf
+			pick list xemp
+			width 10
+		end field
+
+		field xempt
+			pick list xemp
+			width 10
+		end field
+
+		field Process
+			event before
+				set globals(ErrChk) = ""
+				
+				
+				
+				set dbase="Month"
+				set globals(dbase_days) = 0.0D
+//Last Day Calculation				
+				int yr = #sub(xpaydate,0,4)
+				int pr = #sub(xpaydate,5,2)
+				int dy = #sub(xpaydate,8,2)
+				set lastday = #sql("select xday from prmonthst where zid='"+#id+"' and xyear='"+yr+"' and xper='"+pr+"'")
+				if lastday==0
+					set globals(ErrChk) .eq. "1"
+					error "<font color=red size=4>Please Insert Days in Month from Setup Menu for this Month"
+				end if
+				
+				if dy <> lastday
+					set globals(ErrChk) .eq. "1"
+					error "<font color=red size=4>Please Select Last day of the Month"
+				end if
+				set lastday = #sql("select xpaydate from prmonthst where zid='"+#id+"' and xyear='"+yr+"' and xper='"+pr+"'")
+				if xpaydate<>xpaydate
+					set globals(ErrChk)="1"
+					error "<font color=red size=4>Please Select Last date of the Month in Month Setup"
+				end if
+				set payday = lastday
+//End of Last Day Calculation				
+
+				if globals(ErrChk) .ne. "1"
+					set basic_code = #sql("select xprbasic from prdef where zid='"+#id+"' and xprbasicapp='Yes'")
+					if #result .eq. "true"
+						set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+basic_code+"'")
+						if #result .eq. "false"
+							set globals(ErrChk) = "1"
+							error "<font color=red>Basic Code ("+basic_code +") not found in Payment Head Table</font>"
+						end if
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set gross_code = #sql("select xprgross from prdef where zid='"+#id+"' and xprgrossapp='Yes'")
+					if #result .eq. "true"
+						set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+gross_code+"'")
+						if #result .eq. "false"
+							set globals(ErrChk) = "1"
+							error "<font color=red>Gross Salary Code ("+gross_code +") not found in Payment Head Table</font>"
+						end if
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set pf_code = #sql("select xprpf from prdef where zid='"+#id+"' and xprpfapp='Yes'")
+					if #result .eq. "true"
+						set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+pf_code+"'")
+						if #result .eq. "false"
+							set globals(ErrChk) = "1"
+							error "<font color=red>P.F. Code ("+pf_code +") not found in Payment Head Table</font>"
+						else
+							set xpfempcont = prdef.xpfempcont("zid='"+#id+"'")
+							set xpfcomcont = prdef.xpfcomcont("zid='"+#id+"'")
+							if xpfempcont <= 0.0
+								set globals(ErrChk) = "1"
+								error "P.F. Employee Contribution% not found"
+							end if
+							if xpfcomcont < 0.0
+								set globals(ErrChk) = "1"
+								error "P.F. Company Contribution% not found"
+							end if
+						end if
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set bonus_code = #sql("select xprbonus from prdef where zid='"+#id+"' and xprbonusapp='Yes'")
+					if #result .eq. "true"
+						set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+bonus_code+"'")
+						if #result .eq. "false"
+							set globals(ErrChk) = "1"
+							error "<font color=red>Bonus Code ("+bonus_code +") not found in Payment Head Table</font>"
+						end if
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set tax_code = #sql("select xpritax from prdef where zid='"+#id+"' and xpritaxapp='Yes'")
+					if #result .eq. "true"
+						set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+tax_code+"'")
+						if #result .eq. "false"
+							set globals(ErrChk) = "1"
+							error "<font color=red>Income Tax Code ("+tax_code +") not found in Payment Head Table</font>"
+						end if
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set arrear_code = #sql("select xprarrear from prdef where zid='"+#id+"' and xprarrearapp='Yes'")
+					if #result .eq. "true"
+						set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+arrear_code+"'")
+						if #result .eq. "false"
+							set globals(ErrChk) = "1"
+							error "<font color=red>Arrear Salary Code ("+arrear_code +") not found in Payment Head Table</font>"
+						end if
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set hrent_code = #sql("select xprhrent from prdef where zid='"+#id+"' and xprhrentapp='Yes'")
+					if #result .eq. "true"
+						set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+hrent_code+"'")
+						if #result .eq. "false"
+							set globals(ErrChk) = "1"
+							error "<font color=red>House Rent Code ("+hrent_code +") not found in Payment Head Table</font>"
+						end if
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set absent_code = #sql("select xprabsent from prdef where zid='"+#id+"' and xprabsentapp='Yes'")
+					if #result .eq. "true"
+						set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+absent_code+"'")
+						if #result .eq. "false"
+							set globals(ErrChk) = "1"
+							error "<font color=red>Absent Deduction Code ("+absent_code +") not found in Payment Head Table</font>"
+						end if
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set chkrec = #sql("select xpaydate from prpay where zid='"+#id+"' and xpaydate='"+xpaydate+"'")
+					if #result .ne. "true"
+						set xmonthname = cadate.xmonthname("xyear='"+yr+"' and xper='"+pr+"'")
+						set xremarks="Salary For The Month of "+ xmonthname +" Period: "+pr+" Year: "+yr
+						set myqry = "insert into prpay (ztime,zid,xpaydate,xremarks,zemail,xemail,xyear,xper)"
+						set myqry = myqry + " values('"+#time+"','"+#id+"','"+xpaydate+"','"+xremarks+"','"+#user+"','','"+yr+"','"+pr+"')"
+						set tmpstr = #sql(myqry)
+					end if
+				end if
+				print "Process Started  "+#time
+
+				if globals(ErrChk) .ne. "1"
+					set globals(xemp) = xempf
+					set mysql = "select xemp from prmst where zid='"+#id+"' and xstatusemp='A-Active' and xemp>='"+globals(xemp)+"' and xemp<='"+xempt+"' ~
+									 order by zid,xemp"
+					
+					set globals(xemp) = #sql(str,mysql)
+					
+					
+					while #result .eq. "true" .and. globals(xemp) .ne. ""
+						set globals(abday) = 0
+						int dayab = 0
+						set globals(lvday) = 0.0
+						set globals(xpaycode) = ""
+						set globals(xpsclcode) = ""
+						set globals(payamt) = 0.0D
+
+					if globals(ErrChk) .ne. "1"
+						set globals(xpsclcode) = #sql(str,"select xpsclcode from prmst where zid='"+#id+"' and xemp='"+globals(xemp)+"'")
+						set xjoindate = #sql("select xjoindate from prmst where zid='"+#id+"' and xemp='"+globals(xemp)+"'")
+						set tmpyrpr = ""+#sub(xjoindate,0,4)+""+#sub(xjoindate,5,2)
+						str year = #sub(xpaydate,0,4)
+						str per = #sub(xpaydate,5,2)
+						set payyrpr=year+per
+							if payyrpr .eq. tmpyrpr
+								set offday = 0
+								str joinday = #sub(xjoindate,8,2)
+								int joinday=joinday
+								set offday = 0+joinday-1
+								set offday = 0+offday + globals(abday)
+								set globals(abday) = offday
+							end if
+							
+							set mysql = "delete from practrndt where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+							set tmpstr = #sql(mysql)
+							set globals(xpaycode) = "0"
+							double totpay = 0.0D
+							double totded = 0.0D
+							double basic = 0.0D
+							double gross = 0.0D
+							double totsuspend = 0.0D
+							double totsubsist = 0.0D
+							set mysql = "select xpaycode from prpayhead where zid='"+#id+"' and xpaycode>'"+globals(xpaycode)+"' order by xpaycode"
+							set globals(xpaycode) = #sql(str,mysql)
+							while #result .eq. "true" .and. globals(xpaycode) .ne. ""
+								double actamt = 0.0D
+								set globals(payamt) = 0.0D
+								set xprsign = #sql("select xprsign from prpayhead where zid='"+#id+"' and xpaycode='"+globals(xpaycode)+"'")
+								set xdesc = #sql("select xdesc from prpayhead where zid='"+#id+"' and xpaycode='"+globals(xpaycode)+"'")
+								set xdigit = #sql(int,"select xdigit from prpayhead where zid='"+#id+"' and xpaycode='"+globals(xpaycode)+"'")
+							if xprsign .sw. "3"
+								set globals(payamt) = 0.0D+totpay
+								if globals(xpaycode) .eq. gross_code
+									set gross = 0.0D+globals(payamt)
+								end if
+							else if xprsign .sw. "4"
+								set globals(payamt) = 0.0+totded
+							else if xprsign .sw. "5"
+								set globals(payamt) = 0.0D+totpay-totded
+							else
+								if globals(xpaycode) .eq. tax_code
+								else
+
+									call getPSamt
+									call getESamt
+									call getTRamt
+									if globals(xpaycode) .eq. basic_code
+										set basic = 0.0D+globals(payamt)
+									end if
+								end if
+								if xprsign .sw. "2"
+								set xadvflag = #sql("select xadvflag from prmsg where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+									if xadvflag .eq. "Yes"
+										call getADVamt
+									end if
+								end if
+
+								if xdigit > 0
+									set globals(payamt) = 0.0D+#round(globals(payamt),xdigit)
+								else if xdigit < 0
+									set globals(payamt) = 0.0D+#round(globals(payamt),0)
+								end if
+
+								if xprsign .sw. "1"
+									set totpay = 0.0D+totpay+globals(payamt)
+									else if xprsign .sw. "2"
+									if globals(xpaycode) .eq. pf_code
+										set xpfflag = prmst.xpfflag("zid='"+#id+"' and xemp='"+globals(xemp)+"'")
+										if xpfflag .eq. "Yes"
+											compute totpf = basic*(xpfempcont/100)
+											set globals(payamt) = 0.0D+totpf
+											//print globals(xpayamt)+" "+totpf
+										end if
+									end if
+									set totded = 0.0+totded+globals(payamt)
+								end if
+							end if
+							
+								set dayab = #sql(int,"select xdayab from prmsg where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+								int totabsday=0+dayab///+offday
+								set globals(abday) = totabsday
+								
+								//if globals(abday)>0
+								//	print  xemp+" "+xjoindate+" "+"Absent Days":+" "+ globals(abday)
+								//end if
+								//set mysql = "delete from prtrndt where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+								//set mysql = #sql(mysql)
+
+								set mysql = "delete from prmsg where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+								set mysql = #sql(mysql)
+								set chkrec = #sql("select xpaydate from prmsg where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+								if #result .eq. "false"
+									set myqry = "insert into prmsg (ztime,zid,xpaydate,xemp,xremarks,xdayab,xdaylv,xnhour,~
+										xgvothour,xnoothour,xresth,xpflag,xadvflag,zemail,xemail,xratev,xday,xdate,~
+										xdaysuspend,xdaysuspenq,xsuspendf,xsuspenqf)"
+									set myqry = myqry + " values('"+#time+"','"+#id+"','"+xpaydate+"','"+xemp+"','',"+totabsday+","0","0",~
+										"0","0","0",'','Yes','"+#user+"','',"0","0",'"+#date+"',"0","0","0","0")"
+									set tmpstr = #sql(myqry)
+									
+								end if
+							
+								if globals(payamt) > 0.0D
+									if xdigit > 0
+										set globals(payamt) = 0.0D+#round(globals(payamt),xdigit)
+									else if xdigit < 0
+										set globals(payamt) = 0.0D+#round(globals(payamt),0)
+									end if								
+									set xoption = prpayhead.xoption("zid='"+#id+"' and xpaycode='"+globals(xpaycode)+"'")
+									if xoption .ne. "Advance"
+										int xrow = 0+10
+										set myqry = "insert into practrndt (zid,xpaydate,xemp,xpaycode,xrow,xamount,zemail,xemail)"
+										set myqry = myqry + " values('"+#id+"','"+xpaydate+"','"+globals(xemp)+"','"+globals(xpaycode)+"',~
+											'"+xrow+"','"+globals(payamt)+"','"+#user+"','')"
+										set tmpstr =#sql(myqry)
+										//print #result+" "+myqry
+									end if
+								end if
+
+									set mysql = "select xpaycode from prpayhead where zid='"+#id+"' and xpaycode>'"+globals(xpaycode)+"' order by xpaycode"
+									set globals(xpaycode) = #sql(str,mysql)
+								end while
+
+//offday calculation from joining day							
+					end if
+							set mysql = "select xemp from prmst where zid='"+#id+"' and xstatusemp='A-Active' and xemp>'"+globals(xemp)+"' and xemp<='"+xempt+"' ~
+											order by zid,xemp"
+							set globals(xemp) = #sql(str,mysql)
+							if globals(ErrChk) .ne. ""
+								set #result = "false"
+							end if
+						end while
+							print "<font color=black>Process Ended " +#time
+							print "Processed By User ID  :-         = "+#user
+							print <font color=navy size=4>"Payroll Processing Completed"
+						
+				end if	
+			end event
+		end field
+	
+	end form
+//absent deduction calculation
+	method getPSamt
+		double tmpamt=0.0D
+		set xpercent = #sql(decimal,"select xpercent from prpayheaddt where zid='"+#id+"' and xpsclcode='"+globals(xpsclcode)+"' and xpaycode='"+globals(xpaycode)+"'")
+		set xamount = #sql(decimal,"select xamount from prpayheaddt where zid='"+#id+"' and xpsclcode='"+globals(xpsclcode)+"' and xpaycode='"+globals(xpaycode)+"'")
+		set xminpay = #sql(decimal,"select xminpay from prpayheaddt where zid='"+#id+"' and xpsclcode='"+globals(xpsclcode)+"' and xpaycode='"+globals(xpaycode)+"'")
+		set xmaxpay = #sql(decimal,"select xmaxpay from prpayheaddt where zid='"+#id+"' and xpsclcode='"+globals(xpsclcode)+"' and xpaycode='"+globals(xpaycode)+"'")
+		set xpcode = #sql(str,"select xpcode from prpayheaddt where zid='"+#id+"' and xpsclcode='"+globals(xpsclcode)+"' and xpaycode='"+globals(xpaycode)+"'")
+		set dayab = #sql(int,"select xdayab from prmsg where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+		set globals(abday) = dayab
+		
+		if tmpamt <= 0
+			set mysql = "select xamount from practrndt where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"' and xpaycode='"+xpcode+"'"
+			set tmpstr = #sql(mysql)
+			if #result .eq. "true"
+				set tmpamt= 0.0+tmpstr
+			end if
+		end if
+
+		decimal tmpday = 0.0+globals(abday)+globals(lvday)
+		if xprsign .sw. "2" .and. globals(xpaycode) .eq. absent_code
+
+			compute tmpamt = (tmpamt)*(xpercent/100)
+			if dbase .eq. "Annual"
+				compute tmpamt = 12.0D*(tmpamt*tmpday/globals(dbase_days))
+			else if dbase .eq. "Month"
+				compute tmpamt = 0.0+((tmpamt/payday)*tmpday)
+			end if
+			set tmpamt = #round(tmpamt,0)
+		else
+			compute tmpamt = tmpamt*xpercent/100
+		end if
+		
+		if xamount > 0 .and. tmpamt <= 0
+			set tmpamt = 0.0D+xamount
+		end if
+
+		if xminpay > 0 .and. tmpamt < xminpay
+			set tmpamt = 0.0D+xminpay
+		end if
+
+		if xmaxpay > 0 .and. tmpamt > xmaxpay
+			set tmpamt = 0.0D+xmaxpay
+		end if
+		set globals(payamt) = 0.0D+tmpamt
+	end method
+
+	method getESamt
+		double tmpamt=0.0D
+		set chkrec = #sql(str,"select xpaycode from prpaymentdt where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"'")
+		if #result .eq. "true"
+			set tmpamt = 0.0+#sql(decimal,"select xamount from prpaymentdt where xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"'")
+			set globals(payamt) = 0.0+tmpamt
+		end if
+	end method
+
+	method getTRamt
+		double tmpamt=0.0D
+		set bonus_amt = #sql(decimal,"select xamount from prtrndt where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"'")
+		if #result .eq. "true"
+			//*** Applicable for Bonus
+			if globals(xpaycode) .eq. bonus_code
+				//set tmpstr = #sql("select xdateeff from prtrndt where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+				set tmpstr = #sql("select xpaydate from prtrndt where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+				set xpaydate = #sub(tmpstr,0,10)
+				//print bonus_amt
+				set tmpamt = 0.0D+bonus_amt
+					if tmpamt > 0
+					set globals(payamt) = tmpamt
+					end if
+			else
+				set mysql = "select xamount from prtrndt where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"'"
+				set tmpstr = #sql(mysql)
+				set tmpamt = 0.0D+tmpstr
+				if tmpamt > 0
+					set globals(payamt) = tmpamt
+				end if
+			end if
+		end if
+	end method
+
+	method getADVamt
+		double tmpamt = 0.0D
+		int xrow = 0
+		set advpaycode = #sql("select xpaycode from pradvh where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"'")
+		if #result .eq. "true"
+			set mysql = "select xrow from pradvd where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"' and xrow>'"+xrow+"'"
+			set xrow = #sql(int,mysql)
+			while #result .eq. "true"
+				set detpaydate = pradvd.xpaydate("zid='"+#id+"' and xemp='"+xemp+"' and xpaycode='"+xpaycode+"' and xrow='"+xrow+"'")
+				set prrate = pradvd.xprrate("zid='"+#id+"' and xemp='"+xemp+"' and xpaycode='"+xpaycode+"' and xrow='"+xrow+"'")
+				double restamt = #sql(double,"select sum(xadvance-xreturn-xpayamt) from prloanview where zid='"+#id+"' and xemp='"+xemp+"' and xpaycode='"+xpaycode+"' and xrow='"+xrow+"'") //0.0D+pradvd.xadvance-pradvd.xamount
+				if restamt > 0.0
+					if xpaydate .ge. detpaydate
+						if restamt < prrate
+							set tmpamt = 0.0D + restamt
+						else
+							set tmpamt = 0.0D + prrate
+						end if
+						set totded = 0.0D +totded+tmpamt
+						set myqry = "insert into practrndt (zid,xpaydate,xemp,xpaycode,xrow,xamount,zemail,xemail)"
+						set myqry = myqry + " values('"+#id+"','"+xpaydate+"','"+globals(xemp)+"','"+globals(xpaycode)+"','"+xrow+"',~
+							'"+tmpamt+"','"+#user+"','')"
+						set tmpstr =#sql(myqry)
+						
+					end if
+				end if
+				set mysql = "select xrow from pradvd where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"' and xrow>'"+xrow+"'"
+				set xrow = #sql(int,mysql)
+			end while
+		end if
+	end method
+end page

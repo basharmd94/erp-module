@@ -1,0 +1,25 @@
+product ERP on the Net
+
+table prmsgview
+	caption "PRMSG Description View"
+
+	columns ztime,zutime,zid,xpaydate,xemp,emp_name,emp_desig,emp_dept,emp_cat,xremarks,xdayab,xdaylv,xnhour,~
+			xgvothour,xnoothour,xresth,xpflag,xadvflag,zemail,xemail,xratev,xday,xdate,~
+			xdaysuspend,xdaysuspenq,xsuspendf,xsuspenqf
+			
+	sql create view prmsgview (ztime,zutime,zid,xpaydate,xemp,emp_name,emp_desig,emp_dept,emp_cat,xremarks,xdayab,xdaylv,xnhour,~
+		xgvothour,xnoothour,xresth,xpflag,xadvflag,zemail,xemail,xratev,xday,xdate,~
+		xdaysuspend,xdaysuspenq,xsuspendf,xsuspenqf) ~
+		as select ~
+		prmsg.ztime,prmsg.zutime,prmsg.zid,prmsg.xpaydate,~
+		prmsg.xemp,(select xname from prmst where zid=prmsg.zid and xemp=prmsg.xemp),~
+		(select xdesig from prmst where zid=prmsg.zid and xemp=prmsg.xemp),~
+		(select xdept from prmst where zid=prmsg.zid and xemp=prmsg.xemp),~
+		(select xcat from prmst where zid=prmsg.zid and xemp=prmsg.xemp),~
+		prmsg.xremarks,prmsg.xdayab,prmsg.xdaylv,prmsg.xnhour,~
+		prmsg.xgvothour,prmsg.xnoothour,prmsg.xresth,prmsg.xpflag,prmsg.xadvflag,prmsg.zemail,prmsg.xemail,prmsg.xratev,prmsg.xday,prmsg.xdate,~
+		prmsg.xdaysuspend,prmsg.xdaysuspenq,prmsg.xsuspendf,prmsg.xsuspenqf ~
+	from prmsg
+
+end table
+

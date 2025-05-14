@@ -1,0 +1,16 @@
+//Accounts.menu
+caption "Accounting" page 3
+
+//----------------------------------------------------------------------------------
+option                           |action
+//----------------------------------------------------------------------------------
+General Ledger                   |#classPath+"/"+#servlet+"?menu=gl"
+Codes                            |#classPath+"/"+#servlet+"?menu=glcodes"
+Load Data                        |#classPath+"/"+#servlet+"?menu=glload"
+//------------------------------------------------------------------------------------
+//AR Reports                       |#classPath+"/"+#servlet+"?menu=arreports"
+//AP Reports                       |#classPath+"/"+#servlet+"?menu=apreports"
+//Project Accounting Reports       |#classPath+"/"+#servlet+"?menu=pareports"
+//GL Reports                       |#classPath+"/"+#servlet+"?menu=glreports"
+//-------------------------------------------------------------------------------------
+

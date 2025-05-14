@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table mtyrsch
+	caption "Yearly Machine Maintenance Schedule"
+	columns ztime,zutime,zid,xyear,xproduct,xmcatg,xmtype,xsaction,xweekno, xlong,zemail,xemail,~
+			xschtype,xemp,xdept,xinc,xstatustor
+
+	primary key zid,xyear,xproduct,xmcatg,xmtype,xsaction,xweekno
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+
+end table

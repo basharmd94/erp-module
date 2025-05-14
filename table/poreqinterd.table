@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table poreqinterd
+  caption "International Requisition Details"
+  columns ztime,zutime,zid,xcounterno,xrow, xitem,xitemorig,xname,xsize,xmaterial,xthickness,~
+			xcolor,xqtyord,xunitpur,xcur,xexch,xrate,xtotamt,xcarton,xtotcarton,xnwpc,xnwwpc,xgwweight,~
+			xtotgrskg,xtotgrskg1,xtotgrskg2,xtotgrskg3,xctszcm,xctszcm1,xctszcm2,xtotacbm,xpcking,xremarks,xqty
+			
+
+  primary key zid, xcounterno,xrow
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xcounterno references poreqinter.zid,xcounterno
+        zid,xitem references caitem.zid,xitem
+  end foreign key
+  
+end table
+

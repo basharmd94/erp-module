@@ -1,0 +1,655 @@
+page poordimpchklist
+    //embed onload = "move_caret('one','xsup')"
+
+    //caption header
+
+    sidebar 
+
+    sections list poodt,form one,list poord,text top,script myscript
+
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+
+    list poodt
+        caption "Item(s) Added for "+xpornum
+        table poodt
+        order xpornum,xrow
+        fixed xpornum
+        select "zid='"+#id+"'"
+        rows 5
+        objects xitem,itemdesc equals((select xdesc from caitem where zid=poodt.zid and xitem=poodt.xitem)),~
+                itemhsc equals((select xitemold from caitem where zid=poodt.zid and xitem=poodt.xitem)),~
+                xqtyord,xcur,xrate,xdtwotax,xexch,baseamt equals((xdtwotax*xexch))
+
+        totals "Totals","",,sum,,,sum,,sum
+
+        field itemdesc
+            storage varchar
+            caption Name
+        end field
+
+        field itemhsc
+            storage varchar
+            caption H.S.Code
+        end field
+
+        field xqtyord
+            len 10.2
+        end field
+        
+        field xcur
+            caption Cur.
+        end field
+
+        field xrate
+            caption Unit Rate
+            len 10.2
+        end field
+
+        field xdtwotax
+            caption Prime Amt
+            len 10.2
+        end field
+
+        field xexch
+            caption Ex.Rate
+            len 10.2
+        end field
+
+        field baseamt
+            storage decimal
+            caption Base Amt
+            len 10.2
+        end field
+
+    end list
+
+    list poord
+        caption "P.I.(s)"
+        table poord
+        order xpornum desc
+        select "zid='"+#id+"' and (xtypepor='Import')"
+        rows 20
+        objects xpornum attrib(link #servlet+"?page=poordimpchklist&command=Show&xsup=?&xpornum=?"), ~
+                xdate,xsup,name equals((select xorg from casup where zid=poord.zid and xsup=poord.xsup)),~
+                xsupref,xdatesupref,xstatuspor
+
+        field xpornum
+            caption P.I. No
+        end field
+        
+        field xstatuspor
+            caption P.I. Status
+        end field
+
+        field name
+            caption Name
+            storage varchar
+        end field
+
+    end list
+
+     form one
+        //caption "<font color=black size=3>LC Check List"
+        table poord
+        order xpornum desc
+        select "zid='"+#id+"' and xtypepor='Import'"
+        layout 2
+        objects ~
+                Show,Update,Clear,Add attrib(hidden),Top, Previous, Next, Bottom, Delete attrib(hidden), ~
+                xtrnpor display(hide),xpornum display(text),xdate display(const),~
+                xsup display(const) attrib(attach),sup_name,xsupref display(hide),xdatesupref  display(hide),~
+                xwh display(hide),xcur display(hide),xexch display(hide),xdiv display(hide),xsec,xproj,xpartial,xdisc display(hide),~
+                xrem display(hide),xdtdisc display(hide),xdtwotax display(hide),xdttax display(hide),~
+                xval display(hide),xdiscamt display(hide),xtotamt display(hide) ,~
+                xappamt display(hide),xcoststat display(hide),xtempstr1 display(hide),xstatuspor display(hide),~
+                zemail display(hide),xemail display(hide),xtypepor display(hide)xwhoption display(hide),~
+                xteam display(hide),xmember display(hide),xmanager display(hide),~
+                xconuser display(hide),xconfirmt display(hide),xfailer display(hide),xfailedt display(hide),~
+                xbank,xbankbr,xadd,xcountry1,xshipdate,xportl,xpsino,xdutyper attrib(attach),xdutychg,xvatper attrib(attach),~
+                xvatchg,xaitper attrib(attach),xaitchg,xpsiper attrib(attach),xpsichg,xmargin attrib(attach),xmarginsys,~
+                xcomm attrib(attach),xcommsys,xothchg,~
+                xtaxvald,xrtpvald,xinsvald,xfitvald,xnumpicko,xnumfalse,xdateval,xexpiry,xnumnet,~
+                xnumalter,xnumripu
+
+		field show
+			event before
+				set globals(hed) = xpornum
+				set globals(tempsup)=xsup
+			end event
+			event after
+				set globals(hed) = xpornum
+				set globals(tempsup)=xsup
+			end event
+		end field
+
+		field Top
+			event before
+				set globals(hed) = xpornum
+				set globals(tempsup)=xsup
+			end event
+			event after
+				set globals(hed) = xpornum
+				set globals(tempsup)=xsup
+			end event
+		end field
+
+        field xpornum
+            width 20
+            caption P.I. No
+            pick list pilist
+            event after
+                set globals(xpornum)=xpornum
+                set statuspor = poord.xstatuspor("zid='"+#id+"' and xpornum='"+xpornum+"'")
+            end event
+        end field
+
+        field xsup
+            width 20
+            pick list xsup
+            event after
+                set globals(xsup)=xsup
+            end event
+        end field
+
+        field xdate
+            default #date
+            event after
+                set globals(xdate)=xdate
+            end event
+        end field
+
+        field xval
+            display constant
+            caption Gross Amount
+        end field
+
+        field sup_name
+            attrib local
+            caption Company
+            display constant
+            event after
+                set sup_name=#sql(string,"select xorg from casup where zid='"+#id+"' and xsup = '"+xsup+"'")
+            end event
+        end field
+
+        field xbank
+            display ocombo
+            pick "select xcode from xcodes where zid='"+#id+"' and xtype='Bank'"
+        end field
+
+        field xbankbr
+            width 20
+        end field
+
+        field xadd
+            caption Bank Address
+            width 20
+            height 2
+            display hide
+        end field
+
+        field xcountry1
+            caption Origin of Item
+        end field
+
+        field xshipdate
+            caption Date of Shipment
+        end field
+
+        field xportl
+            width 20
+            caption Port of Shipment
+            display text
+            pick
+        end field
+
+        field xpsino
+            caption Name of PSI Company
+            width 20
+        end field
+
+        field xdutyper
+            caption Duty
+            width 5
+            len 10.2
+        end field
+
+        field xdutychg
+            caption Duty Charge
+            display const
+            len 10.2
+        end field
+
+        field xvatper
+            caption VAT
+            width 5
+            len 10.2
+        end field
+        
+        field xvatchg
+            caption VAT Charge
+            display const
+            len 10.2
+        end field
+
+        field xaitper
+            caption AIT
+            width 5
+            len 10.2
+        end field
+
+        field xaitchg
+            caption AIT Charge
+            display const
+            len 10.2
+        end field
+
+        field xpsiper
+            caption PSI
+            width 5
+            len 10.2
+        end field
+
+        field xpsichg
+            caption PSI Charge
+            display const
+            len 10.2
+        end field
+
+        field xmargin
+            caption Margin
+            width 5
+            len 10.2
+        end field
+
+        field xmarginsys
+            caption Margin Amount
+            display const
+            len 10.2
+        end field
+
+        field xcomm
+            caption Com.
+            width 5
+            len 10.2
+        end field
+        
+        field xcommsys
+            caption Com. Amount
+            display const
+            len 10.2
+        end field
+        
+        field xothchg
+            caption Other Charges
+            width 20
+            len 10.2
+        end field
+
+        field xtaxvald
+            caption Trade License Valid Upto
+        end field
+
+        field xrtpvald
+            caption I.R.C. Valid Upto
+        end field
+
+        field xinsvald
+            caption TIN Certificate Issue Date
+        end field
+
+        field xfitvald
+            caption VAT Reg. Certificate Valid Upto
+        end field
+
+        field xnumpicko
+            caption VAT Reg. Certificate Valid ?
+        end field
+
+        field xnumfalse
+            caption Any Case Against Company ?
+        end field
+
+        field xdateval
+            caption A.I.T. Certificate Valid Upto
+        end field
+
+        field xexpiry
+            caption Membership/Explosive/IP Certificate Valid Upto
+        end field
+
+        field xnumnet
+            caption Any Certificate from Board of Investment ?
+        end field
+        
+        field xnumalter
+            caption VAT-7 Applicable ?
+        end field
+
+        field xnumripu
+            caption Insurance Cover Note Taken ?
+        end field
+
+        field xpartial
+            display hide
+            default "Allowed"
+        end field
+
+        field xrem
+            caption Notes
+            width 80
+            height 2
+            col 3
+        end field
+
+        field xstatuspor
+            col 3
+            caption P.I. Status
+            display const
+            event after
+                set globals(xstatuspor)=xstatuspor
+            end event
+        end field
+
+        field xcur
+            display combo
+            default "BDT"
+            width 4
+            event after
+                set globals(xcur)=xcur
+            end event
+        end field
+
+        field xexch
+            display text
+            event after
+                set globals(xexch)=xexch
+            end event
+        end field
+
+        field xsec
+            default "Any"
+            display hide
+        end field
+
+        field xproj
+            default "Any"
+            display hide
+        end field
+
+        field xtrnpor
+            caption P.I. Prefix
+            pick "select xtrn from xtrn where zid='"+#id+"' and xtypetrn='Purchase Order' and zactive='1'"
+            default "PI--"
+        end field
+
+        field xwh
+          event after
+            set globals(xwh)=xwh
+          end event
+        end field
+
+
+        field Add
+            event before
+                set globals(ErrChk) = "1"
+                error " "
+                
+                if globals(ErrChk) .ne. "1"
+                    set poordcode = #sql("select xtrn from xtrn where zid='"+#id+"' and  xtypetrn='Purchase Order' and zactive='1' and xtrn='"+xtrnpor+"'")
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Wrong Transaction Prefix</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    if xtrnpor .ne. "PI--"
+                        set globals(ErrChk)="1"
+                        error "Wrong P.I. Code"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chkcur = #sql("select xcur from xcur where zid='"+#id+"' and  xcur='"+xcur+"'")
+                    if #result .eq. "false"
+                        set globals(ErrChk)="1"
+                        error "Wrong Currency code selected</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set tmpstr = #sql(str,"select xcode from xcodes where zid='"+#id+"' and xtype='Warehouse' and xcode='"+xwh+"'")
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Invalid Warehouse Code Selected: "+xwh
+                    end if
+                end if
+
+                if globals(ErrChk) .eq. ""
+                    set chksup = #sql("select xorg from casup where zid='"+#id+"' and xsup='"+xsup+"' and xstatussup='1-Open'")
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Wrong Supplier Code"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set shortbus=#sql(str,"select xshort from zbusiness where zid='"+#id+"'")
+                    int shortlen=0+#length(shortbus)
+                    if shortlen<4
+                        set globals(ErrChk)="1"
+                        error "Business Short Name is not defined"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xdate=#date
+                    set poordper=#sub(xdate,5,2)
+                    set poordyr=#sub(xdate,2,2)
+                    set poordcode = #sub(poordcode,0,4)
+                    set shortbus=#sub(shortbus,0,4)
+                    set poordprefix=shortbus+poordcode+poordper+poordyr+"-"
+
+                	str mysql = #sql(str,"select xpornum from poord where zid='"+#id+"' and xpornum like '"+poordprefix+"%' order by xpornum desc")
+                	if #result .eq. "true" .and. mysql .ne. ""
+                		set last_num = 0+#sub(mysql,13,6)
+                	end if
+                	set last_num = 0+1+last_num
+                	set mysql = #padl(""+last_num,6,"0")
+                	set xpornum = poordprefix + mysql
+                end if
+
+                if globals(ErrChk) .eq. ""
+                    set xstatuspor=#status("xstatuspor",1)
+                    set xdtwotax = 0
+                    set xdttax = 0
+                    set xdtdisc = 0
+                    set xdiscamt = 0
+                    set xval = 0
+                    set xtotamt = 0
+                    set xappamt = 0
+                    set xappcode=""
+                    set zemail=#user
+                    set xexch=#exch(xcur)
+                    set xtypepor = "Import"
+                    set xcoststat=
+                    set xwhoption = "Header"
+                    set xconuser=""
+                    set xconfirmt=""
+                    set xfailer=""
+                    set xfailedt=""
+                    set xmember = #user
+                    set xteam = #sql(string,"select xteam from cateam where zid='"+#id+"' and  xmember = '"+xmember+"'")
+                    set xmanager = #sql(string,"select xmanager from caman where zid='"+#id+"' and  xteam = '"+xteam+"'")
+                end if
+
+            end event
+            event after
+                if globals(ErrChk) .ne. "1"
+                    buffer poorddep
+                    set xrow=cadep.xrow("xrow>0")
+                    move poorddep=cadep(xrow)
+                    set poorddep.xpornum=xpornum
+                    insert poorddep
+                end if
+            end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk)=""
+
+                if globals(ErrChk) .ne. "1"
+                	if xpornum .ne. globals(xpornum)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xpornum .ne. globals(hed)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    if xsup .ne. globals(tempsup)
+                        set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Cannot Change Supplier</font>"
+                    end if
+                end if
+                if globals(ErrChk) .ne. "1"
+                    set totamt=0.0+#sql(dec,"select sum(xdtwotax*xexch) from poodt where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set xdutychg=0.0+totamt*xdutyper/100
+                    set xaitchg=0.0+totamt*xaitper/100
+                    set xpsichg=0.0+totamt*xpsiper/100
+                    set xcommsys=0.0+totamt*xcomm/100
+                    set xvatchg=0.0+xcommsys*xvatper/100
+                    set xmarginsys=0.0+totamt*xmargin/100
+                end if
+            end event
+            event after
+                if globals(ErrChk) .ne. "1"
+                    call upd_log
+                end if
+            end event
+        end field
+
+        field Delete
+            event before
+                set globals(ErrChk) = "1"
+                error " "
+
+                if globals(ErrChk) .ne. "1"
+                	if xpornum .ne. globals(xpornum)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xpornum .ne. globals(hed)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set statuspor = poord.xstatuspor("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if statuspor .ne. #status("xstatuspor",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"</p>Status "+statuspor
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    buffer poorddep
+                    set poorddep.xpornum=xpornum
+                    delete poorddep(xpornum)
+                end if
+            end event
+        end field
+
+      	embed onsubmit="submitit(this)"
+
+        field Details
+            embed onclick="clicked(this)"
+        end field
+
+        field Depot
+            embed onclick="depot()"
+        end field
+
+    end form
+
+    script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+            $.hotkeys.add('Ctrl+e',function(){
+                //alert('Pressed Ctrl+e');
+                var form=document.forms[0];
+                form.searchbutton.value="Update";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+r',function(){
+                //alert('Pressed Ctrl+r');
+                var form=document.forms[0];
+                form.searchbutton.value="Clear";
+                form.submit();
+            });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+            var detail
+            function clicked(b){
+                detail="clicked"
+            }
+            function depot(){
+                detail="depot"
+            }
+            function submitit(form){
+                if (detail=="clicked"){
+                    form.page.value = "poodtimp"
+                    form.searchbutton.value = "Top"
+                //return false
+                }
+                if (detail=="depot"){
+                    form.page.value = "poorddep"
+                    form.searchbutton.value = "Top"
+                //return false
+                }
+            }
+
+        </script>
+    end script
+
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where zid='"+#id+"' and xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,4,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql
+
+		set myqry = "insert into zreclog (ztime,zid,xsornum,xdesc,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#time+"','"+#id+"','"+mysql+"','"+globals(xpornum)+"','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+#time+"','"+page+"','')"
+		set tmpstr =#sql(myqry)
+
+     end method
+
+end page

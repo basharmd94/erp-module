@@ -1,0 +1,181 @@
+page glsub
+     
+	 //embed onload="move_caret('one','xsub')"	 
+	 caption "<span class=bl>Sub Account(s) of : <a href=/da/"+#servlet+"?page=glmst&command=Show&xacc="+xacc+">" +xacc+ "</a></span>"+" ("+globals(xdesc)+")"
+	 sidebar list one
+     sections form one,script myscript
+          
+	list one
+		caption "Sub Account(s)"
+        table glsub
+        order xacc,xsub
+        fixed xacc
+        rows 20
+        objects xsub attrib(link #servlet+"?page=glsub&command=Show&xacc=?&xsub=?"), ~
+                xdesc
+
+     end list
+
+     form one
+     	//caption "<font color=black size=3>Sub Account(s) for : </p>"+globals(xacc)+" ("+xdesc+")"
+     	valid valid,access
+        table glsub
+        order xacc,xsub
+        fixed xacc
+		default Add
+        layout 1
+        objects Add, Show,Clear, Update, Top, Previous, Delete, Next, Bottom,Return ,~
+               xsub,xdesc,zemail display(const),xemail display(const)
+
+		field show
+			event before
+				set globals(temp) = xsub
+			end event			
+		end field
+		
+        field xsub
+        	event after
+        		set globals(xsub)=xsub
+      	  		set #field(zemail.caption) = "Entered By"
+      	  		set #field(xemail.caption) = "Last Updated By" 	        		
+        	end event
+        end field
+        
+        field add
+          event before
+          	set globals(ErrChk) = ""
+          	
+          	if globals(ErrChk) .eq. ""
+	            set zemail=#user
+	            set xemail=""
+	        end if
+          end event
+        end field
+
+        field Update
+          event before
+          	set globals(ErrChk) = ""
+          	
+				if globals(ErrChk) .ne. "1"
+					if xsub <> globals(xsub)
+						set globals(ErrChk) = "1"
+						set #command = "show" 
+						print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>" 
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					if xsub <> globals(temp)
+						set globals(ErrChk) = "1"
+						set #command = "show" 
+						print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>" 
+					end if
+				end if          
+          	          	
+          	if globals(ErrChk) .eq. ""
+	            set xemail=#user
+	        end if
+          end event
+        end field
+        
+        field Delete
+        	event before
+        		set globals(ErrChk) = ""
+				if globals(ErrChk) .ne. "1"
+					if xsub <> globals(xsub)
+						set globals(ErrChk) = "1"
+						set #command = "show" 
+						print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>" 
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					if xsub <> globals(temp)
+						set globals(ErrChk) = "1"
+						set #command = "show" 
+						print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>" 
+					end if
+				end if          
+        	end event
+        end field
+
+        field xdesc
+            width 25
+        end field
+        
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var but = "" 
+        function clicked(b){
+          b.value = "Find xacc=?"
+          but = "clicked"
+        }
+        function submitit(form){
+          if (but == "clicked"){
+            form.page.value = "glmst"
+          }
+        }
+
+        </script>
+     end script
+     
+     valid valid
+     	config
+     		set globals(pkey) = globals(xacc)+" "+xsub
+            set atzemail = #sql("select xattribzemail from cadefp where zid='"+#id+"' and zobject='"+page+"'")
+            if atzemail .eq. "Show"
+            else if atzemail .eq. "Constant"
+            	set #field(zemail.display) = "const"
+            else if atzemail .eq. "Hide"
+            	set #field(zemail.display) = "hide"
+            end if   
+            
+            set atxemail = #sql("select xattribxemail from cadefp where zid='"+#id+"' and zobject='"+page+"'")
+            if atxemail .eq. "Show"
+            else if atxemail .eq. "Constant"
+            	set #field(xemail.display) = "const"
+            else if atxemail .eq. "Hide"
+            	set #field(xemail.display) = "hide"
+            end if        	
+     	end config
+     end valid
+     
+#include access.valid     
+     
+end page

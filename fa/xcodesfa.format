@@ -1,0 +1,15 @@
+format xcodesfa
+	file xcodesfa.csv
+
+	table xcodesfa
+	fdelimiter ,
+	rdelimiter /r/n
+	skip 0
+
+	columns xtype,xcode,xdescdet,xcategory,xestlife,xrate,zactive
+
+	event before
+		set globals(ErrChk) = ""
+		set zid=#id
+	end event
+end format

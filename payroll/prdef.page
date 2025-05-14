@@ -1,0 +1,543 @@
+page prdef
+     caption "Payroll Defaults"
+     sections form one
+     
+     list one
+     	caption "Payroll Default"
+     	table prdef
+     	rows 10
+     	objects xprbasicapp,xprbasic,xprpfapp,xprpf,xprbonusapp,xprbonus,xpritaxapp,xpritax,~
+          		xprarrearapp,xprarrear,xprhrentapp,xprhrent,xprsuspapp,xprsusp,xprsubsistapp,xprsubsist
+
+     end list
+
+	form one
+		valid valid
+		table prdef
+		layout 2
+        objects Clear,Show,Add, Update, Delete,~
+			xprsalcalc attrib(submit),xperend,xprbasicapp attrib(submit),xprbasic attrib(attach),basic,~
+			xprgrossapp attrib(submit),xprgross attrib(attach),gross,~
+			xprpfapp attrib(submit),xprpf attrib(attach),pfund,xpfempcont,xpfcomcont,xprpfloanapp attrib(submit),xprpfloan attrib(attach),pfloan,~
+			xprbonusapp attrib(submit),xprbonus attrib(attach),bonus,xpritaxapp attrib(submit),xpritax attrib(attach),itax,~
+			xprarrearapp attrib(submit),xprarrear attrib(attach),arrear,xprhrentapp attrib(submit),xprhrent attrib(attach),hrent,~
+			xprsuspapp attrib(submit),xprsusp attrib(attach),suspension,~
+			xprsubsistapp display(hide),xprsubsist display(hide),~
+			xprearnlvapp attrib(submit),xprearnlv attrib(attach),earnlv,~
+			xprmatlvapp attrib(submit),xprmatlv attrib(attach),matlv,~
+			xefffrom display(hide),xmaxoffers display(hide),xlvprenatal display(hide),xlvpostnatal display(hide),~
+			xprabsentapp attrib(submit),xprabsent attrib(attach),absent
+
+			field basic
+				attrib local
+				display const
+				caption
+				event after
+					set basic = #sql("select xdesc from prpayhead where xpaycode='"+xprbasic+"'")
+				end event
+			end field
+			
+			field gross
+				attrib local
+				display const
+				caption
+				event after
+					set gross = #sql("select xdesc from prpayhead where xpaycode='"+xprgross+"'")
+				end event
+			end field
+						
+			field pfund
+				attrib local
+				display const
+				caption
+				event after
+					set pfund = #sql("select xdesc from prpayhead where xpaycode='"+xprpf+"'")
+				end event
+			end field
+
+			field pfloan
+				attrib local
+				display const
+				caption
+				event after
+					set pfloan = #sql("select xdesc from prpayhead where xpaycode='"+xprpfloan+"'")
+				end event
+			end field
+						
+			field bonus
+				attrib local
+				display const
+				caption
+				event after
+					set bonus = #sql("select xdesc from prpayhead where xpaycode='"+xprbonus+"'")
+				end event
+			end field
+
+			field itax
+				attrib local
+				display const
+				caption
+				event after
+					set itax = #sql("select xdesc from prpayhead where xpaycode='"+xpritax+"'")
+				end event
+			end field
+			
+			field arrear
+				attrib local
+				display const
+				caption
+				event after
+					set arrear = #sql("select xdesc from prpayhead where xpaycode='"+xprarrear+"'")
+				end event
+			end field
+			
+			field hrent
+				attrib local
+				display const
+				caption
+				event after
+					set hrent = #sql("select xdesc from prpayhead where xpaycode='"+xprhrent+"'")
+				end event
+			end field
+			
+			field suspension
+				attrib local
+				display const
+				caption
+				event after
+					set suspension = #sql("select xdesc from prpayhead where xpaycode='"+xprsusp+"'")
+				end event
+			end field
+			
+			field subsist
+				attrib local
+				display const
+				caption
+				event after
+					set subsist = #sql("select xdesc from prpayhead where xpaycode='"+xprsubsist+"'")
+				end event
+			end field
+			
+			field xprearnlv
+		  		width 10
+			  	display combo
+				pick "select xcode from xcodes where xtype like 'Leave Type' and zactive='1'"
+			end field
+			
+			field earnlv
+				attrib local
+				display const
+				caption
+				event after
+					set earnlv = #sql("select xdescdet from xcodes where xtype='Leave Type' and xcode='"+xprearnlv+"'")
+				end event
+			end field			
+
+			field xprmatlv
+		  		width 10
+			  	display combo
+				pick "select xcode from xcodes where xtype like 'Leave Type' and zactive='1'"
+			end field
+
+			field matlv
+				attrib local
+				display const
+				caption
+				event after
+					set matlv = #sql("select xdescdet from xcodes where xtype='Leave Type' and xcode='"+xprmatlv+"'")
+				end event
+			end field
+			
+			field absent
+				attrib local
+				display const
+				caption
+				event after
+					set absent = #sql("select xdesc from prpayhead where xpaycode='"+xprabsent+"'")
+				end event
+			end field						
+						
+			field Add
+				event before
+					set globals(ErrChk) = ""
+					call chk_access
+
+					if globals(ErrChk) .ne. "1"					
+						if xprsalcalc .eq. "Last Day"
+						else
+							if xperend > 31
+								set globals(ErrChk) = "1"
+								error "Wrong day input!"
+							end if
+		
+							if globals(ErrChk) .ne. "1"
+								if xperend < 1
+									set globals(ErrChk) = "1"
+									error "Wrong day input!"
+								end if
+							end if    
+						end if	
+					end if
+									 
+					if globals(ErrChk) .ne. "1"
+						if xprbasicapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprbasic+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprbasic.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprgrossapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprgross+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprgross.caption)+"</font>"
+							end if
+						end if 
+					end if					
+					
+					if globals(ErrChk) .ne. "1"
+						if xprpfapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprpf+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprpf.caption)+"</font>"
+							end if
+						end if 
+					end if
+
+					if globals(ErrChk) .ne. "1"
+						if xprpfloanapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprpfloan+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprpfloan.caption)+"</font>"
+							end if
+						end if 
+					end if
+
+					if globals(ErrChk) .ne. "1"
+						if xprbonusapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprbonus+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprbonus.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xpritaxapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xpritax+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xpritax.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprarrearapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprarrear+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprarrear.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprhrentapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprhrent+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprhrent.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprsuspapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprsusp+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprsusp.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprsubsistapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprsubsist+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprsubsist.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprearnlvapp .eq. "Yes"
+							set chkrec = #sql("select xcode from xcodes where xtype='Leave Type' and zactive='1' and xcode='"+xprearnlv+"'")
+							if #result .ne. "true"
+								set globals(ErrChk) = "1"
+								error "Wrong Leave Code</p>Cannot "+#command
+							end if
+						end if
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprmatlvapp .eq. "Yes"
+							set chkrec = #sql("select xcode from xcodes where xtype='Leave Type' and zactive='1' and xcode='"+xprmatlv+"'")
+							if #result .ne. "true"
+								set globals(ErrChk) = "1"
+								error "Wrong Leave Code</p>Cannot "+#command
+							end if
+						end if
+					end if
+								
+					if globals(ErrChk) .ne. "1"
+						if xprabsentapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprabsent+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprabsent.caption)+"</font>"
+							end if
+						end if
+					end if
+										
+				end event
+			end field
+
+			field Update
+				event before
+					set globals(ErrChk) = ""
+					call chk_access
+					
+					if globals(ErrChk) .ne. "1"
+  					if xprsalcalc .eq. "Last Day"
+  						else
+  						if xperend > 31
+  							set globals(ErrChk) = "1"
+  							error "Wrong day input!"
+  						end if
+             end if
+					end if    
+
+					if globals(ErrChk) .ne. "1"
+  					if xprsalcalc .eq. "Last Day"
+  					else
+  						if xperend < 1
+  							set globals(ErrChk) = "1"
+  							error "Wrong day input!"
+  						end if
+           end if
+					end if    
+					
+					if globals(ErrChk) .ne. "1"
+						if xprbasicapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprbasic+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprbasic.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprgrossapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprgross+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprgross.caption)+"</font>"
+							end if
+						end if 
+					end if		
+										
+					if globals(ErrChk) .ne. "1"
+						if xprpfapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprpf+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprpf.caption)+"</font>"
+							end if
+						end if 
+					end if
+
+					if globals(ErrChk) .ne. "1"
+						if xprpfloanapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprpfloan+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprpfloan.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprbonusapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprbonus+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprbonus.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xpritaxapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xpritax+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xpritax.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprarrearapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprarrear+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprarrear.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprhrentapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprhrent+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprhrent.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprsuspapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprsusp+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprsusp.caption)+"</font>"
+							end if
+						end if 
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprsubsistapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprsubsist+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprsubsist.caption)+"</font>"
+							end if
+						end if 
+					end if
+
+					if globals(ErrChk) .ne. "1"
+						if xprearnlvapp .eq. "Yes"
+							set chkrec = #sql("select xcode from xcodes where xtype='Leave Type' and zactive='1' and xcode='"+xprearnlv+"'")
+							if #result .ne. "true"
+								set globals(ErrChk) = "1"
+								error "Wrong Leave Code</p>Cannot "+#command
+							end if
+						end if
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprmatlvapp .eq. "Yes"
+							set chkrec = #sql("select xcode from xcodes where xtype='Leave Type' and zactive='1' and xcode='"+xprmatlv+"'")
+							if #result .ne. "true"
+								set globals(ErrChk) = "1"
+								error "Wrong Leave Code</p>Cannot "+#command
+							end if
+						end if
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						if xprabsentapp .eq. "Yes"
+							set chkcode = #sql("select xdesc from prpayhead where xpaycode='"+xprabsent+"'")
+							if #result .eq. "false"
+								set globals(ErrChk) = "1"
+								error "<font color=red>Wrong "+#field(xprabsent.caption)+"</font>"
+							end if
+						end if
+					end if
+					
+				end event
+			end field
+						
+     end form
+     
+     valid valid
+     	config
+     		set chkrec = prdef.xperend("zid='"+#id+"'")
+			if #result .eq. "true"
+				set #field(Add.display) = "disable"
+			end if
+			
+     		if xprsalcalc .eq. "Last Day" 
+     			set #field(xperend.display) = "const"
+     			set xperend = 0
+     		end if
+			   
+     		if xprbasicapp .eq. "No" 
+     			set #field(xprbasic.display) = "const"
+     			set xprbasic = ""
+     		end if
+     		if xprgrossapp .eq. "No" 
+     			set #field(xprgross.display) = "const"
+     			set xprgross = ""
+     		end if
+			if xprpfapp .eq. "No" 
+     			set #field(xprpf.display) = "const"
+     			set xprpf = ""
+     		end if
+			if xprpfloanapp .eq. "No" 
+     			set #field(xprpfloan.display) = "const"
+     			set xprpfloan = ""
+     		end if     		
+     		if xprbonusapp .eq. "No" 
+     			set #field(xprbonus.display) = "const"
+     			set xprbonus = ""
+     		end if
+     		if xpritaxapp .eq. "No" 
+     			set #field(xpritax.display) = "const"
+     			set xpritax = ""
+     		end if
+     		if xprarrearapp .eq. "No" 
+     			set #field(xprarrear.display) = "const"
+     			set xprarrear = ""
+     		end if
+     		if xprhrentapp .eq. "No" 
+     			set #field(xprhrent.display) = "const"
+     			set xprhrent = ""
+     		end if
+     		if xprsuspapp .eq. "No" 
+     			set #field(xprsusp.display) = "const"
+     			set xprsusp = ""
+     		end if
+     		if xprsubsistapp .eq. "No" 
+     			set #field(xprsubsist.display) = "const"
+     			set xprsubsist = ""
+     		end if
+     		if xprearnlvapp .eq. "No" 
+     			set #field(xprearnlv.display) = "const"
+     			set xprearnlv = ""
+     		end if
+     		if xprmatlvapp .eq. "No" 
+     			set #field(xprmatlv.display) = "const"
+     			set xprearnlv = ""
+     		end if
+     		if xprabsentapp .eq. "No"
+     			set #field(xprabsent.display) = "const"
+     			set xprabsent = ""
+     		end if
+			      		
+     	end config
+     end valid
+
+end page

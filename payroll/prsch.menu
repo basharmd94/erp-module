@@ -1,0 +1,14 @@
+//prsch.menu
+caption "Masters & Schedules"
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+//Pay Codes                        |#classPath+"/"+#servlet+"?page=prcode"
+Employee Details & Rates              |#classPath+"/"+#servlet+"?page=premp"
+Pay Formula                        |#classPath+"/"+#servlet+"?page=prform"
+Pay Schedules                    |#classPath+"/"+#servlet+"?page=prsch"
+-
+Generate/Remove Schedule                       |#classPath+"/"+#servlet+"?page=prschgen"
+//Delete Schedule                       |#classPath+"/"+#servlet+"?page=prcandel"
+//-------------------------------------------------------------------
+

@@ -1,0 +1,19 @@
+//OP Reports.menu
+//-------------------------------------------------------------------
+caption "Payroll Reports" page 3
+option                                |action
+//-------------------------------------------------------------------
+Pay Slip			                  |#classPath+"/"+#servlet+"?page=*crystal prslip(xyear=Year,xper=Month,xemp=From Employee=0,xemp=To Employee=z)"
+Salary Sheet (Section Wise)			  |#classPath+"/"+#servlet+"?page=*crystal prsalary_sec(xpaydate=Payment Date=#d=,xsec=From Section==text,xsec=To Section==text)"
+Salary Sheet Cash & Bank			  |#classPath+"/"+#servlet+"?page=*crystal prsalary_secbc(xpaydate=Payment Date=#d=,xsec=Section==text=list xsec1)"
+Salary Sheet Cash					  |#classPath+"/"+#servlet+"?page=*crystal prsalary_secbc_cash(xpaydate=Payment Date=#d=,xsec=Section==text=list xsec1)"
+Bonus Sheet (Project Wise)			  |#classPath+"/"+#servlet+"?page=*crystal prbons(xpaydate=Payment Date=#d=,xsec=From Project==text=list xsec,xsec=To Project==text=list xsec,xemp=From Employee,xemp=To Employee)"
+Employee Wise Provident Fund   		  |#classPath+"/"+#servlet+"?page=*crystal prpf_emp_new(xemp=Employee,xyear)"
+Employee Provident Fund       		  |#classPath+"/"+#servlet+"?page=*crystal prpf_emp(xemp=From Employee=,xemp=To Employee=)"
+Employee Advance Salry      		  |#classPath+"/"+#servlet+"?page=*crystal prpf_aas(xemp=From Employee=,xemp=To Employee=)"
+Deposit 				       		  |#classPath+"/"+#servlet+"?page=*crystal prpf_d(xemp=From Employee=,xemp=To Employee=)"
+PF Loan Deduction		       		  |#classPath+"/"+#servlet+"?page=*crystal prpf_ld(xemp=From Employee=,xemp=To Employee=)"
+Provident Fund Additional      		  |#classPath+"/"+#servlet+"?page=*crystal prpf_pfa(xemp=From Employee=,xemp=To Employee=)"
+//Salary Sheet(All)                   |#classpath+"/"+#servlet+"?page=*crystal prsalarysheet(xpaydate=Payment Date=#d=,xemp=From Employee=,xemp=To Employee=zzz)"
+//Salary Sheet			              |#classPath+"/"+#servlet+"?page=*crystal prcrossal(xyear=Year,xper=Month,xdept=From Department==text=list xdept,xdept=To Department==text=list xdept)"
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------

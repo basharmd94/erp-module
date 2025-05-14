@@ -1,0 +1,153 @@
+page xtrnpor
+     caption "Codes"
+     sidebar list one//,list two, text three
+     sections form one ,method chk_access
+
+
+     list one
+        table xtrn
+        order xtypetrn,xtrn
+        select "xtypetrn='Purchase Order'"
+        //navigators alpha
+        rows 20
+        objects xtypetrn,xtrn attrib(link #servlet+"?page="+page+"&command=Show&xtypetrn=?&xtrn=?"),~
+                 xaction, xdesc, xnum, xinc, zactive
+
+
+     end list
+
+     form one
+        caption "Transactions"
+        table xtrn
+        order xtypetrn, xtrn
+        select "xtypetrn='Purchase Order'"
+        layout 1
+        objects Show, Add, Update, Delete, Top, Previous, Next, Bottom,Clear,"<p>" ,~
+                xtypetrn display(const), xtrn, xaction, xdesc, xnum, xinc, zactive
+                
+        field show
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+             
+          	 if globals(ErrChk) .ne. "1"
+            	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Create.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Detail.display) = "hide"		                		                
+		             end if
+		             call chk_access
+            	end if
+          	 end if           
+           end event
+        end field
+
+        field Top
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+             
+          	 if globals(ErrChk) .ne. "1"
+            	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Create.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Detail.display) = "hide"		                	                
+		             end if
+		             call chk_access
+            	end if
+          	 end if           
+           end event
+        end field
+
+	field Add
+           event before
+              set globals(ErrChk) = ""
+              call chk_access
+              if globals(ErrChk) .ne. "1"
+              	set xtypetrn="Purchase Order"
+              end if
+           end event
+	end field
+
+	field Update
+           event before
+              set globals(ErrChk) = ""
+              call chk_access
+           end event
+	end field
+
+	field Delete
+           event before
+              set globals(ErrChk) = ""
+              call chk_access
+           end event
+	end field
+
+     end form
+     
+     method chk_access
+     	set stype = ""
+	  	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          buffer xcriminal
+	          set xcriminal.xwornum = mysql
+	          set xcriminal.xemail = #user
+	          set xcriminal.xdate = #date
+	          str tmptime = ""
+	          class osbcustom(#time(tmptime))
+	          set xcriminal.xtime = tmptime
+	          set xcriminal.xobject = page
+	          insert xcriminal
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+
+end page

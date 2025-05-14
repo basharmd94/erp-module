@@ -1,0 +1,97 @@
+page glhrc3
+     caption "GL Group 1"
+     sidebar list three
+     sections form one, list four, script myscript
+
+	list three
+        caption "List of "+xhrc2
+        table glhrc3
+        order xhrc1,xhrc2,xhrc3
+        fixed xhrc1,xhrc2
+        rows 20
+        objects xhrc3 attrib(link #servlet+"?page=glhrc3&command=Show&xhrc1=?&xhrc2=?&xhrc3=?")
+     end list
+     
+	 list four
+        caption "List of "+xhrc3
+        table glhrc4
+        order xhrc1,xhrc2,xhrc3,xhrc4
+        fixed xhrc1,xhrc2,xhrc3
+        rows 20
+        objects xhrc4 attrib(link #servlet+"?page=glhrc4&command=Show&xhrc1=?&xhrc2=?&xhrc3=?&xhrc4=?")
+     end list
+
+     form one
+//        caption "Level 2 of "+xhrc1
+        table glhrc3
+        order xhrc1,xhrc2,xhrc3
+        fixed xhrc1,xhrc2
+        layout 1
+        objects Back to previous level,Level 4, ~
+               Add, Update, Delete,  Previous, Next,~
+               xhrc3
+              
+        field xhrc3
+          event after
+            set globals(xhrc3)=xhrc3
+          end event
+        end field
+        
+        field add
+        	event before
+        		set globals(ErrChk) = ""
+        	end event
+        end field
+
+        field update
+        	event before
+        		set globals(ErrChk) = ""
+        	end event
+        end field
+        
+        field delete
+        	event before
+        		set globals(ErrChk) = ""
+        	end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Back
+          embed onclick="clicked(this)"
+        end field
+
+        field Level
+          embed onclick="grouped(this)"
+        end field
+
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but = ""
+        function clicked(b){
+          but = "clicked"
+        }
+        function grouped(b){
+          but = "grouped"
+        }
+        function submitit(form){
+          if (but == "clicked"){
+            form.page.value = "glhrc2"
+            form.searchbutton.value = "Find xhrc1=?&xhrc2=?"
+
+          }
+          if (but == "grouped"){
+            form.page.value = "glhrc4"
+            form.searchbutton.value = "Find xhrc1=?&xhrc2=?&xhrc3=?"
+
+          }
+        }
+
+        </script>
+     end script
+
+end page

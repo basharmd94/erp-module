@@ -1,0 +1,731 @@
+page pocostlc
+     caption "Cost Details for L/C No. "+xlcno
+     caption "<span class=bl>Cost Details for L/C No. : <a href=/da/"+servlet+"?page=poilc&command=Show&xpornum="+xpornum+">" +xlcno+ "</a></span>"
+
+     sidebar list one
+     sections form one, text top,script myscript
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list zsub
+      caption "Sub Account List"
+      table glsub
+      order xsub
+      select "xacc='"+xcostacc+"'"
+      rows 10
+      objects xsub attrib(link "abc" embed onclick="return picktype(this:'xsub')"),~
+              xdesc
+     end list
+
+     list cost
+        table pocharge
+        order xpocode
+        rows 10
+        objects xpocode attrib(link "abc" embed onclick="return picktype(this:xpotype#:xcostacc#:xsubdr#)"),xdesc,~
+                xpotype attrib(name xpotype#),xcostacc attrib(name xcostacc#),xsubdr attrib(name xsubdr#)
+     end list
+
+    list one
+        caption "L.C. Cost Details"
+	  	table pocostlc
+        order xpornum,xline
+        fixed xpornum
+        rows 30
+        objects  xline attrib(link #servlet+"?page=pocostlc&command=Show&xline=?"), ~
+                 xpocode, desc equals((select xdesc from pocharge where zid=pocostlc.zid and xpocode=pocostlc.xpocode)),~
+		     	 xglref display(const),xdaterel,~
+		     	 xcost,xstatusresp
+
+        field desc
+          attrib local
+          storage varchar
+          caption Description
+        end field
+
+        totals "Totals","","","","","sum"
+
+        field xstatusresp
+          caption Status
+        end field
+
+     end list
+
+     form one
+		valid valid,access
+        table pocostlc
+        order xpornum,xline
+        fixed xpornum
+        layout 2
+        objects Add, Update,Complete,Show,Clear, Top, Previous, Delete, Next, Bottom,~
+                xline attrib(row 0 10),"",xpocode,dummy,xcostacc,dummy1,xsubdr,dummy2,~
+                xpocracc,dummy3,xsubcr,dummy4,~
+                xcur,xexch,xcost, xdaterel default(#d),xacccat,xstatusresp,xglref display(const),~
+                xaccusage attrib(local) display(hide),xaccsource attrib(local) display(hide),~
+                zactive display(hide)
+
+
+        field Cost_Code_search
+          event before
+            class osbcustom(search(xpocode,"s","pocharge","xpocode:xdesc","pickCode","xpocode:xdesc:xpotype:xcostacc:xsubdr","yes","Code:Description:Cost Type:Debit A/C:Sub A/C"))
+          end event
+        end field
+
+        field xpornum
+         event after
+          set globals(xpornum)=xpornum
+         end event
+        end field
+
+        field xline
+         col 3
+         event after
+          //print xaccusage
+          set globals(xline)=xline
+          set #field(xpocode.caption) = "<font color=red>"+#field(xpocode.caption)+"</font>"
+          set #field(xpocracc.caption) = "<font color=red>"+#field(xpocracc.caption)+"</font>"
+          set #field(xsubcr.caption) = "<font color=red>"+#field(xsubcr.caption)+"</font>"
+         end event
+        end field
+
+        //field xgltrn
+        //  attrib local
+        //  caption GL Voucher Code
+        //  display text
+        //  width 4
+        //  event before
+        //    set globals(xgltrn)=xgltrn
+        //  end event
+        //end field
+
+        field xaccusage
+          default ""
+        end field
+
+        field xaccsource
+          default ""
+        end field
+
+        field xpocode
+          pick list xcostcode
+          event after
+            set globals(xpocode)=xpocode
+          end event
+        end field
+
+        field dummy
+          attrib local
+          display constant
+          caption Description
+          event after
+            set dummy= #sql(str,"select xdesc from pocharge where xpocode='"+xpocode+"'")
+          end event
+        end field
+
+        field dummy1
+          attrib local
+          display constant
+          caption Description
+          event after
+            set dummy1= #sql(str,"select xdesc from glmst where xacc='"+xcostacc+"'")
+          end event
+        end field
+
+        field dummy2
+          attrib local
+          display constant
+          caption Description
+          event after
+            set dummy2= #sql(str,"select xdesc from glsub where xacc='"+xcostacc+"' and xsub='"+xsubdr+"'")
+          end event
+        end field
+
+        field dummy3
+          attrib local
+          display constant
+          caption Description
+          event after
+            set dummy3= #sql(str,"select xdesc from glmst where xacc='"+xpocracc+"'")
+          end event
+        end field
+
+        field dummy4
+          attrib local
+          display constant
+          caption Description
+          event after
+            str acc_usage = #sql(str,"select xaccusage from glmst where xacc='"+xpocracc+"'")
+            str acc_source = #sql(str,"select xaccsource from glmst where xacc='"+xpocracc+"'")            
+            //print acc_usage
+            if acc_usage .eq. "AP" .and. acc_source .eq. "Supplier"
+              set dummy4= #sql(str,"select xorg from casup where xsup='"+xsubcr+"'")
+            else if acc_usage .eq. "Ledger" .and. acc_source .eq. "Subaccount"
+              set dummy4= #sql(str,"select xdesc from glsub where xacc='"+xpocracc+"' and xsub='"+xsubcr+"'")
+            end if
+          end event
+        end field
+
+        field xcostacc
+//          attrib readonly
+          display text
+          pick list xcostacc
+          caption Debit Account
+          event after
+            set globals(xcostacc) = xcostacc
+          end event
+        end field
+
+        field xsubdr
+           pick list xcostsub
+           event after
+            set globals(xsubdr) = xsubdr
+           end event
+        end field
+
+        field xpocracc
+          pick list xpocracc
+          event after
+            set globals(xpocracc)=xpocracc
+            set globals(xacc)=xpocracc
+          end event
+        end field
+
+        field xsubcr
+          display text
+          //caption Sub Account
+          //pick list xcostcr
+    	    event after
+            if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+              set #field(xsubcr.display)="text"
+              set #field(xsubcr.pick)="list pocus"
+            else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+              set #field(xsubcr.display)="text"
+              set #field(xsubcr.pick)="list posup"
+            else
+              set #field(xsubcr.pick)="list xcostcr"
+            end if
+            set globals(xsubcr)=xcostcr
+          end event
+
+        end field
+
+        field xacccat
+          attrib readonly
+          display text
+          pick
+          width 20
+        end field
+
+        field xdaterel
+          caption Payment Date
+        end field
+
+        field xcur
+          default "BDT"
+          //pick list xcur
+          //display text
+          //width 3
+        end field
+
+        field xstatusresp
+          display const
+          caption Status
+        end field
+
+        field add
+          event before
+             set globals(ErrChk) = ""
+
+             call chk_access
+             
+             if globals(ErrChk) .ne. "1"
+               call chk_rec
+             end if  
+             
+             if globals(ErrChk) .ne. "1"
+               call check_status
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+               call chk_code
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+                call chk_dr_acc
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+                call chk_dr_subacc
+             end if
+
+             if globals(ErrChk) .ne. "1"
+                call chk_acc
+             end if
+             if globals(ErrChk) .ne. "1"
+                call chk_subacc
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+                set xexch = #sql(double,"select xexch from xcur where xcur = '"+xcur+"'")
+                set xcostacc = pocharge.xcostacc
+                set xsubdr = pocharge.xsubdr
+                set xacccat = pocharge.xpotype
+                set zactive = pocharge.zactive
+                if xpocracc .ne. ""
+                  set xacc=xcostacc
+                  buffer glmst=glmst(xacc)
+                  set xaccusage=glmst.xaccusage
+                  set xaccsource=glmst.xaccsource                  
+                end if
+             end if
+          end event
+        end field
+
+        field update
+          event before
+             set globals(ErrChk) = ""
+             set globals(FlagStat) = ""
+
+             call chk_access
+
+             if globals(ErrChk) .ne. "1"
+               call chk_rec
+             end if
+             if globals(ErrChk) .ne. "1"
+                call check_status
+             end if
+             if globals(ErrChk) .ne. "1"
+                call chk_code
+             end if
+             if globals(ErrChk) .ne. "1"
+                call chk_dr_acc
+             end if
+             if globals(ErrChk) .ne. "1"
+                call chk_dr_subacc
+             end if
+
+             if globals(ErrChk) .ne. "1"
+                call chk_acc
+             end if
+             if globals(ErrChk) .ne. "1"
+                call chk_subacc
+             end if
+
+             if globals(ErrChk) .ne. "1"
+                set xexch = #sql(double,"select xexch from xcur where xcur = '"+xcur+"'")
+                if globals(xpocode) .ne. xpocode
+                   set xcostacc = pocharge.xcostacc
+                   set xsubdr = pocharge.xsubdr
+                   set xacccat = pocharge.xpotype
+                   set zactive = pocharge.zactive
+                end if
+                if xpocracc .ne. ""
+                  set xacc=xcostacc
+                  buffer glmst=glmst(xacc)
+                  set xaccusage=glmst.xaccusage
+                  set xaccsource=glmst.xaccsource                  
+                end if
+             end if
+             if globals(ErrChk) .ne. "1"
+             	call upd_log
+             end if
+          end event
+        end field
+
+        field delete
+          event before
+            set globals(ErrChk) = ""
+
+            call chk_access
+
+            if globals(ErrChk) .ne. "1"
+              call chk_rec
+            end if
+            if globals(ErrChk) .ne. "1"
+              call check_status
+            end if
+            if globals(ErrChk) .ne. "1"
+            	call upd_log
+            end if
+          end event
+        end field
+
+        field Post
+          event before
+            set globals(ErrChk) = ""
+
+              buffer xlocals
+              set globals(xtypelocal)="Module"
+              set globals(xname)="gl"
+              move xlocals=xlocals(xtypelocal,xname)
+              int offset
+              int per
+              int year=#sub(#date,0,4)
+              set offset=#prop(xlocals.xprops,"offset")
+              set per=12+#sub(#date,5,2)-offset
+              if per<=12
+                set globals(xper)=per
+                set globals(xyear)=year-1
+              else
+                set globals(xper)=per-12
+                set globals(xyear)=year
+              end if
+
+              call mth_check
+
+              if globals(ErrChk) .ne. "1"
+                call chk_trncode
+              end if  
+
+              if globals(ErrChk) .ne. "1"
+                call chk_rec
+              end if
+
+              if globals(ErrChk) .ne. "1"
+                call chk_account
+              end if
+
+              if globals(ErrChk) .ne. "1"
+                int linenum=0
+                decimal xtot=0.00+xcost*xexch
+                set xglcode=globals(xgltrn)//"BV--"
+                buffer glheader
+                set glheader.xvoucher=#trn("GL Voucher",xglcode)
+                set glheader.xref=xlcno
+                set glheader.xdate=xdaterel
+                set glheader.xlong="Vocher for "+ #sql(str,"select xdesc from pocharge where xpocode='"+xpocode+"'")+" of L/C No. "+globals(xlcno)
+                set glheader.xyear=globals(xyear)
+                set glheader.xper=globals(xper)
+                set glheader.xstatusjv="Balanced"
+                insert glheader
+
+                buffer pocharge
+                move pocharge=pocharge(xpocode)
+                if #result .eq. "true"
+                  buffer gldetail
+                  set gldetail.xvoucher=glheader.xvoucher
+                  set gldetail.xrow=xline
+                  set gldetail.xacc=xcostacc
+                  set gldetail.xaccusage="Ledger"
+                  set gldetail.xaccsource="Subaccount"
+                  set gldetail.xsub=xsubdr
+                  set gldetail.xdiv=#sql(str,"select xdiv from poord where xpornum = '"+xpornum+"'")
+                  set gldetail.xsec=#sql(str,"select xsec from poord where xpornum = '"+xpornum+"'")
+                  set gldetail.xproj=#sql(str,"select xproj from poord where xpornum = '"+xpornum+"'")
+                  set gldetail.xcur=xcur
+                  set gldetail.xexch=xexch
+                  set gldetail.xprime=xcost
+                  set gldetail.xbase=xtot
+                  insert gldetail
+                end if
+
+                set linenum=xline+10
+                buffer gldetail
+                set gldetail.xvoucher=glheader.xvoucher
+                set gldetail.xrow=linenum
+                set gldetail.xacc=xpocracc
+                set gldetail.xaccusage="Ledger"
+                set gldetail.xaccsource="Subaccount"
+                set gldetail.xsub=xsubcr
+                set gldetail.xdiv=#sql(str,"select xdiv from poord where xpornum = '"+xpornum+"'")
+                set gldetail.xsec=#sql(str,"select xsec from poord where xpornum = '"+xpornum+"'")
+                set gldetail.xproj=#sql(str,"select xproj from poord where xpornum = '"+xpornum+"'")
+                set gldetail.xcur=xcur
+                set gldetail.xexch=xexch
+                set gldetail.xprime=0-xcost
+                set gldetail.xbase=0-(xtot)
+                insert gldetail
+
+                set xstatusresp = "Posted"
+                set xglref = glheader.xvoucher
+                action update
+
+                print "GL Voucher No :"+glheader.xvoucher+" Created"
+               //chk_glrecord
+                
+              end if
+          end event
+        end field
+
+
+        //embed onsubmit="return submitit(this)"
+        embed onsubmit="submitit(this)"
+        field Complete
+          embed onclick="clicked(this)"
+        end field
+
+
+     end form
+
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail=""
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+
+	    if (detail=="clicked"){
+            form.page.value = "poilc"
+            form.searchbutton.value= "Find xpornum=?"
+            //return false
+          }
+        }
+
+        function picktype(link, potype, costacc,subdr)
+        {
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xpocode.value=link.text
+            document.one.xacccat.value=potype.text
+            document.one.xcostacc.value=costacc.text
+            document.one.xsubdr.value=subdr.text
+          }else{
+            document.one.xpocode.value=link.innerText
+            document.one.xacccat.value=potype.innerText
+            document.one.xcostacc.value=costacc.innerText
+            document.one.xsubdr.value=subdr.innerText
+          }
+          return false
+        }
+        function picksub(test)
+        {
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xsub.value=link.text
+          }
+          else{
+            document.one.xsub.value=link.innerText
+          }
+          return false
+        }
+
+        function pickCode(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xpocode.xvalue=link.text
+          }else{
+            document.one.xpocode.value=link.innerText
+          }
+          return false
+        }
+        
+        </script>
+     end script
+
+
+     method mth_check
+        buffer xlocals
+        set globals(xtypelocal)="Module"
+        set globals(xname)="gl"
+        move xlocals=xlocals(xtypelocal,xname)
+        int offset
+        int per
+        int year=#sub(xdaterel,0,4)
+        set offset=#prop(xlocals.xprops,"offset")
+        set per=12+#sub(xdaterel,5,2)-offset
+        if per<=12
+           set xper=per
+           set xyear=year-1
+        else
+           set xper=per-12
+           set xyear=year
+        end if
+
+        set mth_status = #sql(str,"select xpflag from pomthend where xyear='"+xyear+"' and xper='"+xper+"'")
+        if mth_status .eq. "1"
+          set globals(ErrChk) = "1"
+          error xyear+"("+xper+") Already Closed; Cannot "+#command
+        end if   
+     end method
+     
+     method check_status
+        if globals(xstatusord) .ne. "Open"
+           set globals(ErrChk) = "1"
+           error "Cannot "+#command+"<br>Already "+xstatusord
+        end if
+     end method
+
+     method chk_trncode
+         set mysql = "select xtrn from xtrn where xtypetrn='GL Voucher' and xtrn='"+globals(xgltrn)+"'"
+         set tmptrn = #sql(str,mysql)
+         if #result .ne. "true"
+            set globals(ErrChk) = "1"
+            error "<h3>GL Trn Code '<font color=blue>"+globals(xgltrn)+"</font>' not found</h3>"
+         end if
+     end method
+
+     method chk_rec
+       if #command .eq. "update" .and. xline .ne. globals(xline)
+          set globals(ErrChk) = "1"
+          error "Record pointer Mismatch, Try SHOW instead"
+       end if
+
+       if xstatusresp .ne. ""
+          set globals(ErrChk) = "1"
+          error "Cannot "+#command +" ; Already "+xstatusresp
+       end if
+     end method
+
+     method chk_code
+       buffer pocharge
+       move pocharge=pocharge(xpocode)
+       if #result .ne. "true"
+          set globals(ErrChk) = "1"
+          error "Wrong Import Cost Code Chosen"
+       end if
+     end method
+
+     method chk_dr_acc
+      if xcostacc .ne. ""
+       set xacc=xcostacc
+        if xcostacc .ne. ""
+         if xcostacc .ne. globals(xcostacc)
+           buffer glmst
+           move glmst=glmst(xacc)
+           if #result .ne. "true"
+              set globals(ErrChk)="1"
+              error "Wrong Debit Account Code Chosen"
+           else
+                if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+                     print "<h2><font color=blue>Please update record with correct Debit Sub Account</font></h2>"
+                     set globals(FlagStat) = "1"
+                else if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "None"
+                     set globals(FlagStat) = "2"
+                end if
+           end if
+         end if
+        end if
+      end if  
+     end method
+
+     method chk_dr_subacc
+      if xsubdr .ne. ""
+        if globals(FlagStat) .eq. ""
+          set xacc=xcostacc
+          set xsub=xsubdr
+             buffer glsub
+             move glsub=glsub(xacc,xsub)
+             if #result .ne. "true"
+                set globals(ErrChk)="1"
+                error "Wrong Debit Sub Account Code Chosen"
+             end if
+        end if
+        if globals(FlagStat) .eq. "2"
+          set xsubdr=""
+        end if
+      end if  
+     end method
+
+     method chk_acc
+        set xacc=xpocracc
+        if xacc .ne. ""
+           buffer glmst
+           move glmst=glmst(xacc)
+           if #result .ne. "true"
+              set globals(ErrChk)="1"
+              error "Wrong Credit Account Code Chosen"
+           else if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+                   if xsubcr .eq. ""
+                     print "<h2><font color=blue>Please update record with correct Credit Sub Account</font></h2>"
+                   end if
+           else if glmst.xaccusage .eq. "AP" .and. glmst.xaccsource .eq. "Supplier"
+                   if xsubcr .eq. ""
+                     print "<h2><font color=blue>Please update record with correct Supplier Code</font></h2>"
+                   end if
+           else if glmst.xaccusage .eq. "AR" .and. glmst.xaccsource .eq. "Customer"
+                   if xsubcr .eq. ""
+                     print "<h2><font color=blue>Please update record with correct Customer Code</font></h2>"
+                   end if
+           end if
+        end if
+     end method
+
+     method chk_subacc
+       if xsubcr .ne. ""
+         set xacc=xpocracc
+         set xsub=xsubcr
+         if xsub .ne. ""
+           if xaccusage .eq. "Ledger" .and. xaccsource .eq. "Subaccount"
+             buffer glsub
+             move glsub=glsub(xacc,xsub)
+             if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Wrong Credit Sub Account Code Chosen"
+             end if
+           else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+             set tmpstr = #sql("select xsup from casup where xsup='"+xsubcr+"'")
+             if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Wrong Supplier Code Chosen"                
+             end if
+           end if
+           else if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+             set tmpstr = #sql("select xcus from cacus where xcus='"+xsubcr+"'")
+             if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Wrong Customer Code Chosen"                
+             end if
+           end if
+         end if
+       end if 
+     end method
+
+     method chk_account
+        if xcostacc .eq. ""
+          set globals(ErrChk) = "1"
+          error "Debit Account Not Found"
+        else
+          set xacc=xcostacc
+          buffer glmst
+          move glmst=glmst(xacc)
+          if glmst.xaccsource .eq. "Subaccount"
+             if xsubdr .eq. ""
+              set globals(ErrChk) = "1"
+              error "Debit Sub Account Not Found"
+             end if
+          end if
+        end if
+
+        if xpocracc .eq. ""
+          set globals(ErrChk) = "1"
+          error "Credit Account Not Found"
+        else
+          set xacc=xpocracc
+          buffer glmst
+          move glmst=glmst(xacc)
+          if glmst.xaccsource .eq. "Subaccount"
+             if xsubcr .eq. ""
+              set globals(ErrChk) = "1"
+              error "Credit Sub Account Not Found"
+             end if
+          end if
+        end if
+     end method
+
+     method chk_glrecord
+        set xvoucher=xglref
+        buffer glheader
+        move glheader=glheader(xvoucher)
+        set bal_amount=#sql(decimal,"select sum(xprime*xexch) from gldetail where zid='"+#id+"' and xvouhcer='"+glheader.xvoucher"'")
+        if bal_amount == 0.00
+           print "GL Voucher No :"+glheader.xvoucher+" Created"
+        else
+           set xstatusresp = ""
+           set xglref = ""
+           action update
+
+           set glheader.xstatusjv="Out of Balance"
+           update glheader(xvoucher)
+
+           set globals(ErrChk) = "1"
+           error glheader.xvoucher+" is suspended"    
+        end if
+     end method
+
+     valid valid
+	 end valid
+
+#include access.valid
+
+end page

@@ -1,0 +1,69 @@
+page princrement
+     caption "Employee Master"
+     sections list one,form one, script myscript
+
+     list one
+      table princrement
+      order xemp,xincno
+      fixed xemp
+      object xincno attrib(link #servlet+"?page=increment&command=Show&xincno=?"),~
+             xdate,xamount
+     end list
+
+     form one
+        caption "Increment History"
+        table princrement
+        order xemp,xincno
+        fixed xemp
+        layout 1
+        objects "<b>Employee Code <font color=red>"+xemp,"</font></b><p>",~
+                Add, Back, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+                xincno attrib(readonly row 0 1),xdate,xamount,xremarks,zemail display(hide),xemail display(hide)
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+
+          embed onsubmit="submitit(this)"
+
+          field Back
+            embed onclick="clicked(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          detail="back"
+        }
+        function submitit(form)
+        {
+          if (detail=="back")
+          {
+            form.page.value = "prothdt"
+            form.searchbutton.value= "Find xemp=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+
+end page
+//form.searchbutton.value="Find xemp=?"

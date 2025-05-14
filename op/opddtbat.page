@@ -1,0 +1,182 @@
+page opddtbat
+     caption "Batch Entry"
+     sidebar list one
+     sections form one, list trn,script myscript
+
+     list one
+        table opddtbat
+        order xdornum,xrow,xline
+        fixed xdornum,xrow
+        rows 10
+        objects  xline attrib(link #servlet+"?page=opddtbat&command=Show&xdornum=?&xrow=?&xline=?"), ~
+                 xbatch,xqty,xcfsel
+
+
+        totals "","Totals",sum
+
+     end list
+     
+     list trn
+        caption "IM Transactions"
+        table imtrn
+        order ximtrnnum
+        select "xdoctype='Delivery Order' and xdocnum='"+xdornum+"' and xdocrow="+xrow+" "
+        rows 10
+        objects ximtrnnum attrib(link #servlet+"?page=imtrn&command=Show&ximtrnnum=?"), ~
+          xitem,xbatch,xbin,xwh,xdate,xyear, xper,xqty,xval,xvalpost          
+
+        totals "","Totals",sum
+
+     end list
+
+     list batch
+        table imbatview
+        order xitem,xwh,xbatch
+        fixed xitem,xwh
+        rows 10
+        objects  xitem,xbatch,xwh,xqty
+
+     end list
+
+     form one
+        caption "Select Batch"
+        table opddtbat
+        order xdornum,xrow,xline
+        fixed xdornum,xrow
+        layout 1
+        objects ~
+                Return,Clear,Show,Add, Update, Delete, Top, Previous, Next, Bottom,~
+                xline attrib(row 0 10;search),xbatch,xdaterec,xqty,xcfsel
+
+
+        field xline
+          event after
+            if opdor.xstatusdor("xdornum='"+xdornum+"'") .eq."+#status("xstatusdor",2)+" .or. opdor.xstatusdor("xdornum='"+xdornum+"'") .eq. #status("xstatusgrn",3)
+				set #field(Delete.display) = "hidden"
+				set #field(Update.display) = "hidden"
+				set #field(Add.display) = "hidden"
+            end if
+            
+			int count=#sql(int,"select sum(xqty) from opddtbat where xdornum='"+globals(xdornum)+"' and xrow='"+globals(xrow)+"' and xline='"+xline+"'")
+			//print count+" "+globals(xqty)				
+			if count <> globals(xqty)
+				print "<span class=br>Batch Number Mismatch -- Must Have "+globals(xqty)+" Items</span>"
+			end if              
+          end event
+        end field
+
+		field update
+			event before
+				set stype=opddt.xstype("xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+				if stype .ne. "Non-Stock"
+					double batqty=0.00+imbatview.xqty("xitem='"+opddt.xitem("xdornum='"+xdornum+"' and xrow='"+xrow+"'")+"' and xwh='"+opddt.xwh("xdornum='"+xdornum+"' and xrow='"+xrow+"'")+"' and xbatch='"+xbatch+"'")
+					if batqty < xqty*xcfsel
+						error "Quantity Exceeds Batch Quantity"
+					end if
+				end if
+				call checkbatch
+			end event
+			event after
+				string stype=opddt.xstype("xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+				string statusdor=opdor.xstatusdor("xdornum='"+xdornum+"'")
+				if stype .ne. "Non-Stock"
+					double batcount=0.00+#sql(double,"select sum(xqty) from opddtbat where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+					double ddtqty=0.00+opddt.xqty("xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+					if batcount<>ddtqty
+						set tempstr=#sql(int,"update opdor set xstatusdor='"+#status("xstatusdor",6)+"' where xdornum='"+xdornum+"'")
+						set tempstr=#sql(int,"update opddt set xstatusddt='"+#status("xstatusdor",6)+"' where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+					else if statusdor .eq. #status("xstatusdor",6)
+						set tempstr=#sql(int,"update opdor set xstatusdor='"+#status("xstatusdor",1)+"' where xdornum='"+xdornum+"'")
+						set tempstr=#sql(int,"update opddt set xstatusddt='"+#status("xstatusdor",1)+"' where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+					end if
+				end if
+			end event
+		end field
+
+        field delete
+          event after
+            double batcount=#sql(double,"select sum(xqty) from opddtbat where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+            double ddtqty=0.00+opddt.xqty("xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+            if batcount<>ddtqty
+                set tempstr=#sql(int,"update opdor set xstatusdor='"+#status("xstatusdor",6)+"' where xdornum='"+xdornum+"'")
+                set tempstr=#sql(int,"update opddt set xstatusddt='"+#status("xstatusdor",6)+"' where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+               else
+                set tempstr=#sql(int,"update opdor set xstatusdor='"+#status("xstatusdor",1)+"' where xdornum='"+xdornum+"'")
+                set tempstr=#sql(int,"update opddt set xstatusddt='"+#status("xstatusdor",1)+"' where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+            end if
+          end event
+        end field
+
+		field add
+			event before
+				double batqty=0.00+imbatview.xqty("xitem='"+opddt.xitem("xdornum='"+xdornum+"' and xrow='"+xrow+"'")+"' and xwh='"+opddt.xwh("xdornum='"+xdornum+"' and xrow='"+xrow+"'")+"' and xbatch='"+xbatch+"'")
+				if batqty < xqty*xcfsel
+					error "Quantity Exceeds Batch Quantity"
+				end if
+				call checkbatch
+			end event
+			event after
+				double batcount=#sql(double,"select sum(xqty) from opddtbat where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+				double ddtqty=0.00+opddt.xqty("xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+				if batcount<>ddtqty
+					set tempstr=#sql(int,"update opdor set xstatusdor='"+#status("xstatusdor",6)+"' where xdornum='"+xdornum+"'")
+					set tempstr=#sql(int,"update opddt set xstatusddt='"+#status("xstatusdor",6)+"' where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+				else
+					set tempstr=#sql(int,"update opdor set xstatusdor='"+#status("xstatusdor",1)+"' where xdornum='"+xdornum+"'")
+					set tempstr=#sql(int,"update opddt set xstatusddt='"+#status("xstatusdor",1)+"' where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+				end if
+			end event
+		end field
+
+        field xbatch
+          pick imbat
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+        detail=b.value
+        }
+        function submitit(form){
+          if (detail=="Return"){
+            form.page.value = "opddt"
+            form.searchbutton.value = "Find xrow=?"
+          }
+        }
+
+        </script>
+     end script
+     
+	method checkbatch
+		str xbatchman=caitem.xbatchman(xitem)
+		if xbatchman .eq. "1"
+			if xbatch .eq. ""
+				error "Must Enter a Batch Number"
+			end if
+		
+			double xavail=imbatview.xavail(xitem,xwh,xbatch)
+			double qty=xqty*xcfsel
+			if #command .eq. "Add"
+				if qty>xavail
+					error "Quantity "+qty+ " is > Available Qty "+xavail+ " in Batch "+xbatch
+				end if
+			else
+				double currentqty=imtrn.xqty(ximtrnnum)
+				double diff=qty-currentqty
+				if diff>xavail
+					error "Additional Quantity "+diff+ " is > Available Qty "+xavail+ " in Batch "+xbatch
+				end if
+			end if
+		end if
+	end method
+
+end page

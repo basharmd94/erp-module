@@ -1,0 +1,15 @@
+     list xast
+		caption "Asset Class"
+        table faasset
+        order xcode
+        
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xname')"),~
+                xdesc
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

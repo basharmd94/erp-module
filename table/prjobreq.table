@@ -1,0 +1,21 @@
+product ERP on the Net
+
+table prjobreq
+
+  caption "Job Requisition No"
+  
+  columns ztime,zutime,zid,xwmjobnum,xdate,xdatereq,xdateenq,xdatecon,xdateeff,~
+            xqtyreq,xqty01,xqty02,xdept,xtitlejob,xjob,xlevel,xtypep,xtypeappt,~
+            xrem,xremarks,xnote,xatdrem,xdescdet,xdesc01,xdesc02,xstatusreq,xlocation,~
+            xemp,xdesig,xtitle,xnewdept,xreason,xdesc03,xdesc04,xdesc05,xamount,~
+            xgrade,xshmark,zemail,xemail,xlong,xcostcent,xcat,xsec,xdomain,~
+			xapprover,xapproverhr,xapprovermd,xapproveracc,xrepto,~
+			xcomments1,xcomments2,xcomments3,xyear
+
+  primary key zid,xwmjobnum
+
+  foreign key
+    zid references zbusiness.zid
+  end foreign key
+
+end table

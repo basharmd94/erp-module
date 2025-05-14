@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table opcrnviewdam
+  caption "OP Credit Note View"  
+  
+  columns  zid,xdornum,xcrnnum,xitem,xdesc,xqtycrn,xqtydor,xcus,xstatuscrn,xtype
+  
+  primary key zid, xdornum,xitem,xcrnnum
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  sql create view opcrnviewdam (zid,xdornum,xcrnnum,xitem,xdesc,xqtycrn,xqtydor,xcus,xstatuscrn,xtype) ~
+     as select opcdt.zid,opddt.xdornum,opcdt.xcrnnum,opcdt.xitem,opcdt.xdesc,opcdt.xqty,opddt.xqty,opcrn.xcus,opcrn.xstatuscrn,'RPLC' from opcdt inner join opddt ~
+	 on opcdt.zid=opddt.zid and opcdt.xdornum=opddt.xdornum and opcdt.xitem=opddt.xitem inner join opcrn on opcdt.zid=opcrn.zid ~
+	 and opcdt.xcrnnum=opcrn.xcrnnum and opcrn.xstatuscrn='2-Accepted' and opcrn.xcrnnum like 'DSR-%'
+
+end table

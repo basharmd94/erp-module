@@ -1,0 +1,39 @@
+//PD Reports.menu
+//-------------------------------------------------------------------
+caption "HR Reports" page 3
+option                           |action
+//-------------------------------------------------------------------
+Employee List(New)                                  |#classPath+"/"+#servlet+"?page=*crystal prmst007(xemp=From Employee=0,xemp=To Employee=z,xstatusemp= Employee Status=A-Active )"
+Employee List(By Office New)                                  |#classPath+"/"+#servlet+"?page=*crystal prmst008(xemp=From Employee=0,xemp=To Employee=z,xdiv1=Name of Office)"
+Employee List                                  |#classPath+"/"+#servlet+"?page=*crystal prmst1(xemp=From Employee=0,xemp=To Employee=z,xstatusemp= Employee Status=A-Active )"
+Employee List (All Office)                      |#classPath+"/"+#servlet+"?page=*crystal prmst2(xemp=From Employee=0,xemp=To Employee=z,xstatusemp= Employee Status=A-Active )"
+Employee List By Office                         |#classPath+"/"+#servlet+"?page=*crystal prmstoffice(xemp=From Employee=0,xemp=To Employee=z,xdiv1=Name of Office )"
+Employee List(Dept.,Desig. Wise)                 |#classPath+"/"+#servlet+"?page=*crystal premplistall(xemp=From Employee,xemp=To Employee,xdept2=From Dept.,xdept2=To Dept.,xdesig=From Desig.,xdesig=To Desig.)"
+-
+Employee List (Offic Wise Dearness Statement)                      |#classPath+"/"+#servlet+"?page=*crystal prmstoffice_dear(xemp=From Employee=0,xemp=To Employee=z,xdiv1=Name of Office )"
+-
+Employee List (Offic Wise New)                      |#classPath+"/"+#servlet+"?page=*crystal prmstoffice_new(xemp=From Employee=0,xemp=To Employee=z,xdiv1=Name of Office )"
+Employee List (With Basic And Gross)                      |#classPath+"/"+#servlet+"?page=*crystal prmstoffice_bgross(xemp=From Employee=0,xemp=To Employee=z,xdiv1=Name of Office )"
+-
+Joining Date Wise Employee List                    |#classPath+"/"+#servlet+"?page=*crystal prmst(xemp=From Employee=0,xemp=To Employee=z,xdate=From Date,xdate=To Date)"
+Joining Date And Nature Wise Employee List                    |#classPath+"/"+#servlet+"?page=*crystal prmst_nature(xemp=From Employee=0,xemp=To Employee=z,xdate=From Date,xdate=To Date,xempnature=Nature Of Employee)"
+Employee Detail Info                             |#classPath+"/"+#servlet+"?page=*crystal premp_emplyment(xemp=From Employee,xemp=To Employee)"
+Employee Separation Report                                  |#classPath+"/"+#servlet+"?page=*crystal prmstleft(xdate=From Date,xdate=To Date)"
+-
+Increment Report                                 |#classPath+"/"+#servlet+"?page=*crystal princrement(xemp=From Employee,xemp=To Employee,xdesig=From Desig.,xdesig=To Desig.)"
+-New Reports
+Employee General Information                                  |#classPath+"/"+#servlet+"?page=*crystal prmst_general(xemp=From Employee=0,xemp=To Employee=z)"
+Date Wise Employee Joining Reports                                  |#classPath+"/"+#servlet+"?page=*crystal prmst_joining(xdate=From Date,xdate=To Date)"
+Employee Seperation Reports                                  |#classPath+"/"+#servlet+"?page=*crystal prmst_Separation(xdate=From Date,xdate=To Date)"
+Employee Confirmation Reports                                  |#classPath+"/"+#servlet+"?page=*crystal prmst_confirmation(xdate=From Date,xdate=To Date)"
+-
+Curent Employee Status Reports                                  |#classPath+"/"+#servlet+"?page=*crystal prmstempcount"
+Employee Confirmation Reports(Summary)                                  |#classPath+"/"+#servlet+"?page=*crystal prmstempcount_confirmationdt(xdate=From Date,xdate=To Date)"
+Employee Joining Reports(Summary)                                  |#classPath+"/"+#servlet+"?page=*crystal prmstempcount_joindt(xdate=From Date,xdate=To Date)"
+Employee Seperation Reports(Summary)                                  |#classPath+"/"+#servlet+"?page=*crystal prmstempcount_separationdt(xdate=From Date,xdate=To Date)"
+-
+Employee Salary Report                                  |#classPath+"/"+#servlet+"?page=*crystal prmst_salary_deptwise(xemp=From Employee=0,xemp=To Employee=z,xdept2=From Department,xdept2=To Department)"
+Employee Salary Change Report                                  |#classPath+"/"+#servlet+"?page=*crystal prmst_salarychange_deptwise(xemp=From Employee=0,xemp=To Employee=z,xdept2=From Department,xdept2=To Department,xyear=Year,xper=Period)"
+
+
+//---------------------------------------------------------------------------------------------------------------------------

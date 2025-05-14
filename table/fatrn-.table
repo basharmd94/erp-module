@@ -1,0 +1,23 @@
+product ERP on the Net
+
+table fatrn
+
+  caption "FA Transaction Entry"
+
+  columns ztime,zutime, zid,xvoucher,xdate,xyear,xper,xcode,xastname,xastcatg,xastbook,xasttype,~
+          xastunit,xastbr,xastloc,xdiv,xsec,xproj,xdepmeth,~
+          xpurdate,xcur,xexch,xprime,xbase,xsup,xinvno,~
+          xnomlife,xestlife,xslvval,xretdate,xdepfactor,~
+          xprvunit,xprvbr,xprvloc,xprvdiv,xprvsec,xprvproj,~
+          xleasestat,xmortgstat,xassetstat,xpornum,xdateto,xcus,xmodel,xcondition,~
+          xmaxload,xunitalt,xmfgyear,xorigin,xmanufacturer,xarea,xthana,xmouza,~
+		  xareagovt,xareaphys,xaruntgovt,xaruntphys,xdistrict,xdept,xsubdept,xglref,xlong,~
+		  xdateord,xname,xalias,xrate,xratesys,xmarginsys,xinstalno,xappamt,xdesc02,xacccat,xtrnfa
+          
+  primary key zid, xvoucher
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table

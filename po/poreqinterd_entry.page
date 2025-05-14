@@ -1,0 +1,414 @@
+page poreqinterd_entry
+     caption "Item(s) for Requisition "+globals(xcounterno)
+
+	 sidebar 
+	 dependent
+     sections list header,form detail,list order,text top, script myscript
+                           
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+    list header
+        caption "Requisition "+globals(xcounterno)
+        table poreqinterd
+        order xcounterno
+        fixed xcounterno        
+        rows 1 f
+        objects ~
+                xcounterno,xdate,xstatusreq
+                
+        field xcounterno
+          caption Requisition No.
+        end field
+
+     end list
+
+     list order
+        caption "Added Item(s)"
+		empty " "
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=poreqinterd.zid and xitem=poreqinterd.xitem) as itemdesc ~
+			from poreqinterd) as tbl
+		
+        order xcounterno,xrow
+        fixed xcounterno
+        select "zid='"+#id+"'"
+        rows 20
+
+        objects xrow attrib(link #servlet+"?page=poreqinterd_entry&command=Show&xcounterno=?&xrow=?"), ~
+                xitem,itemdesc,xitemorig,xname,xsize,xmaterial,xthickness,~
+				xcolor,xqtyord,xunitpur,xcur,xexch,xrate,xtotamt,xcarton,xtotcarton,xnwpc,xnwwpc,xgwweight,~
+				xtotgrskg,xctszcm,xtotacbm,xpcking,xremarks
+
+        field desc
+            storage varchar
+            caption Description
+        end field
+
+        field itemdesc
+            storage varchar
+            caption Item Name
+        end field
+
+		field xitemorig
+			caption Supplier Item Code
+		end field
+		
+		field xitem
+			caption HMBR Code
+		end field 
+		
+		field xname
+			caption Supplier Item Name
+		end field
+		
+		field xqtyord
+			caption Qty
+		end field
+		
+		field xunitpur
+			caption Unit
+		end field
+		
+		field xrate
+			caption Unit Price
+		end field
+		
+		field xtotamt
+			caption Total Amount
+		end field
+		
+		field xcolor
+			caption Color
+		end field
+		
+		field xremarks
+			caption Claim For Previous Shipment
+		end field
+
+     end list
+
+     form detail
+     	valid valid,access
+        table poreqinterd
+        order xcounterno,xrow
+        fixed xcounterno
+        select "zid='"+#id+"'"        
+		focus xitem
+		default Add
+        layout 3
+        objects Show, Add,Clear,Update, Top, Previous, Delete, Next, Bottom,Return,~
+                xrow attrib(row 0 1),~
+                xitem attrib(submit;attach), itemdesc,~
+				xitemorig,xname,xsize,xmaterial,xthickness,~
+				xcolor,xqty attrib(submit),xqtyord,xunitpur,xcur,xexch,xrate attrib(submit),xtotamt display(const),~
+				xcarton,xtotcarton display(const),xnwpc,xnwwpc,xgwweight,~
+				xtotgrskg,xtotgrskg1,xtotgrskg2,xtotgrskg3 display(const),xctszcm,xctszcm1,xctszcm2,xtotacbm display(const),xpcking,xremarks
+				
+				
+        field show
+        	event before
+        		set globals(temp) = xrow
+        	end event
+        	event after
+        		set globals(temp) = xrow
+        	end event
+        end field
+		
+		field xqty
+			caption Qty(HMBR)
+		end field
+		
+		field xsize
+			storage varchar
+		end field
+		
+		
+		field xcarton
+			caption Capacity per Certon
+		end field
+		
+		field xcolor
+			caption Color
+		end field
+		
+		
+		field xitem
+			caption HMBR Code
+		end field 
+		
+		
+		field xremarks
+			display text
+			pick
+			caption Claim For Previous Shipment
+		end field
+
+		field xitemorig
+			caption Supplier Item Code
+			pick 
+		end field
+		
+		field xname
+			caption Supplier Item Name
+		end field
+		
+		field xmaterial
+			display text
+			pick
+		end field
+		
+		field xcolor
+			display text
+			pick
+		end field
+		
+		field xqtyord
+			caption Qty(Supplier)
+			event after
+				if xqtyord==0
+					set xqtyord=0.0+xqty
+				end if
+			end event
+		end field
+		
+		field xunitpur
+			caption Unit
+		end field
+		
+		field xrate
+			caption  Unit Price
+		end field
+		
+		field xtotamt
+			caption Total Amount
+			event after
+				compute xtotamt=0.0+xqtyord*xrate*xexch
+			end event
+		end field
+
+        field Top
+        	event after
+        		set globals(temp) = xrow
+        	end event
+        end field
+		
+        field xporeq
+        	caption Approved Qty
+        end field	
+		
+		field xrate
+			caption Rate
+		end field
+
+        field xrow
+            event after
+                set statreq = poreq.xstatusreq("zid='"+#id+"' and xcounterno='"+xcounterno+"'")
+
+                set globals(xrow) = xrow
+                set #field(zemail.caption) = "Entered By"
+                set #field(xemail.caption) = "Last Updated By"
+            end event
+        end field
+
+        field xitem
+            event after
+                set globals(xitem)=xitem
+            end event
+        end field
+
+        field itemdesc
+            attrib local
+            display const
+            caption Description
+            event after
+                set itemdesc = #sql(str,"select xdesc from caitem where zid='"+#id+"' and xitem='"+globals(xitem)+"'")
+            end event
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk) = ""
+
+
+                if globals(ErrChk) .ne. "1"
+                	//call chk_code
+                end if
+
+
+                if globals(ErrChk) .ne. "1"
+					if xqtyord==0
+						set xqtyord=0.0+xqty
+					end if
+					
+					set xtotcarton=0.0+xqtyord/xcarton					
+					
+					compute xtotamt=0.0+xqtyord*xrate*xexch
+					set tempval = 0.0 + xctszcm*xctszcm1*xctszcm2
+					set xtotgrskg3 = 0.0 + tempval / 1000000
+					
+					set xtotacbm = 0.0 + xtotcarton * xtotgrskg3
+                  set zemail = #user
+                end if
+            end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk) = ""
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(xrow)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(temp)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+
+                if globals(ErrChk) .ne. "1"
+                    //call chk_code
+                end if
+
+                if globals(ErrChk) .ne. "1"
+					if xqtyord==0
+						set xqtyord=0.0+xqty
+					end if
+
+					set xtotcarton=0.0+xqtyord/xcarton					
+					compute xtotamt=0.0+xqtyord*xrate*xexch
+					set tempval = 0.0 + xctszcm*xctszcm1*xctszcm2
+					set xtotgrskg3 = 0.0 + tempval / 1000000
+					
+					set xtotacbm = 0.0 + xtotcarton * xtotgrskg3
+					set xemail = #user
+                end if
+            end event
+        end field
+
+        field delete
+            event before
+                set globals(ErrChk) = ""
+
+
+                if globals(ErrChk) .ne. "1"
+                  	set stat = poreqinterd.xstatusreq(" zid='"+#id+"' and xcounterno='"+xcounterno+"'")
+                  	if stat .ne. #status("xstatusreq",1)
+                        set globals(ErrChk)="1"
+                  		error "Cannot "+#command+" Status "+stat
+                  	end if
+                end if
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "poreqinter_entry"
+            form.searchbutton.value = "Find xcounterno=?"     
+          }
+        }
+
+        </script>
+     end script
+
+        method chk_code
+            set tmpcode=xitem
+            buffer caitem
+            move caitem=caitem(xitem)
+            if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Wrong Item Code"
+            else
+                set xitem = caitem.xitem
+                set xstype = caitem.xstype
+                set xunitpur = caitem.xunitstk
+                if caitem.xcfpur == 0.0
+                    set xcfpur = 1.0
+                else
+                    set xcfpur = 0.0+caitem.xcfpur
+                end if
+
+                set xstatuspdt = "Item Verified"
+            end if
+        end method
+
+     valid valid
+		mandatory xitem,xsize,xqty
+     	config
+		 	set globals(pkey) = globals(xcounterno)+" "+xrow    		
+
+            set statreq = poreqinter.xstatusreq("zid='"+#id+"' and xcounterno='"+xcounterno+"'")
+			
+            if statreq .eq. "Complete"
+                set #field(Add.display) = "disable"
+                set #field(Update.display) = "disable"
+                set #field(Delete.display) = "disable"
+                set #field(Delete.display) = "disable"
+                set #field(Complete.display) = "disable"
+                set #field(xitem->.display) = "const"
+                
+            end if
+            if xunitpur .eq. ""
+                set xunitpur=caitem.xunitstk("zid='"+#id+"' and xitem='"+xitem+"'")
+            end if
+
+     	end config
+     end valid
+
+#include access.valid
+     
+end page

@@ -1,0 +1,20 @@
+product ERP on the Net
+
+table lcmst
+  caption "L.C. Information"
+  columns ztime,zutime,zid,xlctrnnum,xlctype,xordernum,xpornum,xsup,xlcno,xlcopndate,xlcclsdate,xdateord,~
+          xpayact,xcountry,xtotamt,xcur,xexch,xinscvr,xdateass,xdate,xdateres,xcarrier,~
+          xdatesch,xblno,xbeno,xdateeff,xlong,xicno,xpinvno,xpinvdate,xlmemt,xshipupto,xshipdate,~
+          xlcano,xamddate,xpsino,xlcvalue,xfobval,xbank,xfreight,xstatusord,zemail,xemail,xtype,~
+          xproj,xinscomp,xdesc,xstr02,xexchcost,xstr01,zstatusnew,zstatusold,xstr05,xstr03,xstr04,xrefcode,xstr06
+          //zstatusnew=LC Stop Showing the  Report: polcLonStat, added: by Manik dt20-May-2010
+          //zstatusold=Loan(PAD/LTR)Stop Showing the  Report: polcLonStat, added: by Manik dt20-May-2010
+          
+  primary key zid, xlctrnnum
+
+  foreign key
+        zid references zbusiness.zid
+        //zid,xpornum references poord.zid,xpornum
+  end foreign key
+
+end table

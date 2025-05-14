@@ -1,0 +1,1322 @@
+page imtemptsriss
+     //embed onload="move_caret('one','xdate')"
+     caption header 
+
+     sidebar list detail
+     sections form one,list new, confirm, text top, script myscript
+            //approve,  approv,
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+
+     list detail
+        caption "<font size=2>Item(s) Added</font>"
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=imtemptdt.zid and xitem=imtemptdt.xitem) as xdesc ~
+			from imtemptdt) as tbl
+
+        order ximtmptrn,xtorlno
+        fixed ximtmptrn
+        rows 10
+        objects xtorlno attrib(link #servlet+"?page=imtemptsriss&command=Show&ximtmptrn=?&xtorlno=?"), ~
+                xitem,xdesc,xqtyreq,xrate,xval
+
+        field xunit
+          caption Unit
+        end field
+        
+        field xtorlno
+        	caption Line No.
+        end field
+
+        field xdesc
+          storage varchar
+          caption Description
+        end field
+        
+        field xqtyreq
+        	caption Qty Required
+		end field
+        
+        field xqtyord
+        	caption Qty Approved
+        end field
+        
+     end list
+    
+    list new
+        caption "Return Entry New"
+		
+        table imtemptrn
+        order ximtmptrn DESC
+        //select "((xaction='Issue') and (xstatustrn like '1%') and '"+globals(mode)+"'='Entry')"
+        select "(xstatustrn like '1%' and xaction='Issue' and xtrnimf='PRE-')"
+        rows 5
+        objects ~
+               ximtmptrn attrib(link #servlet+"?page=imtemptsriss&command=Show&ximtmptrn=?"), ~
+               xdate,xwh,xstatustrn
+
+        field ximtmptrn
+          caption Trn Number
+        end field
+
+     end list
+
+    list approv
+        caption "To Be Approve Issue Entry"
+        table imtemptrn
+        order ximtmptrn DESC
+        select "((xaction='Issue') and (xstatustrn like '1%') and '"+globals(mode)+"'='Approval' and xemail1='"+#users+"')"
+        rows 5
+        objects ~
+               ximtmptrn attrib(link #servlet+"?page=imtemptsriss&command=Show&ximtmptrn=?"), ~
+               xdate,xwh,xstatustrn,xemail1
+
+        field ximtmptrn
+          caption Trn Number
+        end field
+		
+		field xemail1
+			caption Approver ID
+		end field
+
+     end list
+
+
+    list approve
+        caption "<font color=green>Requisition(s) - Approved"
+        table imtemptrn
+        order ximtmptrn DESC
+        select "((xaction='Issue') and (xstatustrn like '2%'))"
+        rows 5
+        objects ~
+               ximtmptrn attrib(link #servlet+"?page=imtemptsriss&command=Show&ximtmptrn=?"), ~
+               xdate,xwh,xstatustrn
+
+        field ximtmptrn
+          caption Trn Number
+        end field
+
+     end list     
+
+    list confirm
+        caption "<font color=red>Return(s) - Confirmed"
+        table imtemptrn
+        order ximtmptrn DESC
+        select "(xaction='Issue' and xstatustrn like '5%' and xtrnimf='PRE-')"
+        rows 5
+        objects ~
+               ximtmptrn attrib(link #servlet+"?page=imtemptsriss&command=Show&ximtmptrn=?"), ~
+               xdate,xwh,xstatustrn
+
+        field ximtmptrn
+          caption Trn Number
+        end field
+
+     end list     
+     
+     form one
+        //caption "<font color=black size=3>Store Requistion</font>"
+        valid valid,access
+        table imtemptrn
+        order ximtmptrn DESC
+        select "xaction='Issue'"
+        
+        layout 2
+        objects Show,Add,Detail,Clear, Update, Delete, Previous, Next, Approve, Confirm,Post,~
+               xtrnimf attrib(attach),trndesc,ximtmptrn display(text),xdate,xdatecom default(#d),xref,~
+               xwh,xdiv display(hide),xsec display(hide),xdept display(hide),xemail1 display(hide),xproj,xcus attrib(attach) display(hide),cusname,xsup ,~
+               xsign display(hide), xaction display(hide), xyear display(hide), xper display(hide),~
+               xrem,"",xstatustrn display(const),zemail display(const),xemail display(const),xstatustor display(hide),~
+               xteam display(hide),xmember display(hide),xmanager display(hide),xtrnimt display(hide),~
+			   xapprover display(hide)
+
+                       
+					   
+		field xdept
+            caption Department
+            pick "select xcode from xcodes where zid='"+#id+"' and xtype='Department1'"
+		end field
+		
+		field xproj
+            caption Project
+            pick "select xcode from xcodes where zid='"+#id+"' and xtype='Project'"
+		end field
+		
+		
+		field xemail1
+			caption Approver ID
+			display const
+			event after
+				set xemail1=#sql("select xemail1 from imsetdept where zid='"+#id+"' and xdept='"+xdept+"'")
+			end event
+		end field
+					   
+      field ximtmptrn
+        caption Trn Number
+        attrib search
+        event after
+	      	set #field(zemail.caption) = "Entered By"
+	      	set #field(xemail.caption) = "Last Updated By"      
+          set globals(ximtmptrn)=ximtmptrn
+          if ximtmptrn .ne. ""
+          	set #field(xtrnimt.display) = "const"
+          end if
+
+          if xstatustrn .eq. #status("xstatustrn",5) //"5-Confirmed"
+            set #field(Confirm.display) = "disable"
+            set #field(Approve.display) = "disable"
+            set #field(Update.display) = "disable"
+            set #field(Delete.display) = "disable"
+            set #field(xdate->.display) = "constant"
+          end if
+          
+          if xstatustrn .eq. #status("xstatustrn",2) //"2-Approved"
+//		  	set xreqapp = #sql("select xreqapp from imdef where zid='"+#id+"'")
+//          	if xreqapp .eq. "Yes"          
+//            	set #field(Approve.display) = "disable"
+//            	set #field(Update.display) = "disable"
+//            	set #field(Delete.display) = "disable"
+//            	set #field(xdate->.display) = "constant"
+//            end if
+          end if
+
+          if xstatustrn .eq. #status("xstatustrn",1) //"1-Open"
+            //set #field(Confirm.display) = "disable"
+		  end if
+		            
+          if xstatustrn .gt. #status("xstatustrn",5) //"5-Confirmed"
+            set #field(Confirm.display) = "disable"
+            set #field(Post.display) = "disable"
+          end if
+          
+          if xstatustrn .ne. #status("xstatustrn",5) //"5-Confirmed"
+            set #field(Undo.display) = "disable"
+            set #field(Post.display) = "disable"
+			call checkserial
+			if err==0
+				call checkbatch
+			end if
+          end if
+        end event
+      end field
+
+      field xrem
+        caption Notes
+        width 40
+        height 2
+      end field
+
+      field xdate
+        default #date
+        event after
+          set globals(xdate)=xdate
+        end event
+      end field
+
+      field xdatecom
+        default #date
+        event after
+          set globals(xdatecom)=xdatecom
+        end event
+      end field
+
+        field xwh
+          event after
+            set globals(xwh)=xwh
+          end event
+		  //default "Fixit Gulshan"
+        end field
+
+     field xstatustrn
+      event after
+        set globals(xstatustrn) = xstatustrn
+      end event
+     end field
+
+     field xaction
+      event after
+        set globals(xaction) = xaction
+      end event
+     end field
+
+     field xsign
+      event after
+        set globals(xsign) = xsign
+      end event
+     end field
+
+     field xtrnimf
+     	caption Transactoin Prefix
+     	pick "select xtrn from xtrn where zid='"+#id+"' and xtypetrn='Im Transaction' and xaction='Receipt' and zactive='1'"
+		defult "PRE-"
+		
+     end field
+     
+     field trndesc
+     	attrib local
+     	display const
+     	caption
+     end field
+     
+     field cusname
+     	attrib local
+     	display const
+     	caption
+     	event after
+     		set cusname=#sql("select xorg from cacus where xcus='"+xcus+"'")
+     	end event
+     end field
+
+     field add
+      event before
+        set globals(ErrChk) = ""
+
+        if globals(ErrChk) .ne. "1"
+			int offset
+			int per
+			int year=#sub(globals(xdate),0,4)
+			
+			set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+			
+			set per=12+#sub(globals(xdate),5,2)-offset
+			if per<=12
+				set xper=per
+				set xyear=year-1
+			else
+				set xper=per-12
+				set xyear=year
+			end if
+	        
+            call chk_code
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+            set atcus = #sql("select xattribcus from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atcus .eq. "Show"
+            	set chkcus = #sql("select xcus from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+            	if #result .ne. "true"
+            		set globals(ErrChk) = "1"
+            		error "Wrong Customer Code"
+            	end if
+            end if   
+        end if
+
+////		if globals(ErrChk) .ne. "1"
+////		  	set xreqapp = #sql("select xreqapp from imdef where zid='"+#id+"'")
+////      		if xreqapp .eq. "Yes"
+////    			set xstatustrn=#status("xstatustrn",1)
+////    		else if xreqapp .eq. "No" 
+////    			set xstatustrn=#status("xstatustrn",2)
+////    		else
+////    			set globals(ErrChk) = "1"
+////    			error "Requisition Approval Method not defined in IM Default"
+////    		end if
+////		end if			        
+////		
+        if globals(ErrChk) .ne. "1"
+			str mysql = #sql(str,"select ximtmptrn from imtemptrn where zid='"+#id+"' and ximtmptrn like '"+xtrnimf+"%' order by ximtmptrn desc")
+			if #result .eq. "true" .and. mysql .ne. ""
+				set last_num = 0+#sub(mysql,4,6)
+			end if
+			set last_num = 0+1+last_num
+			set mysql = #padl(""+last_num,6,"0")
+			set ximtmptrn = xtrnimf + mysql            
+			
+			set xaction="Issue"
+			set xsign=-1
+			set zemail=#user
+			set xemail=""
+			set xapprover=""
+            set xmember = #user
+            set xteam = #sql(string,"select xteam from cateam where xmember = '"+xmember+"'")
+            set xmanager = #sql(string,"select xmanager from caman where xteam = '"+xteam+"'")
+        end if  
+      end event
+     end field
+
+     field update
+      event before
+        set globals(ErrChk) = ""
+        
+        if globals(ErrChk) .ne. "1"
+        	if ximtmptrn .ne. globals(ximtmptrn)
+            	set globals(ErrChk)="1"
+            	error "Record pointer mismatch</p>Cannot "+#command
+            end if
+        end if 
+                
+        if globals(ErrChk) .ne. "1"
+          call chk_code
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+          call chk_rec
+        end if        
+
+        if globals(ErrChk) .ne. "1"
+			int offset
+			int per
+			int year=#sub(globals(xdate),0,4)
+			
+			set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+			
+			set per=12+#sub(globals(xdate),5,2)-offset
+			if per<=12
+				set xper=per
+				set xyear=year-1
+			else
+				set xper=per-12
+				set xyear=year
+			end if
+        
+            set xemail=#user
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+            set atcus = #sql("select xattribcus from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atcus .eq. "Show"
+            	set chkcus = #sql("select xcus from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+            	if #result .ne. "true"
+            		set globals(ErrChk) = "1"
+            		error "Wrong Customer Code"
+            	end if
+            end if   
+        end if
+      end event
+     end field
+
+     field delete
+      event before
+        set globals(ErrChk) = ""
+        
+        if globals(ErrChk) .ne. "1"
+        	if ximtmptrn .ne. globals(ximtmptrn)
+            	set globals(ErrChk)="1"
+            	error "Record pointer mismatch</p>Cannot "+#command
+            end if
+        end if 
+                
+        if globals(ErrChk) .ne. "1"
+        	call chk_rec
+        end if
+      end event
+     end field
+
+    field Correction
+       event before
+         set globals(ErrChk) = ""
+         
+         if globals(ErrChk) .ne. "1"
+           if globals(ximtor) .ne. ximtor
+             set globals(ErrChk) = "1"
+             error "Record pointer mismatch</p>Cannot "+#command
+           end if
+         end if
+         
+         if globals(ErrChk) .ne. "1"
+         	set tempchk = #sql("select xaction from ztemplog where zid='"+#id+"' and xordernum='"+globals(ximtor)+"'")
+         	if tempchk .eq. "Confirm"
+				str mysql = "delete from imtrn where zid='"+#id+"' and xdocnum='"+globals(ximtor)+"'"
+				set tmpstr = #sql(str,mysql)
+         		
+			    str mysql = "delete from ztemplog where zid='"+#id+"' and xordernum='"+globals(ximtor)+"'"
+			    set tmpstr = #sql(str,mysql)
+
+				set myqry = "update imtemptrn set xstatustrn = 'New' where zid='"+#id+"' and ximtor='"+globals(ximtor)+"'"
+				set updval = #sql(str,myqry)
+			    					
+			    print "<font color=blue size=3>Now you can Confirm</font>"
+				action show
+         	end if
+         end if              
+       end event
+    end field
+    
+    field Approve
+    	event before
+    		set globals(ErrChk) = ""
+    		
+	        if ximtmptrn .ne. globals(ximtmptrn)
+	            set globals(ErrChk)="1"
+	            error "Record pointer mismatch</p>Cannot "+#command
+	        end if
+			
+			if globals(ErrChk) .ne. "1"
+				set statustor = imtemptrn.xstatustrn("ximtmptrn='"+ximtmptrn+"'")
+				if statustor .eq. #status("xstatustrn",1)
+				else
+					set globals(ErrChk) = "1"
+					error "Cannot "+#command+"</br>Status : "+statustor
+				end if
+			end if
+			
+			if globals(ErrChk) .ne. "1"
+				set xstatustrn=#status("xstatustrn",2)
+				set xapprover=#user 
+				action Update
+			end if 
+    	end event
+    end field
+     
+    field Confirm
+      event before
+        set globals(ErrChk) = ""
+        set globals(xyear) = 0
+        set globals(xper) = 0
+        set globals(xtrn) = #sub(globals(ximtmptrn),0,4)
+        set globals(ximtrn) = ""
+        string mysql = ""
+        str xtorlno = ""
+
+        if globals(ErrChk) .ne. "1"
+	        if ximtmptrn .ne. globals(ximtmptrn)
+	            set globals(ErrChk)="1"
+	            error "Record pointer mismatch</p>Cannot "+#command
+	        end if 
+	    end if
+        
+       // if globals(ErrChk) .ne. "1"
+		//	set statustor = imtemptrn.xstatustrn("ximtmptrn='"+ximtmptrn+"'")
+		//	if statustor .eq. #status("xstatustrn",2)
+		//	else
+		//		set globals(ErrChk) = "1"
+		//		error "Cannot "+#command+"</br>Status : "+statustor
+		//	end if
+       // end if
+        
+        if globals(ErrChk) .ne. "1"
+        	set chkdet = #sql(int,"select count(xtorlno) from imtemptdt where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"'")
+        	if chkdet > 0
+        	else
+        		set globals(ErrChk) = "1"
+        		error "Detail has no record</p>Cannot "+#command
+        	end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+            int offset
+            int per
+            int year
+            
+            if atcdt .eq. "Show"
+            	set date = globals(xdatecom)
+            else
+            	set date = globals(xdate)
+            end if
+
+            int tempper
+            int tempyear	            
+            set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+			int year=#sub(date,0,4)
+            set per=12+#sub(date,5,2)-offset
+            if per<=12
+                set tempper=per
+                set tempyear=year-1
+            else
+                set tempper=per-12
+                set tempyear=year
+            end if
+	    end if
+	    
+	    if globals(ErrChk) .ne. "1"
+	    	set detqty = #sql(decimal,"select sum(xqtyord) from imtemptdt where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"'")
+	    	if detqty > 0
+	    	else
+	    		set globals(ErrChk) = "1"
+	    		error "No Item Qty found</p>Cannot "+#command
+	    	end if
+	    end if
+
+        if globals(ErrChk) .ne. "1"
+          call get_imtrn_code
+        end if
+
+        if globals(ErrChk) .ne. "1"
+           if xsign < 0
+              call chk_stock
+           end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+        	//call templog
+        end if
+
+        if globals(ErrChk) .ne. "1"           
+			int xtorlno = 0
+			set xtorlno = #sql(int,"select xtorlno from imtemptdt where zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"' and xtorlno>'"+xtorlno+"'")
+			while #result .eq. "true"
+				decimal value = 0.0
+                double batchqty=0.00
+                double batchval=0.00
+									
+				set xitem = imtemptdt.xitem("zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"' and xtorlno='"+xtorlno+"'")
+				set xbin = imtemptdt.xbin("zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"' and xtorlno='"+xtorlno+"'")
+				double quantity = 0.00+imtemptdt.xqtyord("zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"' and xtorlno='"+xtorlno+"'")	            
+	            double value=0.00+imtemptdt.xval("zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"' and xtorlno='"+xtorlno+"'")
+				
+				//error value
+	            string batch=imtemptdt.xbatch("zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"' and xtorlno='"+xtorlno+"'")
+
+				///set costing=caitem.xcostmeth("zid='"+#id+"' and xitem='"+xitem+"'")
+				/////set costing=#prop(xcodes.xprops("xtype='Item Group' and xcode='"+xgitem+"'"),"Costing")
+				///			               
+	     		///if costing .eq. "FIFO"
+                ///      set batchqty=0.00+imffview.xqty("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xwh+"'")
+                ///      set batchval=0.00+imffview.xval("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xwh+"'")	     		
+	     		///else if costing .eq. "Batch"
+				///	set batchqty=0.00+imbatview.xqty("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xwh+"' and xbatch= '"+batch+"'")
+				///	set batchval=0.00+imbatview.xval("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xwh+"' and xbatch= '"+batch+"'")
+	     		///else if costing .eq. "Weighted Average"
+                ///    set batchqty=0.00+imwtview.xqty("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xwh+"'")
+                ///    set batchval=0.00+imwtview.xval("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xwh+"'")
+	     		///end if
+                ///
+                ///if value == 0.00
+                ///  if batchqty > 0
+                ///    set value=batchval/batchqty*quantity
+                ///  else
+                ///    set value=0.00
+                ///  end if
+                ///end if
+                    
+				set xsign = 0-1
+
+ //               string imtrnit=#trn("Inventory Transaction",globals(ximtrn))           
+				set xisscode="PRE-"
+				str mysql = #sql(str,"select ximtrnnum from imtrn where ximtrnnum like '"+xisscode+"%' order by ximtrnnum desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,4,6)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set ximtrnnum = xisscode + mysql            
+//error ximtrnnum
+ 
+				str mysql = "delete from imtrn where zid='"+#id+"' and xdocnum='"+globals(ximtmptrn)+"' and xdocrow='"+xtorlno+"' and xaction='Receipt'"
+				set tmpstr = #sql(str,mysql)
+								
+				set mysql = "insert into imtrn (zid,ximtrnnum, xitem,xitemrow,xitemcol, xwh,xdate,xyear, xper,~
+						xqty,xval,xvalpost,xdoctype,xdocnum,xdocrow,xnote,xaltqty,xdiv,xsec,xproj,~
+						xbatch,xdateexp,xdaterec, xlicense,xcus,xsup,xaction,xsign,zemail,xemail,~
+						xteam,xmember,xmanager,xbin)"
+				set mysql = mysql + " values("+#id+",'"+ximtrnnum+"','"+xitem+"','','','"+globals(xwh)+"',~
+					'"+date+"','"+tempyear+"','"+tempper+"',"+quantity+","+value+","0",'"+xtrnimf+"',~
+					'"+globals(ximtmptrn)+"','"+xtorlno+"','',"0",'"+xdiv+"','"+xsec+"','"+xproj+"','"+batch+"',~
+					'"+globals(xdate)+"','"+globals(xdate)+"','','"+xcus+"','','Issue','"+xsign+"',~
+					'','','"+xteam+"','"+xmember+"','"+xmanager+"','"+xbin+"')"
+				set tmpstr =#sql(mysql)
+				//print #result +"-"+mysql
+				if #result .eq. "true"				
+					str mysql = "update imtemptdt set ximtrnnum='"+ximtrnnum+"',xval="+value+" where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"' and xtorlno='"+xtorlno+"'"
+					set updval = #sql(str,mysql)
+				else
+					set globals(ErrChk) = "1"
+					error "Error in Creating Inventory Trnrupon: "+ximtrnnum+"<br>Row="+xtorlno+"; Item="+xitem
+				end if             	             	
+				
+				set xtorlno = #sql(int,"select xtorlno from imtemptdt where zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"' and xtorlno>'"+xtorlno+"'")			
+           end while
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+			str mysql = "update imser set xconout='1' where zid="+#id+" and xtypeout='Inventory Trn Issue' and xnumout='"+ximtmptrn+"'"
+			set tmpstr = #sql(str,mysql)
+			
+			str mysql = "update imtemptrn set xstatustrn='"+#status("xstatustrn",5)+"' where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"'"
+			set updval = #sql(str,mysql)
+			
+			str mysql = "delete from ztemplog where zid='"+#id+"' and xordernum='"+globals(ximtmptrn)+"'"
+			set tmpstr = #sql(str,mysql)
+			
+          	action show
+          	print "<font color=blue>Store Requisition : "+globals(ximtmptrn)+ "Confirmed</font>"
+        end if
+        
+      end event
+    end field
+	
+	field Post
+		    event before
+				set globals(ErrChk) = ""
+				set globals(xyear) = 0
+				set globals(xper) = 0
+				set globals(xtrn) = #sub(globals(ximtmptrn),0,4)
+				set globals(ximtrn) = ""
+				string mysql = ""
+				str xtorlno = ""
+
+				if globals(ErrChk) .ne. "1"
+					if ximtmptrn .ne. globals(ximtmptrn)
+						set globals(ErrChk)="1"
+						error "Record pointer mismatch</p>Cannot "+#command
+					end if 
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					set statustor = imtemptrn.xstatustrn("ximtmptrn='"+ximtmptrn+"'")
+					if statustor .ne. #status("xstatustrn",5)
+					   set globals(ErrChk) = "1"
+					   error "Cannot "+#command+"</p>Status : "+statustor
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set glref=#sql(str,"select xglref from imtemptrn where ximtmptrn='"+ximtmptrn+"'")
+					if glref .ne. ""
+					   set globals(ErrChk) = "1"
+					   error "Cannot "+#command+"</p>Already Posted; Voucher: "+glref
+					end if
+				end if
+						
+				if globals(ErrChk) .ne. "1"
+					set chkdet = #sql(int,"select count(xtorlno) from imtemptdt where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"'")
+					if chkdet > 0
+					else
+						set globals(ErrChk) = "1"
+						error "Detail has no record</p>Cannot "+#command
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set detqty = #sql(decimal,"select sum(xqtyord) from imtemptdt where ximtmptrn='"+globals(ximtmptrn)+"'")
+					if detqty > 0
+					else
+						set globals(ErrChk) = "1"
+						error "No Item Qty found</p>Cannot "+#command
+					end if
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					call chk_acc
+				end if
+				
+
+				if globals(ErrChk) .eq. ""
+					 set chk_voucher = #sql("select xvoucher from glheader where xref='"+globals(ximtmptrn)+"'")
+					 
+					 str mysql = "delete from glalc where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+					 set updval = #sql(mysql)
+
+					 str mysql = "delete from gldetail where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+					 set updval = #sql(mysql)
+					 
+					 str mysql = "delete from glheader where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+					 set updval = #sql(mysql)
+					 if globals(ErrChk) .eq. "1"
+						 error "Invoice for this Record exists in GL : "+chk_voucher
+					 end if
+				end if
+							
+			if globals(ErrChk) .eq. ""
+					int offset
+					int per
+					set date=""
+
+					if atidt .eq. "Show"
+						set date = globals(xdateinv)
+					else
+						set date = globals(xdate)
+					end if
+					
+					int tempper
+					int tempyear	            
+					set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+					int year=#sub(date,0,4)
+					set per=12+#sub(date,5,2)-offset
+					if per<=12
+						set tempper=per
+						set tempyear=year-1
+					else
+						set tempper=per-12
+						set tempyear=year
+					end if
+					
+            if globals(ErrChk) .ne. "1"
+				
+                set sinvper=#sub(xdate,5,2)
+                set sinvyr=#sub(xdate,2,2)
+                //set sinvcode="JV--"
+                set sinvprefix="PRET"
+            	str mysql = #sql(str,"select xvoucher from glheader where zid='"+#id+"' and xvoucher like '"+sinvprefix+"%' order by xvoucher desc")
+            	//print mysql
+				if #result .eq. "true" .and. mysql .ne. ""
+            		set last_num = 0+#sub(mysql,4,6)
+            	//print last_num
+				end if
+            	set last_num = 0+1+last_num
+            	set mysql = #padl(""+last_num,6,"0")
+            	set xvoucher = sinvprefix + mysql
+				
+            end if
+					
+					set myqry = "insert into glheader (zid, xvoucher,xref,xdate,xpostflag,~
+						xyear,xper,xstatusjv,xdatedue,xdesc01,xdesc02,xdesc03,xdesc04,xdesc05,xictrnno,dumzid,~
+						zemail,xemail,xaccdr,xsubdr,xnumofper,xcheque,xpaytype,xstatus,xtrngl,xnote,xteam,xmember,~
+						xmanager,xapproved,xaction)"
+					set myqry = myqry + " values('"+#id+"','"+xvoucher+"','"+ximtmptrn+"','"+date+"',~
+					'','"+tempyear+"','"+tempper+"','Balanced','"+xdate+"',~
+					'','','','','','',"0",'"+#user+"','','','',"0",'','','','"+xgltrn+"','***System Generated voucher from IM***',~
+					'"+xteam+"','"+xmember+"','"+xmanager+"','','Journal')"
+					set tmpstr =#sql(myqry)
+					print #result+"-"+myqry
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+					end if
+			end if
+				
+				if globals(ErrChk) .eq. ""
+				  
+				  set prefix="PRE-"
+				  
+					set rownum = 0+rownum+1
+					set xaccdr="09030001"
+					set xsubdr=xsup
+					
+					set xaccsource = #sql(str,"select xaccsource from glmst where xacc='"+xaccdr+"'")
+					set xaccusage = #sql(str,"select xaccusage from glmst where xacc='"+xaccdr+"'")
+					set xacctype = #sql(str,"select xacctype from glmst where xacc='"+xaccdr+"'")
+					
+					set ximtrnnum = #sql(str,"select ximtmptrn from imtemptdt where ximtmptrn='"+ximtmptrn+"'")
+					//set xval = #sql(decimal,"select sum(xval) from imtrn where xdocnum='"+ximtrnnum+"'")
+					set xval = #sql(decimal,"select sum(xlineamt) from imtemptdt where ximtmptrn='"+globals(ximtmptrn)+"'")
+					set xval=#round(xval,0)
+					set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+						xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+						xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+						xstatus,xtypegl)"							
+					set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+rownum+"','"+xaccdr+"','"+xaccusage+"',~
+						'"+xaccsource+"','"+xsubdr+"','"+xdiv+"','"+xsec+"','"+xproj+"','BDT',"1.0",~
+						"+xval+","+xval+",'','','','"+xacctype+"','"+#user+"','','','','','','','"+xval+"','',"0",~
+						'','','','')"
+					set tmpstr = #sql(mysql)
+					print #result+" "+mysql
+										
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+					
+					end if
+					
+				if globals(ErrChk) .eq. ""					
+					set rownum = 0+rownum+1
+					//set xaccdr = #sql(str,"select xaccdr from imdef where zid='"+#id+"'")
+					set xaccdr="01060003"
+					set xaccsource = #sql(str,"select xaccsource from glmst where xacc='"+xaccdr+"'")
+					set xaccusage = #sql(str,"select xaccusage from glmst where xacc='"+xaccdr+"'")
+					set xacctype = #sql(str,"select xacctype from glmst where xacc='"+xaccdr+"'")
+					set ximtrnnum = #sql(str,"select ximtmptrn from imtemptdt where ximtmptrn='"+ximtmptrn+"'")
+					//set xval = #sql(decimal,"select sum(xval) from imtrn where xdocnum='"+ximtrnnum+"'")
+					set xval = #sql(decimal,"select sum(xlineamt) from imtemptdt where ximtmptrn='"+globals(ximtmptrn)+"'")
+					set xval=#round(xval,0)
+					
+					set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+						xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+						xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+						xstatus,xtypegl)"							
+					set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+rownum+"','"+xaccdr+"','"+xaccusage+"',~
+						'"+xaccsource+"','','"+xdiv+"','"+xsec+"','"+xproj+"','BDT',"1.0",~
+						"+0-xval+","+0-xval+",'','','','"+xacctype+"','"+#user+"','','','','','','','"+xval+"','',"0",~
+						'','','','')"
+					set tmpstr = #sql(mysql)
+					print #result+" "+mysql
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+					
+					end if
+										
+					
+				end if  
+				  
+				
+				
+				if globals(ErrChk) .eq. "" 
+					set tot_prime = #sql(decimal,"select sum(xprime) from gldetail where xvoucher='"+xvoucher+"'")
+					if tot_prime <> 0.0
+						set globals(ErrChk) = "1"
+						str mysql = "update glheader set xstatusjv = 'Out of Balance' where xref = '"+globals(ximtmptrn)+"'"
+						set tmpstr = #sql(str,mysql)
+						error "Cannot Update("+xvoucher+")Out of Balance</p>Check Error Logs "
+					end if
+				end if
+				
+
+				if globals(ErrChk) .eq. ""
+					str myqry = "update imtemptrn set xglref = '"+xvoucher+"' where zid = "+#id+" and ximtmptrn = '"+globals(ximtmptrn)+"'"//,xstatustrn='Post'
+					set updval = #sql(myqry)
+
+					str mysql = "update imtrn set xvalpost=imtrn.xval where zid='"+#id+"' and xdocnum='"+globals(ximtmptrn)+"'"
+					set tmptr = #sql(mysql)
+
+					action show
+					print " <font color=blue size=2>"+globals(ximtmptrn)+ "Posted to GL</font>"
+				end if
+			end event
+		end field
+
+    field Undo
+      event before
+        set globals(ErrChk) = ""
+        call chk_rec
+        
+        //if globals(ErrChk) .ne. "1"
+        //	  call chk_undo_stock
+		  //end if
+        
+        if globals(ErrChk) .ne. "1"
+           str xtorlno = ""
+           str myqry = "select xtorlno from imtemptdt where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"' and xtorlno>'"+xtorlno+"'"
+           set xtorlno = #sql(str,myqry)
+           while #result .eq. "true"
+           		if globals(ErrChk) .ne. "1"
+	           		set ximtrnnum=#sql("select ximtrnnum from imtemptdt where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"' and xtorlno='"+xtorlno+"'")
+	           		if ximtrnnum .ne. ""
+	           			str mysql = "delete from imtrn where zid='"+#id+"' and ximtrnnum='"+ximtrnnum+"'"
+	           			set updval = #sql(str,mysql)
+	           			if #result .eq. "true"
+	           				str mysql = "update imtemptdt set ximtrnnum='' where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"' and xtorlno='"+xtorlno+"'"
+	           				set updval = #sql(str,mysql)
+	           			end if
+	           		end if	
+           		end if
+
+           		if globals(ErrChk) .ne. "1"
+	           		set xdocnum=#sql("select xdocnum from imtemptdt where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"' and xtorlno='"+xtorlno+"'")
+	           		if xdocnum .ne. ""
+	           			str mysql = "delete from imtrn where zid='"+#id+"' and ximtrnnum='"+xdocnum+"'"
+	           			set updval = #sql(str,mysql)
+	           			if #result .eq. "true"
+	           				str mysql = "update imtemptdt set xdocnum='' where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"' and xtorlno='"+xtorlno+"'"
+	           				set updval = #sql(str,mysql)
+	           			end if
+	           		end if	
+           		end if
+
+              str myqry = "select xtorlno from imtemptdt where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"' and xtorlno>'"+xtorlno+"'"
+              set xtorlno = #sql(str,myqry)
+           end while
+		     if globals(ErrChk) .ne. "1"
+    			  str mysql = "update imtemptrn set xstatustrn='' where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"'"
+     			  set updval = #sql(str,mysql)
+     			      			  
+	  	          print "<font color=blue size=3>Transaction : "+globals(ximtmptrn)+ " Undo Successfully</font>"
+	  	          action show
+		     end if	
+        end if
+      end event
+    end field
+
+    embed onsubmit="submitit(this)"
+    field Detail
+      embed onclick="clicked(this)"
+    end field
+    
+  end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+        
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtempdsriss"
+            form.searchbutton.value="Top"
+            //return false
+          }
+        }
+        </script>
+     end script
+
+  method chk_rec
+    if globals(ximtmptrn) .ne. ximtmptrn
+       set globals(ErrChk) = "1"
+       error "Record Pointer Mismatch"
+    end if
+    if globals(ErrChk) .ne. "1"
+      if #command .ne. "Undo"
+        if globals(xstatustrn) .eq. "Confirmed"
+          set globals(ErrChk) = "1"
+          error "Already Confirmed"
+        end if  
+      end if
+    end if
+
+    if #command .eq. "Undo"
+      if globals(xstatustrn) .ne. "Confirmed"
+         set globals(ErrChk) = "1"
+         error "Not Confirmed Yet"
+      end if   
+    end if
+  end method
+
+     method chk_code
+        set chk_wh = #sql(str,"select xcode from xcodes where zid='"+#id+"' and xtype='Warehouse' and xcode='"+xwh+"'")
+        if #result .ne. "true"
+           set globals(ErrChk) = "1"
+           error "Invalid Warehouse Code Selected: "+xwh
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          set chk_sec = #sql(str,"select xcode from xcodes where zid='"+#id+"' and xtype='Section' and xcode='"+xsec+"'")
+          if #result .ne. "true"
+             //set globals(ErrChk) = "1"
+             //error "Invalid Section Code Selected: "+xsec
+          end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          //set chk_dept = #sql(str,"select xcode from xcodes where zid='"+#id+"' and xtype='Department' and xcode='"+xdept+"'")
+          //if #result .ne. "true"
+          //   set globals(ErrChk) = "1"
+          //   error "Invalid Department Code Selected: "+xdept
+          //end if
+        end if
+        
+        if globals(ErrChk) .ne. "1"	
+        	set chktrn = #sql("select xtrn from xtrn where zid='"+#id+"' and xtypetrn='Im Transaction' and xaction='Receipt' and zactive='1' and xtrn='"+xtrnimf+"'")
+        	print #result
+			if #result .eq. "false"
+        		set globals(ErrChk) = "1"
+        		error "Invalid Transaction Prefix"
+        	end if
+        end if
+        
+     end method
+
+     method mth_check
+        set mth_status = #sql(str,"select xpflag from immthend where xyear='"+xyear+"' and xper='"+xper+"'")
+        if mth_status .eq. "1"
+          set globals(ErrChk) = "1"
+          error xyear+"("+xper+") Already Closed; Cannot "+#command
+        end if   
+     end method
+
+     method get_imtrn_code
+          set mysql = "select xrel from xtrnp where zid='"+#id+"' and xtypetrn='Im Transaction' and xtrn='"+xtrnimf+"' and xtyperel='Inventory Transaction Issue'"
+          set tmptrn = #sql(str,mysql)
+          if #result .eq. "true"
+            set globals(ximtrn) = tmptrn
+          else
+            set globals(ErrChk) = "1"
+            error "<h3><font color=red>IM Transaction Code for Transaction Type '<font color=blue>"+xtrnimf+"</font>' not found<br>Process aborted from this point</font></h3>"
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            set mysql = "select xtrn from xtrn where zid='"+#id+"' and xtypetrn='Inventory Transaction' and xtrn='"+globals(ximtrn)+"'"
+            set tmptrn = #sql(str,mysql)
+            if #result .eq. "true"
+              set globals(ximtrn) = tmptrn
+            else
+              set globals(ErrChk) = "1"
+              error "<h3>IM Trn Code '<font color=blue>"+globals(ximtrn)+"</font>' not found</h3>"
+            end if
+          end if
+     end method
+     
+     method chk_stock
+     	int xtorlno = 0
+       set mysql = "select xtorlno from imtemptdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno>'"+xtorlno+"'"
+       set xtorlno = #sql(int,mysql)
+       while #result .eq. "true"
+	       set xitem = #sql("select xitem from imtemptdt where zid = "+#id+" and ximtor = '"+globals(ximtor)+"' and xtorlno = '"+xtorlno+"'")
+	       set xbatch = #sql(str,"select xbatch from imtemptdt where zid = "+#id+" and ximtor = '"+globals(ximtor)+"' and xtorlno = '"+xtorlno+"'")
+	       set item_qty = #sql(decimal,"select xqtyord from imtemptdt where zid = "+#id+" and ximtor = '"+globals(ximtor)+"' and xtorlno = '"+xtorlno+"'")
+	       
+	       decimal avlqty=0.0        
+	       set avlqty = #sql(decimal,"select sum(xinhand-xopord-xwoalc-xwokit-xtoout) from imstock where zid='"+#id+"' and xitem='"+xitem+"' and xwh='"+globals(xwh)+"'")
+	       if avlqty < 0.0
+	       	set globals(ErrChk) = "1"
+	       	error "Minus Stock</p>Cannot "+#command
+	       end if
+	       if globals(ErrChk) .ne. "1"
+	       	if avlqty<item_qty
+				set globals(ErrChk) = "1"
+				print "<font size=3 color=red>Not enough stock for "+xitem+" <br>Available : "+avlqty+" Req. : "+item_qty+"</font>"
+			end if
+	       end if
+          	if globals(ErrChk) .ne. "1"
+          		set binman = caitem.xbinman("zid='"+#id+"' and xitem='"+xitem+"'")
+          		if binman .eq. "1"          	
+          			set xbin = imtemptdt.xbin("zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"' and xtorlno='"+xtorlno+"'") 
+          			set binqty = #sql(double,"select sum(xqty) from imbinv where zid='"+#id+"' and xitem='"+xitem+"' and xbin='"+xbin+"' and xwh='"+globals(xwh)+"'")
+          			if xqtyord > binqty
+          				set globals(ErrChk) = "1"
+          				error "Not enough stock on bin "+xbin+"<br>Available: "+binqty+" Required: "+xqtyord
+          			end if
+          		end if
+          	end if
+
+           set mysql = "select xtorlno from imtemptdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno>'"+xtorlno+"'"
+           set xtorlno = #sql(int,mysql)
+       end while
+     end method
+
+     method chk_undo_stock
+       str xtorlno=""
+		 set mysql = "select xtorlno from imtemptdt where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"' and xtorlno>'"+xtorlno+"'"
+       set xtorlno = #sql(str,mysql)
+       while #result .eq. "true"
+          str mysql = "select xitem from imtemptdt where zid = "+#id+" and ximtmptrn = '"+globals(ximtmptrn)+"' and xtorlno = '"+xtorlno+"'"
+          set xitem = #sql(mysql)
+          set item_qty = #sql(decimal,"select xqtyord from imtemptdt where zid = "+#id+" and ximtmptrn = '"+globals(ximtmptrn)+"' and xtorlno = '"+xtorlno+"'")
+     		 //set ximtrnnum = #sql("select ximtrnnum from imtemptdt where ximtmptrn='"+globals(ximtmptrn)+"' and xtorlno='"+xtorlno+"'")
+          //str myqry = "select sum(xqty*xsign) from imtrn where zid="+#id+" and xitem = '"+xitem+"' and xwh = '"+globals(xwh)+"' and ximtrnnum<>'"+ximtrnnum+"' and xdate <= '"+globals(xdatecom)+"'"
+          //set actstk = #sql(decimal,myqry)
+          //if actstk < item_qty
+          //   set globals(ErrChk) = "1"
+          //   print "<font color=red size=4>Not Enough Stock for Item "+xitem+" on "+globals(xdatecom)+"</p>Req. Qty : "+item_qty+" Available : "+actstk+"</p>Cannot "+#command
+             //print xitem+" : "+actstk
+          //end if
+          
+          buffer imstock
+          move imstock=imstock(xitem,xwh)
+          if #result .ne. "true"
+             set globals(ErrChk) = "1"
+             print "<font size=3 color=red>Stock not found for Item : "+xitem+"</font>"
+          else
+             set avlqty = 0.0+imstock.xinhand-imstock.xopord-imstock.xwoalc-imstock.xwokit-imstock.xtoout
+             if avlqty<item_qty
+               set globals(ErrChk) = "1"
+               print "<font size=3 color=red>At present, Not enough stock for "+xitem+" <br>Available : "+avlqty+" Req. : "+item_qty+"</font>"
+             end if
+          end if
+          
+          set mysql = "select xtorlno from imtemptdt where zid='"+#id+"' and ximtmptrn='"+globals(ximtmptrn)+"' and xtorlno>'"+xtorlno+"'"
+          set xtorlno = #sql(str,mysql)
+       end while
+     end method
+
+     method templog
+		set myqry = "insert into ztemplog (zid,xordernum,xdate,xtime,xobject,xaction,xemail,xrem)"
+		set myqry = myqry + " values('"+#id+"','"+globals(ximtmptrn)+"','"+#date+"','"+#time+"','"+page+"',~
+			'"+#command+"','"+#user+"','')"
+		set tmpstr =#sql(myqry)
+		if #result .eq. "true"
+		else
+			set globals(ErrChk) = "1"
+			error "Error: Contact System Administrator or</p>Run Correction"
+		end if
+     end method
+     
+	method checkserial
+		int err=0
+		int xtorlno=-1
+		str sql="select xtorlno from imtemptdt where zid="+#id+" and ximtmptrn='"+ximtmptrn+"' and (select xtypeserial from caitem where zid=imtemptdt.zid and xitem=imtemptdt.xitem) like '1%' and xtorlno>"+xtorlno
+		set xtorlno=#sql(int,sql)
+		while xtorlno>0 
+			set sql="select xqtyord from imtemptdt where zid="+#id+" and ximtmptrn='"+ximtmptrn+"' and xtorlno="+xtorlno
+			int qty=#sql(int,sql)
+			set sql="select count(*) from imser where zid='"+#id+"' and xtypeout='Inventory Trn Issue' and xnumout='"+ximtmptrn+"' and xrowout="+xtorlno
+			int cqty=#sql(int,sql)
+			if qty<>cqty
+				set err=1
+				set tempstr=#sql(int,"update imtemptrn set xstatustrn='"+#status("xstatustrn",7)+"' where zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"'")
+				set xstatustrn=#status("xstatustrn",7)
+			else if xstatustrn .eq. #status("xstatustrn",7)
+				set xstatustrn=#status("xstatustrn",1)
+				set tempstr=#sql(int,"update imtemptrn set xstatustrn='"+#status("xstatustrn",1)+"' where zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"'")
+			end if
+			set sql="select xtorlno from imtemptdt where zid="+#id+" and ximtmptrn='"+ximtmptrn+"' and (select xtypeserial from caitem where zid=imtemptdt.zid and xitem=imtemptdt.xitem) like '1%' and xtorlno>"+xtorlno
+			set xtorlno=#sql(int,sql)
+		end while
+	end method
+
+	method checkbatch
+		int err=0
+		int torlno = 0	
+		set torlno=#sql(int,"select xtorlno from imtemptdt where zid="+#id+" and ximtmptrn='"+ximtmptrn+"' and xtorlno > "+torlno)
+		while torlno>0
+			double blankcount=#sql(double,"select xqtyord from imtemptdt where zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"' and xtorlno="+torlno+" and xbatch = ''")
+			double batchcount=#sql(double,"select xqtyord from imtemptdt where zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"' and xtorlno="+torlno+" and xbatch <> ''")
+			double totcount=blankcount+batchcount
+			if blankcount > 0
+				//for mandatory batch numbers       
+				str batchman =#sql(string,"select (select xbatchman from caitem where zid=imtemptdt.zid and xitem=imtemptdt.xitem) from imtemptdt ~
+					where zid="+#id+" and ximtmptrn='"+ximtmptrn+"' and xtorlno= "+torlno)
+				if batchman .eq. "1"
+					set err=1
+				end if
+			end if
+						
+			set torlno=#sql(int,"select xtorlno from imtemptdt where zid="+#id+" and ximtmptrn='"+ximtmptrn+"' and xtorlno > "+torlno)
+		end while
+		if err==1
+			set tempstr=#sql(int,"update imtemptrn set xstatustrn='"+#status("xstatustrn",6)+"' where zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"'")
+			set xstatustrn=#status("xstatustrn",6)
+		else if xstatustrn .eq. #status("xstatustrn",6)
+			set xstatustrn=#status("xstatustrn",1)
+			set tempstr=#sql(int,"update imtemptrn set xstatustrn='"+#status("xstatustrn",1)+"' where zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"'")
+		end if
+	end method
+     
+	valid valid     
+		mandatory xsup,xproj
+		config
+        	set globals(pkey) = ximtmptrn
+
+	        set detcount = #sql(int,"select count(*) from imtemptdt where zid='"+#id+"' and ximtmptrn='"+ximtmptrn+"'")
+			if ximtmptrn .ne. ""              
+				if detcount < 1
+					print "<span class=bl>No Details Entered -- Go to Details and Add record.</span>"
+					set #field(Confirm.display)="disable"
+					set #field(Approve.display)="disable"
+				end if
+			end if
+			
+	        //if mode .sw. "Entry"
+	        //  	set #fields(Approve.display)="disable"          	          
+	        //  	set #fields(Confirm.display)="disable"          	          
+	        //else if mode .sw. "Approval"
+			//		set #fields(Confirm.display)="disable"          	          
+	        //else if mode .sw. "Confirm"
+			//		set #fields(Approve.display)="disable"          	          
+	        //else
+	        //  error "Unsupported Mode: "+mode
+	        //end if
+
+///		  	set xreqapp = #sql("select xreqapp from imdef where zid='"+#id+"'")
+          	if xreqapp .eq. "Yes"
+          		if xstatustrn .eq. #status("xstatustrn",2)
+          		else
+          			set #field(Confirm.display) = "disable"
+          		end if
+          	else
+      			set #field(Approve.display) = "hide"
+          	end if
+	        
+			set globals(mode)=mode
+			str header="Store Requisition "+mode 																									
+     	    set header=header+": <a href='"+#report(imtemptrnpre.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+ximtmptrn+"&prompt2="+ximtmptrn+"' target='_new'>"+ximtmptrn+"</a>"
+     	    set header=header+"<font color=green> ("+xstatustrn+")</font>"
+					
+	        set globals(xtrnimf) = xtrnimf
+	        set trndesc = #sql(str,"select xdesc from xtrn where xtypetrn='Im Transaction' and xtrn='"+xtrnimf+"'")
+			
+			set sup_name = #sql("select xorg from casup where zid='"+#id+"' and xsup='"+xsup+"'")
+            set xappdiv = #sql("select xappdiv from cadef where zid='"+#id+"'")
+            if xappdiv .eq. "0"
+            	set #field(xdiv.display) = "hide"
+            end if
+            
+            set xappsec = #sql("select xappsec from cadef where zid='"+#id+"'")
+            if xappsec .eq. "0"
+            	set #field(xsec.display) = "hide"
+            end if
+            
+            set xappproj = #sql("select xappproj from cadef where zid='"+#id+"'")
+            if xappproj .eq. "0"
+            	set #field(xproj.display) = "hide"
+            end if      
+            
+            set atref = #sql("select xattribref from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atref .eq. "Show"
+            else if atref .eq. "Constant"
+            	set #field(xref.display) = "const"
+            else if atref .eq. "Hide"
+            	set #field(xref.display) = "hide"
+            end if   
+            
+            set atcdt = #sql("select xattribcdt from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atcdt .eq. "Show"
+            else if atcdt .eq. "Constant"
+            	set #field(xdatecom.display) = "const"
+            else if atcdt .eq. "Hide"
+            	set #field(xdatecom.display) = "hide"
+            end if   
+                                  
+            set atidt = #sql("select xattribidt from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atidt .eq. "Show"
+            else if atidt .eq. "Constant"
+            	set #field(xdatecom.display) = "const"
+            else if atidt .eq. "Hide"
+            	set #field(xdatecom.display) = "hide"
+            end if   
+            
+            set atsup = #sql("select xattribsup from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atsup .eq. "Show"
+            else if atsup .eq. "Constant"
+            	set #field(xsup.display) = "const"
+            else if atsup .eq. "Hide"
+            	set #field(xsup.display) = "hide"
+            end if   
+
+            set atcus = #sql("select xattribcus from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atcus .eq. "Show"
+            else if atcusp .eq. "Constant"
+            	set #field(xcus.display) = "const"
+            else if atcus .eq. "Hide"
+            	set #field(xcus.display) = "hide"
+            	set #field(cusname.display) = "hide"
+            end if   
+			            
+            set atglref = #sql("select xattribglref from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atglref .eq. "Show"
+            else if atglref .eq. "Constant"
+            	set #field(xglref.display) = "const"
+            else if atglref .eq. "Hide"
+            	set #field(xglref.display) = "hide"
+            	set #field(Post.display) = "disable"
+            end if   
+
+            set atwh = #sql("select xattribwh from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atwh .eq. "Show"
+            else if atwh .eq. "Constant"
+            	set #field(xwh.display) = "const"
+            else if atwh .eq. "Hide"
+            	set #field(xwh.display) = "hide"
+            end if   
+            
+            set atzemail = #sql("select xattribzemail from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atzemail .eq. "Show"
+            else if atzemail .eq. "Constant"
+            	set #field(zemail.display) = "const"
+            else if atzemail .eq. "Hide"
+            	set #field(zemail.display) = "hide"
+            end if   
+            
+            set atxemail = #sql("select xattribxemail from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atxemail .eq. "Show"
+            else if atxemail .eq. "Constant"
+            	set #field(xemail.display) = "const"
+            else if atxemail .eq. "Hide"
+            	set #field(xemail.display) = "hide"
+            end if
+			set xstatustrn="1-Open"
+		end config  	
+	end valid 
+
+#include access.valid
+	     
+end page

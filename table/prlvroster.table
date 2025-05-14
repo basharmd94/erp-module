@@ -1,0 +1,13 @@
+table prlvroster
+
+  caption "Leave Roster"
+  columns ztime,zutime,zid,xrow,xemp,xleave,xdatefrom,xdateto,xyear,xreason,xdaylv,zemail,xemail,xstatus
+
+  primary key zid,xrow
+
+  foreign key
+    zid references zbusiness.zid
+    zid,xemp references prmst.zid,xemp
+  end foreign key
+
+end table

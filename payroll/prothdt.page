@@ -1,0 +1,72 @@
+page prothdt
+     caption "<span class=bl>Personal Information of Employee <a href=/da/"+#servlet+"?page=prmst&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+     //sidebar list two
+     sections form one, script myscript
+
+  form one
+        //caption "<font color=black size=3>Personal Information for </font><font color = blue>"+xemp +"</font>"
+        fixed xemp
+        layout 1
+        objects Enter,Back,xname
+
+          field xname
+            display list
+            caption
+            columns 0
+            height 4
+            width 50
+            pick "Family Information,Children,Spouse Information"
+//            pick "Medical Entitlement,Family Information,Children,Spouse Information,Work Permit Details"
+            
+            	             	                                     
+          end field
+          
+          embed onsubmit="submitit(this)"
+          field Enter
+            embed onclick="clicked(this)"
+          end field
+
+          field Back
+            embed onclick="back(this)"
+          end field
+
+     end form
+
+    script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(a)
+        {
+          detail = document.one.xname.value
+        }
+        function back(b)
+        {
+          detail = "back"
+        }
+      
+        function submitit(form){
+        	if (detail=="Spouse Information"){
+          		form.page.value="prpersoninfo"
+          		form.searchbutton.value="Find xemp=?"
+        	}else if (detail=="back"){
+          		form.page.value="prmst"
+          		form.searchbutton.value = "Find xemp=?"
+        	}else if (detail=="Medical Entitlement"){
+          		form.page.value="prmedentitle"
+          		form.searchbutton.value = "Find xemp=?"
+        	}else if (detail=="Family Information"){
+          		form.page.value="prfamily"
+          		form.searchbutton.value = "Find xemp=?"
+        	}else if (detail=="Children"){
+          		form.page.value="prchildren"
+          		form.searchbutton.value = "Find xemp=?"
+        	}else if (detail=="Work Permit Details"){
+          		form.page.value="prforeign"
+          		form.searchbutton.value = "Find xemp=?"
+        	}
+       	}
+        </script>
+     end script
+
+end page

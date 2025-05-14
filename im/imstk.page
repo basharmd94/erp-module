@@ -1,0 +1,9 @@
+page imstk
+    embed onload="move_caret('detail','xitem')"
+    caption "Stock Status"
+	layout mylayout 2 1  //columns rows
+	 	form imstk,list imstk (1, 1) //(col,row,colspan,rowspan,width,height)
+		script imstk (0,0)
+	end layout
+		 
+end page

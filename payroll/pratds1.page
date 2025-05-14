@@ -1,0 +1,298 @@
+page pratds1
+    embed onload="move_caret('one','xemp')"
+
+     caption "Time in Detail"
+     sections form one,list one , text top,script myscript,~
+              method chkemp, method chkstat, method getstat
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+      table pratd
+      order xyear,xper,xday,xshift,xemp
+      fixed xyear,xper,xday,xshift
+      navigators alpha
+      object xemp attrib(link #servlet+"?page=pratds1&command=Show&xemp=?"),~
+             empname storage(varchar) equals((select xfirst from prmst where xemp=pratd.xemp)),~
+             empdesig storage(varchar) equals((select xdesig from prmst where xemp=pratd.xemp)),~
+             xintime,xatdstat
+             
+      field empname
+        caption Employee Name
+      end field
+	
+	field empdesig
+        caption Designation
+      end field
+     end list
+
+     form one
+        caption "Time-In Details for<br>Date: <font color=cyan>"+globals(xdate)+"</font><br>Shift: <font color=cyan>"+globals(xshift)+"</font>"
+        table pratd
+        order xyear,xper,xday,xshift,xemp
+        fixed xyear,xper,xday,xshift
+        layout 1
+        objects Add, Back, Show, Clear, Update, Top, Previous, Next, Bottom,Delete,~
+                xemp,xnamedum,xintime,xatdstat display(constant),zemail display(hide),xemail display(hide),~
+                xlotime display(hide), xlitime display(hide), xouttime display(hide), xpflag display(hide),~
+                xrem,xdate display(hide) 
+
+        field xemp
+          width 15
+          pick list xemp
+          event after
+            //print xshift
+            //print globals(xdate)
+            set globals(xemp)=xemp
+            if #command .sw. "Find"
+              class osbcustom(clear)
+            end if
+          end event
+        end field
+
+        field xnamedum
+          attrib local
+          display constant
+          caption Employee Name
+          event after
+            set xnamedum=#sql(str, "select xfirst from prmst where xemp='"+xemp+"'")
+          end event
+        end field
+
+        field xintime
+          //attrib readonly
+          event before
+            //class osbcustom(#time(xintime))
+            //print "1:"+xintime
+          end event
+        end field
+
+        field xrem
+          width 80
+          height 2
+        end field
+
+        field add
+          event before
+            set globals(ErrChk) = ""
+            if globals(xdate) .ne. #date
+               error " Entry Not Accepted; You are try to add previous or post date entry!!"
+            end if
+            set xatdstat = ""
+            call chkstat
+            if globals(ErrChk) .eq. ""
+              call chkemp
+            end if
+            if globals(ErrChk) .eq. ""
+              //class osbcustom(#time(xintime))
+              set xintime =#time
+              call getstat
+            end if
+            if globals(ErrChk) .eq. ""
+              //class osbcustom(#time(xintime))
+              set xlotime=""
+              set xlitime=""
+              set xouttime=""
+              set zemail=#user
+              set xemail=""
+              set xdate=globals(xdate)
+            end if
+            if globals(ErrChk) .eq. "1"
+               class osbcustom(clear)
+            end if
+          end event
+          event after
+            if globals(ErrChk) .ne. "1"
+              class osbcustom(clear)
+              print "<h2><font color=blue>Entry Accepted</font></h2>"
+            end if
+          end event
+        end field
+
+        field update
+          event before
+            set globals(ErrChk) = ""
+            call chkstat
+            if globals(ErrChk) .eq. ""
+              call chkemp
+            end if
+            if globals(ErrChk) .eq. ""
+              call getstat
+            end if
+            if globals(ErrChk) .eq. ""
+              set xlotime=""
+              set xlitime=""
+              set xouttime=""
+              set zemail=#user
+              set xemail=""
+              set xdate=globals(xdate)
+            end if  
+          end event
+        end field
+
+        field delete
+          event before
+            set globals(ErrChk) = ""
+            call chkstat
+            if globals(ErrChk) .eq. ""
+              call chkemp
+            end if
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field back
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     text one
+        //"<object border=0 data=images/"+xemp+".gif type=""text/images"" height=100% width=100% ></object>"
+        "<img border=1 src=images/"+xemp+".gif>"
+        "<p><b>"+xfirst+"</b><br>"
+     end text
+     
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="back"
+        }
+
+        function submitit(form){
+          if (detail=="back"){
+            form.page.value = "praths"
+            form.searchbutton.value= "Find xyear=?&xper=?&xday=?&xshift=?"
+          }
+          //return false
+        }
+
+        </script>
+     end script
+
+
+     method chkemp
+        if #command .eq. "update" .or. #command .eq. "delete"
+          if xemp .ne. globals(xemp)
+              set globals(ErrChk) = "1"
+              error "Record pointer mismatch<br>Try SHOW instead"
+          end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+            if xemp .eq. ""
+              set globals(ErrChk) = "1"
+            else
+              buffer prmst
+              move prmst=prmst(xemp)
+              if #result .ne. "true"
+                set globals(ErrChk) = "1"
+              end if
+            end if
+
+            if globals(ErrChk) .ne. ""
+              error "Wrong Employee Code<br>Pick from the list"
+            end if
+
+            if globals(ErrChk) .eq. ""
+              buffer prempsalary
+              move prempsalary=prempsalary(xemp)
+              if #result .eq. "true"
+                if prempsalary.xresignstat .eq. "Yes"
+                  set globals(ErrChk) = "1"
+                  error "Employee Resigned"
+                end if
+              end if
+            end if
+        end if
+     end method
+
+
+     method chkstat
+        buffer pratd
+        move pratd=pratd(xyear,xper,xday,xshift,xemp)
+
+        if #result .eq. "true" .and. pratd.xpflag .eq. "1"
+          set globals(ErrChk) = "1"
+          error "Already Posted<br>Cannot "+#command
+
+        else if #result .eq. "true" .and. #command .eq. "add"
+          set globals(ErrChk) = "1"
+          error "Entry already exist"
+
+        //else if #result .eq. "true" .and. #command .eq. "update"
+        //  set globals(ErrChk) = "1"
+        //  error "Cannot "+#command
+        end if
+     end method
+
+
+     method getstat
+        //print xintime
+        set tmpchk = ""
+
+        // *** GETTING EMPLOYEE WISE TIME ****
+        buffer pratet
+        move pratet=pratet(xemp,xshift)
+        //print #result
+        if #result .eq. "true"
+          set tmpchk = "1"
+
+          if pratet.xintime .ne. ""
+            if xintime .le. pratet.xintime
+              set xatdstat = "Present"
+            else if xintime .gt. pratet.xintime
+              if pratet.xpnlttime .eq. "" .or. pratet.xpnlttime .eq. "00:00:00"
+                set xatdstat = "Late"
+              else if xintime .le. pratet.xpnlttime
+                set xatdstat = "Late"
+              else if xintime .gt. pratet.xpnlttime
+                set xatdstat = "Absent"
+              end if
+            end if
+          end if
+        end if
+        // *** END OF GETTING EMPLOYEE WISE TIME ****
+
+        // *** GETTING DEFAULT TIME ****
+        if tmpchk .ne. "1"
+          buffer pratdt
+          move pratdt=pratdt(xshift)
+          //print #result
+          if #result .eq. "true"
+            set tmpchk = "2"
+
+          if pratdt.xintime .ne. ""
+            //print xintime+" "+pratdt.xintime+" "+#time
+            if xintime .le. pratdt.xintime
+              set xatdstat = "Present"
+            else if xintime .gt. pratdt.xintime
+              if pratdt.xpnlttime .eq. "" .or. pratdt.xpnlttime .eq. "00:00:00"
+                set xatdstat = "Late"
+              else if xintime .le. pratdt.xpnlttime
+                set xatdstat = "Late"
+              else if xintime .gt. pratdt.xpnlttime
+                set xatdstat = "Absent"
+              end if
+            end if
+          end if
+        end if
+        // *** END OF GETTING DEFAULT TIME ****
+
+        // *** IF BOTH ARE FALSE, THEN SETTING DEFAULT STATUS ****
+        if tmpchk .eq. "" .or. xatdstat .eq. ""
+          set xatdstat = "Present"
+        end if
+        //print tmpchk
+     end method
+
+
+
+end page
+

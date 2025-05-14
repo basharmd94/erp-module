@@ -1,0 +1,14 @@
+table prlvpolicy
+
+  caption "Leave Policy"
+  columns ztime,zutime,zid,xempcat,xleave,xleavealc,xleavecfd,xleavecfy,xmaxleave,xminleave,xmaxencash,~
+  		xminencash,xfstslabday,xfstslabpay,xsndslabday,xsndslabpay,xtrdslabday,xtrdslabpay,zemail,xemail,~
+  		xcfleave,xstatus,xefffrom,xcalcday,xmaxoffers
+
+  primary key zid,xempcat,xleave
+
+  foreign key
+    zid references zbusiness.zid
+  end foreign key
+
+end table

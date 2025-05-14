@@ -1,0 +1,13 @@
+table prleavencash
+  caption "Leave Encashment"
+
+  columns ztime,zutime,zid,xemp,xyear,xdaysavl,xamount,zemail,xemail
+
+  primary key zid,xemp,xyear
+
+  foreign key
+    zid references zbusiness.zid
+    zid,xemp references prmst.zid,xemp
+  end foreign key
+  
+end table

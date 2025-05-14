@@ -1,0 +1,127 @@
+page imstock
+    caption "Stock Status"
+    sidebar
+    sections form dummy,list stock,list one,text top
+    
+    text top
+		"<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+    
+    list one
+        caption "Select Item"
+        table caitem
+        order xitem
+        fixed
+        select
+        rows 20
+        objects xitem attrib(link #servlet+"?page="+page+"&command=Show&xitem=?"),~
+//                xdesc,xgitem,xunitstk,xunitsel,xunitpur
+                xdesc,xgitem,xunitstk
+                
+    end list
+    
+    
+	form dummy
+		objects Search_Item,xitem //display(hide)
+
+		field xitem
+			//length 12
+			width 15
+			
+			event before
+				set globals(xitem)=xitem
+			end event
+		end field
+
+		field Search_Item
+			event before
+				set #list(one.select) = #char(34)+"xitem like '"+xitem+"%'"+#char(34)
+			end event
+		end field
+	end form
+    
+    list stock
+        caption "Inventory Status for Item: <font color=red>"+globals(xitem)+" - "+caitem.xdesc("xitem='"+globals(xitem)+"'")+"</font>"
+        table imstock
+        order xitem,xwh
+        fixed xitem
+        rows 30
+        objects xwh,xavail equals(xinhand-xopord-xopdor-xwoalc-xwokit-xtoout-xaltqty) , ~
+                xinhand,xopord,xopdor,xtogin,xtoout,xwokit,xaltqty,xpocon,xpoord,xpogrn
+                //xinhand,xtogin,xtoout
+                
+		field xinhand
+			caption Actual Qty in Hand
+			len 20.2
+		end field
+                
+		field xpoord
+			len 20.2
+		end field
+                
+		field xpogrn
+			len 20.2
+		end field
+                
+		field xwokit
+			caption W.I.P
+			len 20.2
+		end field
+                
+		field xtoout
+			len 20.2
+		end field
+                
+		field xtogin
+			len 20.2
+		end field
+                
+		field xopord
+			caption On Sales
+			len 20.2
+		end field
+        
+		field xopalc
+			display hide
+		end field
+                                
+		field xqtyissue
+			caption On Unsold Bundle
+			len 20.2
+		end field
+        
+		field xqtyreq
+			caption On Sold Bundle
+			len 20.2
+		end field
+        
+		field xqtycrn
+			caption On Sales Return
+			len 20.2
+		end field
+        
+		field xexpected
+			caption On Bundle Sales Return
+			len 20.2
+		end field
+        
+		field xaltqty
+			caption Qty to Issue
+			len 20.2
+		end field
+
+		field xpocon
+			caption Qty to Receive
+			len 20.2
+		end field
+
+		field xwoalc
+			caption On MO
+			len 20.2
+		end field
+
+        totals "Totals",,sum,sum,sum,sum,sum,sum,sum,sum,sum,sum,sum,sum,sum,sum
+        
+    end list
+    
+end page

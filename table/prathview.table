@@ -1,0 +1,11 @@
+Product ERP on the net
+
+table prathview
+   caption "Attendance Header"
+   columns zid,xyear,xper,xday,xdate,xshift,xatdrem,zemail,xemail
+
+	sql create view prathview (zid,xyear,xper,xday,xdate,xshift,xatdrem,zemail,xemail)~
+		as select zid,xyear,xper,xday,xdate,xshift,xatdrem,zemail,xemail ~
+	from prath
+	
+end table

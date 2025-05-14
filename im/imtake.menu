@@ -1,0 +1,9 @@
+//imtake.menu
+caption "Stock Take" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Tag Entry                        |#classPath+"/"+#servlet+"?page=imtag"
+-
+Tag Confirm                      |#classPath+"/"+#servlet+"?page=imtagcon"
+//-------------------------------------------------------------------

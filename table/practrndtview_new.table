@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table practrndtview_new
+	caption "practrndt Description View"
+
+	columns ztime,zutime,zid,xpaydate,xemp,xdept,xlocation,xstatusemp,xpaycode,paycode_desc,xrow,xamount,zemail,xemail
+			
+	sql create view practrndtview_new (ztime,zutime,zid,xpaydate,xemp,xdept,xlocation,xstatusemp,xpaycode,paycode_desc,xrow,xamount,zemail,xemail) ~
+		as select ~
+		practrndt.ztime,practrndt.zutime,practrndt.zid,practrndt.xpaydate,practrndt.xemp,~
+		(select xdept from prmst where zid=practrndt.zid and xemp=practrndt.xemp),~
+		(select xlocation from prmst where zid=practrndt.zid and xemp=practrndt.xemp),~
+		(select xstatusemp from prmst where zid=practrndt.zid and xemp=practrndt.xemp),~
+		practrndt.xpaycode,(select xdesc from prpayhead where zid=practrndt.zid and xpaycode=practrndt.xpaycode),~
+		practrndt.xrow,practrndt.xamount,practrndt.zemail,practrndt.xemail ~
+	from practrndt
+end table
+

@@ -1,0 +1,208 @@
+  page glbudacc
+
+  caption "Budget Detail"
+  //embed onload="move_caret('one','xacc')"
+  sections form one, list one, script myscript,~
+           method chk_acc
+
+  list one
+        caption "Added Record(s)"
+		table (select *,~
+			(select xdesc from glmst ~
+			where zid=glbudacc.zid and xacc=glbudacc.xacc) as xname ~
+			from glbudacc) as tbl
+        order xyear,xper,xacc
+        fixed xyear,xper
+        //navigators alpha
+        rows 10
+        objects  xacc attrib(link #servlet+"?page=glbudacc&command=Show&xyear=?&xper=?&xacc=?"),~
+                 xname,xprime
+
+        field xprime
+          caption Budget Amount
+        end field
+        
+        field xname
+          storage varchar
+          caption Description
+        end field
+
+  end list
+
+  form one
+       //caption "Budget for Account "+xacc+" of "+xyear+"("+xper+")"
+       table glbudacc
+       order xyear,xper,xacc
+       fixed xyear,xper
+       layout 2
+	   default Add
+       objects Show,Add, Update, Clear,Delete, Top, Previous, Next, Bottom,Sub Accounts,Return,~
+               xacc,acc_desc,xcur attrib(attach),xexch display(const),xprime attrib(attach),xbase display(const),~
+               xlong,zemail display(hide),xemail display(hide),alc,bal
+
+    field xacc
+       event after
+         set xaccsource=#sql("select xaccsource from glmst where zid="+#id+" and xacc='"+xacc+"'")
+         set globals(xacc)=xacc
+         if xaccsource .eq. "Subaccount"
+            set #field(xprime.display) = "constant"
+         else if xacc .eq. ""
+            set #field(xprime.display) = "constant"
+         end if
+       end event
+    end field
+
+    field xexch
+       event after
+        set globals(xexch)=xexch
+       end event
+    end field
+
+    field xprime
+      caption Budget Amount
+    end field
+    
+    field acc_desc
+       attrib local
+       display const
+       caption Description
+       event after
+          set acc_desc = #sql("select xdesc from glmst where zid="+#id+" and xacc='"+xacc+"'")
+       end event
+    end field
+    
+    field xcur
+      default "BDT"
+    end field
+
+    field xlong
+       col 3
+       width 80
+       height 2
+    end field
+    
+    field alc
+    	caption Availed
+    	display constant
+    	attrib local
+    	event after
+    		set alc = #sql(decimal,"select sum(xtotamt) from glbal where xyear='"+xyear+"' and xper='"+xper+"' and xacc='"+xacc+"'")
+    		set alc = 0.0-alc
+    	end event
+    end field
+
+    field bal
+    	caption Balance
+    	display constant
+    	attrib local
+    	event after
+    		set alc = #sql(decimal,"select sum(xtotamt) from glbal where xyear='"+xyear+"' and xper='"+xper+"' and xacc='"+xacc+"'")
+    		set bal = 0.0+xprime-alc
+    	end event
+    end field
+    
+    field clear
+      event after
+       set #field(Details.display) = "hidden"
+       set #field(Delete.display) = "hidden"
+       set #field(Update.display) = "hidden"
+       set #field(Show.display) = "hidden"
+      end event
+    end field
+    
+    field Add
+      event before
+         set globals(ErrChk) = ""
+         call chk_acc
+         if globals(ErrChk) .ne. "1"
+            set zemail = #user
+            set xexch = #sql(decimal,"select xexch from xcur where xcur='"+xcur+"'")
+            //class osbcustom(#calc(xprime,xexch,"*",2,xbase))
+            set xbase = xprime*xexch
+         end if
+         if globals(ErrChk) .ne. ""
+            action show
+         end if
+      end event
+    end field
+
+    field Update
+      event before
+         set globals(ErrChk) = ""
+         call chk_acc
+         if globals(ErrChk) .ne. "1"
+            if globals(xacc) .ne. xacc
+               set globals(ErrChk) = "1"
+               error "Cannot Change Account Code"
+            end if
+         end if
+         if globals(ErrChk) .ne. "1"
+            set xemail = #user
+            set xexch = #sql(decimal,"select xexch from xcur where xcur='"+xcur+"'")
+            //class osbcustom(#calc(xprime,xexch,"*",2,xbase))
+            set xbase = xprime*xexch
+         end if
+         if globals(ErrChk) .ne. ""
+            action show
+         end if
+      end event
+    end field
+
+        embed onsubmit="submitit(this)"
+        field Sub
+          embed onclick="clicked()"
+        end field
+        
+        field Return
+          embed onclick="back()"
+        end field
+        
+        field Divisions
+          embed onclick="div()"
+        end field
+
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(){
+          detail="clicked"
+        }
+
+        function back(){
+          detail="back"
+        }
+
+        function div(){
+          detail="div"
+        }
+
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "glbudsub"
+            form.searchbutton.value = "Top"
+          }else if (detail=="back"){
+            form.page.value = "glbudhed"
+            form.searchbutton.value = "Find xyear=?&xper=?"
+          }else if (detail=="div"){
+            form.page.value = "glbuddiv"
+            form.searchbutton.value = "Top"
+          }
+        }
+        </script>
+     end script
+     
+     method chk_acc
+       set chkacc = #sql("select xacc from glmst where zid="+#id+" and xacc='"+xacc+"'")
+       if #result .ne. "true"
+          set globals(ErrChk) = "1"
+          error "Wrong Account Code</p>Cannot "+#command
+       end if
+     end method
+
+
+end page

@@ -1,0 +1,156 @@
+
+page famstad
+    caption "FA Addition Master"
+    sidebar list cur
+    sections  form one,list one,text top, script myscript
+
+    text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list cur
+      table xcur
+      order xcur
+      rows 20
+      objects xcur attrib(link "abc" embed onclick="return pickCur(this:xexch#)"), ~
+              xexch attrib(name xexch#)
+    end list
+
+   list one
+      table famstad
+      order xvoucher
+      fixed xcode
+      navigators alpha// group xcode
+      row 20
+      object xvoucher attrib(link #servlet+"?page=famstad&command=show&xvoucher=?"),~
+              xdate,xyear,xper,xcuradd,xprimeadd,xbaseadd
+   end list
+
+
+   form one
+      caption "Fixed Asset Addition Detail"
+      table famstad
+      order xvoucher
+      fixed xcode
+      layout 2      
+
+      objects Back,Show,Clear,Add attrib(hidden), Update attrib(hidden), Delete attrib(hidden), Top, Previous, Next, Bottom,~
+              xvoucher ,xdate,xyear display(constant),xper display(constant),~
+              xcuradd,xexchadd,xprimeadd,xbaseadd,~
+              xsup,xinvno
+              //xrebkval,xredate,xdisval,xdisdate,xsaleval,xsaledate,xscrpval,xscrpdate,~
+
+
+        field xvoucher
+          caption Addition Voucher Number
+          display constant
+          event after
+            set globals(xvoucher)=xvoucher
+          end event
+        end field
+
+        field xdate
+          caption Addition Date
+	      end field
+
+        field xcuradd
+          display text
+          pick
+          default "BDT"
+        end field
+
+        field xexchadd
+          default "1.0000"
+        end field
+
+        field xbaseadd
+          event before
+            set xbaseadd=xprimeadd*xexchadd
+          end event
+        end field
+
+        field add
+          event before
+              buffer xlocals
+              set globals(xtypelocal)="Module"
+              set globals(xname)="gl"
+              move xlocals=xlocals(xtypelocal,xname)
+              int offset
+              int per
+              int year=#sub(xdate,0,4)
+              set offset=#prop(xlocals.xprops,"offset")
+              set per=12+#sub(xdate,5,2)-offset
+              if per<=12
+                set xper=per
+                set xyear=year-1
+              else
+                set xper=per-12
+                set xyear=year
+              end if
+              set xdate=#sub(xdate,0,10)
+          end event
+        end field
+
+        field update
+          event before
+              buffer xlocals
+              set globals(xtypelocal)="Module"
+              set globals(xname)="gl"
+              move xlocals=xlocals(xtypelocal,xname)
+              int offset
+              int per
+              int year=#sub(xdate,0,4)
+              set offset=#prop(xlocals.xprops,"offset")
+              set per=12+#sub(xdate,5,2)-offset
+              if per<=12
+                set xper=per
+                set xyear=year-1
+              else
+                set xper=per-12
+                set xyear=year
+              end if
+              set xdate=#sub(xdate,0,10)
+          end event
+        end field
+
+        embed onsubmit="return submitit(this)"
+
+        field back
+          embed onclick="back()"
+        end field
+
+
+   end form
+
+   script myscript
+    <script language="javascript" type="text/javascript">
+
+      var flag=""
+      function back(){
+        flag="back"
+      }
+
+      function submitit(form){
+        if(flag=="back"){
+          form.page.value="famst"
+          form.searchbutton.value="Find xcode=?"
+        }
+      }
+
+      function pickCur(linkcur,linkexch){
+        if (navigator.appName.indexOf("Netscape")>=0){
+          document.one.xcuradd.value=linkcur.text
+          document.one.xexchadd.value=linkexch.text
+        }else{
+          document.one.xcuradd.value=linkcur.innerText
+          document.one.xexchadd.value=linkexch.innerText
+        }
+        return false
+      }
+    </script>
+   end script
+
+
+ end page
+
+

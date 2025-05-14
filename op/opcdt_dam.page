@@ -1,0 +1,535 @@
+page opcdt_dam   
+    caption "<span class=bl>Item(s) for S.R. : <a href=/da/"+#servlet+"?page=opcrn&command=Show&xcrnnum="+xcrnnum+">" +xcrnnum+ "</a></span>"
+    sidebar list order
+    sections form one,list one, script myscript, text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list others
+        caption "All Sales Returns Against DO No: <font color=red>"+xdornum+"</font>"
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=opcdt.zid and xitem=opcdt.xitem) as itemdesc ~
+			from opcdt) as tbl
+		
+        order xdornum,xcrnnum,xrow
+        select " xdornum='"+xdornum+"'"
+        rows 5
+        objects xcrnnum attrib(link #servlet+"?page=opcrn&command=Show&xcrnnum=?"),xrow, ~
+                xitem,itemdesc,xqty,xunitsel,xrate,xdornum,xlineamt
+
+        totals "","","","Totals","","","","","",sum
+        
+        field itemdesc
+        	caption Description
+        	 storage varchar
+        end field
+
+     end list
+
+     list one
+        caption "Items Added for Return"
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=opcdt.zid and xitem=opcdt.xitem) as xdesc ~
+			from opcdt) as tbl
+		
+        table opcdt
+        order xrow
+        fixed xcrnnum
+        rows 10
+        objects xrow attrib(link #servlet+"?page=opcdt_dam&command=Show&xrow=?"),~
+                xitem,xdesc,xqty,xrate,xlineamt
+       totals count,"Totals",,sum,sum
+
+       field itemdesc
+        storage varchar
+        caption Description
+       end field
+
+     end list
+
+     list order
+        caption "Item(s) available for Return" // to Order <font color=red >"+xordernum+"</font>"
+        table opddt
+        order xdornum,xrow
+        fixed xdornum
+        rows 5
+        objects xrow attrib(link #servlet+"?page=opcdt_dam&command=ShowLoad&xitem=?&xrow=?&xqty=?&xrate=?"),~
+                xitem,item_desc equals((select xdesc from caitem where caitem.zid=opddt.zid and caitem.xitem=opddt.xitem)),~
+				xqty,xcur,xrate,xdisc,xlineamt equals(xqty*xrate)
+				
+
+        totals count,"Totals",sum,"","","",sum,sum
+		
+        field item_desc
+            caption Description
+            storage varchar
+        end field  
+
+        field xcur
+          caption Cur
+        end field
+     end list
+   
+     form one
+     	//caption "<font color=black>Details for Sales Return "+xcrnnum
+     	valid valid,access
+        table opcdt
+        order xcrnnum,xrow
+        fixed xcrnnum
+        focus xitem
+		default Add
+        layout 1
+        objects Show,Clear, Add,Update,Top, Previous,Delete, Next, Bottom, SerialNumbers,Return,ShowLoad display(hide),~
+                xrow,xstatuscdt display(hide),~
+                xitem, xdesc display(constant),~
+                xcode , xcodebasis ,~
+                xwh, xcur ,xexch ,~
+                xcfsel display(hide),~
+                xqty attrib(attach), xunitsel display(constant),xqtydel ,xqtyinv ,~
+                xrate ,xratesys display(hide),~
+                xdisc display(constant),xdiscsys display(hide),xcomm ,xcommsys display(hide),~
+                xdiscf,xmargin,xmarginsys,~
+                xlineamt display(constant), xlineamtsys display(hide),~
+                xtaxcat display(hide), ~
+                xtaxcode1 display(hide),xtaxrate1 display(hide),~
+                xtaxcode2 display(hide),xtaxrate2 display(hide),~
+                xtaxcode3 display(hide),xtaxrate3 display(hide),~
+                xtaxcode4 display(hide),xtaxrate4 display(hide),~
+                xtaxcode5 display(hide),xtaxrate5 display(hide),~
+                xpricebasis display(hide),xprice display(hide), ~
+                xcurprice display(hide),xexchsell display(hide),~
+                xlong display(hide),xstype display(hide), xlinks display(hide), ~
+                xstatusddt display(hide), xwtunit display(hide), xunitwt display(hide),~
+                xdornum display(hide), xordernum display(hide)
+
+				
+        field xstatuscdt
+          caption C.N. Status
+        end field
+
+		field ShowLoad
+			event before
+				set xitem=xitem			
+//				set xqty=xqty
+//				set xret=xret
+//				set xdesc=xdesc
+			end event
+		end field
+
+        field xcode
+          display hide //constant
+        end field
+
+        field xcodebasis
+          display hide //constant
+        end field
+
+        field xwh
+          display hide //constant
+        end field
+
+        field xcur
+          display hide //constant
+        end field
+
+        field xexch
+          display hide //constant
+        end field
+
+        field xqtydel
+          display hide //constant
+        end field
+
+        field xqtyinv
+          display hide //constant
+        end field
+
+        field xcomm
+          display hide //constant
+        end field
+
+        field xcommsys
+          display hide //constant
+        end field
+
+        field xdiscf
+          display hide //constant
+        end field
+
+        field xmargin
+          display hide //constant
+        end field
+
+        field xmarginsys
+          display hide //constant
+        end field
+
+        field xdornum
+          display hide //constant
+        end field
+
+        field xinvnum
+          display hide //constant
+        end field
+
+        field xrow
+        	attrib search
+          event after
+            set globals(xrow)=xrow
+            set statuscrn = opcrn.xstatuscrn("xcrnnum='"+globals(xcrnnum)+"'")
+			if statuscrn .eq. "6-Batch Quantity Mismatch" .or. statuscrn .eq. "7-Serial Number Mismatch"
+				set #field(Accept.display) = "disabled"
+				set #field(Issue.display) = "disabled"
+			end if
+			if statuscrn .eq. "3-Issued"
+				set #field(Add.display) = "disabled"
+				set #field(Update.display) = "disabled"
+				set #field(Delete.display) = "disabled"
+				set #field(xitem->.display) = "const"
+			end if
+			if statuscrn .eq. "2-Accepted"
+				set #field(Add.display) = "disabled"
+				set #field(Update.display) = "disabled"
+				set #field(Delete.display) = "disabled"
+				set #field(xitem->.display) = "const"
+			end if
+			     
+            set checkserial=#sql(string,"select xtypeserial from caitem where xitem='"+xitem+"'")
+            if checkserial .sw. "1"
+            else
+              set #field(SerialNumbers.display)="disable"
+            end if
+//--for serial number
+			set globals(xitem)=xitem
+			set globals(xdesc)=caitem.xdesc("xitem='"+xitem+"'")
+			set globals(xwh)=xwh
+			set globals(xqty)=xqty*xcfsel
+			set globals(returnpage)=page
+			set globals(trnfield)="xcrnnum"
+			set globals(xcrnnum)=xcrnnum
+			set globals(trnrowfield)="xrow"
+			set globals(xtypein)="Sales Returns"
+			set globals(xnumin)=xcrnnum
+			set globals(xrowin)=xrow
+			set globals(xconin)="0"
+//-end of serial number
+			       
+          end event
+        end field
+
+        field xitem
+          attrib readonly; attarch
+          event after
+            set globals(xitem)=xitem
+          end event
+        end field
+
+        field xrate
+          caption Unit Rate
+          attrib readonly
+        end field
+
+        field xqty
+          width 8
+          event after
+            set globals(xqty) = xqty
+          end event
+        end field
+
+        field Add
+          event before
+            set globals(ErrChk) = ""
+
+            set xdornum=globals(xdornum)
+
+            if xqty <= 0
+              set xqty = 1
+            end if
+
+            set xstatuscdt = ""
+            set xqtydel = 0
+            set xqtyinv = 0
+            set xtaxcode1 = ""
+            set xtaxcode2 = ""
+            set xtaxcode3 = ""
+            set xtaxcode4 = ""
+            set xtaxcode5 = ""
+            set xtaxrate1 = 0
+            set xtaxrate2 = 0
+            set xtaxrate3 = 0
+            set xtaxrate4 = 0
+            set xtaxrate5 = 0
+
+      	    set xcur=globals(xcur)
+	          set xwh=globals(xwh)
+
+            if globals(ErrChk) .ne. "1"
+              call chkcode
+            end if  
+
+            if globals(ErrChk) .ne. "1"
+              call chkrec
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call updcdt
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call updprc
+            end if
+
+          end event
+
+          event after
+            if globals(ErrChk) .ne. "1"
+              call updstath
+            end if
+          end event
+        end field
+
+        field update
+          event before
+            set globals(ErrChk) = ""
+
+            if globals(ErrChk) .ne. "1"
+              call chkrec
+            end if  
+
+            if globals(ErrChk) .ne. "1"
+              call chkitem
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call updcdt
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call updprc
+            end if
+
+          end event
+
+          event after
+            if globals(ErrChk) .ne. "1"
+              call updstath
+            end if
+          end event
+        end field
+
+        field delete
+          event before
+            set globals(ErrChk) = ""
+
+            if globals(ErrChk) .ne. "1"
+              call chkrec
+            end if
+          end event
+          event after
+            if globals(ErrChk) .ne. "1"
+              call updstath
+            end if
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+        
+        field SerialNumbers
+          embed onclick="clicked(this)"
+        end field        
+
+     end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail=b.value
+        }
+        function submitit(form){
+          if (detail=="Return"){
+            form.page.value = "opcrn_dam"
+            form.searchbutton.value = "Find xcrnnum=?"
+            //return false
+          }
+          if (detail=="SerialNumbers"){
+            form.page.value = "imserin"
+            form.searchbutton.value = "Top"
+          }          
+        }
+
+        function PickInfo(link,item,qty,rate){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xrow.value=link.text
+            document.one.xitem.value=item.text
+            document.one.xqty.value=qty.text
+            document.one.xrate.value=rate.text
+          }else{
+            document.one.xrow.value=link.innerText
+            document.one.xitem.value=item.innerText
+            document.one.xqty.value=qty.innerText
+            document.one.xrate.value=rate.innerText
+          }
+          return false
+        }
+        </script>
+     end script
+
+     method chkrec
+      if globals(xstatuscrn) .eq. "2-Accepted" .or. globals(xstatuscrn) .eq. "3-Issued"
+        set globals(ErrChk) = "1"
+        error "Cannot "+#command+"<br>Already "+globals(xstatuscrn)
+      end if
+     end method
+
+     method chkitem
+        if xitem .ne. globals(xitem)
+          set globals(ErrChk) = "1"
+          error "Cannot change Item Code<br>Delete record and re-enter Item Code"
+        end if
+     end method
+
+     method chkcode
+        set tmpcode=xitem
+        buffer caitem
+        // ** if xcode used *** set xitem=xcode
+        move caitem=caitem(xitem)
+        if #command .eq. "Add"
+          if #result .ne. "true"
+            set globals(ErrChk) = "1"
+            // ** if xcode used *** set xitem=tmpcode
+            error "Wrong Item Code<br>Pick from the list"
+          else
+            set xitem = caitem.xitem
+            set xdesc = caitem.xdesc
+            set xstype = caitem.xstype
+            set xunitsel = caitem.xunitstk
+            if caitem.xcfsel == 0.0
+              set xcfsel = 1.0
+            else
+              set xcfsel = 0.0+caitem.xcfsel
+            end if
+
+            //set xwtunit = caitem.xwtunit
+            //set xunitwt = caitem.xunitwt
+            set xcode = xitem // **** will be removed, if xcode used ***
+            set xstatuscdt = "Priced"
+          end if
+        end if
+     end method
+
+     method updstath
+        if globals(xstatuscrn) .eq. "2-Accepted"
+          if #command .eq. "Add" .or. #command .eq. "Update" .or. #command .eq. "Delete"
+            set tmpchk = #sql("update opcrn set xstatuscrn='1-Open' where xordernum='"+globals(xcrnnum)+"'")
+          end if
+        end if
+     end method
+
+     method updcdt
+        buffer opddt
+        move opddt = opddt(xdornum,xrow)
+        if #result .ne. "true"
+          set globals(ErrChk) = "1"
+          error "D.O. Details not found"
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          if xqty > opddt.xqty
+            set globals(ErrChk) = "1"
+            error "Cannot "+#command+"<br>Ret.Qt is more than Sales Qty"
+          end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          str mysql = "select xrow from opcdt where zid="+#id+" and xcrnnum='"+globals(xcrnnum)+"' and xrow='"+opddt.xrow+"'"
+          str tstat = #sql(str,mysql)
+          //print ";"+tstat+";"
+          if #command .eq. "Add"
+            if tstat .ne. ""
+              set globals(ErrChk) = "1"
+              error "Item already added"
+            end if
+          end if   
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          set xcodebasis = opddt.xcodebasis
+          set xexch = opddt.xexch
+          set xdisc = opddt.xdisc
+          set xdiscf = opddt.xdiscf
+          set xtaxcat = opddt.xtaxcat
+          set xstatusddt = opddt.xstatusddt
+          set xtaxcode1 = opddt.xtaxcode1
+          set xtaxcode2 = opddt.xtaxcode2
+          set xtaxcode3 = opddt.xtaxcode3
+          set xtaxcode4 = opddt.xtaxcode4
+          set xtaxcode5 = opddt.xtaxcode5
+          set xtaxrate1 = opddt.xtaxrate1
+          set xtaxrate2 = opddt.xtaxrate2
+          set xtaxrate3 = opddt.xtaxrate3
+          set xtaxrate4 = opddt.xtaxrate4
+          set xtaxrate5 = opddt.xtaxrate5
+          set xcurprice = opddt.xcurprice
+          set xexchsell = opddt.xexchsell
+          set xpricebasis = opddt.xpricebasis
+          set xcurprice = opddt.xcurprice
+          set xwtunit = opddt.xwtunit
+          set xunitwt = opddt.xunitwt
+        end if
+     end method
+
+     method updprc
+        decimal disc = 0.0
+        set disc = 0.0+xqty*xrate*xdisc/100
+        set xdtdisc = disc+xdiscf
+        set xlineamt = 0.0+xqty*(xrate-xdiscf)-disc
+		set xrate = 0.0+xrate-xdiscf
+     end method
+     
+	valid valid
+		config
+			set globals(pkey) = globals(xcrnnum)+" "+xrow
+		end config
+	end valid
+	
+#include access.valid	
+	     
+end page

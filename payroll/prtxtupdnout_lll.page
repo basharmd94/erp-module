@@ -1,0 +1,91 @@
+page prtxtupdnout
+
+    //caption "Please Press Clear Button Before Text Update Process"
+    sections form imtrn,script myscript
+
+    form imtrn
+      //caption "<font color=black>Text Update</font>"
+      layout 1
+      objects ~
+      		xdate,Process
+
+      field xdate
+      	caption Date (DD-MM-YYYY)
+      	width 10
+      end field
+      
+      field clear
+            event before
+                str mysql = "update pratdummy set xpflag='' where xpflag is null  or xpflag <> 'Updated'"
+    		set updval = #sql(str,mysql)
+            end event
+      end field
+      
+      field process
+        event before
+          set globals(ErrChk) = ""      
+          set In_time = ""
+          set Out_time = ""
+          set stat = ""
+          set D_time = ""
+          set P_time = ""
+          set day=#sub(xdate,8,2)
+          set per=#sub(xdate,5,2)
+          set year=#sub(xdate,0,4)
+		  
+		  str mysql = "update pratdummy set xdate=xdesc where zid='"+#id+"' and xref='"+xdate+"'"
+		  set updval = #sql(str,mysql)
+
+		  str xemp = ""
+		  str mysql = "select xemp from pratdummy where xref='"+xdate+"' and xemp>'"+xemp+"' order by xemp"
+		  set xemp = #sql(str,mysql)
+		  while #result .eq. "true"
+		    set emp_code = #sql("select xemp from prmst where xcardno='"+xemp+"'") //activate this if u have another code for emp in prmst
+		    set Out_time = #sql("select xdate from pratdummy where xref='"+xdate+"' and xemp='"+xemp+"' and xstatusjv='1' order by xdate desc")
+		    set Out_time = #trim(#sub(Out_time,11,8))//+":"+#sub(Out_time,2,2)+":"+#sub(Out_time,4,2)
+//		    print Out_time+" "+emp_code+" "+xemp
+                    if Out_time .eq. "  :  :  "
+                       set Out_time=""
+                    end if
+                    
+                    //error xemp+" "+emp_code+" out "+ Out_time+" date "+year
+			set outtime=xdate+" "+Out_time
+			str mysql = "update pratd set xouttime='"+outtime+"' where zid='"+#id+"' and xday='"+day+"' and xper='"+per+"' and xyear='"+year+"' and xemp='"+emp_code+"'"
+			set updval = #sql(str,mysql)
+			
+  		    str mysql = "update pratdummy set xpflag='Updated' where xref='"+xdate+"' and xemp='"+xemp+"'"
+			set updval = #sql(str,mysql)
+		
+		  	str mysql = "select xemp from pratdummy where xref='"+xdate+"' and xemp>'"+xemp+"' order by xemp"
+		  	set xemp = #sql(str,mysql)
+  		  end while        
+  		  print "<font color=blue size=4>Processing Completed"
+        end event
+      end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+          }
+        }
+        function keeplastkey(){
+        document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        }
+        </script>
+    end script
+    
+    
+
+end page

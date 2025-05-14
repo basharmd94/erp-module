@@ -1,0 +1,71 @@
+  method lccostpost
+	//print "POst method called"
+    
+	set xdiv=#sql(str,"select xdiv from poord where zid="+#id+" and xpornum = '"+globals(xpornum)+"'")
+    set xsec=#sql(str,"select xsec from poord where zid="+#id+" and xpornum = '"+globals(xpornum)+"'")
+    set xproj=#sql(str,"select xproj from poord where zid="+#id+" and xpornum = '"+globals(xpornum)+"'")
+
+    
+    buffer glaudit
+
+    set glaudit.xdiv=xdiv
+    set glaudit.xsec=xsec
+    set glaudit.xproj=xproj
+
+    
+    //begin
+    
+    if err == 0
+    
+      set glaudit.xdoctype="LC Cost"
+      set glaudit.xdocnum=globals(xlctrnnum)+"-"+xline
+      set glaudit.xdocrow=xline
+      set glaudit.xtypegli=xpocode
+
+      set glaudit.xacc=xcostacc
+      set glaudit.xsub=xsubdr
+      set glaudit.xcur=xcur
+      set glaudit.xexch=xexch
+      set glaudit.xlineamt=xcost
+      insert glaudit
+	 
+      if #result .eq. "false"
+        set err = 1
+      end if
+    end if
+
+    
+    
+    if err == 0
+      set glaudit.xdoctype="LC Cost"
+      set glaudit.xdocnum=globals(xlctrnnum)+"-"+xline
+      set glaudit.xdocrow=xline
+      set glaudit.xtypegli="Payment/Loan"
+      set glaudit.xacc=xpocracc
+      set glaudit.xsub=xsubcr
+      set glaudit.xcur=xcur
+      set glaudit.xexch=xexch
+      set glaudit.xlineamt=0.0 - xcost
+      insert glaudit
+	   //print #result+glaudit.xdocnum+" "+xpocode+" "+glaudit.xlineamt
+      if #result .eq. "false"
+        set err = 1
+      end if
+    end if
+ 
+    
+    if err == 0
+      //str trn=calocrec.xtrn(" xlocation='"+location+"' and xpaycode='"+xpaycode+"'")
+	  str trn= xtrngl
+//print "trn"+trn    
+			set doctype="LC Cost"
+			set docnum=globals(xlctrnnum)+"-"+xline
+			set date=xdaterel
+			
+			call glvoucher
+      
+		end if
+ 
+    
+  end method
+

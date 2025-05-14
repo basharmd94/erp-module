@@ -1,0 +1,16 @@
+Product ERP on the net
+
+table pratd
+   caption "Attendance Detail"
+   columns ztime,zutime,zid,xyear,xper,xday,xdate,xshift,xemp,~
+            xintime,xouttime,xlotime,xlitime,xatdstat,xpflag,zemail,xemail,xrem,xtimediff,xhour,xamount,xname
+
+   primary key zid,xyear,xper,xday,xshift,xemp
+
+   foreign key
+      zid references zbusiness.zid
+      zid, xyear,xper,xday,xshift references prath.zid,xyear,xper,xday,xshift
+      zid, xemp references prmst.zid,xemp
+   end foreign key
+
+end table

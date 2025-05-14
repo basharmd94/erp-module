@@ -1,0 +1,179 @@
+page predubacdet
+
+  embed onload="move_caret('one','xprcourse')"
+  caption "<span class=bl>Academic Details of Employee <a href=/da/"+#servlet+"?page=prmst&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+  section form one,script myscript,list one
+
+  list one
+    table prqualific
+    order xemp,xprqano
+    select "(xstatustor='Education')"
+    fixed xemp
+    row 60
+    //navigators alpha
+    object xprqano attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xprqano=?"),~
+      xprqayr,xprcourse,xprqaint,xgroups,xedition,xprqad
+      
+
+    field xprqano
+      width 4
+      caption Education Level
+    end field
+    
+    field xedition
+        caption Groups
+    end field
+    
+    field xprqayr
+        caption Passed Year
+    end field
+    
+    field xgroups
+        caption Subject
+    end field
+
+    field xprcourse
+        caption Name of Degree
+    end field
+
+    field xprqad
+      caption Division/Class/CGPA
+    end field
+
+  end list
+
+  form one
+    //caption "<font color=black size=4>Educational Background of <font color=white></p>"+globals(xname)+"</font></font>"
+    table prqualific
+    select "(xstatustor='Education')"
+    order xemp,xprqano
+    fixed xemp
+    layout 1
+
+    object Add, Show, Clear, Delete, Update, Next, Previous, Top, Bottom,Back,~
+           xprqano,xprcourse,xprqaint,xprqayr,xprqad,xdegcom display(hide),xedition,xgroups,xspci,xremarks,xstatustor display(hide),zemail display(hide),xemail display(hide)
+
+    field xprqano
+      caption Education Level
+      display const
+      event after
+        set globals(xprqano)=xprqano
+        //set #field(xprqad.caption) = "<font color=red>"+#field(xprqad.caption)+"</font>"
+      end event
+    end field
+
+    field xremarks
+      width 60
+      height 2
+    end field
+    
+    field xspci
+          caption Board
+    end field
+    
+    field xgroups
+        caption Subject
+        display combo
+        pick "select xcode from xcodes where zid='"+#id+"' and xtype='Groups'"
+    end field
+    
+    field xprcourse
+        caption Name of Degree
+        display combo
+        pick "select xcode from xcodes where zid='"+#id+"' and xtype='Degree'"
+    end field
+    
+    field xprqayr
+        caption Year of Passing
+    end field
+    
+    field xprqad
+      caption Division/Class/CGPA
+      width 30
+    end field
+    
+    field xprqaint
+        caption Name of Institute
+        width 60
+    end field
+    
+    field xedition
+        caption Groups
+        display combo
+        pick "select xcode from xcodes where zid='"+#id+"' and xtype='Subject'"
+    end field
+
+    embed onsubmit="submitit(this)"
+    field back
+      embed onclick="back(this)"
+    end field
+    
+    field next
+    	event before
+    		int nrow = 0
+    		set nrow = 0+xprqano+1
+    		set xprqano = 0+nrow
+    		action show
+    		//print xprqano+" "+nrow
+    	end event
+    end field
+
+    field previous
+    	event before
+    		int nrow = 0
+    		set nrow = 0+xprqano-1
+    		set xprqano = 0+nrow
+    		action show
+    		//print xprqano+" "+nrow
+    	end event
+    end field
+
+     field add
+       event before
+         set zemail=#user
+         set xemail=""
+         set xstatustor="Education"
+         
+         int last_num=0
+         set last_num = #sql(int,"select xprqano from prqualific where xstatustor='Education' and xemp='"+xemp+"' order by xprqano desc")
+            if #result .eq. "true"
+                set xprqano = 0+1+last_num
+            else
+                set xprqano = 0+1
+            end if
+       end event
+     end field
+
+     field Update
+      event before
+        set globals(ErrChk)=""
+        if xprqano .ne. globals(xprqano)
+           set globals(ErrChk)="1"
+           error "Record pointer mismatch</p>Cannot "+#command
+        else
+           set xemail=#user
+        end if
+      end event
+     end field
+
+  end form
+
+  script myscript
+    <script language="javascript" type="text/javascript">
+    var detail
+    function back(b)
+    {
+      detail="back"
+    }
+    function submitit(form)
+    {
+      if (detail=="back")
+      {
+        form.page.value="prmst"
+        form.searchbutton.value="Find xemp=?"
+      }
+    }
+    </script>
+  end script
+
+end page

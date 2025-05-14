@@ -1,0 +1,142 @@
+page mobilelic
+
+    caption "<span class=bl><font size=+1>Mobile License</span>"
+	sidebar list one
+	sections  form one,script myscript,text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+	 
+	 list one
+		caption "List"
+        table xuserslic
+        order xterminal
+        objects xterminal attrib(link #servlet+"?page=mobilelic&command=Show&xterminal=?"), ~
+                xlicnum,xterminaluser
+
+	 end list
+
+
+     form one
+		valid valid
+        table xuserslic
+        order xterminal
+        //fixed xdatepay
+        layout 1
+        objects Show,Add,Clear, Update, Delete,~
+					xterminal,xlicnum,xterminaluser,xpassword,xemino display(hide),xremarks,zactive
+					
+
+		field xterminal
+			caption Terminal No
+			attrib mandatory
+		end field
+
+        field xpassword			
+			caption Password
+		end field		
+		
+        field xlicnum
+			caption License No.
+			display const
+		end field
+		
+		field xterminaluser
+			caption User
+			display text
+			pick list xempnum
+		end field
+		
+		
+        field xremarks
+			display area
+		end field	
+
+		
+		
+		field Add
+			event before			
+				set lictrn = "MMAL"
+				str mysql = #sql(str,"select xlicnum from xuserslic where  zid='"+#id+"' and xlicnum like '"+lictrn+"%' order by xlicnum desc")				
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,4,6)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set xlicnum = lictrn + mysql
+				set zactive=0
+				
+			end event
+			//event after
+			//	action clear
+			//end event
+		end field
+
+          embed onsubmit="submitit(this)"
+
+
+          field update
+            event before
+              if xpflag .eq. "1"
+                error "Cannot Update<br>already Confirmed"
+              end if
+            set xemail=#user
+            end event
+          end field
+
+          field delete
+            event before
+              if xpflag .eq. "1"
+                error "Cannot Delete<br>already Confirmed"
+              end if
+            end event
+          end field
+
+
+          field Return
+           embed onclick="clicked(this)"
+          end field
+
+          field detail
+            embed onclick="clicked(this)"
+          end field
+
+     end form
+
+	script myscript
+
+		<script language="javascript" type="text/javascript">
+		var detail=" "
+		function clicked(b){
+		if (b.value == 'Detail'){
+		detail="showdtl"
+		}else if(b.value == 'Return'){
+		detail="back"
+		}
+		}
+
+		function submitit(form){
+			if (detail=="back"){
+			form.page.value = "prpay"
+			form.searchbutton.value="Find xdatepay=?"
+			//return false
+			}
+			if (detail=="showdtl"){
+			form.page.value = "prtrndt"
+			form.searchbutton.value = "Find xdatepay=?&xemp=?"
+			}
+		}
+
+		</script>
+	end script
+	
+	valid valid
+		config
+              //et xdumname=#sql(str,"select xfirst from hrmst where xempnum='"+xempnum+"'")
+              //et globals(xdumname)=xdumname
+			
+		end config
+	end valid
+
+end page

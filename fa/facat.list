@@ -1,0 +1,13 @@
+list facat
+      caption Category
+        table xcodes
+        order xcode
+        select "xtype='FA Category'"
+        navigators alpha
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xastcatg')"), ~
+                xdescdet
+
+
+     end list
+

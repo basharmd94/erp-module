@@ -1,0 +1,72 @@
+page famstytrnno
+
+    caption "Fixed Asset Code Update"
+    sections form imtrn,script myscript
+
+    form imtrn
+      caption "<font color=cyan>Fixed Asset Code Update</font>"      
+      layout 1
+      objects ~
+              Process
+
+      field process
+        event before
+            set globals(ErrMsg) = ""
+            str xvoucher = ""
+            set xvoucher = #sql("select xvoucher from famst where zid="+#id+" and xvoucher > '"+xvoucher+"'")
+            while #result .eq. "true"
+               set xcode = #sql("select xcode from famst where zid="+#id+" and xvoucher = '"+xvoucher+"'")
+               buffer famst
+               move famst = famst(xcode)
+
+               str mysql = "select xvoucher from fatrn where zid="+#id+" and xvoucher = '"+xvoucher+"'"
+               set trnchk = #sql(mysql)
+               if #result .ne. "true"
+                  print xvoucher
+                  set fatrn.xvoucher = famst.xvoucher
+                  set fatrn.xdate = famst.xpurdate
+                  move fatrn=famst(xvoucher)
+                  insert fatrn
+               end if
+               //str tmp="'"
+               //int pos = 0
+               //class osbcustom(#find(tmp,xastname,,pos))
+               //if pos > 0
+               //print xvoucher+";;"+xcode+";;"+xastname+";;"+pos
+               //else
+               //print pos
+               //end if
+               set xvoucher = #sql("select xvoucher from famst where zid="+#id+" and xvoucher > '"+xvoucher+"'")
+            end while
+        end event
+      end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+//            form.searchbutton.value = "Find xvoucher=?"
+            //return false
+          }
+        }
+
+
+        function keeplastkey(){
+        document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        }
+
+        </script>
+    end script
+
+end page

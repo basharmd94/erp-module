@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table pratdummy
+  caption "Dummy Attendance Table"
+  columns ztime,zutime,zid,xemp,xref,xdesc,xstatusjv,xpflag
+//xemp-Employee Code, xref-Date, xdesc-Time, xstatusjv-In/Out, xpflag-Post Flag
+
+  primary key zid,xemp,xref,xdesc,xstatusjv
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+
+end table

@@ -1,0 +1,13 @@
+table prconvdt
+	caption "Employee Conveyance Details"
+
+	columns zid,ztime,zutime,xconvidnum,xemp,xyear,xper,xweekno,xrow,xdate,xshipfrom,xshipto,xtimeship,xtimestor,xshipmode,xlunch,xamount,xprime,xdtwotax,xremarks,zemail,xemail
+
+	primary key zid,xemp,xyear,xper,xweekno,xrow
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xemp,xyear,xper,xweekno references prconvhd.zid,xemp,xyear,xper,xweekno
+	end foreign key
+
+end table

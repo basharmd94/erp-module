@@ -1,0 +1,529 @@
+page imglnn
+
+     caption "IM to GL Posting"
+     sections form one,script myscript//,method ChkMthCls,method glhedIns,~
+     //method ins_gldetail,method gl_voudel
+
+     form one
+        //caption "IM to GL Posting Process New"        
+        layout 1
+        objects Post,Clear,"<p>",~
+        xdatefrom,xdateto,xgitem display(ocombo),xwh display(ocombo),temp1
+
+        field temp1
+            attrib local
+            display hide
+            storage int
+        end field
+	field Clear
+		event before
+			set globals(ErrChk)=""
+			//set upd_imtr="update imtrn set xvoucher='"+xvoucher+"' where zid="+#id+" and xwh='"+xwh+"' and xdate>='"+xdatefrom+"' and xdate<='"+xdateto+"' and xtrnim='"+xtrnim+"' ~
+				//				  (select xgitem from caitem where zid="+#id+" and xitem='"+imtrn.xitem+"')='"+xgitem+"'"
+								  print upd_imtr
+		end event
+	end field
+        
+        field Post
+              event before
+                    
+                         set globals(ErrChk)=""
+                         set globals(xvoucher)=""               
+                         
+
+                         if globals(ErrChk) .ne. "1"
+                            if xdateto .lt. xdatefrom
+                               set globals(ErrChk)="1"
+                               error "Cann't "+#command+" <br>Check the value of 'To Date' "
+                            end if
+                         end if                         
+
+                         if globals(ErrChk) .ne. "1"
+                            set chkdate=#sql("select xdate from cadate where zid="+#id+" and xdate='"+xdatefrom+"'")
+                            if #result .eq. "false"
+                               set globals(ErrChk)="1"
+                               error "Wrong Date / Date Calendar Problem, Cann't Proceed"
+                            end if
+                         end if
+
+						
+
+                          if globals(ErrChk) .ne. "1"
+                            set chkdate=#sql("select xdate from cadate where zid="+#id+" and xdate='"+xdateto+"'")
+                            if #result .eq. "false"
+                               set globals(ErrChk)="1"
+                               error "Wrong Date/Date Calendar Problem, Cann't Proceed"
+                            end if
+                         end if
+
+                         
+
+                         if globals(ErrChk) .ne. "1"
+                            if xwh .eq. ""
+                               set globals(ErrChk)="1"
+                               error "Wrong Warehouse Code Selected"
+                            end if
+                         end if
+
+                         if globals(ErrChk) .ne. "1"
+                            set fperyr=#sub(xdatefrom,0,7)
+                            set tperyr=#sub(xdateto,0,7)
+							//print fperyr+" to year "+tperyr
+                            if fperyr .ne. tperyr
+                               set globals(ErrChk)="1"
+                               error "Date range isn't in Same Month and Year "
+                            end if
+                         end if
+
+                         if globals(ErrChk) .ne. "1"
+                            if xgitem .eq. ""
+                               set globals(ErrChk)="1"
+                               error "Wrong Item Group Selected from List"
+                            end if
+                         end if
+
+                         if globals(ErrChk) .ne. "1"
+							int offset
+							int per
+							int year=#sub(xdatefrom,0,4)
+				        
+							//int tempper
+							int tempyear	            
+							set offset=castatus.xinteger("zid='"+#id+"' and xtypestatus='GL Period Offset'")
+							int testper= #sub(xdateto,5,2)-offset
+							//print testper+" Test per "+#glyear+" "+#glper+" xdate: "+xdate
+							int per=12+#sub(xdateto,5,2)-offset
+							if per<=12
+								int tempper=per
+								set chkper=0+per
+								int tempyear=year-1
+							else
+								set tempper=0
+								set chkper=0+testper
+								int tempyear=year
+							end if
+							//print tempyear+" "+tempper+" chk per: "+chkper
+							
+							if tempyear==#glyear .and. chkper==#glper				
+							else
+								set dtcheck = #sql("select xdatecheck from cadef where zid='"+#id+"'")
+								if dtcheck .eq. "1"				
+									if #glall .ne. ""
+										set yearper = tempyear+"/"+chkper
+										string s = tempyear+"/"+tempper									
+										int glindex = #index(#glall,yearper)
+										//print " year per :"+yearper+" index "+ glindex
+										if #index(#glall,s)<0
+											if glindex<1
+												set globals(ErrChk) = "1"
+												error "<span class=bl>Year and Period Must Match the Following Period:</span><br><span class=br>"+#glall+"</span>"+s
+											end if	
+										end if
+									end if
+								else
+									set globals(ErrChk) = "1"
+									error "Post/Previous month's data entry not allowed"
+								end if
+							end if
+							
+						 end if                      
+						
+                         if globals(ErrChk) .ne. "1"
+							
+                            buffer imgliWrong Date / Date Calendar Problem, Cann't Proceed
+                            
+							//error "before while"
+							set xtrnim= ""
+                            set mysql = "select xtrnim from imtrnglvw where zid="+#id+" and xwh='"+xwh+"' and xdate>='"+xdatefrom+"' and xdate<='"+xdateto+"' and xtrnim>'"+xtrnim+"' and xgitem='"+xgitem+"' order by xtrnim "
+							set xtrnim=#sql(mysql)
+                            error mysql
+                            while xtrnim .ne. "" //.and. #result .eq. "true" 
+								 //print #result+xtrnim
+                                  //set xvgroup=""
+								 
+                                  //set docnum=#sql("select xdocnum from imtrnglvw where zid="+#id+" and  ximtrnnum='"+imtrn+"'")
+									
+                                  //if docnum .ne. ""
+                                     //set xvgroup=#sql("select dumzid from imtrnglvw where zid="+#id+" and ximtor='"+docnum+"'")
+                                  //end if
+								  
+								  
+                                  //if #result .eq. "true"
+                                        set chk_vou="select xvoucher from imtrn where zid="+#id+" and xtrnim='"+xtrnim+"' and  xdate>='"+xdatefrom+"' and xdate<='"+xdateto+"' and (select xgitem from caitem where zid="+#id+" and xitem=imtrn.xitem)='"+xgitem+"'"
+										//print chk_vou
+										set chk_vou=""+#sql(chk_vou)
+										//print chk_vou
+										
+                                        //set mysql = "select sum(xval-xvalpost) from imtrnglvw where zid="+#id+" and  xtrnim='"+xtrnim+"' and  xdate>='"+xdatefrom+"' and xdate<='"+xdateto+"'"
+										//set val = #sql(mysql)
+										
+                                        //print " Value: "+val+" imtrn no. "+imtrn+"  "+mysql
+								  //end if	
+								  
+                             if chk_vou .eq. "" 
+										
+								set xtrngl=#sql("select xtrngl from imgli where zid='"+#id+"' and  ximtrn='"+xtrnim+"'")	
+								if xtrngl .eq. ""
+                                    set chkrel = "IM--"
+                                else
+                                     //set chkrel = imgli.xtrngl
+									 set chkrel = xtrngl
+                                end if
+							
+							 
+							 
+									//****************************
+									set year=#sub(xdateto,0,4)
+									set vyear=#sub(xdateto,2,2)
+									str per=#sub(xdateto,5,2)
+									
+									set xglcode=chkrel
+									set trngl=xglcode+vyear+per+"-"
+									error #result+" "+trngl
+									//print "Period: "+per+" trngl "+trngl+
+									str mysql = #sql(str,"select xvoucher from glheader where zid='"+#id+"' and xvoucher like '"+trngl+"%' order by xvoucher desc")
+									if #result .eq. "true" .and. mysql .ne. ""
+										set last_num = 0+#sub(mysql,9,4)
+									end if
+									set last_num = 0+1+last_num
+									set mysql = #padl(""+last_num,4,"0")
+									set xvoucher = trngl + mysql 
+									
+									
+								  
+								  
+								  ///////************insert GL Header
+								  set msql="insert into glheader(zid,xvoucher,xref,xdate,xlong,xpostflag,~
+									xyear,xper,xstatusjv,xdatedue,xdesc01,xdesc02,xdesc03,xdesc04,~
+									xdesc05,xictrnno,dumzid,zemail,xemail,xaccdr,xsubdr,xnumofper,xcheque,xpaytype,xstatus,xtrngl,xnote,xteam,xmember,~
+									xmanager,xapproved,xaction)"
+                            
+									set msql=msql+"values("+#id+",'"+xvoucher+"','"+xtrnim+"','"+xdateto+"','Transferred from IM',~
+									'','"+year+"','"+per+"','Out of Balance','','','','','',~
+									'','',0,'"+#user+"','','','',"0",'','','','"+xglcode+"','',~
+												'','','','','Journal')"
+									set insgl=#sql(msql)
+							error #result		
+									
+									
+									if #result .eq. "false"
+										set globals(ErrChk)="1"
+									end if
+                            
+                                             
+											 
+											//****************************
+				            
+				            
+                                             set globals(xvoucher)=xvoucher
+											 //print globals(xvoucher)
+                                                 
+                             end if
+                                        
+                                        if globals(ErrChk) .ne. "1"
+                                           if chk_vou .ne. ""
+                                                  set xvoucher=chk_vou
+												  set deldet = #sql("delete from gldetail where zid='"+#id+"' and xvoucher='"+xvoucher+"'")												  
+												  set upd_imtrn=#sql("update imtrn set xvalpost=0 where zid="+#id+" and xvoucher='"+xvoucher+"'")
+                                           end if
+                                        end if
+										
+										//set ximtrn = xtrnim
+										//move imgli=imgli(ximtrn,xwh,xgitem,xvgroup)
+										set xrow=0
+                                        if globals(ErrChk) .ne. "1"
+                                             
+											 set xvgroup = ""
+											 set mysql = "select xvgroup from imgli where ximtrn='"+xtrnim+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"' and xvgroup>='"+xvgroup+"' order by xvgroup"
+											 set xvgroup = #sql(mysql)
+											 //print "dumZid "+xvgroup
+											 while #result .eq. "true"
+											 
+											  //error xvgroup
+                            
+                                             set xcur="BDT"
+                                             set xexch=1.0
+											 set xaccdr=imgli.xaccdr("ximtrn='"+xtrnim+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"' and xvgroup='"+xvgroup+"'")
+											 set xsubdr=imgli.xsubdr("ximtrn='"+xtrnim+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"' and xvgroup='"+xvgroup+"'")
+											 
+											 //print "DR Acc: "+xaccdr+" DR Sub: "+xsubdr
+										
+                                             set xaccusage=#sql("select xaccusage from glmst where zid="+#id+" and xacc='"+xaccdr+"'")
+                                             set xaccsource=#sql("select xaccsource from glmst where zid="+#id+" and xacc='"+xaccdr+"'")
+                                             set xacctype=#sql("select xacctype from glmst where zid="+#id+" and xacc='"+xaccdr+"'")
+											 
+											 
+											 //print xacc
+											 //print xrow
+											 //if xaccdr .ne. ""
+											 set xrow=0+xrow+10
+											 set mydetails="insert into gldetail(zid,xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,xprime,xbase,xacctype,xcur,xexch,xproj,xdiv)"
+											 set mydetails=mydetails+"values('"+#id+"','"+xvoucher+"','"+xrow+"','"+xaccdr+"','"+xaccusage+"','"+xaccsource+"','"+xsubdr+"',0,0,'"+xacctype+"','"+xcur+"','"+xexch+"','','')"
+											 set insdet=#sql(mydetails)
+											 //print #result+"r1"
+											 if #result .eq. "false"
+												 set globals(ErrChk)="1"
+												 error "Account Details DR Entry Problem.<br> Process Abroted"+mydetails
+											else
+												set updprime = #sql("update gldetail set xprime=(select sum(xval-xvalpost) from imtrnglvw where zid="+#id+" ~
+												and xwh='"+xwh+"' and xdate>='"+xdatefrom+"' and xdate<='"+xdateto+"' and xtrnim='"+xtrnim+"' and xgitem='"+xgitem+"' and dumzid='"+xvgroup+"')~
+												where xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")
+												
+												set updprime = #sql("update gldetail set xbase=(select sum(xval-xvalpost) from imtrnglvw where zid="+#id+" ~
+												and xwh='"+xwh+"' and xdate>='"+xdatefrom+"' and xdate<='"+xdateto+"' and xtrnim='"+xtrnim+"' and xgitem='"+xgitem+"' and dumzid='"+xvgroup+"')~
+												where xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")
+											 end if
+											 //end if
+                                             
+											 
+                                        //end if
+                                        //if globals(ErrChk) .ne. "1"
+                                             
+                                             set xacccr=imgli.xacccr("ximtrn='"+xtrnim+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"' and xvgroup='"+xvgroup+"'")
+                                             set xsubcr=imgli.xsubcr("ximtrn='"+xtrnim+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"' and xvgroup='"+xvgroup+"'")
+                                             set xaccusage=#sql("select xaccusage from glmst where zid="+#id+" and xacc='"+xacccr+"'")
+                                             set xaccsource=#sql("select xaccsource from glmst where zid="+#id+" and xacc='"+xacccr+"'")
+                                             set xacctype=#sql("select xacctype from glmst where zid="+#id+" and xacc='"+xacccr+"'")
+											 
+											 //if xacccr .ne. ""
+											 set xrow=0+xrow+10
+											 //print xacc
+											 //print xrow
+											 //print "CR Acc: "+xacccr+" CR Sub: "+xsubcr
+											 set mydetails="insert into gldetail(zid,xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,xprime,xbase,xacctype,xcur,xexch,xproj,xdiv)"
+											 set mydetails=mydetails+"values('"+#id+"','"+xvoucher+"','"+xrow+"','"+xacccr+"','"+xaccusage+"','"+xaccsource+"','"+xsubcr+"',0,0,'"+xacctype+"','"+xcur+"','"+xexch+"','','')"
+											 set insdet=#sql(mydetails)
+											 //print #result+"r1"
+											 if #result .eq. "false"
+												 set globals(ErrChk)="1"
+												 error "Account Details CR Entry Problem.<br> Process Abroted"+mydetails
+											else
+												set mysql ="update gldetail set xprime=0-(select sum(xval-xvalpost) from imtrnglvw where zid="+#id+" ~
+												and xwh='"+xwh+"' and xdate>='"+xdatefrom+"' and xdate<='"+xdateto+"' and xtrnim='"+xtrnim+"' and xgitem='"+xgitem+"' and dumzid='"+xvgroup+"')~
+												where xvoucher='"+xvoucher+"' and xrow='"+xrow+"'"
+												//print mysql
+												set updprime = #sql(mysql)
+												
+												set updbase = #sql("update gldetail set xbase=0-(select sum(xval-xvalpost) from imtrnglvw where zid="+#id+" ~
+												and xwh='"+xwh+"' and xdate>='"+xdatefrom+"' and xdate<='"+xdateto+"' and xtrnim='"+xtrnim+"' and xgitem='"+xgitem+"' and dumzid='"+xvgroup+"')~
+												where xvoucher='"+xvoucher+"' and xrow='"+xrow+"'")
+											 end if
+											 //end if
+											 
+											 set mysql = "select xvgroup from imgli where ximtrn='"+xtrnim+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"' and xvgroup>'"+xvgroup+"' order by xvgroup"
+										set xvgroup = #sql(mysql)
+										end while
+                                             
+                                        end if
+										
+										
+                            
+                                  //end if
+								  
+								  
+								  
+                                  set chk_prime=#sql("select sum(xprime) from gldetail where zid="+#id+" and xvoucher='"+xvoucher+"'")
+                                  set chk_base=#sql("select sum(xbase) from gldetail where zid="+#id+" and xvoucher='"+xvoucher+"'")
+								  
+								  //print xvoucher+" Prime chk: "+chk_prime+" chk_base: "+chk_base
+								  
+                                  if chk_prime==0.0 .and. chk_base==0.0
+                                     set upd_vou=#sql("update glheader set xstatusjv='Balanced' where zid="+#id+" and xvoucher='"+xvoucher+"'")
+                                     set upd_vou=#sql("update glheader set xpostflag='Posted' where zid="+#id+" and xvoucher='"+xvoucher+"'")
+                                  else
+                                      set upd_vou=#sql("update glheader set xstatusjv='Out of Balance' where zid="+#id+" and xvoucher='"+xvoucher+"'")
+                                      set upd_vou=#sql("update glheader set xpostflag='' where zid="+#id+" and xvoucher='"+xvoucher+"'")
+                                  end if
+                                  set upd_imtr="update imtrn set xvoucher='"+xvoucher+"' where zid="+#id+" and xwh='"+xwh+"' and xdate>='"+xdatefrom+"' and xdate<='"+xdateto+"' and xtrnim='"+xtrnim+"' ~
+								  and (select xgitem from caitem where zid="+#id+" and xitem=imtrn.xitem)='"+xgitem+"'"
+								  //print upd_imtr
+								  set upd_imtr=#sql(upd_imtr)
+								  //print #result
+                                  
+								  set upd_imtr="update imtrn set xvalpost=xval where zid="+#id+" and xwh='"+xwh+"' and xdate>='"+xdatefrom+"' and xdate<='"+xdateto+"' and xtrnim='"+xtrnim+"' ~
+								  and (select xgitem from caitem where zid="+#id+" and xitem=imtrn.xitem)='"+xgitem+"'"
+								  //print upd_imtr+"dd"
+								  set upd_imtr=#sql(upd_imtr)
+								//print #result
+								set totvoucher = totvoucher+";"+xvoucher+"<br>"	
+                                  set mysql = "select xtrnim from imtrnglvw where zid="+#id+" and xwh='"+xwh+"' and xdate>='"+xdatefrom+"' and xdate<='"+xdateto+"' and xtrnim>'"+xtrnim+"' and xgitem='"+xgitem+"' order by xtrnim "
+								  set xtrnim=#sql(mysql)
+								//error xtrnim +mysql 
+                            end while
+							
+                         end if
+                          
+                    
+                    if globals(ErrChk) .eq. "1"
+                          print "<h2><center>Error Occured while Posting<br>Please Contact with System Admin. <font color=blue></font></center></h2>"
+                    else
+                        set chk_vou=#sql("select xvoucher from glheader where zid="+#id+" and xvoucher='"+globals(xvoucher)+"'")
+                        if #result .eq. "false"
+                          print "<h2><center>Re-Creating Voucher<br>Please Contact with System Admin.. <font color=blue></font></center></h2>"+globals(xvoucher)
+                        else
+                            print "<h3><center><font color=blue>Transaction Transferred Successfully<br>Voucher# <font color=red>"+totvoucher+"</font> Created.</font></center></h3>"
+                        end if
+                    end if
+              end event
+                  //embed onclick="clkone()"
+              end field
+              //embed onsubmit="submitit(this)"
+        end form
+        
+        script myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        var mynum=0
+        function clicked(b){
+
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Details"){
+            form.page.value = "opodtgl"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        function pickCus(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcus.value=link.text
+          }else{
+            document.one.xcus.value=link.innerText
+          }
+          return false
+        }
+
+        function picksp(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcus.value=link.text
+          }else{
+            document.one.xcus.value=link.innerText
+          }
+          return false
+        }
+
+        function clkone(){
+            mynum=mynum+1
+            if (mynum>1){
+                alert ("Double Click is Prohebited")
+                document.one.temp1.value=1
+            }
+        }
+
+        </script>
+     end script
+
+        
+
+   method ChkMthCls
+            set chkMth=0
+            set chkDate=xdatefrom
+            set chkYear=0
+            set chkYear=0+#sub(chkDate,0,4)
+            set chkMth=0+#sub(chkDate,5,2)
+            set chkPflag=#sql("select xpflag from xmthcls where zid="+#id+" and xtypelocal='Module' and xname='gl' and xyear="+chkYear+" and xper="+chkMth+"")
+            if chkPflag .eq. "1"
+               set globals(ErrChk)="1"
+               error "The Month already Closed.<br>"+"Cann't "#command+"."
+            end if
+     end method
+
+     method glhedIns
+           str tmptime = ""
+		 //class osbcustom(#time(tmptime))
+		 set tmptime = #time
+		 set tmptime = #date+" "+tmptime
+		 //print tmptime
+		 
+		 
+		 
+		 //*****************************
+		 
+				
+					
+
+
+            //        set myqry = "insert into glheader (zid, xvoucher,xref,xdate,xlong,xpostflag,~
+           	//		xyear,xper,xstatusjv,xdatedue,xdesc01,xdesc02,xdesc03,xdesc04,xdesc05,xictrnno,dumzid,~
+           	//		zemail,xemail,xaccdr,xsubdr,xnumofper,xcheque,xpaytype,xstatus,xtrngl,xnote,xteam,xmember,~
+           	//		xmanager,xapproved,xaction)"
+			//		set myqry = myqry + " values('"+#id+"','"+xvoucher+"','"+xgrnnum+"','"+xdate+"',~
+			//		'Supplier Invoice from PO','Posted','"+tempyear+"','"+tempper+"','Balanced','"+globals(xdatedue)+"',~
+			//		'','','','','','',"0",'"+#user+"','','','',"0",'','','','"+xglcode+"','"+note+"',~
+			//		'','','','','Journal')"
+			//		//print myqry
+			//	set tmpstr =#sql(myqry)
+			//	//print #result
+            //
+            //    if #result .ne. "true"
+            //      set globals(ErrChk) = "1"
+            //    end if
+            //    end if
+            //    
+            // end if
+			 
+			 
+			 
+			 //'"+tmptime+"', ***************************
+
+           set msql="insert into glheader(zid,xvoucher,xref,xdate,xlong,xpostflag,~
+           xyear,xper,xstatusjv,xdatedue,xdesc01,xdesc02,xdesc03,xdesc04,~
+           xdesc05,xictrnno,dumzid,zemail,xemail,xaccdr,xsubdr,xnumofper,xcheque,xpaytype,xstatus,xtrngl,xnote,xteam,xmember,~
+           			xmanager,xapproved,xaction)"
+
+           set msql=msql+"values("+#id+",'"+xvoucher+"','"+xtrnim+"','"+xdateto+"','Transferred from IM',~
+           '','"+xyear+"','"+xper+"','Out of Balance','','','','','',~
+           '','',0,'"+#user+"','','','',"0",'','','','"+xglcode+"','',~
+					'','','','','Journal')"
+           set insgl=#sql(msql)
+           print insgl+" "+msql
+           if #result .eq. "false"
+              set globals(ErrChk)="1"
+           end if
+           //print #result
+           set glhIns_flag="1"
+     end method
+     method ins_gldetail
+            set row=0+#sql("select xrow from gldetail where zid="+#id+" and xvoucher='"+xvoucher+"' and xacc='"+xacc+"' and xsub='"+xsub+"' and xproj='"+xproj+"' and xdiv='"+xdiv+"'")
+            print "Existing voucher row: "+row+" prime: "+xprime
+            if #result .eq. "true"
+               set upd_gldteial=#sql("update gldetail set xprime=xprime+'"+xprime+"' where zid="+#id+" and xvoucher='"+xvoucher+"' and xrow="+row+"")
+               set upd_gldteial=#sql("update gldetail set xbase=xbase+'"+xbase+"' where zid="+#id+" and xvoucher='"+xvoucher+"' and xrow="+row+"")
+               if #result .eq. "false"
+                  set globals(ErrChk)="1"
+                  error "Accounts Details Update Problem.<br> Process Abroted"
+               end if
+               else if #result .eq. "false"
+                   set xrow=0+xrow+10
+                   //print xacc
+                   //print xrow
+                   set mydetails="insert into gldetail(zid,xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,xprime,xbase,xacctype,xcur,xexch,xproj,xdiv)"
+                   set mydetails=mydetails+"values('"+#id+"','"+xvoucher+"','"+xrow+"','"+xacc+"','"+xaccusage+"','"+xaccsource+"','"+xsub+"','"+xprime+"','"+xbase+"','"+xacctype+"','"+xcur+"','"+xexch+"','"+xproj+"','"+xdiv+"')"
+                   set insdet=#sql(mydetails)
+                   //print #result+"r1"
+                   if #result .eq. "false"
+                      set globals(ErrChk)="1"
+                      error "Account Details Entry Problem.<br> Process Abroted"+mydetails
+                   end if
+
+            end if
+     end method
+
+     method gl_voudel
+            set vouchk=""
+            //print xtrnim
+            set vouchk=#sql("select xvoucher from glheader where zid="+#id+" and xvoucher>'"+vouchk+"' and xref like '"+xtrnim+"%' and xstatusjv='Out of Balance' order by xvoucher")
+            //print #result
+           while #result .eq. "true" .and. vouchk .ne. ""
+               set del_gldet=#sql("delete from gldetail where zid="+#id+" and xvoucher='"+vouchk+"'")
+               set del_glhed=#sql("delete from glheader where zid="+#id+" and xvoucher='"+vouchk+"'")
+               set upd_imtrn=#sql("update imtrn set xvalpost='0' where zid="+#id+" and xvoucher='"+vouchk+"'")
+               set upd_imtrn=#sql("update imtrn set xvoucher='' where zid="+#id+" and xvoucher='"+vouchk+"'")
+               set vouchk=#sql("select xvoucher from glheader where zid="+#id+" and xvoucher>'"+vouchk+"' and xref like '"+xtrnim+"%' and xstatusjv='Out of Balance' order by xvoucher")
+            end while
+     end method
+
+      
+end page

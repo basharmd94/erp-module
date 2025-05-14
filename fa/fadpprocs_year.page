@@ -1,0 +1,334 @@
+page fadpprocs_year
+ 
+	caption "Yearly Depreciation Process"
+    sections form one, method chk_access,~
+   		method dep_sl
+
+    list one
+      table facode
+      order xcode
+      rows 10
+      objects  xtype,xcode attrib(link #servlet+"?page=facode&command=Show&xtype=?&xcode=?"),xdesc
+    end list
+
+	form one
+      //caption "<font color=black size=3>Depreciation Process"
+      table
+      order
+      layout 1      
+
+      objects  Process,Clear,~
+               xyear,xitemold,xitem
+
+		field xitemold
+			caption From Asset Code
+			pick list famst2
+		end field
+		
+		field xitem
+			caption To Asset Code
+			pick list famst1
+		end field
+
+		field process
+			event before
+				set globals(ErrChk) = ""
+				set globals(PurMsg) = ""
+				set globals(DepCom) = ""
+				set globals(Estlife) = ""
+				set globals(Slvval) = ""
+				set globals(PriMsg) = ""
+				int count = 0
+				str lastdate = ""
+				
+				call chk_access
+				
+				if globals(ErrChk) .ne. "1"			
+					if xyear<=0
+						set globals(ErrChk)="1"
+						error "Wrong Year"
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+		            set globals(xcode) = xitemold
+		            set mysql = "select xcode from famst where xassetstat='In Use' and xcode>='"+globals(xcode)+"' and xcode<='"+xitem+"' order by zid,xcode"
+		            set globals(xcode) = #sql(str,mysql)
+					while #result .eq. "true" .and. globals(xcode) .ne. ""
+						set xastname = #sql("select xastname from famst where xcode='"+globals(xcode)+"'")
+						str mysql = "delete from fatrn where xyear='"+xyear+"' and xcode='"+globals(xcode)+"' and xvoucher like 'DE%'"
+						set tmpstr = #sql(str,mysql)
+						
+						set xdepmeth = #sql("select xdepmeth from famst where xcode='"+globals(xcode)+"'")
+						
+						if xdepmeth .sw. "SL"
+							
+							call dep_sl
+							//print globals(xcode)+" "+xdepmeth
+						end if	
+			            set mysql = "select xcode from famst where xassetstat='In Use' and xcode>'"+globals(xcode)+"' and xcode<='"+xitem+"' order by zid,xcode"
+			            set globals(xcode) = #sql(str,mysql)
+					end while
+				end if
+				if globals(PurMsg) .ne. ""
+					print "<font color=red size=3> "+globals(PurMsg)+"</p>Purchased after "+xyear
+				end if
+				if globals(DepCom) .ne. ""
+					print "<font color=red size=3> Depriciation already completed for</p>"+globals(DepCom)
+				end if
+				if globals(Estlife) .ne. ""
+					print "<font color=red size=3> Estimated Life not found for</p>"+globals(Estlife)
+				end if
+				if globals(Slvval) .ne. ""
+					print "<font color=red size=3> Salvage value not found for</p>"+globals(Slvval)
+				end if
+				if globals(PriMsg) .ne. ""
+					print "<font color=blue size=4> Depreciation process for "+xyear+" completed </p> No. of Asset(s): "+count//+</p>"+globals(PriMsg)
+				end if
+			end event
+		end field
+
+	end form
+	
+     method dep_sl
+     	set globals(ErrFree) = ""
+     	
+     	set xestlife = #sql(decimal,"select xestlife from famst where xcode='"+globals(xcode)+"'")
+     	set orgestlife = #sql(decimal,"select xestlife from famst where xcode='"+globals(xcode)+"'")
+     	set xslvval = #sql(decimal,"select xslvval from famst where xcode='"+globals(xcode)+"'")
+     	set totdep = #sql(decimal,"select count(xvoucher) from fatrn where xcode='"+globals(xcode)+"' and xvoucher like 'DE%'")
+		
+     	if xestlife <= 0
+     		set globals(ErrFree)="1"
+     		set globals(Estlife)=globals(xcode)+", "+globals(Estlife)
+     	end if
+     	if globals(ErrFree) .ne. "1"
+     		if xslvval <= 0
+     			set globals(ErrFree)="1"
+     			set globals(Slvval)=globals(xcode)+", "+globals(Slvval)
+     		end if
+     	end if
+     	if globals(ErrFree) .ne. "1"
+     		if xestlife == totdep
+     			set globals(ErrFree)="1"
+     			set globals(DepCom)=globals(xcode)+", "+globals(DepCom)
+     		end if
+     	end if
+     	if globals(ErrFree) .ne. "1"    	
+     		set pur_year = #sql(int,"select xyear from fmast where xcode='"+globals(xcode)+"'")
+     		if xyear < pur_yrpr
+     			set globals(ErrFree)="1"
+     			set globals(PurMsg)=globals(xcode)+", "+globals(PurMsg)
+     		end if
+     	end if
+     	
+     	if globals(ErrFree) .eq. ""
+     		decimal new_val = 0.0
+     		decimal temp = 0.0
+     		decimal dep_amt = 0.0
+     		decimal rev_val = 0.0
+     		decimal add_amt = 0.0
+     		decimal tot_dep = 0.0     		
+     		
+     		set base_amt = #sql(decimal,"select xbase from famst where xcode='"+globals(xcode)+"'")
+     		set purdate1 = #sql("select xdate from fatrn where xcode='"+globals(xcode)+"' and xvoucher like 'AC%'")
+	        set purdate1 = #sub(purdate1,0,10)
+	        set purday = #sub(purdate1,8,2)
+
+		
+               int offset
+               int per
+               int year=#sub(purdate1,0,4)
+
+               int pur_pr
+               int pur_yr
+               set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+               set per=12+#sub(purdate1,5,2)-offset
+               if per<=12
+                   set pur_pr=per
+                    set pur_yr=year-1
+               else
+                   set pur_pr=per-12
+                   set pur_yr=year
+               end if
+               
+               
+     		set actpdate = pur_yr+"-"+pur_pr+"-15"
+     		set purdate = pur_yr+"-"+pur_pr+"-"+purday
+     		
+            set rev_val = #sql(decimal,"select xbase from fatrn where xcode='"+globals(xcode)+"' and xvoucher like 'RV%'")
+    		set revdate = #sql("select xdate from fatrn where xcode='"+globals(xcode)+"' and xvoucher like 'RV%'")
+     		set revdate = #sub(revdate,0,10)
+     		
+     		set add_amt = #sql(decimal,"select sum(xbase) from fatrn where xcode='"+globals(xcode)+"' and xvoucher like 'AD%' and xyear<'"+xyear+"'") 
+     		set tot_dep = #sql(decimal,"select sum(xbase) from fatrn where xcode='"+globals(xcode)+"' and xvoucher like 'DE%'") 
+     		
+			if rev_val > 0.0
+				
+				set new_val=0.0+rev_val*1
+	     		    class osbcustom(getglyear(revdate, rev_yr))
+			    class osbcustom(getglper(revdate, rev_pr)) 			    
+	     		
+ 				set temp_per01 = 0+12-rev_pr+1
+ 				set temp_per02 = 0+12-temp_per01
+	     		set asset_val=0.0+new_val+add_amt
+	     		set temp=0.0+asset_val-xslvval
+	     		set dep_amt=0.0+temp/xestlife
+				
+			else	     		
+	     		set asset_val = 0.0+base_amt+add_amt
+	     		
+	     		set temp = 0.0+asset_val-xslvval
+	     		compute dep_amt=0.0+temp/xestlife
+				set new_val=0.0+base_amt*1
+				
+			end if
+			
+			set act_val=0.0+asset_val-tot_dep
+     		     	
+			if tot_dep == 0.0
+			
+     			if purdate .gt. actpdate
+     			
+     				set dep_per = 0+pur_pr
+     				     			
+     				set dep_per = 0+12-dep_per
+     			
+     			else
+     				set dep_per = 0+12-pur_pr+1
+     				
+     			end if
+
+     			if rev_yr == xyear
+     				decimal tmpval01 = 0.0
+     				decimal tmpval02 = 0.0
+     				decimal tmprate = 0.0
+	 				set temp_per01 = 0+12-rev_pr+1
+	 				set temp_per02 = 0+12-temp_per01
+		     		
+					set temp=0.0+base_amt-xslvval
+					set tmprate=0.0+temp/xestlife
+		     		set tmpval01=0.0+tmprate*temp_per02
+					
+		     		set temp=0.0+rev_val-xslvval
+		     		set tmprate=0.0+temp/xestlife
+		     		set tmpval02=0.0+tmprate*temp_per01
+					set dep_per = 0+temp_per02		     		
+					set dep_amt=0.0+tmpval01+tmpval01
+					
+				else 
+     				
+     				set dep_amt=0.0+dep_amt*dep_per
+					
+     			end if
+     		else     
+				
+     			if rev_yr == xyear
+     				decimal tmpval01 = 0.0
+     				decimal tmpval02 = 0.0
+     				decimal tmprate = 0.0
+	 				set temp_per01 = 0+12-rev_pr+1
+	 				set temp_per02 = 0+12-temp_per01
+		     		
+
+		     		set temp=0.0+base_amt-xslvval
+		     		set tmprate=0.0+temp/xestlife
+		     		set tmpval01=0.0+tmprate*temp_per02
+					
+                    set temp=0.0+rev_val-xslvval
+                    set tmprate=0.0+temp/xestlife
+		     		set tmpval02=0.0+tmprate*temp_per01
+					set dep_per = 0+temp_per02		     				     		
+		     		set dep_amt=0.0+tmpval01+tmpval01
+		     	else
+		     		set dep_per = 0+12
+					
+     				set dep_amt=0.0+dep_amt*12
+					
+     			end if
+     		end if
+     		
+     		if act_val > dep_amt
+			
+     		else     			
+     			set dep_amt=0.0+act_val*1
+				
+     		end if
+ 			
+     		set xcode=globals(xcode)
+     		buffer famst
+ 			move famst=famst(xcode)
+ 			if #result .eq. "true" .and. dep_amt > 0.0 .and. act_val > 0.0
+	     		set xtrn = "DE--"
+				str mysql = #sql(str,"select xvoucher from fatrn where xvoucher like '"+xtrn+"%' order by xvoucher desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,4,6)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set vouchernum = xtrn + mysql
+				
+				set myqry = "insert into fatrn (zid, xvoucher,xdate,xyear,xper,xcode,xastname,~
+					xastcatg,xastbook,xasttype,xastunit,xastbr,xastloc,xdiv,xsec,xproj,xdepmeth,xpurdate,~
+					xcur,xexch,xprime,xbase,xsup,xinvno,xnomlife,xestlife,xslvval,xretdate,xdepfactor,~
+					xprvunit,xprvbr,xprvloc,xprvdiv,xprvsec,xprvproj,xglref,xlong,~
+					xleasestat,xmortgstat,xassetstat,xpornum,xdateto,xcus,xmodel,xcondition,~
+					xmaxload,xunitalt,xmfgyear,xorigin,xmanufacturer,xarea,xthana,xmouza,~
+					xareagovt,xareaphys,xaruntgovt,xaruntphys,xdistrict,xdept,xsubdept,xdateord,~
+					xname,xalias)"
+				set myqry = myqry + " values('"+#id+"','"+vouchernum+"','"+#date+"','"+xyear+"','"+dep_per+"','"+globals(xcode)+"',~
+					'"+xastname+"','"+famst.xastcatg+"','"+famst.xastbook+"','"+famst.xasttype+"','"+famst.xastunit+"',~
+					'"+famst.xastbr+"','"+famst.xastloc+"','"+famst.xdiv+"','','','"+famst.xdepmeth+"','"+famst.xpurdate+"',~
+					'BDT',"1.0",'"+dep_amt+"','"+dep_amt+"','','',~
+					'"+famst.xnomlife+"','"+famst.xestlife+"','"+famst.xslvval+"','"+famst.xretdate+"',~
+					'"+famst.xdepfactor+"','','','','','','','','"+famst.xlong+"','"+famst.xleasestat+"',~
+					'"+famst.xmortgstat+"','"+famst.xassetstat+"','"+xpornum+"','"+globals(xdate)+"',~
+					'','"+famst.xmodel+"','"+famst.xcondition+"','"+famst.xmaxload+"','"+famst.xunitalt+"',~
+					'"+famst.xmfgyear+"','"+famst.xorigin+"','"+famst.xmanufacturer+"','"+famst.xarea+"',~
+					'"+famst.xthana+"','"+famst.xmouza+"','"+famst.xareagovt+"','"+famst.xareaphys+"',~
+					'"+famst.xaruntgovt+"','"+famst.xaruntphys+"','"+famst.xdistrict+"','"+famst.xdept+"',~
+					'"+famst.xsubdept+"','"+famst.xdateord+"','"+famst.xname+"','"+famst.xalias+"')"
+				set tmpstr =#sql(myqry)				     		
+				//print #result
+				if #result .eq. "true"
+					set count = 0+count+1
+					set globals(PriMsg) = globals(xcode)+", "+globals(PriMsg)
+				end if
+			end if
+     	end if
+     end method
+     
+     method chk_access
+     	set stype = ""
+	  	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          buffer xcriminal
+	          set xcriminal.xwornum = mysql
+	          set xcriminal.xemail = #user
+	          set xcriminal.xdate = #date
+	          str tmptime = ""
+	          class osbcustom(#time(tmptime))
+	          set xcriminal.xtime = tmptime
+	          set xcriminal.xobject = page
+	          insert xcriminal
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+     
+end page

@@ -1,0 +1,135 @@
+page poorddep
+
+    caption "<span class=bl>Depot for P.O. : <a href=/da/portal?page=poord&command=Show&xpornum="+xpornum+">" +xpornum+ "</a></span>"
+    embed onload="move_caret('detail','xitem')"
+
+    sidebar  
+    sections form dep,text top, script myscript
+
+    text top
+        "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    form dep
+        valid valid,access
+        caption "Depot"
+        table poorddep
+        order xpornum
+        fixed xpornum
+        select "zid='"+#id+"'"
+        layout 3
+        objects ~
+            Show,Load,Update ,Delete,Return,~
+                xrow attrib(search),~
+                xorg,xadd1, xadd2, xcity, xstate,xzip,xcountry,~
+                xsalute, xfirst,xmiddle,xlast, xtitle, xemail, xphone, xfax, xurl, ~
+                xwh display(hide)
+
+        field Load
+            event before
+                move #form=cadep(xrow)
+            end event
+            event after
+                print "<span class=br>New Address Loaded -- Add/Update to Save!</span>"
+            end event
+        end field
+
+        field xrow
+            event after
+                set #field(xorg->.display)="constant"
+                if poord.xstatuspor("xpornum='"+xpornum+"'") .ge. #status("xstatuspor",5)
+                    set #field(Load->Delete.display)="disabled"
+                end if
+                string temp=poorddep.xpornum("xpornum='"+globals(xpornum)+"'")
+                if #result .eq. "true"
+                    set #field(Add.display)="disable"
+                else
+                    set #field(Update.display)="disable"
+                    set #field(Delete.display)="disable"
+                end if
+            end event
+        end field
+
+        field Show
+            event before
+                set globals(xrow)=xrow
+                buffer cadep
+                move cadep=cadep(xrow)
+                move #form=cadep
+                error
+            end event
+        end field
+
+        field Update
+            event before
+                set temp=#sql(string,"select xrow from poorddep where zid='"+#id+"' and xpornum='"+globals(xpornum)+"'")
+                if #result .eq. "false"
+                    str mysql = "delete from poorddep where zid='"+#id+"' and xpornum='"+globals(xpornum)+"'"
+                    set tmpstr = #sql(str,mysql)
+                    set #command="Add"
+                else
+                    buffer cadep
+                    move cadep=cadep(xrow)
+                    move #form=cadep
+                end if
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+            embed onclick="clicked(this)"
+        end field
+
+        field Details
+            embed onclick="back(this)"
+        end field
+
+    end form
+
+     script myscript
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+//          b.value = "Find xpornum=?"
+          detail="clicked"
+        }
+
+        function back(b){
+          b.value = "Top"
+          detail="back"
+        }
+
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "poord"
+            form.searchbutton.value = "Find xpornum=?"
+            //return false
+          }else if (detail=="back"){
+            form.page.value= "poodtreq"
+            form.searchbutton.value = "Top"
+         }
+        }
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.detail.xitem.xvalue=link.text
+          }else{
+            document.detail.xitem.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+     valid valid
+     	config
+     		set globals(pkey) = xpornum
+     		set tpage = "poorddep"
+     	end config
+     end valid
+
+#include access.valid
+
+end page

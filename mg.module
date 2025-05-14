@@ -1,0 +1,11 @@
+//mg.module
+module MG
+	caption "Messaging"
+		description "This is a module that provides the general ~
+		infrastructure for messaging. It facilitates creation and management ~
+		of messages and adresses' responses to the same."
+
+		transactions *Message Id* (table:mgmsg:xmsgid)
+end module
+
+

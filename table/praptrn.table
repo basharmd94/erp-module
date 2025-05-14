@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table praptrn
+  caption "Appraisal Transaction"
+  columns ztime,zutime,zid,xemp,xyear,xaprstype,xaprsby,xappamt,xtempstr1,xstataprs,xremarks,xrem,zemail,xemail
+
+  primary key zid,xemp,xyear,xaprstype,xaprsby
+
+  foreign key
+    zid references zbusiness.zid
+    zid,xemp references prmst.zid,xemp
+  end foreign key
+
+end table

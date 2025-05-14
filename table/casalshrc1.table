@@ -1,0 +1,13 @@
+product ERP on the Net
+
+table casalshrc1
+  caption "National Sales"
+  columns ztime,zutime,zid,xtype,xstate,xdescdet,xcode,xemp,xname,zemail,zactive
+
+  primary key zid,xstate
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+end table

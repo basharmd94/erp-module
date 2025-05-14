@@ -1,0 +1,138 @@
+page prjobendhed
+
+	 embed onload="move_caret('one','xemp')"
+     caption "Final Separation Info"
+     //sidebar text one
+     sections form one, list one, script myscript, text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        caption "List of Employee(s)"
+        table prmst
+        order xemp
+  	     navigators alpha
+        rows 5
+        objects xemp attrib(link #servlet+"?page="+page+"&command=Show&xemp=?"),~
+                xname,xdesig,xdept,xlocation,xjoindate
+
+        field xlocation
+           caption Location
+        end field
+
+        field xjoindate
+          caption DOJ
+        end field
+        
+        field xfirst
+            caption Name
+        end field
+
+     end list
+
+     form one
+        //caption "<font color=black size=4>Final Separation Info</font>"
+        table prmst
+        order xemp
+        layout 2
+        objects Show,Update,Details,Clear, Top, Previous, Next, Bottom,~
+            xemp attrib(search),xname,xdesig,xdept,xlocation,xjoindate,~
+            xleftdate,xsepmode,xleftre,xresignstat display(hide),xstatusemp display(hide)
+
+           field xemp
+              event after
+                set globals(xemp)=xemp
+                set globals(xname)=xname
+                set globals(xfirst)=xfirst
+              end event
+           end field
+
+           field xlocation
+              caption Location
+              display const
+           end field
+           
+           field xname
+              width 30
+              display const
+           end field
+           
+           field xjoindate
+             caption Date of Joining
+             display const
+           end field
+           
+           field xleftre
+           		caption Reason
+           		width 50
+           		height 2
+           		//col 3
+           end field
+           
+           field xresignstat
+           		display const
+           		caption Confirmation Status
+           end field
+        
+        	field update
+        		event before
+        			set globals(ErrChk) = ""
+        			
+        			call chk_access
+        			
+        			if globals(ErrChk) .ne. "1"
+        				if xjoindate .ge. xleftdate
+        					set globals(ErrChk) = "1"
+        					error "Wrong Date Selected"
+        				end if
+        			end if
+        			
+        			if globals(ErrChk) .ne. "1"
+						if xsepmode .eq. ""
+							set globals(ErrChk) = "1"
+							error "Please enter a valid "+#field(xsepmode.caption)
+						end if         				
+        			end if
+        			
+        			if globals(ErrChk) .ne. "1"
+        				set xstatusemp = xsepmode
+        			end if        			        			
+        			
+        		end event
+        	end field
+        	
+           embed onsubmit="submitit(this)"
+           field Details
+            embed onclick="Details(this)"
+           end field
+
+  end form
+
+     text one
+        //"<object border=0 data=images/"+xemp+".gif type=""text/images"" height=100% width=100% ></object>"
+        "<img border=1 src=html/images/"+xemp+".jpg>"
+        "<p><b>"+xname+"</b><br>"                
+     end text
+     
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function Details(b)
+        {
+          detail="details"
+        }
+
+        function submitit(form){
+          if (detail=="details"){
+            form.page.value = "prjobenddet"
+            form.searchbutton.value= "Top"
+          }
+         }
+        </script>
+     end script
+
+end page

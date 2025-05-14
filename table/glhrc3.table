@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table glhrc3
+  caption "GL Level 3"
+  columns ztime,zutime,zid,xhrc1,xhrc2,xhrc3,xlong
+
+  primary key zid, xhrc1, xhrc2, xhrc3
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  
+end table

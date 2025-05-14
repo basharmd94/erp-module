@@ -1,0 +1,13 @@
+//im.menu
+caption "Reorder" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Stock Parameters   		 |#classPath+"/"+#servlet+"?page=imstkp"
+Reorder Status Report    |#classPath+"/"+#servlet+"?page=*crystal imstkp(xwh=Warehouse,xitem=From Item=0,xitem=To Item=z)"
+-
+//Reorder status		     |#classPath+"/"+#servlet+"?page=imreorder"
+
+//Generate Reorder POs 			   |#classPath+"/"+#servlet+"?page=impor"
+//Generate Reorder Requisitions    |#classPath+"/"+#servlet+"?page=imreq"
+//-------------------------------------------------------------------

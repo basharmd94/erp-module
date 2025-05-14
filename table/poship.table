@@ -1,0 +1,20 @@
+product ERP on the Net
+
+table poship
+	caption "Shipment Information"
+	columns ztime,zutime,zid,xpornum,xshiplno,xlcno,xshipdate,xblno,xdatein,xcarrier,xport,xtime,xqty,xunit,~
+			xremark,xqtydel,zemail,xemail,xshipmode,xfreight,xpsino,xdateclr,xdaterev,xpaydate,xorate,xvalgit,~
+			xstatussrn,xcoststat,xsrate,xdateout,xzrate,xlaborrate,xval,xteam,xmember,xmanager,xstatusact
+
+	primary key zid, xpornum,xshiplno
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xpornum references poilc.zid,xpornum
+		zid,xlcno references poilc.zid,xlcno
+	end foreign key
+
+	field xval
+		length 30.6
+	end field
+end table

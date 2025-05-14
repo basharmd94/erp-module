@@ -1,0 +1,174 @@
+page moperfomdt
+
+     caption "Manufacturing Order Shedule Details"
+     sidebar list new
+     sections list sheden,form one,script myscript
+              
+     text one
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+		list new
+			caption "Details"
+			table moperfomdt
+			order xmoord,xtype
+			fixed xmoord
+			rows 10
+			objects xtype attrib(link #servlet+"?page=moperfomdt&command=Show&xmoord=?&xtype=?"), ~
+					xqty,xdisc
+					
+			field xtype
+				caption Wastage Purpose
+			end field
+			
+			field xqty
+				caption Wastage Qty
+				len 10
+			end field
+			
+			field xdisc
+				caption Wastage(%)
+			end field
+			
+			field zemail
+				caption Created By
+			end field
+			
+			field xemail
+				caption Updated By
+			end field
+					
+
+
+			totals "Total",sum,sum
+
+		end list
+     
+
+
+
+		form one
+			valid valid,access
+			table moperfomdt
+			order xmoord,xtype
+			fixed xmoord
+			layout 1
+			objects Add,Show,Clear, Update,Previous, Delete, Next,Return,~
+					xtype,xqty,xdisc,zemail display(const),xemail display(const)
+
+
+
+			field xtype
+				display ocombo
+				caption Wastage Purpose
+				pick "select xcode from xcodes where zid='"+#id+"' and xtype='Wastage Purpose'"
+			end field
+			
+			field xqty
+				caption Wastage Qty
+				len 10
+			end field
+			
+			field xdisc
+				caption Wastage(%)
+				display const
+			end field
+			
+			field zemail
+				caption Created By
+			end field
+			
+			field xemail
+				caption Updated By
+			end field
+
+
+
+			field Add
+				event before
+					set globals(ErrChk) = ""
+					
+					if globals(ErrChk) .ne. "1"
+						set xqtyreq=moperfom.xqtyreq("zid='"+#id+"' and xmoord='"+globals(xmoord)+"'")
+						compute xdisc=0+(xqty/xqtyreq)*100
+						set xdisc=#round(xdisc,0)
+					end if
+					
+					if globals(ErrChk) .ne. "1"
+						set zemail=#user
+					end if
+	
+				end event
+			end field
+
+			field Update
+				event before
+					set globals(ErrChk) = ""
+
+					if globals(ErrChk) .ne. "1"
+						set xqtyreq=moperfom.xqtyreq("zid='"+#id+"' and xmoord='"+globals(xmoord)+"'")
+						compute xdisc=0+(xqty/xqtyreq)*100
+						set xdisc=#round(xdisc,0)
+						set xemail=#user
+					end if
+					
+				end event
+			end field
+
+			field delete
+				event before
+					set globals(ErrChk) = ""
+				end event
+			end field
+
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+   end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+         var but=""
+        function clicked(b){
+          but="clicked"
+        }
+
+        function submitit(form){
+
+	    if (but=="clicked"){
+            form.page.value = "moperfom"
+            form.searchbutton.value = "Find xmoord=?"
+          }
+        }
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xitem.value=link.text
+          }else{
+            document.one.xitem.value=link.innerText
+          }
+          return false
+        }
+        
+        </script>
+     end script
+
+
+	valid valid
+		config
+			print globals(xmoord)
+			set xstatusmor=moperfom.xstatusmor("zid='"+#id+"' and xmoord='"+globals(xmoord)+"'")
+			if xstatusmor .eq. "Completed"
+				
+				set #field(Add.display)="hide"
+				set #field(Delete.display)="hide"
+				set #field(Update.display)="hide"
+			end if
+			
+		end config
+	end valid
+	
+end page

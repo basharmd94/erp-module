@@ -1,0 +1,165 @@
+page sparea
+
+
+     caption "Sales Person Area"
+     sidebar list one
+     sections form one,text top,script myscript
+     		
+   		
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+
+    list one        
+		caption "Sales Person List"
+        table sparea
+		order xsp,xdiv
+        rows 20
+        objects xdiv attrib(link #servlet+"?page=sparea&command=Show&xdiv=?&xsp=?"),~ 
+				xsp,xqtyreq,xremarks
+		
+
+		field xqtyreq
+			capton Target
+			len 10
+		end field
+
+		field xremarks
+         caption Comments
+       end field
+	   
+	   field xdiv
+         caption Area
+       end field
+    end list
+
+	
+     form one
+        valid valid
+        table sparea
+        order xdiv,xtitle
+		defualt Add
+        layout 1
+        objects ~
+                Add,Show,Clear,Update,Previous, Delete,~ 
+				xsp attrib(attach; submit),empname display(const),xdiv,xsec display(hide),xtitle display(hide),xqtyreq,xremarks,zemail display(const),xemail display(const),xpostflag display(hide)
+				
+				
+				
+		
+		
+		field xdiv
+			display text		
+			pick "select xstate from casalshrc3 where zid='"+#id+"' and xtype='Area'"
+			caption Area 
+		end field
+
+		field empname
+			attrib local
+			display const
+			event after
+				set empname=prmst.xname(xemp)
+			end event
+		end field
+
+		field xsec
+			display ocombo
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Section'"
+		end field
+		
+		field xsp
+			display text
+			pick list xemp
+			caption Sales Person
+		end field
+		
+		
+		field xtitle
+			display ocombo
+			pick "select xemp from prmst where zid='"+#id+"'"
+			caption Designation 
+		end field
+		
+		field xqtyreq
+			capton Target
+			len 10
+		end field
+		
+        field xremarks
+			caption Comments
+            height 2
+            width 40
+        end field
+		
+		field zemail
+			caption Entered By
+		end field
+		
+		field xemail
+			caption Last Updated By
+		end field
+		
+
+        field Add
+          event before
+            set globals(ErrChk) = ""           
+			if globals(ErrChk) .eq. ""
+                set zemail=#user  
+            end if
+          end event
+        end field
+
+        field Update
+          event before
+            set globals(ErrChk)=""
+
+            
+            	
+
+            if globals(ErrChk) .ne. "1"
+              set xemail=#user
+            end if
+          end event
+        end field
+
+        field Delete
+          event before
+            set globals(ErrChk) = ""
+            
+          end event
+        end field
+
+      embed onsubmit="submitit(this)"
+        field Details
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+//          b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "poreqd"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+     
+     valid valid
+		mandatory xsp,xdiv,xqtyreq
+     	config
+			
+
+     	end config
+     end valid
+
+end page

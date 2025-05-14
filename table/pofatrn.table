@@ -1,0 +1,27 @@
+product ERP on the Net
+
+table pofatrn
+  caption "FA Transaction Entry"
+  columns ztime,zutime, zid, xgrnnum,xrow,xline,xsornum,xcode,xastname,~
+          xastcatg,xastbook,xasttype,xastunit,xastbr,xastloc,xdepmeth,~
+          xprime,xbase,xinvno,xnomlife,xestlife,xslvval,xretdate,xdepfactor,~
+          xprvunit,xprvbr,xprvloc,xprvdiv,xprvsec,xprvproj,xlong,xcur,xexch,xstatusdor,~
+          xproj,xdiv,xsec,xdept,xsubdept,xyear,~
+          xleasestat,xmortgstat,xassetstat,xpornum,xdateto,xcus,xmodel,xcondition,~
+          xmaxload,xunitalt,xmfgyear,xorigin,xmanufacturer,xarea,xthana,xmouza,~
+		  xareagovt,xareaphys,xaruntgovt,xaruntphys,xdistrict,xdateord,xname,xalias
+          
+
+  primary key zid, xgrnnum,xrow,xline
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xgrnnum,xrow references pogdt.zid,xgrnnum,xrow
+  end foreign key
+
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+
+  //sql
+end table

@@ -1,0 +1,217 @@
+  page glbudsub
+
+  caption "Sub Account Wise Budget"
+  embed onload="move_caret('one','xsub')"
+  sidebar list subacc
+  sections form one, list one, script myscript,~
+           method chk_acc, method calc_amt
+
+  list subacc
+     caption "<font size=3>"Sub Account(s)"</font>"
+     table glsub
+     order xacc,xsub
+     select "xacc='"+globals(xacc)+"'"
+     //navigators alpha
+     rows 10
+     objects xsub attrib(link "abc" embed onclick="return pickSub(this)"),~
+             xdesc
+
+  end list
+
+  list one
+        caption "Added Record(s)"
+		table (select *,~
+			(select xdesc from glsub ~
+			where zid=glbudsub.zid and xacc=glbudsub.xacc and xsub=glbudsub.xsub) as xname ~
+			from glbudsub) as tbl
+		
+        order xyear,xper,xacc,xsub
+        fixed xyear,xper,xacc
+        //navigators alpha
+        rows 10
+        objects xsub attrib(link "Main?page=glbudsub&command=Show&xyear=?&xper=?&xacc=?&xsub=?"),~
+                xname,xamount
+
+        field xamount
+          caption Amount
+        end field
+
+        field xname
+          storage varchar
+          caption Description
+        end field
+
+  end list
+
+  form one
+       //caption "<font color=black size=4>"Budget for Sub Account(s) of "</font>"+globals(xacc)
+       valid valid
+       table glbudsub
+       order xyear,xper,xacc,xsub
+       fixed xyear,xper,xacc
+       layout 2
+	   default Add
+       objects Show, Update, Clear,Add, Delete, Top, Previous, Next, Bottom,Return,~
+       xsub attrib(attach),acc_desc,xamount,~
+       xremarks,zemail display(hide),xemail display(hide)
+
+    field xsub
+       event after
+         set globals(xsub)=xsub
+       end event
+    end field
+    
+    field acc_desc
+       attrib local
+       display const
+       caption Description
+       event after
+          set acc_desc = #sql("select xdesc from glsub where zid="+#id+" and xacc='"+xacc+"' and xsub='"+xsub+"'")
+       end event
+    end field
+
+    field xamount
+       caption Amount
+       event after
+          set globals(xamount) = xamount
+       end event
+    end field
+
+    field xremarks
+       col 3
+       width 80
+       height 2
+    end field
+
+    field clear
+      event after
+       set #field(Details.display) = "hidden"
+       set #field(Delete.display) = "hidden"
+       set #field(Update.display) = "hidden"
+       set #field(Show.display) = "hidden"
+      end event
+    end field
+    
+    field Add
+      event before
+         set globals(ErrChk) = ""
+         call chk_acc
+         if globals(ErrChk) .ne. "1"
+         	set globals(exch) = glbudacc.xexch("zid='"+#id+"' and xyear='"+globals(xyear)+"' and xper='"+globals(xper)+"' and xacc='"+globals(xacc)+"'")
+            set zemail = #user
+            set xamount = xamount*globals(exch)
+            call calc_amt
+         end if
+         if globals(ErrChk) .ne. ""
+            action show
+         end if
+      end event
+    end field
+
+    field Update
+      event before
+         set globals(ErrChk) = ""
+         call chk_acc
+         if globals(ErrChk) .ne. "1"
+            if globals(xsub) .ne. xsub
+               set globals(ErrChk) = "1"
+               error "Cannot Change Sub Account Code"
+            end if
+         end if
+         if globals(ErrChk) .ne. "1"
+         	set globals(exch) = glbudacc.xexch("zid='"+#id+"' and xyear='"+globals(xyear)+"' and xper='"+globals(xper)+"' and xacc='"+globals(xacc)+"'")
+            set xemail = #user
+            set xamount = xamount*globals(exch)
+            call calc_amt
+         end if
+         if globals(ErrChk) .ne. ""
+            action show
+         end if
+      end event
+    end field
+
+    field Delete
+      event before
+         set globals(ErrChk) = ""
+         if globals(xsub) .ne. xsub
+            set globals(ErrChk) = "1"
+            error "Record pointer mismatch"
+         end if
+         if globals(ErrChk) .ne. "1"
+            call calc_amt
+         end if
+         if globals(ErrChk) .ne. ""
+            action show
+         end if
+      end event
+    end field
+    
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="back()"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function back(){
+          detail="back"
+        }
+
+        function submitit(form){
+          if (detail=="back"){
+            form.page.value = "glbudacc"
+            form.searchbutton.value = "Find xyear=?&xper=?&xacc=?"
+          }
+        }
+        
+        function pickSub(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xsub.value=link.text
+          }else{
+            document.one.xsub.value=link.innerText
+          }
+          return false
+        }
+        </script>
+     end script
+     
+     method chk_acc
+       set chkacc = #sql("select xsub from glsub where zid="+#id+" and xacc='"+globals(xacc)+"' and xsub='"+xsub+"'")
+       if #result .ne. "true"
+          set globals(ErrChk) = "1"
+          error "Wrong Sub Account Code</p>Cannot "+#command
+       end if
+     end method
+     
+     method calc_amt
+       decimal act_amt = 0.0
+       
+       if #command .eq. "Add"
+          set act_amt = 0.0+xamount
+       else if #command .eq. "Update"
+          set act_amt = 0.0+xamount - globals(xamount)
+       else // *** for DELETE
+          set act_amt = 0.0-globals(xamount)
+       end if
+       
+       str mysql = "update glbudacc set xprime = xprime + "+act_amt+" where zid="+#id+" and xyear='"+globals(xyear)+"' and xper='"+globals(xper)+"' and xacc='"+globals(xacc)+"'"
+       set updval = #sql(mysql)
+
+       str mysql = "update glbudacc set xbase = xbase + "+act_amt+" where zid="+#id+" and xyear='"+globals(xyear)+"' and xper='"+globals(xper)+"' and xacc='"+globals(xacc)+"'"
+       set updval = #sql(mysql)
+
+     end method
+
+	velid valid
+		config
+			set globals(exch) = glbudacc.xexch("zid='"+#id+"' and xyear='"+globals(xyear)+"' and xper='"+globals(xper)+"' and xacc='"+globals(xacc)+"'")
+			//print globals(exch)
+		end config
+	end valid
+	
+end page

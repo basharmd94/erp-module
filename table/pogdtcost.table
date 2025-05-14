@@ -1,0 +1,20 @@
+product ERP on the Net
+
+table pogdtcost
+  caption "GRN Cost"
+  columns ztime,zutime,zid,xgrnnum,xrow,xname,xcur,xexch,xlong,xcost
+  primary key zid,xgrnnum,xrow,xname
+  foreign key
+        zid references zbusiness.zid
+        zid,xgrnnum references pogrn.zid,xgrnnum
+        zid,xgrnnum,xrow references pogdt.zid,xgrnnum,xrow
+  end foreign key
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+  //field xcus
+    //extend
+    //attrib trn Sales Order, 10
+  //end field
+  //sql
+end table

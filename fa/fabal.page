@@ -1,0 +1,60 @@
+page fabal
+     caption "FA Balance"
+      sections list one, form one, script myscript
+
+         list one
+        table fabal
+        order xcode
+
+    end list
+
+      form one
+        caption " Fixed Assets Balance"
+        table fabal
+        order xcode
+        layout 2
+    objects Show,Clear,Add, Update, Delete, Top, Previous, Next, Bottom,~
+              xyear, xper, xcode,xdefi, xcBal, xdBal,xadBal,xdiBal
+           field xcode
+         event after
+          set globals(xcode)=xcode
+         end event
+        end field
+
+         field xdefi
+         attrib local
+         caption
+         display constant
+         end field
+
+        field xcode
+        columns "1"
+         attrib local
+         end field
+        //embed onsubmit="return submitit(this)"
+        embed onsubmit="submitit(this)"
+        field Enter
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+          script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+
+	    if (detail=="clicked"){
+          //  form.page.value = "poordsup"
+            //form.searchbutton.value = "Find xsup=?"
+            //return false
+          }
+       }
+
+        </script>
+     end script
+  end page

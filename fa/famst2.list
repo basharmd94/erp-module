@@ -1,0 +1,8 @@
+     list famst2
+        table famst
+        order xcode
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xitemold')"), ~
+                xastname,xastcatg,xastbook,xasttype
+
+     end list

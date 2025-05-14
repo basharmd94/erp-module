@@ -1,0 +1,10 @@
+     list xcostacc
+        table glmst
+        order xacc
+        navigators alpha
+        rows 10
+        objects xacc attrib(link "abc" embed onclick="return updateParent(this:'xcostacc')"), ~
+                xdesc,xmsttype
+     end list
+
+

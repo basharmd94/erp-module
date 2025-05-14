@@ -1,0 +1,14 @@
+Product ERP on the net
+
+table prsalslab
+	caption "Salary Slab Table"
+
+	columns  ztime,zutime,zid,xempcat,xpaycode,xpcode,xpercent,xremark,zemail,xemail
+
+	primary key zid,xempcat,xpaycode
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+end table

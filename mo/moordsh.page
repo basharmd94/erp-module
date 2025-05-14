@@ -1,0 +1,140 @@
+page moordsh
+     //embed onload = "move_caret('one','xitem')"
+     caption "Manufacturing Order"
+     sidebar list moordshdt
+     sections form one,list new,script myscript
+              
+     text one
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+		list moordshdt
+			caption "Details"
+			empty " "
+			table (select *,~
+			(select xdesc from caitem ~
+				where zid=moordshdt.zid and xitem=moordshdt.xitem) as itemdesc ~
+				from moordshdt) as tbl
+
+			order xdate,xdfshift,xitem
+			fixed xdate
+			rows 10
+			objects xdfshift attrib(link #servlet+"?page=moordshdt&command=Show&xdate=?&xdfshift=?&xitem=?"), ~
+			xitem,itemdesc,xqty
+
+			field itemdesc
+				caption Description
+				storage varchar
+			end field
+
+			totals ,,"Total",sum,,,	
+
+		end list
+     
+		list new
+			caption "Shedule List"
+			empty " "
+			table moordsh
+			order xdate desc
+			rows 20
+			objects ~
+			xdate attrib(link #servlet+"?page="+page+"&command=Show&xdate=?"), ~
+				zemail
+
+			field xdate
+				caption Shedule Date
+			end field
+			
+			field zemail
+				caption Shedule Date Created By
+			end field
+
+
+		end list
+
+
+
+     form one
+		valid valid,access
+        table moordsh
+        order xdate DESC
+        layout 1
+        objects Add, Detail, Show,Clear, Update, Top, Previous, Delete, Next, Bottom,~
+					xdate,zemail display(const),xemail display(hide)
+
+
+
+		field xdate
+			caption Shedule Date
+			event after
+				set globals(xdate)=xdate
+			end event
+		end field
+		
+		field zemail
+			caption Shedule Date Created By
+		end field
+					
+		field Add
+			event before
+				set globals(ErrChk) = ""
+				
+				if globals(ErrChk) .ne. "1"
+					set zemail=#user
+				end if
+				
+			end event
+		end field
+
+		field Update
+			event before
+				set globals(ErrChk) = ""
+				
+				if globals(ErrChk) .ne. "1"
+					set xemail=#user
+				end if
+				
+			end event
+		end field
+
+		field delete
+			event before
+				set globals(ErrChk) = ""
+			end event
+		end field
+
+
+		embed onsubmit="submitit(this)"
+		
+		field Detail
+			embed onclick="clicked(this)"
+		end field
+		
+	end form
+
+
+		script myscript
+
+			<script language="javascript" type="text/javascript">
+			var but= ""
+
+			function clicked(b){
+				but="clicked"
+			}
+
+			function submitit(form){
+				if (but=="clicked"){
+				form.page.value = "moordshdt"
+				form.searchbutton.value = "Top"
+				}
+			}
+			</script>
+		end script
+
+		valid valid
+			config
+
+			end config
+		end valid
+	
+	end page

@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table prconvview
+
+	caption "Conveyance View File"
+
+	columns zid,xemp,xyear,xper,xweekno,xtotamt
+
+	sql create view prconvview (zid,xemp,xyear,xper,xweekno,xtotamt) as ~
+		SELECT prconvhd.zid, prconvhd.xemp,prconvhd.xyear, prconvhd.xper,prconvhd.xweekno,~
+		SUM(prconvdt.xamount) AS xtotamt ~
+		FROM prconvdt INNER JOIN prconvhd ON prconvdt.zid = prconvhd.zid AND prconvdt.xemp = prconvhd.xemp AND prconvdt.xyear = prconvhd.xyear AND prconvdt.xper = prconvhd.xper AND prconvdt.xweekno = prconvhd.xweekno ~
+		GROUP BY prconvhd.zid,prconvhd.xemp,prconvhd.xyear, prconvhd.xper, prconvhd.xweekno
+end table

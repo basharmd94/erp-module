@@ -1,0 +1,17 @@
+module IM
+	caption "Inventory Management"
+	description "You want to keep track of your inventory by unit as well as ~
+		by cost. You are keen to monitor your supply commitments and ~
+		take action to meet those commitments."
+
+	transactions Inventory Transaction (table:imtrn:ximtrnnum;default:IMRE:IMIS)(Receipt;Issue), ~
+		Im Transaction (table:imtemptrn:ximtmptrn;default:RE--:IS--;Inventory Transaction Receive;Inventory Transaction Issue) (Receipt;Issue), ~
+		Transfer Transaction (table:imtor:ximtor;default:TO--;Inventory Transaction Receive;Inventory Transaction Issue), ~
+		Tag Transaction (table:imtag:xtagnum;default:TAG-;Inventory Transaction Receive;Inventory Transaction Issue)
+
+	codes Transfer Cost Code
+
+	properties
+
+
+end module

@@ -1,0 +1,11 @@
+     list xpocode
+        table pocharge
+        order xpocode
+        navigators alpha
+        rows 10
+        objects xpocode attrib(link "abc" embed onclick="return updateParent(this:'xpocode')"), ~
+                xdesc,xpotype,xcostacc,xsubdr
+
+     end list
+
+

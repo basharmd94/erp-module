@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table glgrn
+  caption "Allocation of GRN"
+  
+  columns ztime,zutime,zid,xvoucher,xrow,xgrnnum,xdate,xtotamt,xlong
+
+  primary key zid, xvoucher,xrow,xgrnnum
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xvoucher,xrow references gldetail.zid,xvoucher,xrow
+        zid,xgrnnum references pogrn.zid,xgrnnum
+  end foreign key
+
+end table

@@ -1,0 +1,66 @@
+//OP Reports.menu
+caption "Sales Reports" page 2
+//-------------------------------------------------------------------
+option                     |action
+//-------------------------------------------------------------------
+-Sales
+Area Wise Challan Print 			|#classPath+"/"+#servlet+"?page=*crystal opdor_new(xdate=From Date,xdate=To Date,xdiv=From Area=0=text=list xarea,xdiv=To Area=Zzz=text=list xarea,xdornum=From Challan=0,xdornum=To Challan=Zzz)"
+Area Wise Bill Print 				|#classPath+"/"+#servlet+"?page=*crystal opdorbill_new(xdate=From Date,xdate=To Date,xdiv=From Area=0=text=list xarea,xdiv=To Area=Zzz=text=list xarea,xdornum=From Bill=0,xdornum=To Bill=Zzz)"
+Mobile Order Report               |#classPath+"/"+#servlet+"?page=*crystal opmobor(xdate=From Date,xdate=To Date,xitem=Item)"
+Mobile Order Status Report               |#classPath+"/"+#servlet+"?page=*crystal moborder(xinvoiceno=Mobile Order No.==text)"
+Date wise Top Sheet                |#classPath+"/"+#servlet+"?page=*crystal opordtopdt(xdate=From Date,xdate=To Date)"
+Date & Area Wise Customer Order    |#classPath+"/"+#servlet+"?page=*crystal opord_daily(xdate=From Date,xdate=To Date,xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea,xcus=From Customer,xcus=To Customer)"
+Date & Area Wise Customer Order(QTY)|#classPath+"/"+#servlet+"?page=*crystal opord_daily_qty(xdate=From Date,xdate=To Date,xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea,xcus=From Customer,xcus=To Customer)"
+Packing List (QTY)|					#classPath+"/"+#servlet+"?page=*crystal packing_qty(xdate=From Date,xdate=To Date,xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea,xcus=From Customer,xcus=To Customer)"
+Customer Info (INFO)|					#classPath+"/"+#servlet+"?page=*crystal customer_info(xdate=From Date,xdate=To Date,xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea,xcus=From Customer,xcus=To Customer)"
+Date & Area Wise Order List        |#classPath+"/"+#servlet+"?page=*crystal opordlistare(xdate=From Date,xdate=To Date,xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea)"
+Date & Area Wise Order List by Do  |#classPath+"/"+#servlet+"?page=*crystal opordlistare_list(xdate=From Date,xdate=To Date,xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea)"
+Date Wise Customer Order Report    |#classPath+"/"+#servlet+"?page=*crystal opsalesdt(xdate=From Date,xdate=To Date)"
+Date Wise Damage Return Report     |#classPath+"/"+#servlet+"?page=*crystal opdtdamage(xdate=From Date,xdate=To Date,xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea)"
+Product Sales Report               |#classPath+"/"+#servlet+"?page=*crystal opprodsale(xdate=From Date,xdate=To Date,xitem=From Item,xitem=To Item)"
+Product Sales Report(Con)               |#classPath+"/"+#servlet+"?page=*crystal opprodsalecon(xdate=From Date,xdate=To Date,xitem=From Item,xitem=To Item)"
+Product Sales Report(District)               |#classPath+"/"+#servlet+"?page=*crystal opordsaledist(xdate=From Date,xdate=To Date,xitem=From Item,xitem=To Item)"
+Product Wise Total Order           |#classPath+"/"+#servlet+"?page=*crystal producttotal(xdate=From Date,xdate=To Date,xitem=From Item,xitem=To Item)"
+Employee Wise Product Sale           |#classPath+"/"+#servlet+"?page=*crystal producttotalsp(xdate=From Date,xdate=To Date,xitem=From Item,xitem=To Item,xsp=From Employee==text=list xsp,xsp=To Employee==text=list xsp)"
+Employee Wise Product Sale(Dis)           |#classPath+"/"+#servlet+"?page=*crystal producttotalspd(xdate=From Date,xdate=To Date,xitem=From Item,xitem=To Item,xsp=From Employee==text=list xsp,xsp=To Employee==text=list xsp)"
+Customer Wise Sales Report         |#classPath+"/"+#servlet+"?page=*crystal opprodsale_cus(xdate=From Date,xdate=To Date,xcus=From Customer,xcus=To Customer, xstate= From Division, xstate= )"
+Customer Wise Total Sales Report   |#classPath+"/"+#servlet+"?page=*crystal opprodsaletotal_cus(xdate=From Date,xdate=To Date,xcus=From Customer,xcus=To Customer,xproj=Project=)"
+Employee Wise Customer Order       |#classPath+"/"+#servlet+"?page=*crystal opempcus(xdate=From Date,xdate=To Date,xsp=From Employee==text=list xsp,xsp=To Employee==text=list xsp)"
+Employee Wise Total Customer Order  |#classPath+"/"+#servlet+"?page=*crystal empwisetotal(xdate=From Date,xdate=To Date,xsp=From Employee==text=list xsp,xsp=To Employee==text=list xsp)"
+Employee Wise Net Sale				|#classPath+"/"+#servlet+"?page=*crystal empwisetotal1(xdate=From Date,xdate=To Date,xsp=From Employee==text=list xsp,xsp=To Employee==text=list xsp)"
+Sales Process Log Report  |#classPath+"/"+#servlet+"?page=*crystal oplogdate(xdate=From Date,xdate=To Date)"
+//----------------------------------------------------------------
+-
+Product Return Report              |#classPath+"/"+#servlet+"?page=*crystal opproretun(xdate=From Date,xdate=To Date,xitem=From Item,xitem=To Item,xsp=From Employee==text=list xsp,xsp=To Employee==text=list xsp)"
+Employee Wise Sales Return(REC)		   |#classPath+"/"+#servlet+"?page=*crystal recreturn(xdate=From Date,xdate=To Date,xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea,xemp=Employee Code,xemp=To Employee Code,xitem=From Item,xitem=To Item)"
+Employee Wise Sales Return(REC/RECA Sum)		   |#classPath+"/"+#servlet+"?page=*crystal recreturnsum(xdate=From Date,xdate=To Date,xemp=Employee Code,xemp=To Employee Code)"
+Customer Wise Return Report        |#classPath+"/"+#servlet+"?page=*crystal opproretun_cus(xdate=From Date,xdate=To Date,xcus=From Customer,xcus=To Customer,xsp=From Employee==text=list xsp,xsp=To Employee==text=list xsp)"
+Customer Wise Total Return Report  |#classPath+"/"+#servlet+"?page=*crystal opproretuntotal_cus(xdate=From Date,xdate=To Date,xcus=From Customer,xcus=To Customer)"
+Customer Wise Damage Return Report |#classPath+"/"+#servlet+"?page=*crystal opproretun_damag(xdate=From Date,xdate=To Date,xcus=From Customer,xcus=To Customer)"
+Customer Wise Total Damage Return Report |#classPath+"/"+#servlet+"?page=*crystal opproretuntotal_damag(xdate=From Date,xdate=To Date,xcus=From Customer,xcus=To Customer)"
+Product Damage Return Report       |#classPath+"/"+#servlet+"?page=*crystal opprodamretun(xdate=From Date,xdate=To Date,xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea)"
+Employee wise Product Return       |#classPath+"/"+#servlet+"?page=*crystal opproret(xdate=From Date,xdate=To Date,xemp=Employee Code)"
+Employee wise Product Return(Sum)       |#classPath+"/"+#servlet+"?page=*crystal opproretsum(xdate=From Date,xdate=To Date,xemp=Employee Code,xemp=To Employee Code)"
+Employee wise Total Return         |#classPath+"/"+#servlet+"?page=*crystal empwisereturn(xdate=From Date,xdate=To Date,xemp=Employee Code,xemp=To Employee Code)"
+-Do's
+Date Wise Create DO Report		   |#classPath+"/"+#servlet+"?page=*crystal op_createDO(xdate=From Date=#d,xdate=To Date=#d,xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea,xcus=From Customer=0,xcus=To Customer=z)"
+//Date Wise Create DO Report		   |#classPath+"/"+#servlet+"?page=*crystal op_createDO2(xdate=From Date=#d,xdate=To Date=#d,xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea,xcus=From Customer=0,xcus=To Customer=z)"
+//Date Wise Create DO Report		   |#classPath+"/"+#servlet+"?page=*crystal op_createDO(xdate=From Date=#d,xdate=To Date=#d,xcus=From Customer=0,xcus=To Customer=z)"
+Date Wise Undone  Invoice Report	|#classPath+"/"+#servlet+"?page=*crystal op_confirmDO(xdate=From Date=#d,xdate=To Date=#d,xcus=From Customer=0,xcus=To Customer=z)"
+Date Wise Confirm DO Report			|#classPath+"/"+#servlet+"?page=*crystal op_confirmDOnew(xdate=From Date=#d,xdate=To Date=#d,xcus=From Customer=0,xcus=To Customer=z)"
+Employee Wise DO Collection Date	|#classPath+"/"+#servlet+"?page=*crystal opdorcd(xdate=From Date=#d,xdate=To Date=#d,xsp=From Employee==text=list xsp,xsp=To Employee==text=list xsp)"
+Employee Wise Confirm DO					|#classPath+"/"+#servlet+"?page=*crystal opdor_ac(xdate=From Date=#d,xdate=To Date=#d,xcus=From Customer=0,xcus=To Customer=z,xsp=From Employee==text=list xsp,xsp=To Employee==text=list xsp)"
+Employee Wise Total Confirm DO					|#classPath+"/"+#servlet+"?page=*crystal opdor_acsum(xdate=From Date=#d,xdate=To Date=#d,xsp=From Employee==text=list xsp,xsp=To Employee==text=list xsp)"
+Emplyee Wise Confirm DO Report			|#classPath+"/"+#servlet+"?page=*crystal op_confirmdoemp(xdate=From Date=#d,xdate=To Date=#d,xsp=From Employee==text=0,xsp=To Employee==text=z)"
+Date Wise Invoiced DO			   |#classPath+"/"+#servlet+"?page=*crystal op_invoice(xdate=From Date=#d,xdate=To Date=#d,xcus=From Customer=0,xcus=To Customer=z)"
+Sales Report With Return		   |#classPath+"/"+#servlet+"?page=*crystal op_statement(xdate=From Date=#d,xdate=To Date=#d,xcus=From Customer=0,xcus=To Customer=z)"
+Sales Report               	   |#classPath+"/"+#servlet+"?page=*crystal op_stmnt(xdate=From Date=#d,xdate=To Date=#d,xcus=From Customer=0,xcus=To Customer=z,~
+                                                                                xdiv=From Area==text=list xarea,xdiv=To Area==text=list xarea)"
+  
+//Partly Delivery Report		   |#classPath+"/"+#servlet+"?page=*crystal opsalesinop(xdate=From Date=#d,xdate=To Date=#d)"
+//Dailiy DO Report DO Loading	   |#classPath+"/"+#servlet+"?page=*crystal opsaledolod(xdate=From Date=#d,xdate=To Date=#d)"
+//Dailiy DO Report Vat Confirm	   |#classPath+"/"+#servlet+"?page=*crystal opsaledovat(xdate=From Date=#d,xdate=To Date=#d)"
+//Date Wise DO Report			   |#classPath+"/"+#servlet+"?page=*crystal opsaledtdo(xdate=From Date=#d,xdate=To Date=#d)"
+//Daily INOP Sales Report		   |#classPath+"/"+#servlet+"?page=*crystal opsaledoinv(xdate=From Date=#d,xdate=To Date=#d)"
+//Date Wise Invoice Sales Report   |#classPath+"/"+#servlet+"?page=*crystal opsaledtinv(xdate=From Date=#d,xdate=To Date=#d)"
+area

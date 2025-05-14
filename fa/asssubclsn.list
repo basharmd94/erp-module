@@ -1,0 +1,15 @@
+     list asssubclsn
+		caption "Asset Sub Class"+globals(xname)
+        table faassetdt
+        order xcode,xsub
+		select "(xsub like '%"+zvalue+"%' or xdesc like '%"+zvalue+"%') and xcode='"+globals(xname)+"'"
+        rows 20
+        objects xsub attrib(link "abc" embed onclick="return updateParent(this:'xdesc02')"),~
+                xdesc
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

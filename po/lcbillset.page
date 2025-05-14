@@ -1,0 +1,241 @@
+page lcbillset
+     caption "B/E Setup"
+     sidber list two
+     sections form one, list one,text top,script myscript
+
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list one
+        table lcbillset
+        order xdateeco,xicno
+        navigators alpha
+        rows 20
+        objects  xdateeco attrib(link #servlet+"?page="+page+"&command=Show&xdateeco=?&xicno=?"), ~
+                 xicno,xrcvamt,xinhand,xopord,xporeq,xpogrn,xwoord,xwodem
+                 
+        field xicno
+          caption H.S.Code
+        end field
+        
+        field xdateeco
+          caption Date
+        end field
+        
+        field xporeq
+           caption AIT Tax Rate(%)
+         end field
+
+         field xpogrn
+          caption DSC Tax Rate(%)
+         end field
+
+         field xwoord
+          caption ATV Tax Rate(%)
+         end field
+
+         field xwodem
+          caption PSI Tax Rate(%)
+         end field
+
+         field xopord
+          caption VAT Tax Rate(%)
+         end field
+
+         field xinhand
+          caption SD Tax Rate(%)
+         end field
+
+         field xrcvamt
+           caption CD Rate(%)
+         end field
+
+        
+
+     end list
+     
+     list two
+        table lcbillset
+        order xdateeco,xicno
+        select "xicno='"+globals(xicno)+"'"
+        navigators alpha
+        rows 20
+        objects  xdateeco attrib(link #servlet+"?page="+page+"&command=Show&xdateeco=?&xicno=?"), ~
+                 xicno,xrcvamt,xinhand,xopord,xporeq,xpogrn,xwoord,xwodem
+
+        field xicno
+          caption H.S.Code
+        end field
+        
+        field xdateeco
+          caption Date
+        end field
+
+        field xporeq
+           caption AIT Tax Rate(%)
+         end field
+
+         field xpogrn
+          caption DSC Tax Rate(%)
+         end field
+
+         field xwoord
+          caption ATV Tax Rate(%)
+         end field
+
+         field xwodem
+          caption PSI Tax Rate(%)
+         end field
+
+         field xopord
+          caption VAT Tax Rate(%)
+         end field
+
+         field xinhand
+          caption SD Tax Rate(%)
+         end field
+
+         field xrcvamt
+           caption CD Rate(%)
+         end field
+
+
+
+     end list
+     
+     
+
+     form one
+        table pobillset
+        order xdateeco,xicno
+        
+        layout 1
+        objects "<p>",~
+                Add, Show,Clear,Update, Delete, Top, Previous, Next, Bottom,Search,"" ,~
+                xdateeco,xicno,xrcvamt,xinhand,xopord,xporeq,xpogrn,xwoord,~
+                xwodem,xlong,zemail display(const),xemail display(const)
+         
+         field xporeq
+           caption AIT Tax Rate(%)
+         end field
+
+         field xpogrn
+          caption DSC Tax Rate(%)
+         end field
+          
+         field xwoord
+          caption ATV Tax Rate(%)
+         end field
+
+         field xwodem
+          caption PSI Tax Rate(%)
+         end field
+         
+         field xopord
+          caption VAT Tax Rate(%)
+         end field
+         
+         field xinhand
+          caption SD Tax Rate(%)
+         end field
+
+         field xrcvamt
+           caption CD Rate(%)
+         end field
+                
+        field xicno
+          caption H.S.Code
+            display text
+            pick xhscode
+            //pick "select xcode from xcodes where xtype='HS Code'"
+            event after
+              set globals(xicno)=xicno
+            end event
+        end field
+        
+                
+
+        field xdateeco
+         caption  Date
+         col 2
+        end field
+
+        field xlong
+          caption Remarks
+          display hide
+          width 30
+          height 3
+        end field
+        
+        field zemail
+              caption Entry By:
+        end field
+        
+        field xemail
+              caption Update By:
+        end field
+        
+        field Add
+          event before
+           set globals(ErrChk)= ""
+           if globals(ErrChk) .ne."1"
+            set chk_hscode=#sql("select xcode from xcodes where zid='"+#id+"' and xcode='"+xicno+"' and xtype='HS Code'")
+            if #result .eq. "false"
+              set globals(ErrChk)="1"
+              error "Wrong H.S Code picked from list"
+            end if
+           end if
+           set zemail=#user
+          end event
+        end field
+        
+        
+        field Update
+          event before
+           set globals(ErrChk)= ""
+           if globals(ErrChk) .ne."1"
+            set chk_hscode=#sql("select xcode from xcodes where zid='"+#id+"' and xcode='"+xicno+"' and xtype='HS Code'")
+            if #result .eq. "false"
+              set globals(ErrChk)="1"
+              error "Wrong H.S Code picked from list"
+            end if
+           end if
+           set xemail=#user
+          end event
+        end field
+
+        
+        
+
+        embed onsubmit="submitit(this)"
+
+        field Exit
+          embed onclick="clicked(this)"
+        end field
+
+  end form
+  
+
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+
+	    if (detail=="clicked"){
+           form.page.value = ""
+           form.searchbutton.value = "Find xpornum=?"
+          }
+        }
+
+        </script>
+     end script
+
+end page

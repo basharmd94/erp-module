@@ -1,0 +1,14 @@
+//lvrecomm.email
+
+Hi,
+
+""+prmst.xname(xemp)+" ("+xemp+")"
+"has applied for "+xleave+" Leave for "+xdaysreq+" day(s) from "+#format(xfdate,date)+" to "+#format(xtdate,date)+~
+" for "+xpurpose+". It's recommended by "+xrecommendedby
+
+Please take appropriate action to saction the leave.
+
+Regards.
+""+zbusiness.xshort()+" Automated Leave Routing Service"
+""+zbusiness.zorg()
+""+zbusiness.xcity()

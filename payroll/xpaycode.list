@@ -1,0 +1,10 @@
+Product ERP on The Net
+
+	list xpaycode
+		caption "Paycode"
+		select "(xpaycode like '%"+zvalue+"%' or xdesc like '%"+zvalue+"%')"
+		table prpayhead
+		order xpaycode
+		objects xpaycode attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+		xdesc,xprsign
+	end list

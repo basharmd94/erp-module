@@ -1,0 +1,138 @@
+page pradvdt
+     caption header
+     sections form one,list tot,  script myscript
+
+     list tot
+      table pradvdt
+      order xemp,xrow
+	    fixed xemp
+      object xrow attrib(link #servlet+"?page=pradvdt&command=Show&xrow=?"),~
+               xdate,xprrate,xadvance
+
+      field xrow
+        caption Line No
+      end field
+
+      field xprrate
+        caption Rate
+      end field
+
+         totals "","Totals",sum,sum
+     end list
+
+     form one
+        caption "Advance Details <font color=cyan>"+xemp+"</font>"
+        table pradvdt
+		valid valid
+        order xrow
+        fixed xemp
+        layout 2
+        objects Add, Back, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+               xrow attrib(row 0 10), xdate,xadvance,xprrate,zemail display(hide),xemail display(hide)
+
+               field xrow
+                  caption Line No
+               end field
+
+               field xprrate
+                  caption Rate
+               end field
+
+          embed onsubmit="submitit(this)"
+
+          field Add
+            event before
+               double xaddv=0
+               double xrat=0
+               buffer pradvinfo
+               move pradvinfo=pradvinfo(xemp)
+                  if #result .eq. "True"
+                     set xaddv=0.00+pradvinfo.xtotadv
+                     set xrat=0.00+pradvinfo.xprrate
+                     set pradvinfo.xtotadv=xaddv+xadvance
+                     set pradvinfo.xprrate=xrat+xprrate
+                     update pradvinfo(xemp)
+                  end if
+               set zemail=#user
+               set xemail=""
+            end event
+          end field
+
+          field update
+            event before
+               set xemail=#user
+            end event
+
+            event after
+               double tot=0.00
+               double totr=0.00
+               str mysql="select sum(xadvance) from pradvdt where xemp='"+globals(xemp)+"'"
+               set tot=#sql(double,mysql)
+               set mysql="select sum(xprrate) from pradvdt where xemp='"+globals(xemp)+"'"
+               set totr=#sql(double,mysql)
+
+               buffer pradvinfo
+               move pradvinfo=pradvinfo(xemp)
+               if #result .eq. "true"
+                  set pradvinfo.xtotadv=0.00+tot
+                  set pradvinfo.xprrate=0.00+totr
+                  update pradvinfo(xemp)
+               end if
+            end event
+
+          end field
+
+          field delete
+            event after
+               double xaddv=0.00
+               double xrat=0.00
+               buffer pradvinfo
+               move pradvinfo=pradvinfo(xemp)
+                  if #result .eq. "True"
+                     set xaddv=0.00+pradvinfo.xtotadv
+                     set xrat=0.00+pradvinfo.xprrate
+                     set pradvinfo.xtotadv=xaddv-xadvance
+                     set pradvinfo.xprrate=xrat-xprrate
+                     update pradvinfo(xemp)
+                  end if
+            end event
+          end field
+
+          field back
+            embed onclick="clicked(this)"
+          end field
+
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          details="back"
+        }
+        function submitit(form)
+        {
+          if (details=="back")
+          {
+            form.page.value = "pradvinfo"
+            form.searchbutton.value= "Find xemp=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+	 
+	 valid valid
+		config
+			set header = "<font color=green size=4+>Advance Details</font><br>"
+		end config
+	 end valid 
+
+end page
+

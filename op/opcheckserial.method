@@ -1,0 +1,35 @@
+	 method opcheckserial
+        set xstatusdor=opdor.xstatusdor(xdornum)
+		console "OPCHECKSERIAL="+xdornum+"*"+xstatusdor
+        int err=0
+		int xrow=-1
+		str sql="select xrow from opddt where zid="+#id+" and xdornum='"+xdornum+"' and (select xtypeserial from caitem where zid=opddt.zid and xitem=opddt.xitem)>='1' and xrow>"+xrow
+		set xrow=#sql(int,sql)
+        if xrow == 0
+			if xstatusdor .eq. #status("xstatusdor",7)
+				set xstatusdor=#status("xstatusdor",1)
+				set tempstr=#sql(int,"update opdor set xstatusdor='"+#status("xstatusdor",1)+"' where xdornum='"+xdornum+"'")
+				set tempstr=#sql(int,"update opddt set xstatusddt='"+#status("xstatusdor",1)+"' where xdornum='"+xdornum+"' ")
+			end if
+        end if
+		while xrow>0 
+			set sql="select xqty*xcfsel from opddt where zid="+#id+" and xdornum='"+xdornum+"' and xrow="+xrow
+			int qty=#sql(int,sql)
+
+			int cqty=#sql(int,"select count(*) from opddtbar where zid='"+#id+"' and xdornum='"+xdornum+"' and xrow="+xrow+"")
+			//print "qty="+qty+" cqty="+cqty
+			if qty<>cqty
+                set err=1
+				set tempstr=#sql(int,"update opdor set xstatusdor='"+#status("xstatusdor",7)+"' where xdornum='"+xdornum+"'")
+                set tempstr=#sql(int,"update opddt set xstatusddt='"+#status("xstatusdor",7)+"' where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+                set xstatusdor=#status("xstatusdor",7)
+			else if xstatusdor .eq. #status("xstatusdor",7)
+                set xstatusdor=#status("xstatusdor",1)
+				set tempstr=#sql(int,"update opdor set xstatusdor='"+#status("xstatusdor",1)+"' where xdornum='"+xdornum+"'")
+                set tempstr=#sql(int,"update opddt set xstatusddt='"+#status("xstatusdor",1)+"' where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+			end if
+			str sql="select xrow from opddt where zid="+#id+" and xdornum='"+xdornum+"' and (select xtypeserial from caitem where zid=opddt.zid and xitem=opddt.xitem)>='1' and xrow>"+xrow
+			set xrow=#sql(int,sql)
+		end while
+		console "OPCHECKSERIALEND="+xdornum+"*"+xstatusdor		 
+	 end method

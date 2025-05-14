@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table pradvdview
+	caption "pradvd Description View"
+
+	columns ztime,zutime,zid,xemp,xpaycode,xrow,xdate,xpaydate,xadvance,~
+			xprrate,returnamt,adjustment,balance,xpflag,xamount,zemail,xemail,xinstalno,xcomm,xprime	
+			
+	sql create view pradvdview (ztime,zutime,zid,xemp,xpaycode,xrow,xdate,xpaydate,xadvance,~
+		xprrate,returnamt,adjustment,balance,xpflag,xamount,zemail,xemail,xinstalno,xcomm,xprime) ~
+		as select ~
+		pradvd.ztime,pradvd.zutime,pradvd.zid,pradvd.xemp,pradvd.xpaycode,pradvd.xrow,pradvd.xdate,pradvd.xpaydate,pradvd.xadvance,~
+		pradvd.xprrate,~
+		(select xreturn from prloanview where zid=pradvd.zid and xemp=pradvd.xemp and xpaycode=pradvd.xpaycode and xrow=pradvd.xrow),~
+        (select xpayamt from prloanview where zid=pradvd.zid and xemp=pradvd.xemp and xpaycode=pradvd.xpaycode and xrow=pradvd.xrow),~
+        (select sum(xadvance-xreturn-xpayamt) from prloanview where zid=pradvd.zid and xemp=pradvd.xemp and xpaycode=pradvd.xpaycode and xrow=pradvd.xrow),~
+		pradvd.xpflag,pradvd.xamount,pradvd.zemail,pradvd.xemail,pradvd.xinstalno,pradvd.xcomm,pradvd.xprime ~
+	from pradvd
+end table

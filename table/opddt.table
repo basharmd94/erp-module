@@ -1,0 +1,26 @@
+product ERP on the Net
+
+table opddt
+	caption "Delivery Order Details"
+	columns ztime,zutime,zid,xdornum,xrow, xcode,xcodebasis,xitem, xlong, ~
+          xstype, xwh, xdropship, ~
+          xqty,xqtyinv,xordernum,~
+          xunitsel,xcfsel,xwtunit,xunitwt,xcur,xrate,~
+          xdisc,xdiscf,xcomm,xexch,xpricebasis,xcurprice,~
+          xexchsell,xprice,xstatusddt,~
+          xtaxcat,xtaxcode1,xtaxrate1,xtaxcode2,xtaxrate2,xtaxcode3,xtaxrate3,~
+          xtaxcode4,xtaxrate4,xtaxcode5,xtaxrate5,xbatch,~
+          xdtwotax,xdtdisc,xdttax,xlineamt,zemail,xemail,ximtrnnum,xdtcomm,~
+		  xtypeserial,xsup,xcurcost,xstdcost,xcost,xmargin,xbin          
+
+	primary key zid, xdornum,xrow
+	
+	unique zid, xdornum,xrow,xitem
+  
+	foreign key
+        zid references zbusiness.zid
+        zid,xdornum references opdor.zid,xdornum
+		zid,xdornum,xordernum references opdor.zid,xdornum,xordernum
+	end foreign key
+  
+end table

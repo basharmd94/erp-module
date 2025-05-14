@@ -1,0 +1,62 @@
+page xtrngl
+     caption "Transaction Codes"
+     sidebar list one//,list two, text three
+     sections form one ,method chk_access
+
+
+     list one
+        table xtrn
+        order xtypetrn,xtrn
+        select "(xtypetrn='GL Voucher')"
+        rows 20
+        objects xtypetrn,xtrn attrib(link #servlet+"?page="+page+"&command=Show&xtypetrn=?&xtrn=?"),~
+                 xdesc, xaction, xinc,xformat,zactive
+
+
+     end list
+
+     form one
+        //caption "Transactions"
+        table xtrn
+        order xtypetrn, xtrn
+        select "xtypetrn='GL Voucher'"
+        default Add
+        layout 1
+		focus xtrn
+        objects Show, Clear,Add, Update, Delete, Top, Previous, Next, Bottom,~
+                xtypetrn display(const), xtrn, xaction, xdesc, xnum, xinc, xformat,zactive
+                        
+        field xaction
+        	caption <font color=red>Type
+        	default "Journal"
+        	pick "Journal,Receipt,Payment,Inter Company,Opening Balance,Recurring"
+        end field
+
+	field Add
+           event before
+              set globals(ErrChk) = ""
+              if globals(ErrChk) .ne. "1"
+              	set xtypetrn = "GL Voucher"
+              end if
+           end event
+	end field
+
+	field Update
+           event before
+              set globals(ErrChk) = ""
+              if globals(ErrChk) .ne. "1"
+              	set xtypetrn = "GL Voucher"
+              end if
+           end event
+	end field
+
+	field Delete
+           event before
+              set globals(ErrChk) = ""
+              call chk_access
+           end event
+	end field
+
+end form
+     
+end page

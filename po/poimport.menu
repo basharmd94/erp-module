@@ -1,0 +1,19 @@
+caption "Import Purchasing" page 3
+//-------------------------------------------------------------------
+option                             |action
+//-------------------------------------------------------------------
+Import Purchase Requisition        |#classPath+"/"+#servlet+"?menu=poreqim"
+
+Purchase Order                     |#classPath+"/"+#servlet+"?page=poordimp&command=clear"
+-
+//LC Information        			   |#classPath+"/"+#servlet+"?page=poilc"
+//LC Information        				|#classPath+"/"+#servlet+"?page=poilcn"
+-
+Confirm GRN/MRR           	  	   |#classPath+"/"+#servlet+"?page=pogrnimp&command=clear"
+Quality Control                    |#classPath+"/"+#servlet+"?page=pogrnqimp&command=clear"
+-
+Purchase Return                    |#classPath+"/"+#servlet+"?page=podrnimp&command=clear"
+-Reports
+Item List                          |#classpath+"/"+#servlet+"?page=*crystal itemlst(xitem=From Item=,xsup=To Item=zzz)"
+
+//-------------------------------------------------------------------

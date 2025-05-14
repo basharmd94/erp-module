@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table mtjobspare
+	caption "Spare Parts for Machine"
+
+	columns ztime,zutime,zid,xmtjob,xrow,xitem,xproduct,xqtyreq,xunit,xrem,xstatus,zemail,xemail
+
+	primary key zid,xmtjob,xrow,xitem
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xmtjob,xrow references mtjobd.zid,xmtjob,xrow
+	end foreign key
+
+end table

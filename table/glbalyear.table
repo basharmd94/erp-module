@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table glbalyear
+  caption "Balance File for Year"
+  columns zid,xyear,xacc,xsub,xlineamt
+
+  primary key zid,xyear,xacc,xsub
+
+  sql create view glbalyear (zid,xyear,xacc,xsub,xlineamt) as ~
+  SELECT gldetailview.zid, gldetailview.xyear, ~
+  gldetailview.xacc, gldetailview.xsub, round(sum(gldetailview.xprime * gldetailview.xexch),2) AS xlineamt ~
+  FROM gldetailview  ~
+  where gldetailview.xacctype='Asset' or gldetailview.xacctype='Liability' ~ 
+  GROUP BY gldetailview.zid,gldetailview.xyear, gldetailview.xacc,~
+    gldetailview.xsub
+
+end table

@@ -1,0 +1,279 @@
+page famstaircn
+
+	caption "Fixed Asset Master"
+
+	sidebar primage
+	sections form frmone,list one,text top, script myscript
+
+	text top
+		"<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+	end text
+
+	list one
+		table famst
+		order xcode
+		row 20
+		object xcode attrib(link #servlet+"?page="+page+"&command=show&xcode=?"),xastname,~
+			xdiv,xastloc,xdept,xastcatg,xasttype
+
+		field xdiv
+			caption Company
+		end field
+
+		field xdept
+			caption Department
+		end field
+
+		field xastloc
+			caption Location
+		end field
+
+		field xastcatg
+			caption Asset Type
+		end field
+
+		field xasttype
+			caption Sub Type
+		end field
+	end list
+
+	form frmone
+		valid valid
+		table famst
+		order xcode desc
+		layout 2      
+		objects Show,Clear,Top, Previous, Next, Bottom,~
+			
+			xcode,xastname display(const),xvoucher display(const),xdiv,xastloc,xdept,xsubdept display(hide),xastcatg,xasttype,~
+			xastunit display(hide),xastbr,xdepmeth,xdepfactor display(hide),~
+			xdate display(const) ,xyear display(constant),xper display(constant),xsec display(hide),xproj display(hide),~
+			xcur attrib(attach),xexch display(const),xprime attrib(attach),xbase,~
+			xsup display(hide),xinvno display(hide),~
+			xastbook,xnomlife display(hidden),xestlife,xslvval,xretdate display(hidden),~
+			xglref,xlong,xpornum, xdateto, xleasestat display(hide),xmortgstat display(hide),xassetstat
+
+		field Asset_search
+			event before
+			class osbcustom(search(xastname,"s","famst","xcode:xastname:xastcatg","pickAsset","xcode:xastname:xdiv:xastloc:xdept:xsubdept:xastcatg:xasttype","yes","Code:Name:Unit:Location:Department:Sub Dept:Type:Sub Type"))
+			end event
+		end field
+
+		field xsubdept
+			display text
+			pick list xsubdept
+			width 10
+			event after
+				set globals(xsubdept)=xsubdept
+			end event
+		end field
+
+		field xdiv
+			caption Company
+			event after
+				set globals(xdiv)=xdiv
+			end event
+		end field
+
+		field xdiv
+			event after
+				set globals(xdept)=xdept
+			end event
+		end field
+
+		field xastcatg
+			caption Asset Type
+			display const
+			pick list xastcatg
+			event after
+				set globals(xastcatg)=xastcatg
+			end event
+		end field
+
+		field xastunit
+			pick list faunit
+		end field
+
+		field xastloc
+			pick list falocation
+			event after
+				set globals(xastloc)=xastloc
+			end event
+		end field
+
+		field xvoucher
+			caption Transaction Number
+			event after
+				set globals(xvoucher)=xvoucher
+			end event
+		end field
+
+		field xcode
+			pick list famst
+			caption Asset Code
+			width 25
+		end field
+
+		field xastbook
+			//pick list fabook
+			caption Colour
+			display hide
+		end field
+
+		field xmortgstat
+			display text
+			caption HS Code
+			pick
+		end field
+		
+		field xasttype
+			caption Sub Type
+			pick list fatype
+			display hide
+			event after
+				set globals(xasttype)=xasttype
+			end event          
+		end field
+
+		field xastbr
+			//pick list fabranch
+			display hide		
+		end field
+
+		field xcur
+			display combo
+			//pick
+			default "BDT"
+		end field
+
+		field xexch
+			default "1.0000"
+		end field
+
+		field xdepmeth
+			//display combo
+			//pick "SL - Straight Line,RB - Reducing Balance,DD - Double Declining Balance,SY - Sum of the Years Digit,SP - Special"
+			display text
+			default "SL - Straight Line"
+			attrib readonly
+		end field
+
+		field xbase
+			display constant
+			event before
+				set xbase = 0.0+xprime*xexch
+			end event
+		end field
+
+		field xsupplier
+			pick list xsup
+		end field
+
+		field xglref
+			display hide
+		end field
+
+		field xlong
+			display hide
+		end field
+
+		field xdateto
+			caption Purchase Date
+			default #d
+		end field
+
+		field xprime
+			caption Asset Value
+		end field
+
+		field xdate	
+			event after
+				set globals(xdate) = xdate
+			end event
+		end field
+
+		field xlink
+			event after
+				if xlink .eq. ""
+					set xlink="docs"+#sep+"x"+#id+#sep+xcode+".jpg"
+				end if
+			end event
+		end field
+
+		embed onsubmit = "return submitit(this)"
+		field addition
+			embed onclick = "show_addition()"
+		end field
+
+		field revaluation
+			embed onclick = "show_revaluation()"
+		end field
+
+		field transfer
+			embed onclick = "show_transfer()"
+		end field
+
+		field disposal
+			embed onclick = "show_disposal()"
+		end field
+	end form
+
+	script myscript
+		<script language="javascript" type="text/javascript">
+
+		var flag = ""
+
+		function show_addition() {
+		//this.value=top
+		flag = "show_addition"
+		}
+
+		function show_revaluation() {
+		flag = "show_revaluation"
+		}
+
+		function show_transfer() {
+		flag = "show_transfer"
+		}
+
+		function show_disposal() {
+		flag = "show_disposal"
+		}
+
+		function submitit(form){
+		if(flag == "show_addition"){
+		form.page.value = "famstad"
+		form.searchbutton.value = "Find xcode=?"
+		}else if(flag == "show_revaluation"){
+		form.page.value = "famstrv"
+		form.searchbutton.value = "Find xcode=?"
+		}else if(flag == "show_transfer"){
+		form.page.value = "famsttr"
+		form.searchbutton.value = "Find xcode=?"
+		}else if(flag == "show_disposal"){
+		form.page.value = "famstdp"
+		form.searchbutton.value = "Find xcode=?"
+		}
+		}
+
+		function pickAsset(link){
+		if (navigator.appName.indexOf("Netscape") >= 0){
+		document.frmone.xcode.value=link.text
+		}else{
+		document.frmone.xcode.value=link.innerText
+		}
+		return false
+		}
+
+		</script>
+	end script
+	
+	valid valid
+		config
+			if xcode .ne. ""
+				set #field(xvoucher->.display)="const"
+			end if 
+		end config
+	end valid
+
+
+end page

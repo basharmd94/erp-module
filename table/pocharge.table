@@ -1,0 +1,13 @@
+product ERP on the Net
+
+table pocharge
+  caption "Import Charge"
+  columns  ztime,zutime,zid,xpocode,xdesc,xpotype,xcostacc,xsubdr,xlong,zactive
+
+  primary key zid, xpocode
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table

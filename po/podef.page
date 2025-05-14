@@ -1,0 +1,26 @@
+page podef
+     caption "PO Defaults"
+     sections form one
+     form one
+		table podef
+		layout 1
+        objects Clear,Show,Add, Update, Delete,~
+            xlimitgit display(hide),xlimitavail display(hide),xsysnot,~
+			xautoalc display(hide),xprintpor,xprintgrn,xwhselect,xcrosslimit
+                
+        field xlimitgit
+          extend
+          event after
+            string xsysnot=podef.xsysnot(" 1=1 ")
+            if #result .eq. "true"
+               set #field(Add.display)="disable"
+               set #field(Clear.display)="disable"
+            else
+               set #field(Update.display)="disable"
+               set #field(Delete.display)="disable"
+            end if
+          end event
+        end field
+     end form
+
+end page

@@ -1,0 +1,34 @@
+product ERP on the Net
+
+table imbatview
+	caption "IM Batch View
+	columns zid,xitem,xwh,xbatch,xqty,xval,xissunc,xrecunc,xavail
+
+	primary key zid,xitem, xwh,xbatch
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xitem references caitem.zid,xitem
+	end foreign key
+
+	sql create view imbatview (zid,xitem, xwh,xbatch,xqty,xval,xissunc,xrecunc,xavail) ~
+		as select  zid, xitem, ~
+		xwh, xbatch,sum(xqty*xsign),sum(xval*xsign), ~
+		coalesce((select sum(xqty) from opddtbat where zid=imtrn.zid and ~
+		(select xitem from opddt where zid=opddtbat.zid and xdornum=opddtbat.xdornum and xrow=opddtbat.xrow)=imtrn.xitem and ~
+		((select xstatusdor from opdor where zid=opddtbat.zid and xdornum=opddtbat.xdornum) not between '2' and '4') and ~
+		xwh=imtrn.xwh and xbatch=imtrn.xbatch),0), ~
+		~
+		coalesce((select sum(xqty) from pogdtbat where zid=imtrn.zid and ~
+		(select xitem from pogdt where zid=pogdtbat.zid and xgrnnum=pogdtbat.xgrnnum and xrow=pogdtbat.xrow)=imtrn.xitem and ~
+		((select xstatusgrn from pogrn where zid=pogdtbat.zid and xgrnnum=pogdtbat.xgrnnum) not like '5%') and ~
+		xwh=imtrn.xwh and xbatch=imtrn.xbatch),0), ~
+		~
+		sum(xqty*xsign)-coalesce((select sum(xqty) from opddtbat where zid=imtrn.zid and ~
+		(select xitem from opddt where zid=opddtbat.zid and xdornum=opddtbat.xdornum and xrow=opddtbat.xrow)=imtrn.xitem and ~
+		((select xstatusdor from opdor where zid=opddtbat.zid and xdornum=opddtbat.xdornum) not between '2' and '4') and ~
+		xwh=imtrn.xwh and xbatch=imtrn.xbatch),0) ~
+		~
+		from imtrn ~
+		group by zid,xitem,xwh,xbatch 
+end table

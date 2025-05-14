@@ -1,0 +1,225 @@
+page princremdet
+
+	 embed onload="move_caret('one','xamount')"
+     caption "<span class=bl>Increment History of Employee <a href=/da/"+#servlet+"?page=princremhed&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xname)+")"
+     sections form one, list one, script myscript
+
+     list one
+         table princrement
+         order xemp,xincno
+         fixed xemp
+         rows 60
+       objects  xincno attrib(link #servlet+"?page=princremdet&command=Show&xincno=?"),~
+                xamount,xtotamt,xdate,xref,xnewdesig,xlocation
+
+       field xamount
+         caption Increment Amount
+       end field
+
+       field xtotamt
+         caption Revised Gross Salary
+       end field
+
+       field xdate
+         caption Increment Effective Date
+       end field
+
+       field xref
+         caption Increment Letter Reference
+       end field
+       
+       field xlocation
+            caption New Location
+       end field
+
+     end list
+
+     form one
+        //caption "<font color=black size=4>Increment History of <font color=white></p>"+globals(xname)+"</font></font>"
+        table princrement
+        order xemp,xincno
+        fixed xemp
+        layout 1
+        objects Add, Show, Clear, Update, Next,Previous,Delete,Top,Bottom,Return,Confirm,~
+                xincno attrib(row 0 1),xamount,xtotamt,xdate,xref,xremarks,~
+                zemail display(hide),xemail display(hide),dum1,xsites,xnewdept,xnewdesig,xlocation,xpostflag 
+
+       field xincno
+         event after
+           set globals(xincno)=xincno
+         end event
+       end field
+       
+       field xpostflag
+            caption Confirmation Status
+            display const
+       end field
+       
+       field dum1
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum1 = "<font color=red>__________________________________________ Promotional Information __________________________________________</font>"
+         end event
+        end field
+       
+       field xamount
+         caption Increment Amount
+       end field
+       
+       field xsites
+            caption Promotional Status
+            display combo
+            pick "Yes,No"
+       end field
+
+       field xtotamt
+         caption Revised Gross Salary
+       end field
+
+ 	   field xnewdept
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Department1'"
+	   end field
+       
+	   field xnewdesig
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Designation1'"
+	   end field
+
+	   field xlocation
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Location1'"
+	   end field
+
+       field xdate
+         caption Increment Effective Date
+       end field
+
+       field xref
+         caption Increment Letter Reference
+       end field
+
+       field xremarks
+         caption Comments
+         width 75
+         height 2
+       end field
+
+          field Confirm
+          
+         // xtotamt
+                event before
+
+                   if xpostflag .ne. ""
+                      set globals(ErrChk)="1"
+                      error "Already Confirmed</p>Cannot "+#command
+                   
+                   else if xsites .eq. "Yes"
+                    str mysql = "update prmst set xcostcent = '"+xlocation+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+
+                    str mysql = "update prmst set xdept = '"+xnewdept+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+
+                    str mysql = "update prmst set xdesig = '"+xnewdesig+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+                    
+                    //set cur_gross=#sql(str,"select xdtwotax from prmst where xemp='"+xemp+"'")
+                    //set cur_gross=0.0+cur_gross+xamount
+                    
+
+                    str mysql = "update prmst set xdtwotax = '"+xtotamt+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+
+                    str mysql = "update princrement set xpostflag='Confirmed' where xemp='"+xemp+"' and xincno='"+globals(xincno)+"' "
+                    set updval = #sql(str,mysql)
+
+                    action show
+                   else
+                   
+                    str mysql = "update prmst set xdtwotax = '"+xtotamt+"' where xemp='"+xemp+"'"
+                    set updval = #sql(str,mysql)
+
+                    str mysql = "update princrement set xpostflag='Confirmed' where xemp='"+xemp+"' and xincno='"+globals(xincno)+"' "
+                    set updval = #sql(str,mysql)
+                    
+                    action show
+
+                   end if
+               end event
+          end field
+
+
+       field add
+         event before
+         
+           set zemail=#user
+           set xemail=""
+           set xpostflag = ""
+           
+           set cur_gross=#sql(str,"select xdtwotax from prmst where xemp='"+xemp+"'")
+           
+           set xtotamt=0.0+cur_gross+xamount
+         end event
+       end field
+
+       field Update
+         event before
+           set globals(ErrChk)=""
+           
+           //if xpostflag .ne. ""
+           //   set globals(ErrChk)="1"
+           //   error "Already Confirmed</p>Cannot "+#command
+           //end if
+           
+           if xincno .ne. globals(xincno)
+              set globals(ErrChk)="1"
+              error "Record pointer mismatch</p>Cannot "+#command
+           else
+              set xemail=#user
+              set cur_gross=#sql(str,"select xdtwotax from prmst where xemp='"+xemp+"'")
+              set xtotamt=0.0+cur_gross+xamount
+           end if
+         end event
+       end field
+       
+       field Delete
+         event before
+
+           //if xpostflag .ne. ""
+           //   set globals(ErrChk)="1"
+           //   error "Already Confirmed</p>Cannot "+#command
+           //end if
+         end event
+       end field
+
+
+       embed onsubmit="submitit(this)"
+       field Return
+         embed onclick="clicked(this)"
+       end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          detail="back"
+        }
+        function submitit(form)
+        {
+          if (detail=="back")
+          {
+            form.page.value = "princremhed"
+            form.searchbutton.value= "Find xemp=?"
+          }
+        }
+
+        </script>
+     end script
+
+end page

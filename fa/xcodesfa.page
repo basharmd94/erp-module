@@ -1,0 +1,38 @@
+page xcodesfa
+     caption "FA Category Codes"
+     sidebar list one
+     sections form one
+
+
+     list one
+        table xcodesfa
+        order xtype,xcode
+        select "xtype='FA Category'"
+        rows 20
+        objects  xtype,xcode attrib(link #servlet+"?page="+page+"&command=Show&xtype=?&xcode=?"), ~
+                 xdescdet,xcategory,xestlife,xrate,zactive
+
+     end list
+
+     form one
+        caption "FA Category Codes"
+        table xcodesfa
+        order xtype,xcode
+        select "xtype='FA Category'"
+        layout 1
+        objects Show, Add, Update, Delete, Top, Previous, Next, Bottom,"<p>" ,~
+                xtype display(const), xcode, xdescdet,xcategory,xestlife,xrate,zactive
+
+	field xrate
+		caption Rate
+	end field
+                
+	field Add
+           event before
+              set globals(ErrChk) = ""
+              set xtype="FA Category"
+           end event
+	end field
+
+    end form
+end page

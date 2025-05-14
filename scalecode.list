@@ -1,0 +1,18 @@
+list scalecode
+   table prpayscal
+   order xpsclcode
+   navigators alpha
+   rows 20
+   objects xpsclcode attrib(link "abc" embed onclick="return updateParent(this:'xpsclcode')"), ~
+           xdesc
+
+   field xcode
+      caption Payscal
+   end field
+
+   field xlong
+      caption Description
+   end field
+end list
+
+

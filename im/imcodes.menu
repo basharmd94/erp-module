@@ -1,0 +1,48 @@
+//imcodes.menu
+caption "Codes & Setup" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+IM Defaults                      	|#classPath+"/"+#servlet+"?page=imdef"
+-
+IM Transaction Codes      			|#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Im Transaction)"
+IM Transaction Parameters 			|#classPath+"/"+#servlet+"?page=xtrnp(xtypetrn=Im Transaction)"
+//Transfer Order 			|#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Transfer Order)"
+-
+Transaction Codes                |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Inventory Transaction)"
+-
+//Transfer Order Codes             |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Transfer Transaction)"
+Transfer Order Codes             |#classPath+"/"+#servlet+"?page=xtrnto"
+Transfer Order Code Parameters   |#classPath+"/"+#servlet+"?page=xtrnp(xtypetrn=Transfer Transaction)"
+-
+Transaction Codes Tag            |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Tag Transaction)"
+//-
+//GL Interface Table               |#classPath+"/"+#servlet+"?page=imgli"
+
+-Codes
+Item Groups                      |#classPath+"/"+#servlet+"?page=xcodes(xtype=Item Group)"
+Item Group Parameters            |#classPath+"/"+#servlet+"?page=xcodesp(xtype=Item Group)"
+Item Class                       |#classPath+"/"+#servlet+"?page=xcodes(xtype=Item Class)"
+Warehouses                       |#classPath+"/"+#servlet+"?page=xcodes(xtype=Warehouse)"
+//ABC Codes                        |#classPath+"/"+#servlet+"?page=xcodes(xtype=ABC Code)"
+//Supercession Code                |#classPath+"/"+#servlet+"?page=xcodes(xtype=Supercession Code)"
+Units of Measure                 |#classPath+"/"+#servlet+"?page=xcodes(xtype=Unit of Measure)"
+Transfer Cost Code               |#classPath+"/"+#servlet+"?page=xcodes(xtype=Transfer Cost Code)"
+//-Month Closing
+//IM Month Closing                 |#classPath+"/"+#servlet+"?page=immthendup"
+//IM Month Closing Status          |#classPath+"/"+#servlet+"?page=immthend"
+
+- IM to GL
+Weighted Average Process         |#classPath+"/"+#servlet+"?page=imcost_n"
+GL Interface Table               |#classPath+"/"+#servlet+"?page=imgli"
+//Department GL Interface Table    |#classPath+"/"+#servlet+"?page=imglidep"
+//Im to Transfer Gl                |#classPath+"/"+#servlet+"?page=imgl"
+//Im Costing                       |#classPath+"/"+#servlet+"?page=imcost"
+//Im to Transfer Gl                |#classPath+"/"+#servlet+"?page=imgln"
+//IM to GL Transfer New            |#classPath+"/"+#servlet+"?page=imglnn"
+GL Inter Trasfer Interface Table               |#classPath+"/"+#servlet+"?page=imgliintr"
+
+//Value Synchronization (Transfer) |#classPath+"/"+#servlet+"?page=imtranscost"
+//Value Synchronization (ICTO) |#classPath+"/"+#servlet+"?page=imtranscostic"
+//Value Synchronization (MO)       |#classPath+"/"+#servlet+"?page=immocost"
+//------------------------------------------------------------------------------------

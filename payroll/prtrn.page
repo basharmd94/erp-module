@@ -1,0 +1,66 @@
+page prtrn
+
+     caption "payrol Transaction"
+     //sidebar text two,list two, text three
+     sections form one, script myscript
+
+   // list header
+     //   caption "<br><center><b>"EMP Qualification History"</b>"
+     // table pdeql
+     //   order xrow
+     //   //fixed xsub
+     //   navigators alpha group xrow // "select xsub from gldetail where (xprime<xarap)"
+     //   rows 20
+     //   objects ~
+     //    xrow attrib(link "main?page=xpdeql&command=Show&xrow=?"), ~
+     //    xemp
+//   //      headers Invoice List
+     end list
+
+
+
+     form one
+        table prtrn
+        //order xpaydate,xemp,xpaycode
+        fixed xemp
+        layout 1
+        objects Back, Add, Clear, Show, Update, Delete, Top, Previous, Next, Bottom,~
+                xpaydate,xemp,xpaycde,xpaydesc,xamount
+
+
+        field xemp
+          pick list xemp
+        end field
+
+        embed onsubmit="submitit(this)"
+     end form
+
+     script myscript
+
+        //<script language="javascript" type="text/javascript">
+        //var detail
+
+        //function clicked(b){
+        //  detail="clicked"
+        //}
+        //function back(b){
+        //  detail="back"
+        //}
+        //function submitit(form){
+        //  if (detail=="clicked"){
+        //    form.page.value = "gldetail"
+        //   form.searchbutton.value = "Find xvoucher=?"
+        //    //return false
+        //  }
+        //  if (detail=="back"){
+        //    form.page.value="prmst"
+        //
+        //  }
+        //}
+
+        </script>
+     end script
+
+
+
+end page

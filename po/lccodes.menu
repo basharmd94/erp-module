@@ -1,0 +1,20 @@
+//Order Codes.menu
+caption " LC Settings" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+
+-Transactions
+LC Transaction Codes            |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=LC Trn Number)"
+Name Transaction Codes            |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Name Transaction)"
+-Setup
+Name Master        |#classPath+"/"+#servlet+"?page=canam"
+Insurance Company             |#classPath+"/"+#servlet+"?page=xcodes(xtype=Insurance Company)&command=clear"
+Bank Code             |#classPath+"/"+#servlet+"?page=xcodes(xtype=Bank)&command=clear"
+H.S. Code                |#classPath+"/"+#servlet+"?page=xcodes(xtype=HS Code)&command=clear"
+B/E Standard Setup       		|#classPath+"/"+#servlet+"?page=pobillset&command=clear"
+Import Cost Code                |#classPath+"/"+#servlet+"?page=xcodes(xtype=Import Costing)&command=clear"
+Import Charge-Duty Master        |#classPath+"/"+#servlet+"?page=pocharge"
+
+
+

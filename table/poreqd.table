@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table poreqd
+  caption "Requisition Details"
+  columns ztime,zutime,zid,xporeqnum,xrow, xitem, xrem, ~
+          xstatuspdt,xstype,xwh, xqtyreq,xunitpur,xcfpur, xporeq,~
+          xrate,xlineamt,zemail,xemail,xqtyord,xstatusreqd,xdatedel,~
+          xaccdr,xsubdr,xstatus,xcur,xexch,xnote
+
+  primary key zid, xporeqnum,xrow
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xporeqnum references poreq.zid,xporeqnum
+        zid,xitem references caitem.zid,xitem
+  end foreign key
+  
+end table
+

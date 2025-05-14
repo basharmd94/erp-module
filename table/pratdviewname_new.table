@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table pratdviewname_new
+	caption "pratdview Description View"
+
+	columns ztime,zutime,zid,xyear,xper,xday,xdate,xshift,xemp,emp_name,emp_desig,~
+			xintime,xouttime,xlotime,xlitime,xatdstat,xpflag,zemail,xemail,xrem,xtimediff,timediffhr
+			
+	sql create view pratdviewname_new (ztime,zutime,zid,xyear,xper,xday,xdate,xshift,xemp,emp_name,emp_desig,~
+		xintime,xouttime,xlotime,xlitime,xatdstat,xpflag,zemail,xemail,xrem,xtimediff,timediffhr) ~
+		as select ~
+		pratd.ztime,pratd.zutime,pratd.zid,pratd.xyear,pratd.xper,pratd.xday,pratd.xdate,pratd.xshift,pratd.xemp,~
+		(select xname from prmst where zid=pratd.zid and xemp=pratd.xemp),~
+		(select xdesig from prmst where zid=pratd.zid and xemp=pratd.xemp),~
+		to_char(pratd.xintime,'HH24:MI:SS'),to_char(pratd.xouttime,'HH24:MI:SS'),pratd.xlotime,pratd.xlitime,pratd.xatdstat,~
+		pratd.xpflag,pratd.zemail,pratd.xemail,pratd.xrem,pratd.xtimediff,(xtimediff/60/60) ~
+	from pratd
+end table

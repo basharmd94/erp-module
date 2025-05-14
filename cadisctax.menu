@@ -1,0 +1,38 @@
+//Discounts and Taxes.menu
+caption "Prices, Discounts & Taxes" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Currencies                       |#classPath+"/"+#servlet+"?page=xcur"
+//Exchange Rate History            |#classPath+"/"+#servlet+"?page=caexch"
+-Categories
+Price Group                   |#classPath+"/"+#servlet+"?page=xcodes(xtype=Price Group)"
+Price Category                   |#classPath+"/"+#servlet+"?page=xcodes(xtype=Price Category)"
+Item Category                   |#classPath+"/"+#servlet+"?page=xcodes(xtype=Item Category)"
+Tax Category                     |#classPath+"/"+#servlet+"?page=xcodes(xtype=Tax Category)"
+Tax Scope                        |#classPath+"/"+#servlet+"?page=xcodes(xtype=Tax Scope)"
+Tax Code                         |#classPath+"/"+#servlet+"?page=xcodes(xtype=Tax Code)"
+//Concessional Tax Forms                         |#classPath+"/"+#servlet+"?page=xcodes(xtype=Concessional Tax Form)"
+-Standard
+Standard Selling Prices                |#classPath+"/"+#servlet+"?page=opstd"
+Standard Selling Discounts                |#classPath+"/"+#servlet+"?page=opdis"
+Standard Buying Prices                |#classPath+"/"+#servlet+"?page=postd"
+Standard Buying Discounts                 |#classPath+"/"+#servlet+"?page=podis"
+
+Standard Selling Rate Tables                 |#classPath+"/"+#servlet+"?page=oprate"
+Standard Buying Rate Tables                 |#classPath+"/"+#servlet+"?page=porate"
+
+-Contractual
+Contract Selling Prices                |#classPath+"/"+#servlet+"?page=opprc"
+Contract Selling Discounts                 |#classPath+"/"+#servlet+"?page=opprd"
+Contract Buying Prices                |#classPath+"/"+#servlet+"?page=poprc"
+Contract Buying Discounts                 |#classPath+"/"+#servlet+"?page=poprd"
+-Taxes
+Tax Table                        |#classPath+"/"+#servlet+"?page=catax"
+-Excise
+Excise Categories                         |#classPath+"/"+#servlet+"?page=xcodes(xtype=Excise Category)"
+Excise Codes                         |#classPath+"/"+#servlet+"?page=xcodes(xtype=Excise Code)"
+Excise Table                        |#classPath+"/"+#servlet+"?page=caexcise"
+
+//-------------------------------------------------------------------
+

@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table poodtreq
+
+  caption "Requisition Items"
+
+  columns ztime,zutime,zid,xpornum,xrow,xline,xitem,xqty,xunit,~
+          xporeqnum,xmorlno,zemail,xemail
+          
+  primary key zid,xpornum,xrow,xline
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xpornum,xrow references poodt.zid,xpornum,xrow
+        zid,xporeqnum,xmorlno references poreqd.zid,xporeqnum,xrow
+  end foreign key
+
+end table

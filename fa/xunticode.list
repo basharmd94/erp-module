@@ -1,0 +1,15 @@
+     list xunticode
+        table xcodes
+        order xcode
+        select "xtype='Unit Number'"
+        navigators alpha
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xdiv')"),~
+                xdescdet
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

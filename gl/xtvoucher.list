@@ -1,0 +1,8 @@
+     list xtvoucher
+        table glheader
+        order xvoucher
+        select "(xpostflag<>'Posted') and (xstatusjv<>'Out of Balance')"
+        rows 15
+        objects xvoucher attrib(link "abc" embed onclick="return updateParent(this:'ximtrnnum')"), ~
+                xdate
+     end list

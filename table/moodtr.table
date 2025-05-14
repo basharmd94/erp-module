@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table moodtr
+	caption "Manufacturing Receive Details"
+
+	columns ztime,zutime,zid,xmoord,xmorlno,xitem,xwh,xqty,xunit,xrate,xstype,ximtrnnum,xcfiss,~
+	xemail,zemail,xbatch,xqtyrej,xqtymor,xqtyalc,xdocnum
+
+	primary key zid, xmoord, xmorlno
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xmoord references moord.zid,xmoord
+		zid,xitem references caitem.zid,xitem
+	end foreign key
+
+end table

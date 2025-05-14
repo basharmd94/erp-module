@@ -1,0 +1,251 @@
+page glchqr
+
+	caption "<font color=black>Cheque Receive Register"
+
+	sections form one,list one,text top,script myscript,~
+			method chk_rec, method chk_mand
+
+	text top
+	"<a href=#top title='Back to Top'><font color=blue size=+1><b>Go Top</b></font></a>"
+	end text
+
+	list one
+		caption "Available Entries"
+		table (select *,~
+		(select xorg from cacus where zid=glchqr.zid and xcus=glchqr.xcus) as xorg from glchqr where xaction='Receipt') as tbl
+		order xref DESC
+		navigators alpha
+		rows 10
+		objects xref attrib(link #servlet+"?page="+page+"&command=Show&xref=?"),~
+				xdate,xcus,xorg caption(Customer Name),~
+				xdatedue,xprime,xchqstat,xpostflag
+
+		field xref
+			caption Cheque Number
+		end field
+
+		field xdate
+			caption Cheque Receive Date
+		end field
+		
+		field xdatedue
+			caption Cheque Date
+		end field
+
+		field xpostflag		
+			caption Posting Flag
+		end field
+
+		field xprime
+			caption Amount
+		end field
+	end list
+
+
+	form one
+		table glchqr
+		order xref
+        select "(xaction='Receipt')"
+		select
+		layout 1
+		objects Add,Show,Cheque_Search,Clear,Update,Delete,Previous,Next,~
+				xbank,xref,xdate,xcus attrib(attach),dum1,xdatedue,xprime,xchqstat,~
+				xremark,xaction display(constant),xpostflag ,zemail,xemail,xsup display(hide)
+
+		field xbank
+			caption Bank Name
+			display text
+			pick
+			width 50
+		end field
+
+		field xpostflag		
+			display constant
+			caption Posting Flag
+		end field
+
+		field xref
+			caption Cheque Number
+			width 20
+			event after
+				set globals(xref) = xref
+				set globals(xcus) = xcus
+				set globals(xchqstat) = xchqstat
+				if xpostflag .eq. "Posted"
+					set #field(Delete.display) = "disable"
+					set #field(Update.display) = "disable"
+				end if
+			end event
+		end field
+
+		field xdate
+			caption Cheque Receive Date
+		end field
+
+		field dum1
+			caption Customer Name
+			attrib local
+			display const
+			event after
+				set dum1 = #sql(str, "select xorg from cacus where zid="+#id+" and xcus='"+globals(xcus)+"'")
+			end event
+		end field
+
+		field xdatedue
+			caption Cheque Date
+		end field
+
+		field xprime
+			caption Cheque Amount
+		end field
+
+		field xremark
+			height 2
+			width 50
+		end field
+
+		field zemail
+			display const
+			caption Created By
+		end field
+
+		field xemail
+			display const
+			caption Last Updated By
+		end field
+
+		field Cheque_Search
+			event before
+				class osbcustom(search(xref,"a","glchqr","xref","pickRec","xref:xcus:xdate:xdatedue:xprime","yes","Cheque Number:Party Code:Received Date:Cheque Date:Amount"))
+			end event
+		end field
+
+
+		field Add
+			event before
+				set globals(ErrChk) = ""
+				if globals(ErrChk) .ne. "1"
+					call chk_rec
+				end if
+				
+				set xaction="Receipt"
+				
+				if globals(ErrChk) .ne. "1"
+					call chk_mand
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set zemail=#user
+					set xemail = ""
+					set xchqstat = "New"
+				end if
+			end event
+		end field
+
+
+		field Update
+			event before
+				set globals(ErrChk) = ""
+				if globals(ErrChk) .ne. "1"
+					call chk_rec
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					call chk_mand
+				end if
+
+				if globals(ErrChk) .ne. "1"
+					set xemail = #user
+				end if
+			end event
+		end field
+
+		field Delete
+			event before
+				set globals(ErrChk) = ""
+				if globals(ErrChk) .ne. "1"
+					call chk_rec
+				end if
+			end event
+		end field
+
+
+		embed onsubmit="submitit(this)"
+
+	end form
+
+
+	script myscript
+		<script language="javascript" type="text/javascript">
+		var detail
+
+		function show_order(){
+		detail = "order"
+		}
+
+		function pickRec(link){
+		if (navigator.appName.indexOf("Netscape")>=0){
+		document.one.xref.value = link.text
+		}else{
+		document.one.xref.value = link.innerText
+		}
+		return false
+		}
+
+		function submitit(form){
+		}
+		</script>
+	end script
+
+
+	method chk_rec
+		if #command .ne. "Add"
+			if xref .ne. globals(xref)
+				set globals(ErrChk) = "1"
+				error "Record pointer mismatch<br>Click SHOW, then "+#command
+			end if
+		end if
+	end method
+
+
+	method chk_mand
+		if xref .eq. ""
+			set globals(ErrChk) = "1"
+			error "Please enter "+#field(xref.caption)
+
+			else if xdate .eq. #max .or. xdate .eq. "" .or. xdate .eq. "2999-12-31"
+			set globals(ErrChk) = "1"
+			error "Please enter "+#field(xdate.caption)
+
+			else if xcus .eq. ""
+			set globals(ErrChk) = "1"
+			error "Please enter "+#field(xcus.caption)
+
+			else if xdatedue .eq. #max .or. xdatedue .eq. "" .or. xdatedue .eq. "2999-12-31"
+			set globals(ErrChk) = "1"
+			error "Please enter "+#field(xdatedue.caption)
+
+			else if xprime <= 0
+			set globals(ErrChk) = "1"
+			error "Please enter appropriate "+#field(xprime.caption)
+		end if
+
+		if globals(ErrChk) .ne. "1"
+			if xcus .ne. ""
+				buffer cacus
+				move cacus = cacus(xcus)
+				if #result .ne. "true"
+					set globals(ErrChk) = "1"
+					error "Wrong  "+#field(xcus.caption)
+				end if
+			end if
+		end if
+
+		if globals(ErrChk) .ne. "1"
+			if xdatedue .lt. xdate
+				set globals(ErrChk) = "1"
+				error #field(xdatedue.caption)+" cannot be previous than the "+#field(xdate.caption)
+			end if
+		end if
+	end method
+end page

@@ -1,0 +1,13 @@
+product ERP on the Net
+
+table mogli
+	caption "MO to GL Interface"
+	
+	columns ztime,zutime,zid,xstype,xitem,xmoaccdr,xmoacccr,xsubdr,xsubcr
+	
+	primary key zid, xstype,xitem
+	
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+end table

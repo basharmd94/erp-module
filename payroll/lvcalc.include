@@ -1,0 +1,128 @@
+//lvcalc.include
+
+      int curyear=#sub(date,0,4)
+      int curmonth=#sub(date,5,2)
+      console "date="+date
+      str empcat = prmst.xempcat(xemp)
+      int curyear=prlvyear.xyear(" xdateeff <= '"+date+"' and xdateexp >= '"+date+"' and xempcat = '"+empcat+"'")
+	  set whendue = "Beginning"
+	  int numofper = 12
+      console "curyear="+curyear
+
+      double bf=0
+      double earned=0
+      int year=0
+      set year=#sql(integer,"select xyear from prlvstatus where zid="+#id+" and xemp='"+xemp+"' and xleave='"+leave+"' and (xleavecfd>0 or xyear="+curyear+") and xyear>"+year+" and xyear <= "+curyear+" order by xyear")
+	  console "YEAR1="+year
+      while year > 0.0
+	  	console "YEAR2="+year
+        buffer prlvstatus=prlvstatus("xemp='"+xemp+"' and xleave='"+leave+"' and xyear="+year)
+        //********************************************************************
+        int monthstart=1
+
+      	str datejoin=prmst.xdatejoin(" xemp='"+xemp+"' ")
+      	str datebegin=year+"-"+#padl(monthstart,2,0)+"-"+"01"
+      	//print "datebeging="+datebegin
+      
+      	if datebegin .gt. datejoin
+        	set dateeff=datebegin
+      	else
+        	set dateeff=datejoin
+      	end if
+      	console "dateeff="+dateeff
+      	console "datebegin="+datebegin
+      
+      	set datenext=#add(datebegin,1,"years")
+      
+      	str dateupto=date
+      	if year <> curyear
+        	set dateupto=#add(datenext,-1,"days")
+      	end if
+      
+      	double due=leavedue
+      
+      	double earned=0
+
+      	//console "whendue="+whendue
+		
+      	if whendue .sw. "B"
+        	if numofper == 12
+          		double days=#days(datenext)-#days(datebegin)
+          		double daysact=#days(datenext)-#days(dateeff)
+          		set earned=due*daysact/days
+
+          		set earned=#round(earned,2)
+        	else
+          		int cycles=12/numofper
+          		set cycles=cycles-1
+          		int i=0
+          		str firstday=datebegin
+          		while i < cycles
+              		str nextday=#add(firstday,numofper,"month")
+              		//str nextdayminus=#add(nextday,numofper,"month")
+              		if dateupto .ge. nextday
+                		set i=i+1
+                		if dateeff .le. firstday
+                  			set earned=earned+due
+                		else
+                  			//prorate
+                  			double dayshere=#days(nextday)-#days(dateeff)
+                  			double totdays=#days(nextday)-#days(firstday)
+                  			set earned=due*dayshere/totdays
+                		end if
+              		else
+                		set i=99
+              		end if
+              		set firstday=nextday
+          		end while
+          		set earned=earned+due          
+        	end if
+      elseif whendue .sw. "E"
+        if numofper == 12
+          //all c/f
+          set i=99
+        else
+ 
+          int cycles=12/numofper
+          int i=0
+          str firstday=datebegin
+          //console "cycles="+cycles
+ 
+          while i < cycles
+              str nextday=#add(firstday,numofper,"month")
+              if dateupto .ge. nextday
+                set i=i+1
+                if dateeff .le. firstday
+                  set earned=earned+due
+                else
+                  //prorate
+                  double dayshere=#days(nextday)-#days(dateeff)
+                  double totdays=#days(nextday)-#days(firstday)
+                  set earned=due*dayshere/totdays
+                end if
+              else
+                set i=99
+              end if
+              set firstday=nextday
+          end while
+        end if
+      
+      end if                
+        
+        //********************************************************************
+		console "EARNED for the year="+earned
+        if year != curyear
+          double tot=earned+prlvstatus.xdaysob-prlvstatus.xdaysenc+prlvstatus.xdayscr+prlvstatus.xdayscan-prlvstatus.xdaysapp
+          if tot>prlvstatus.xleavecfd
+            set tot=prlvstatus.xleavecfd
+            
+          end if
+          set bf=bf+tot
+          set earned=0
+
+        end if
+		console "year="+year
+		console "EARNED="+earned
+		console "BF="+bf
+        set year=#sql(integer,"select xyear from prlvstatus where zid="+#id+" and xemp='"+xemp+"' and xleave='"+leave+"' and (xleavecfd>0 or xyear="+curyear+") and xyear>"+year+" and xyear <= "+curyear+" order by xyear")
+      end while

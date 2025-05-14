@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table xcodesfa
+
+	caption "FA Category Codes"
+
+	columns ztime, zutime,zid,xtype,xcode,xdescdet,xcategory,xestlife,xrate,zactive
+
+	primary key zid,xtype,xcode
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+	list xdescdet,xcategory,xestlife,xrate
+end table

@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table mgresp
+	caption "Message Response"
+
+	columns ztime, zutime, zid, xmsgidsrc,xmsgid
+
+	primary key zid,xmsgidsrc,xmsgid
+
+	foreign key
+		zid references zbusiness.zid
+		xmsgidsrc references mgmsg.xmsgid
+		xmsgid references mgmsg.xmsgid
+	end foreign key
+
+end table

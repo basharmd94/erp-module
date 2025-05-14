@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table ordertranview1
+  caption "Transaction Detail View"
+  
+  columns zid,invoiceno,invoicesl,username,shopid,shopname,shopadd,prdid,prdname,qty,price,xstatusord,xordernum,xroword,xterminal,xdate,xpricecat
+  
+  //primary key zid,ximtmptrn,xtorlno
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  sql create view ordertranview1 (zid,invoiceno,invoicesl,username,shopid,shopname,shopadd,prdid,prdname,qty,price,xstatusord,xordernum,xroword,xterminal,xdate,xpricecat) ~
+            as SELECT zid,invoiceno,invoicesl,username,shopid,shopname,shopadd,prdid,prdname,cast(qty as decimal),price,xstatusord,xordernum,xroword,xterminal,xdate,~
+			(select xpricecat from caitem where caitem.xitem=order_transaction.prdid and caitem.zid=order_transaction.zid limit 1) ~
+            FROM order_transaction
+ end table

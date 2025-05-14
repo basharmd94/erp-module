@@ -1,0 +1,13 @@
+product ERP on the Net
+
+table lcbank
+  caption "Bank Information"
+  columns  ztime,zutime,zid,xlctrnnum,xrow,xbankref,xbrefdate,xretdate,~
+           xorgdate,xbeno,xbedate,xrem,xdaterel,xdemqty
+  primary key zid, xlctrnnum,xrow
+  foreign key
+        zid references zbusiness.zid
+        zid,xlctrnnum references lcmst.zid,xlctrnnum        
+  end foreign key 
+end table
+ 

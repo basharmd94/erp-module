@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table sparea
+
+  caption "Sales Person Area"
+  
+  columns ztime,zutime,zid,xsp,xdiv,xsec,xtitle,xqtyreq,zemail,xemail,xremarks,xpostflag
+  
+  primary key zid,xsp,xdiv,xsec
+
+  foreign key
+		zid references zbusiness.zid
+  end foreign key
+
+end table

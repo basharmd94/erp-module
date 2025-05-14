@@ -1,0 +1,186 @@
+page prlvpolicy
+	embed onload="move_caret('one','xyear')"
+    caption "Leave Policy"
+	sidebar list one
+    sections form one, script myscript,~
+              method upd_log
+     
+    list one
+    	caption "Added Record(s)"
+        table prlvpolicy
+        order xempcat,xleave
+        rows 50
+        objects xempcat,xleave attrib(link #servlet+"?page="+page+"&command=Show&xempcat=?&xleave=?"),~
+        		xleavealc
+                
+    end list
+
+	form one
+		valid valid
+		table prlvpolicy
+		order xempcat,xleave
+		layout 1
+		objects Add, Show,Clear,Update, Top, Previous, Delete, Next, Bottom,~
+			xempcat,xleave,xleavealc,xefffrom,xcalcday,xleavecfd,xleavecfy,xmaxleave,xminleave,xmaxencash,~
+			xminencash,xmaxoffers,xfstslabday,xfstslabpay,xsndslabday,xsndslabpay,xtrdslabday,xtrdslabpay,~
+			zemail,xemail,xcfleave,xstatus
+
+		field xempcat
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Employee Category1'"
+		end field
+    
+    field xyear
+    	event after
+    		set globals(xyear) = xyear
+    		set globals(xempcat) = xempcat
+    		set globals(xleave) = xleave
+			set #field(xefffrom->.display) = "hide"
+    	end event
+    end field
+           
+	field xleave
+		width 10
+		display combo
+		pick "select xcode from xcodes where xtype like 'Leave Type' and zactive='1'"
+    	event after
+			set #field(xefffrom->.display) = "hide"
+    	end event
+		
+	end field
+	
+	field zemail
+		caption Created By
+	end field
+	
+	field xemail
+		caption Updated By
+	end field
+
+    field add
+      event before
+      	set globals(ErrChk) = ""
+      	set xfstslabday = 0
+      	set xsndslabday = 0
+      	set xtrdslabday = 0
+      	set xfstslabpay = ""
+      	set xsndslabpay = ""
+      	set xtrdslabpay = ""
+      	set xstatus = ""
+      	
+		
+      end event
+    end field
+
+    field Update
+      event before
+      	set globals(ErrChk) = ""
+      	
+
+        if globals(ErrChk) .ne. "1"
+        	call upd_log
+        end if
+      end event
+    end field
+    
+    field Delete
+    	event before
+    		set globals(ErrChk) = ""
+    		if globals(ErrChk) .ne. "1"
+    			call upd_log
+    		end if
+    	end event
+    end field
+
+    field confirm
+    	event before
+    		set globals(ErrChk) = ""
+    		int empcount = 0
+    		int inscount = 0
+    		
+    		
+    		if globals(ErrChk) .ne. "1"
+    			set status = #sql("select xstatus from prlvpolicy where xyear='"+globals(xyear)+"' and xempcat='"+globals(xempcat)+"' and xleave='"+globals(xleave)+"'")
+    			//if status .eq. "Confirmed"
+    			//	set globals(ErrChk) = "1"
+    			//	error "Already Confirmed"
+    		//	end if
+    		end if
+    		if globals(ErrChk) .ne. "1"
+    			set xemp = ""
+    			str mysql = "select xemp from prmst where xemp>'"+xemp+"'"
+    			set xemp = #sql(str,mysql)
+    			while #result .eq. "true"
+    				set empcount = 0+empcount+1
+    				set chkrec = #sql("select xyear from prlvalc where xemp='"+xemp+"' and xyear='"+xyear+"' and xleave='"+xleave+"'")
+    				if #result .ne. "true"
+    					set myqry = "insert into prlvalc (zid,xemp,xyear,xleave,xmdlmt,xmdavl,zemail,xemail)"
+    					set myqry = myqry+" values('"+#id+"','"+xemp+"','"+globals(xyear)+"','"+globals(xleave)+"',~
+    						'"+xleavealc+"','','"+#user+"','')"
+    					set tmpstr = #sql(str,myqry)
+    					//print #result
+    					if #result .eq. "true"
+    						set inscount = 0+inscount+1
+    					end if
+    				end if    
+        			str mysql = "select xemp from prmst where xemp>'"+xemp+"'"
+        			set xemp = #sql(str,mysql)
+    			end while
+    			if empcount > 0 .and. empcount == inscount
+    				str mysql = "update prlvpolicy set xstatus='Confirmed' where xyear='"+globals(xyear)+"' and xempcat='"+globals(xempcat)+"' and xleave='"+globals(xleave)+"'"
+    				set tmpstr = #sql(str,mysql)
+    				//print "Confirmed"
+    			end if
+    		end if
+    	end event
+    end field
+        
+ end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+
+		function submitit(form){
+	    	if (detail=="clicked"){
+            	form.page.value = "glsub"
+            	//return false
+          	}
+        }
+
+        </script>
+    end script
+
+     
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql     
+				
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(xemp)+"','','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+#time+"','"+page+"','')"
+		set tmpstr =#sql(myqry)		
+     end method
+	      
+	valid valid
+		config
+    		if xleave .eq. "Sick Leave" .or. xleave .eq. "SL"
+    		else
+    			set #field(xfstslabday->.display)="hide"
+    		end if
+    		if xleave .eq. "ML"
+                   set #field(Confirm.display)="hide"
+    		end if
+		end config
+	end valid
+end page

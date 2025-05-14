@@ -1,0 +1,51 @@
+//Common.menu
+caption "Common Codes" page 3
+
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+//Rank                      |#classPath+"/"+#servlet+"?page=xcodes(xtype=Rank)"
+//Onboard Payment                      |#classPath+"/"+#servlet+"?page=caobp"
+//-Important
+Customer Discounting Setup             |#classPath+"/"+#servlet+"?page=opspdiscount"
+//Special Discount Report		       |#classPath+"/"+#servlet+"?page=*crystal cacuscolach(xyear=Year,xper=Period=,xcus=From Customer=0,xcus=To Customer=z)"
+All Codes                         |#classPath+"/"+#servlet+"?page=xcodes"
+Customer Numbers             |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Customer Number)"
+Supplier Numbers             |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Supplier Number)"
+//Task Ids             |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Task Id)"
+
+//Defaults                         |#classPath+"/"+#servlet+"?page=cadef"
+//Depots                           |#classPath+"/"+#servlet+"?page=cadep"
+Types of Location                         |#classPath+"/"+#servlet+"?page=xcodes(xtype=Location Type)"
+Locations                         |#classPath+"/"+#servlet+"?page=caloc"
+//Roles                         |#classPath+"/"+#servlet+"?page=xcodes(xtype=Role)"
+//Calendar                         |#classPath+"/"+#servlet+"?page=cacal"
+-Items
+Price Group                      |#classPath+"/"+#servlet+"?page=xcodes(xtype=Price Group)"
+//SIC Code                         |#classPath+"/"+#servlet+"?page=xcodes(xtype=SIC Code)"
+//-Cost Centers
+//Division                         |#classPath+"/"+#servlet+"?page=xcodes(xtype=Division)"
+//Section                          |#classPath+"/"+#servlet+"?page=xcodes(xtype=Section)"
+//Project                          |#classPath+"/"+#servlet+"?page=xcodes(xtype=Project)"
+-Markets
+//Market                           |#classPath+"/"+#servlet+"?page=xcodes(xtype=Market)"
+Region                           |#classPath+"/"+#servlet+"?page=xcodes(xtype=Region)"
+Territory                        |#classPath+"/"+#servlet+"?page=xcodes(xtype=Territory)"
+Country                          |#classPath+"/"+#servlet+"?page=xcodes(xtype=Country)"
+-Orders
+Payment Code                     |#classPath+"/"+#servlet+"?page=xcodes(xtype=Payment Code)"
+//Shipping Code                    |#classPath+"/"+#servlet+"?page=xcodes(xtype=Shipping Code)"
+//***Shipping Rate Tables             |#classPath+"/"+#servlet+"?page=cashiprate"
+//Shipping Product                 |#classPath+"/"+#servlet+"?page=xcodes(xtype=Shipping Product)"
+Warehouses                       |#classPath+"/"+#servlet+"?page=xcodes(xtype=Warehouse)"
+//-Messages
+//Message Type                     |#classPath+"/"+#servlet+"?page=xcodes(xtype=Message Type)"
+//Message Maintenance              |#classPath+"/"+#servlet+"?page=camsg"
+//Delivery Messages                     |#classPath+"/"+#servlet+"?page=xcodes(xtype=Delivery Message)"
+//-Miscellaneous
+//Documents                        |#classPath+"/"+#servlet+"?page=cadocs"
+//Project Milestones               |#classPath+"/"+#servlet+"?page=xcodes(xtype=Project Milestone)"
+//Fabric Codes                     |#classPath+"/"+#servlet+"?page=xcodes(xtype=Fabric Code)"
+
+//-------------------------------------------------------------------
+

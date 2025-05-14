@@ -1,0 +1,53 @@
+//apreports.menu
+caption "AP Reports" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+-Vouchers
+Check/Payment Voucher            |#classPath+"/"+#servlet+"?page=*crystal glchqall(xvoucher=From Voucher No=0=text,xvoucher=To Voucher No=zzz=text,xyesno=Print Cheque?)"
+//Check/Payment Voucher-Trade      |#classPath+"/"+#servlet+"?page=*crystal glchq(xvoucher=From Voucher No=0=text,xvoucher=To Voucher No=zzz=text,xyesno=Print Cheque?)"
+//Check/Payment Voucher-Non Trade  |#classPath+"/"+#servlet+"?page=*crystal glchqnon(xvoucher=From Voucher No=0=text,xvoucher=To Voucher No=zzz=text,xyesno=Print Cheque?)"
+//GRN Maching                      |#classPath+"/"+#servlet+"?page=*crystal glgrn(xsup=From Supplier=0,xsup=To Supplier=zzz)"
+Monthly Purchases By Supplier    |#classPath+"/"+#servlet+"?page=*crystal glsup(xyear=Year=#glyear,xper=Period=#glper)"
+Monthly Purchases-Details    |#classPath+"/"+#servlet+"?page=*crystal glsupdet(xyear=Year=#glyear,xper=Period=#glper)"
+Approval List By Supplier        |#classPath+"/"+#servlet+"?page=*crystal glappv(xsup=From Supplier=0,xsup=To Supplier=zzz,xdate=Due on)"
+//Approval List By Document By Supplier       |#classPath+"/"+#servlet+"?page=*crystal glappvdoc(xsup=Supplier,xvoucher=From Voucher No=0=text,xvoucher=To Voucher No=zzz=text)"
+Monthly Payments List            |#classPath+"/"+#servlet+"?page=*crystal *glpay(xyear=Year=#glyear,xper=Period=#glper)"
+
+
+
+
+//-Allocation
+//Allocation List-AP               |#classPath+"/"+#servlet+"?page=*crystal glapalc(xvoucher=From Document=0=text,xvoucher=To Document=zzz=text)"
+//Monthly Unallocated Payments     |#classPath+"/"+#servlet+"?page=*crystal *glpayunalc(xyear=Year=#glyear,xper=Period=#glper)"
+
+//-
+//<font color=red>Set Statement Date</font>               |#classPath+"/"+#servlet+"?page=castatusap"
+
+//-Statements&nbsp;By&nbsp;Invoice&nbsp;Date
+
+
+//Statement of Account-Supplier    |#classPath+"/"+#servlet+"?page=*crystal glstmsup(xsup=From Supplier=0,xsup=To Supplier=zzz,xdate=As On="+castatus.xdate("xtypestatus like 'AP Statement'")+"=const)"
+
+//-Statements&nbsp;By&nbsp;Due&nbsp;Date
+//Statement of Account-Supplier    |#classPath+"/"+#servlet+"?page=*crystal glstmsupdue(xsup=From Supplier=0,xsup=To Supplier=zzz,xdate=As On="+castatus.xdate("xtypestatus like 'AP Statement'")+"=const)"
+
+//-AP&nbsp;Aging&nbsp;By&nbsp;Invoice&nbsp;Date
+//Summary of Aging - Prime           |#classPath+"/"+#servlet+"?page=*crystal glsagesup(xsup=From Supplier=0,xsup=To Supplier=zzz,xaccap=From Control Acc=0=text,xaccap=To Control Acc=zzz=text,xdate=As On="+castatus.xdate("xtypestatus like 'AP Statement'")+"=const,)"
+//Summary of Aging - Base    |#classPath+"/"+#servlet+"?page=*crystal glsagesupb(xsup=From Supplier=0,xsup=To Supplier=zzz,xaccap=From Control Acc=0=text,xaccap=To Control Acc=zzz=text,xdate=As On="+castatus.xdate("xtypestatus like 'AP Statement'")+"=const,)"
+//Details of Aging - Prime           |#classPath+"/"+#servlet+"?page=*crystal glagesup(xsup=From Supplier=0,xsup=To Supplier=zzz,xaccap=From Control Acc=0=text,xaccap=To Control Acc=zzz=text,xdate=As On="+castatus.xdate("xtypestatus like 'AP Statement'")+"=const,)"
+//Details of Aging - Base          |#classPath+"/"+#servlet+"?page=*crystal *glagesupb(xsup=From Supplier=0,xsup=To Supplier=zzz,xaccap=From Control Acc=0=text,xaccap=To Control Acc=zzz=text,xdate=As On="+castatus.xdate("xtypestatus like 'AP Statement'")+"=const)"
+
+//-AP&nbsp;Aging&nbsp;By&nbsp;Due&nbsp;Date
+//Summary of Aging - Prime           |#classPath+"/"+#servlet+"?page=*crystal glsagesupdue(xsup=From Supplier=0,xsup=To Supplier=zzz,xaccap=From Control Acc=0=text,xaccap=To Control Acc=zzz=text,xdate=As On="+castatus.xdate("xtypestatus like 'AP Statement'")+"=const,)"
+//Summary of Aging - Base           |#classPath+"/"+#servlet+"?page=*crystal glsagesupbdue(xsup=From Supplier=0,xsup=To Supplier=zzz,xaccap=From Control Acc=0=text,xaccap=To Control Acc=zzz=text,xdate=As On="+castatus.xdate("xtypestatus like 'AP Statement'")+"=const,)"
+//Details of Aging - Prime           |#classPath+"/"+#servlet+"?page=*crystal glagesupdue(xsup=From Supplier=0,xsup=To Supplier=zzz,xaccap=From Control Acc=0=text,xaccap=To Control Acc=zzz=text,xdate=As On="+castatus.xdate("xtypestatus like 'AP Statement'")+"=const,)"
+//Details of Aging - Base          |#classPath+"/"+#servlet+"?page=*crystal *glagesupbdue(xsup=From Supplier=0,xsup=To Supplier=zzz,xaccap=From Control Acc=0=text,xaccap=To Control Acc=zzz=text,xdate=As On="+castatus.xdate("xtypestatus like 'AP Statement'")+"=const)"
+
+//-Sub&nbsp;Ledgers
+//Subsidiary Ledger-Supplier       |#classPath+"/"+#servlet+"?page=*crystal glsled(xsup=From Supplier=0,xsup=To Supplier=zzz,~
+                                 xdate=As On="+castatus.xdate("xtypestatus like 'AP Statement'")+"=text)"
+//bbbb
+//bbbb
+//-------------------------------------------------------------------
+

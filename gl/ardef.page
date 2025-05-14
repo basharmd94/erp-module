@@ -1,0 +1,38 @@
+page ardef
+     caption "AR Defaults"
+     //sidebar list one//,list two, text three
+     //sections list one, form one
+     sections form one,list one //, method m1, method m2
+
+
+     list one
+        table ardef
+        order zemail
+        navigators alpha
+        rows 20
+        objects  zemail attrib(link #servlet+"?page="+page+"&command=Show&zemail=?"), ~
+                xtrn,xbank,xautobal,xdefper,xunbal
+
+
+     end list
+
+     form one
+        table ardef
+        order zemail
+        
+        layout 6
+        objects Show, Clear,Add, Update, Delete, Top, Previous, Next, Bottom,~
+                zemail,xtrn,xbank,xautobal,xdefper,xunbal
+
+		field xtrn
+			pick select xtrn from xtrn where xtypetrn='GL Voucher'
+			display ocombo
+		end field
+ 
+		field xbank
+			pick "01010003"
+		end field
+
+end form
+
+end page

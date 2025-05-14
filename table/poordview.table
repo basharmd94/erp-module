@@ -1,0 +1,28 @@
+product ERP on the Net
+
+table poordview
+  caption "Purchase Order View"                                           
+  columns zid,xpornum,xdate,xsup,xstatuspor,xwh,xrem,zemail,xemail,xporeqnum,xpoqot,~
+  xrow,xitem,xqtyord,xqtygrn,xqtystk,xunitpur,xrate,xdisc,xdiscf,xcomm,xtaxcat,xtaxcode1,xtaxrate1,xlandcost,xdttax,xdtdisc,~
+  xdtwotax,xlineamt,xbatch
+  
+  primary key zid,xpornum,xrow
+  
+  	  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  							 
+  sql create view poordview (zid,xpornum,xdate,xsup,xstatuspor,xwh,xrem,zemail,xemail,xporeqnum,xpoqot,~
+							xrow,xitem,xqtyord,xqtygrn,xqtystk,xunitpur,xrate,xdisc,xdiscf,xcomm,xtaxcat,xtaxcode1,xtaxrate1,xlandcost,xdttax,xdtdisc,~
+							xdtwotax,xlineamt,xbatch) as ~
+		SELECT poord.zid,poord.xpornum,poord.xdate,poord.xsup,poord.xstatuspor,poord.xwh,poord.xrem,poord.zemail,poord.xemail,~
+		poord.xporeqnum,poord.xpoqot,~
+		poodt.xrow,poodt.xitem,poodt.xqtyord,poodt.xqtygrn,poodt.xqtystk,poodt.xunitpur,poodt.xrate,poodt.xdisc,poodt.xdiscf,poodt.xcomm,poodt.xtaxcat,poodt.xtaxcode1,poodt.xtaxrate1,poodt.xlandcost,poodt.xdttax,poodt.xdtdisc,~
+		poodt.xdtwotax,poodt.xlineamt,poodt.xbatch ~
+	FROM poord inner join poodt on poord.zid=poodt.zid and poord.xpornum=poodt.xpornum order by xpornum    
+                  
+ end table
+ 
+ 
+ 

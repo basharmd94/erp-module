@@ -1,0 +1,12 @@
+caption "Leave Menu"
+//------------------------------------------------------------------------------------
+option                   						|action                              |modules|models
+//------------------------------------------------------------------------------------
+Leave Transaction        						|#classPath+"/"+#servlet+"?menu=prlvtrn"
+-
+Leave Policy             						|#classPath+"/"+#servlet+"?menu=prlvpolicy"
+-
+Leave Reports                    				|#classPath+"/"+#servlet+"?menu=prlvreports"
+Setup                    						|#classPath+"/"+#servlet+"?menu=prlvsetup"
+//Leave Roster             						|#classPath+"/"+#servlet+"?menu=prlvroster"
+//------------------------------------------------------------------------------------

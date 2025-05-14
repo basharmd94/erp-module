@@ -1,0 +1,1791 @@
+page poilcltr
+  section form one,list one, text top,script myscript,~
+      method get_gmgli, method upd_header, method upd_detail,~
+      method chk_rec, method upd_balance,~
+      method calc_interestltr,method calc_interest_timel,method calc_interest_term, method calc_interest_import,~
+      method upd_interestltr, method upd_interest_timel,method upd_interest_term,method upd_interest_import,~
+      method yrpr, method chk_dr_acc
+
+    embed onload="move_caret('one','xsize')"
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+
+  list one
+        caption "<b>Loan for LC No. <font color=red >"+globals(xlcno)+"</font></b><p>"
+        table poilcpad
+        order xpornum,xrow desc
+        fixed xpornum
+        select "(xtype not like 'PAD%')"
+        rows 20
+        objects xrow attrib(link #servlet+"?page=poilcltr&command=Show&xpornum=?&xrow=?"), ~
+               xtype,xserialnum,xdate,xacccr,xsubcr,xprime,xttype,xglref,xbalance
+
+        field xserialnum
+          caption Loan No.
+        end field
+
+        field xdate
+          caption Loan Date
+        end field
+        
+        field xtype
+            caption Loan Type
+        end field
+
+        field xttype
+          caption Transaction Type
+        end field
+
+        field xprime
+         len 20.2
+        end field
+
+
+    field xdateto
+      caption Maturity Date
+    end field
+
+//    totals "","Total","","","","",sum,"",""
+
+  end list
+
+ form one
+  caption "<font color=black>LATR for LC No. </font>" + globals(xlcno)
+    valid valid
+    table poilcpad
+    order xpornum,xrow
+    fixed xpornum
+    select "(xtype not like 'PAD%')"
+    layout 2
+    objects Add,Clear,Update,Complete,Show,Top,Post to LC Cost,Bottom,Delete display(disable),Next,Transfer to GL,Previous,Undo_LC_Cost,Undo ,~
+            xrow attrib(row 100 10;search),xtype display(hide),xttype,xserialnum,xref,xdate,xaccdr attrib(attach; submit),dummy1,xsubdr,dummy2,~
+            xacccr attrib(attach; submit),dummy3,xsubcr,dummy4,xpaytype attrib(submit),xcheque,~
+            xdatedue,"",xcur attrib(attach),xexch display(const),xprime attrib(attach),xbase display(const),xtypep,xstatusrfq,xproj,xdiv,~
+            xdayab,xdateto,xdayscom,xdatecom,xcib,xlong,"",xstatusdor,xglref,xsign display(hide),xlcno display(hide),~
+            xyear display(hide), xper display(hide),xbalance display(const),xpayexpm display(hide),xpayexpy display(hide),xratev,xline display(const),xbank,~
+            xrowin display(hide),xamt display(hide),xstatus display(hide),xpocode ,xtrngl,xaction,zemail display(const),xemail display(const),xevent display(hide)
+    
+
+    field xserialnum
+       caption Loan NO.
+       display text
+      event after
+        set globals(xserialnum) = xserialnum
+      end event
+    end field
+    
+    field xtype
+        caption Loan Type
+        pick "LATR,TimeLoan,TermLoan,ImportLoan"
+        //display hide
+    end field
+
+    field xttype
+      caption Transaction Type
+      attrib(attach; submit)
+      pick "LATR Entry,LATR Adjustment,LATR Interest,LATR BankCharge,TimeLoan Entry,TimeLoan Adjustment,TimeLoan Interest,TimeLoan BankCharge,TermLoan Entry,TermLoan Adjustment,TermLoan Interest,TermLoan BankCharge,ImportLoan Entry,ImportLoan Adjustment,ImportLoan Interest,ImportLoan BankCharge"
+      //pick "select xcode from xcodes where xtype='Loan Type'"
+      event after
+        set globals(xttype) = xttype
+      end event
+    end field
+
+    field xcur
+      default "BDT"
+    end field
+
+    field xrow
+        //col 3
+      event after
+        set globals(xrow) = xrow
+         //if xref .ne. "" .and. xttype .eq. "Ltr Entry" .and. xglref .ne. ""
+         if xttype .eq. "LATR Entry"
+            //set #field(Post.display) = "hide"
+            //set #field(Transfer.display) = "hide"
+          end if
+          
+          if xstatusdor .eq. "Transferred"
+          	set #field(Add.display) ="disable"
+          	set #field(Update.display)="disable"
+          	set #field(Post.display)="hide"
+          	set #feild(Transfer.display)="hide"
+          	set #field(Delete.display)="hide"
+          	set #feild(Undo_LC_Cost.display)="hide"
+          	set #feild(xtrngl.display)="constant"
+          end if 
+          if xstatusdor .eq. ""
+          	set #feild(Undo.display)="hide"
+          	set #feild(Undo_LC_Cost.display)="hide"
+          end if
+          if xrow .ne. "0"
+            set #field(xstatusrfq.display)="constant"
+          end if
+          
+          if xstatusrfq .eq. "No"
+                set #field(Add.display) ="disable"
+          	set #field(Post.display)="disable"
+       		set #feild(Transfer.display)="disable"
+                set #feild(Undo_LC_Cost.display)="disable"
+       		set #field(Update.display)="disable"
+       		set #field(Delete.display)="disable"
+          end if
+      end event
+    end field
+    
+    field xaccdr
+      display text
+      pick list xaccdr
+      event after
+        set globals(xaccdr) = xaccdr
+      end event
+    end field
+    
+    field dummy1
+        attrib local
+        display constant
+        caption Description
+    end field
+
+    field xsubdr
+        pick list subdr
+        attrib attach
+    end field
+
+    field dummy2
+        attrib local
+        display constant
+        caption Description
+    end field
+
+    field xacccr
+      display text
+      //attrib attach
+      pick list xacccr
+      event after
+        set globals(xacccr) = xacccr
+      end event
+    end field
+    
+    field dummy3
+        attrib local
+        display constant
+        caption Description
+    end field
+
+    field xsubcr
+        attrib attach
+        pick list xsubcr
+    end field
+
+    field dummy4
+        attrib local
+        storage varchar
+        display constant
+        caption Description
+    end field
+
+    field xprime
+      caption Amount
+      len 20.2
+      event after
+        set globals(xprime) = xprime
+      end event
+    end field
+    
+    field xref
+        caption PAD No
+        display hide
+        //pick list pad
+    end field
+
+    field xbase
+      len 20.2
+      event after
+        set globals(xbase) = xbase
+      end event
+    end field
+
+    field xlong
+      caption Notes
+      col 3
+      width 80
+      height 2
+    end field
+
+    field xdateto
+      attrib readonly
+      caption Maturity Date
+    end field
+
+    field xdate
+      default #d
+    end field
+
+    field xstatusdor
+      caption Status
+      display const
+    end field
+
+    field xratev
+       caption Interest Rate
+       //default "0.00"
+       display hide
+    end field
+
+    field xglref
+      display const
+    end field
+
+    field xdayab
+      caption Limit Days
+      default 30
+//      attrib readonly
+    end field
+    
+    field xbank
+          //display hide
+          //pick select xcode from xcodes where xtype='Bank'
+          event before
+                set xbank=globals(xbank)
+          end event
+        end field
+
+    field xpocode
+          pick list xpocode
+          //display hide
+    end field
+
+        field xdayscom
+          caption Overdue Limit Days
+          default "1"
+    end field
+
+    field xdatecom
+          caption Overdue Limit Date
+    end field
+        
+    field xcib
+     //col 3
+     display hide
+    end field
+    
+    field xtrngl
+        //pick "JV--,BP--,BR--"
+        pick select xtrn from xtrn where xtypetrn='GL Voucher'
+        event after
+        	set globals(xtrngl)=xtrngl
+        end event              
+    end field
+    
+    field xaction
+    	display hide
+    end field 
+    
+    field xproj
+        caption Cost Centre
+    end field
+    
+    field xtypep
+        caption Value Status
+        pick "Increase,Primary"
+        default "Primary"
+        //col 3
+    end field
+    
+    field xstatusrfq
+        caption Transfer Status
+        pick "Yes,No"
+        default"No"
+        display combo
+    end field
+    
+    field xdatedue
+        caption Cheque Date
+        col 3
+    end field
+    
+    field zemail
+        caption Entry by
+    end field
+    
+    field xemail
+        caption Updated by
+    end field
+
+    field Add
+      event before
+        set globals(ErrChk) = ""
+
+        set chkcode=#sql(str,"select xcur from xcur where xcur='"+xcur+"'")
+        
+        if chkcode .eq. ""
+          error "Currency Code not selected; cannot "+#command
+          set globals(ErrChk) = "1"
+        end if
+        
+         set typeprop=xcodes.xprops("xtype='Loan Type' and xcode='"+xttype+"'")
+         //error typeprop
+         
+        if globals(ErrChk) .ne. "1"
+            if xserialnum .eq. ""
+                set globals(ErrChk) = "1"
+                error "Please Input "+#field(xserialnum.caption)
+            end if
+        end if
+        
+         if globals(ErrChk) .ne. "1"
+            if xproj .eq. ""
+                set globals(ErrChk) = "1"
+                error "Please Select "+#field(xproj.caption)
+            end if
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+            if xbank .eq. ""
+                set globals(ErrChk) = "1"
+                error "Please Select "+#field(xbank.caption)
+            end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+            if xprime <> 0.0
+            else
+                set globals(ErrChk) = "1"
+                error "Please Enter "+#field(xprime.caption)
+            end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+            if xdiv .eq. ""
+                set globals(ErrChk) = "1"
+                error "Please Select "+#field(xdiv.caption)
+            end if
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+            if xstatusrfq .eq. "Yes"
+                if xtrngl .eq. ""
+                    set globals(ErrChk) = "1"
+                    error "<font color=red size=+3>Please Select "+#field(xtrngl.caption)</font>"
+                end if
+            end if
+        end if
+        
+       if globals(ErrChk) .ne. "1"
+          //if xttype .ne. "LATR Entry" .or. xttype .ne. "LATR Adjustment" .or. xttype .ne. "LATR Interest" .or. xttype .ne."LATR BankCharge" .or. xttype .ne. "TimeLoan Entry" .or. xttype .ne. "TimeLoan Adjustment" .or. xttype .ne. "TimeLoan Interest" .or. xttype .ne. "TimeLoan BankCharge" .or. xttype .ne. "TermLoan Entry" .or. xttype .ne. "TermLoan Adjustment" .and. xttype .ne. "TermLoan Interest" .or. xttype .ne. "TermLoan BankCharge" .or. xttype .ne. "ImportLoan Entry" .or. xttype .ne. "ImportLoan Entry" .or. xttype .ne. "ImportLoan Adjustment" .or. xttype .ne. "ImportLoan Interest" .or. xttype .ne. "ImportLoan BankCharge"
+          if xttype .eq. ""
+            set globals(ErrChk) = "1"
+            error "No Transaction Type Selected</p>Cannot Add"
+          end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+            if xstatusrfq .eq. ""
+                set globals(ErrChk) = "1"
+                error "Please Select "+#field(xstatusrfq.caption)
+            end if
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+           set dateyrpr=xdate          
+           call yrpr
+        end if
+       
+        
+        if globals(ErrChk) .ne. "1"
+            if xpaytype  .eq. "Cheque" .and. xdatedue .eq. #max
+                set globals(ErrChk) = "1"
+                error "Please Select " +#field(xdatedue.caption)
+            end if
+        end if
+             
+            set action = #sql(str,"select xaction from xtrn where xtypetrn='GL Voucher' and xtrn='"+xtrngl+"' and zactive='1'")
+			set xaccusage = #sql(str,"select xaccusage from glmst where xacc='"+xacccr+"'")
+			set xaccsource = #sql(str,"select xaccsource from glmst where xacc='"+xacccr+"'")
+			//print xaccusage +"---"
+
+
+//        if globals(ErrChk) .ne. "1"
+//        	set xacc=xaccdr
+//        	buffer glmst
+//        	move glmst=glmst(xacc)
+//        	if #result .ne. "true"
+//        		set globals(ErrChk) = "1"
+//        		error "Worng Debit Account Selected; Pick from the List"
+//        	end if
+//        end if
+        
+
+//        if globals(ErrChk) .ne. "1"
+//          set xacc = xacccr
+//          buffer glmst
+//          move glmst = glmst(xacc)
+//          if #result .ne. "true"
+//            set globals(ErrChk) = "1"
+//            error "Wrong Credit Account Selected; Pick from the List"
+//          end if
+//        end if
+        
+//        if globals(ErrChk) .ne. "1"
+//        	if  xtrngl .eq. "" .and. xttype .ne. "LATR Entry" .or. xttype .eq. "TimeLoan Entry" .or. xttype .eq. "TermLoan Entry" .or. xttype .eq. "ImportLoan Entry"
+//        		set globals(ErrChk) = ""
+//        		error "Please Select Voucher Type"
+//        	end if
+//        end if
+
+        if globals(ErrChk) .ne. "1"
+           set xbalance = 0
+           int row_num = 0 
+           set row_num = #sql(int,"select xrow from poilcpad where zid='"+#id+"' and xlcno='"+globals(xlcno)+"' and xtype='LATR' order by xlcno,xrow desc" )
+           //print #result
+           if #result .ne. "true"
+             set xrow = 100
+           else  
+             set xrow = row_num+10
+           end if
+
+           
+            
+           if xttype .eq. "LATR Entry" .or. xttype .eq. "LATR Interest"  .or. xttype .eq. "LATR BankCharge" .or. xttype .eq. "TimeLoan Entry" .or. xttype .eq. "TimeLoan Interest" .or. xttype .eq."TimeLoan BankCharge" .or. xttype .eq. "TermLoan Entry" .or. xttype .eq. "TermLoan BankCharge" .or. xttype .eq. "TermLoan Interest" .or. xttype .eq. "ImportLoan Entry" .or. xttype .eq. "ImportLoan Interest" .or. xttype .eq. "ImportLoan BankCharge"
+              set xsign = 1
+           else if xttype .eq. "LATR Adjustment" .or. xttype .eq. "LATR Interest Refund" .or. xttype .eq. "TimeLoan Adjustment" .or. xttype .eq. "TermLoan Adjustment"  .or. xttype .eq. "ImportLoan Adjustment" 
+              set xsign = -1
+           end if
+           //set xtype = "LATR"
+           
+            if xttype .eq. "LATR Entry" .or. xttype .eq. "LATR Interest" .or. xttype .eq. "LATR Adjustment" .or. xttype .eq. "LATR BankCharge"
+                set xtype="LATR"
+            else if xttype .eq. "TimeLoan Entry" .or. xttype .eq. "TimeLoan Interest" .or. xttype .eq. "TimeLoan Adjustment" .or. xttype .eq. "TimeLoan BankCharge"
+                set xtype="TimeLoan"
+            else if xttype .eq. "TermLoan Entry" .or. xttype .eq. "TermLoan Interest" .or. xttype .eq. "TermLoan Adjustment" .or. xttype .eq. "TermLoan BankCharge"
+                set xtype="TermLoan"
+            else if xttype .eq. "ImportLoan Entry" .or. xttype .eq. "ImportLoan Interest" .or. xttype .eq. "ImportLoan Adjustment" .or. xttype .eq. "TermLoan BankCharge"
+                set xtype="ImportLoan"
+            end if
+           
+           set xexch = #sql(decimal,"select xexch from xcur where zid='"+#id+"' and xcur='"+xcur+"'")
+           //class osbcustom(#calc(xprime,xexch,"*",2,xbase))
+          
+           
+           if xtypep .eq. "Primary"
+               //class osbcustom(datecalc(xdate,xdayab,"D",xdateto))
+               int temp = #days(xdate)+xdayab
+               set tmpdate=#longtodate(temp)
+               set xdateto=tmpdate
+
+               int temp1 = #days(xdateto)+xdayscom
+               set tmpdate1=#longtodate(temp1)
+               set xdatecom=tmpdate1
+           end if
+           
+           //set xyear=#sub(xdateto,0,4)
+           //set xper=#sub(xdateto,5,2)                      
+           set xyear=tempyear
+           set xper=tempper
+           set xpayexpm=tempper
+           set xpayexpy=tempyear
+           set zemail = #user
+           set xlcno = globals(xlcno)
+           set xstatusdor = ""
+           set xglref = ""
+           set xbase=xprime
+           set xaction=action          
+           set xevent=typeprop
+          
+            if globals(ErrChk) .ne. "1"
+                if xtypep .eq. "Primary"
+                    call chk_rec
+                end if
+            end if
+//  			if xttype .eq. "LATR Adjustment"
+//				set xtrngl=xtrngl	
+//							
+//			else  if xttype .eq. "TimeLoa Adjustment"
+//				set xtrngl=xtrng
+//						
+//			else if xttype .eq. "TermLoan Adjustment"
+//				set xtrngl=xtrng
+//						
+//			else if xttype .eq. "TermLoan Adjustment"			
+//				set xtrngl=xtrng
+//				
+//			else if xttype .eq. "ImportLoan Adjustment"
+//				set xtrngl=xtrng
+//			end if 
+         
+           
+           if xttype .eq. "LATR Adjustment"
+              //call calc_interestltr
+              
+            else if xttype .eq. "TimeLoan Adjustment"
+              //	call calc_interest_timel
+              
+            else if xttype .eq. "TermLoan Adjustment"
+              //	call calc_interest_term
+              
+            else if xttype .eq. "ImportLoan Adjustment"
+               // call calc_interest_import
+           end if
+           
+           call upd_balance
+        end if
+      end event
+
+      event after
+        if globals(ErrChk) .ne. "1"
+           if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+              set tmpstr = #sql("select xsub from glsub where xacc='"+xacccr+"' and xsub='"+xsubcr+"'")
+              if #result .ne. "true"
+                 print "<h2><font color=red>Please <font color=blue>UPDATE</font> record with correct Sub Account</font></h2>"
+              end if
+           end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+           if xttype .eq. "LATR Adjustment"
+                //call upd_interestltr
+           else if xttype .eq. "TimeLoan Adjustment"
+                //call upd_interest_timel
+           
+           else if xttype .eq. "TermLoan Adjustment"
+           		//call upd_interest_term
+           
+           else if xttype .eq. "ImportLoan Adjustment"
+           		//call upd_interest_import              
+           end if
+        end if
+      end event
+    end field
+
+    field update
+      event before
+        set globals(ErrChk) = ""
+
+        set typeprop=xcodes.xprops("xtype='Loan Type' and xcode='"+xttype+"'")
+        
+        set chkcode=#sql(str,"select xcur from xcur where xcur='"+xcur+"'")
+        if chkcode .eq. ""
+          error "Currency Code not selected; cannot "+#command
+          set globals(ErrChk) = "1"
+        end if
+
+//        if globals(ErrChk) .ne. "1"
+//        	set xacc=xaccdr
+//        	buffer glmst
+//        	move glmst=glmst(xacc)
+//        	if #result .ne. "true"
+//        		set globals(ErrChk) = "1"
+//        		error "Worng Debit Account Selected; Pick from the List"
+//        	end if
+//        end if
+
+
+//        if globals(ErrChk) .ne. "1"
+//          set xacc = xacccr
+//          buffer glmst
+//          move glmst = glmst(xacc)
+//          if #result .ne. "true"
+//            set globals(ErrChk) = "1"
+//            error "Wrong Credit Account Selected; Pick from the List"
+//          end if
+//        end if
+
+        
+        if globals(ErrChk) .ne. "1"
+            if xpaytype  .eq. "Cheque" .and. xdatedue .eq. #max
+                set globals(ErrChk) = "1"
+                error "Please Select " +#field(xdatedue.caption)
+            end if
+        end if
+
+        
+        if globals(ErrChk) .ne. "1"
+            if xproj .eq. ""
+                set globals(ErrChk) = "1"
+                error "Please Select "+#field(xproj.caption)
+            end if
+
+            if xdiv .eq. ""
+                set globals(ErrChk) = "1"
+                error "Please Select "+#field(xdiv.caption)
+            end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+            if xbank .eq. ""
+                set globals(ErrChk) = "1"
+                error "Please Select "+#field(xbank.caption)
+            end if
+        end if
+
+        
+        if globals(ErrChk) .ne. "1"
+            if xstatusrfq .eq. ""
+                set globals(ErrChk) = "1"
+                error "Please Select "+#field(xstatusrfq.caption)
+            end if
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+           set dateyrpr=xdate
+           call yrpr
+        end if
+        
+        set action = #sql(str,"select xaction from xtrn where xtypetrn='GL Voucher' and xtrn='"+xtrngl+"' and zactive='1'")
+        
+        if globals(ErrChk) .ne. "1"
+           if xttype .ne. "LATR Entry" .or. xttype .ne. "TimeLoan Entry" .or. xttype .ne. "TermLoan Entry" .or. xttype .ne. "ImportLoan Entry"
+              set xbalance = 0.0
+           end if
+           
+           
+           if xttype .eq. "LATR Entry" .or. xttype .eq. "LATR Interest"  .or. xttype .eq. "LATR BankCharge" .or. xttype .eq. "TimeLoan Entry" .or. xttype .eq. "TimeLoan Interest" .or. xttype .eq."TimeLoan BankCharge" .or. xttype .eq. "TermLoan Entry" .or. xttype .eq. "TermLoan BankCharge" .or. xttype .eq. "TermLoan Interest" .or. xttype .eq. "ImportLoan Entry" .or. xttype .eq. "ImportLoan Interest" .or. xttype .eq. "ImportLoan BankCharge"
+              set xsign = 1
+           else if xttype .eq. "LATR Adjustment" .or. xttype .eq. "LATR Interest Refund" .or. xttype .eq. "TimeLoan Adjustment" .or. xttype .eq. "TermLoan Adjustment"  .or. xttype .eq. "ImportLoan Adjustment"
+              set xsign = -1
+           end if
+           
+           if xttype .eq. "LATR Entry" .or. xttype .eq. "LATR Interest" .or. xttype .eq. "LATR Adjustment" .or. xttype .eq. "LATR BankCharge"
+                set xtype="LATR"
+                
+            else if xttype .eq. "TimeLoan Entry" .or. xttype .eq. "TimeLoan Interest" .or. xttype .eq. "TimeLoan Adjustment" .or. xttype .eq. "TimeLoan BankCharge"
+                set xtype="TimeLoan"
+                
+            else if xttype .eq. "TermLoan Entry" .or. xttype .eq. "TermLoan Interest" .or. xttype .eq. "TermLoan Adjustment" .or. xttype .eq. "TermLoan BankCharge"
+                set xtype="TermLoan"
+                
+            else if xttype .eq. "ImportLoan Entry" .or. xttype .eq. "ImportLoan Interest" .or. xttype .eq. "ImportLoan Adjustment" .or. xttype .eq. "ImportLoan BankCharge"
+                set xtype="ImportLoan"
+            end if
+            
+           //set xtype = "LATR"
+           set xexch = #sql(decimal,"select xexch from xcur where zid='"+#id+"' and xcur='"+xcur+"'")
+           //class osbcustom(#calc(xprime,xexch,"*",2,xbase))
+           //class osbcustom(datecalc(xdate,xdayab,"D",xdateto))
+           set xbase=xprime*xexch
+
+           if xtypep .eq. "Primary"
+               int temp = #days(xdate)+xdayab
+               set tmpdate=#longtodate(temp)
+               set xdateto=tmpdate
+               int temp1 = #days(xdateto)+xdayscom
+               set tmpdate1=#longtodate(temp1)
+               set xdatecom=tmpdate1
+           end if
+           
+           set xemail = #user
+           set xyear=tempyear
+           set xper=tempper
+           set xpayexpm=tempper
+           set xpayexpy=tempyear
+           set xaction=action
+           set xevent=typeprop
+           set xlcno = globals(xlcno)
+           call upd_balance
+        end if
+        if globals(ErrChk) .ne. "1"
+            if xtypep .eq. "Primary"
+                call chk_rec
+            end if
+        end if
+
+        
+        if globals(ErrChk) .ne. ""
+          action show
+        end if
+      end event
+      event after
+        if globals(ErrChk) .ne. "1"
+           if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+              set tmpstr = #sql("select xsub from glsub where xacc='"+xacccr+"' and xsub='"+xsubcr+"'")
+              if #result .ne. "true"
+                 print "<h2><font color=red>Please <font color=blue>UPDATE</font> record with correct Sub Account</font></h2>"
+              end if
+           end if
+        end if
+      end event
+    end field
+
+    field delete
+      event before
+        set globals(ErrChk) = ""
+        call chk_rec
+        if globals(ErrChk) .ne. "1"
+           call upd_balance
+        end if
+      end event
+    end field
+    
+   field Post
+       event before
+          set globals(ErrChk) = ""
+          if xglref .eq. ""
+             //int xline = 0
+             int linenum = 10
+             set xline = #sql(int,"select xline from pocostlc where zid="+#id+" and xpornum='"+globals(xpornum)+"' order by xline desc")
+             //print xline+" L: "+linenum
+             set linenum = xline+linenum
+             //print xline
+             
+             buffer pocharge
+             move pocharge=pocharge(xpocode)
+             if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Wrong Import Cost Code Chosen"
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+                buffer poilcpad
+                move poilcpad=poilcpad(xpornum,xrow)
+                if #result .ne. "true"
+                   set globals(ErrChk) = "1"
+                   error "Record Not Found"
+                end if
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+                buffer pocostlc
+                set pocostlc.xpornum = globals(xpornum)
+                set pocostlc.xline = linenum
+                set pocostlc.xpocode = poilcpad.xpocode
+                set pocostlc.xacccat = pocharge.xpotype
+                set pocostlc.zactive = pocharge.zactive
+                
+                set pocostlc.xcur = poilcpad.xcur
+                set pocostlc.xexch = poilcpad.xexch
+                set pocostlc.xdaterel = poilcpad.xdate
+                set pocostlc.xcost = poilcpad.xbase
+                //set pocostlc.xcostacc = #sql(str,"select xaccdr from poglipad where zid='"+#id+"' and xttype='"+globals(xttype)+"'")
+                set pocostlc.xcostacc=poilcpad.xaccdr
+                set pocostlc.xsubdr = poilcpad.xsubdr
+                set pocostlc.xpocracc = poilcpad.xacccr
+                set pocostlc.xsubcr = poilcpad.xsubcr
+                set pocostlc.xpaytype=poilcpad.xpaytype
+                set pocostlc.xcheque=poilcpad.xcheque
+                //set pocostlc.xsign = poilcpad.xsign
+                //set pocostlc.xstatusresp = ""
+  //              set pocostlc.xglref = ""
+                set pocostlc.xrem=poilcpad.xlong
+    //            error #result
+                insert pocostlc
+                
+                if #result .ne. "true"
+                   set globals(ErrChk) = "1"
+                   error "Error Occured while Updating Record"
+                end if
+             end if
+             if globals(ErrChk) .ne. "1"
+                set poilcpad.xstatusdor="Transferred"
+                set poilcpad.xglref=linenum
+                update poilcpad(xlcno,xrow)
+                action show
+                print "<h3><font size=3 color=blue>Transfered to LC Costing"
+             end if
+             if globals(ErrChk) .ne. ""
+               set xline=globals(xline)
+             end if
+       end event
+    end field
+    
+    field Undo_LC_Cost
+        event before
+            set globals(ErrChk) = ""
+            if xttype .ne. globals(xttype)
+                set globals(ErrChk) = "1"
+                error "Record pointer mismatch</p>Try SHOW instead"
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+                if xrow .ne. globals(xrow)
+                    set globals(ErrChk) = "1"
+                    error "Record pointer mismatch</p>Try SHOW instead"
+                end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+                if xstatusdor .ne. "Transferred"
+                    set globals(ErrChk) = "1"
+                    error "Not Transfered yet</p>Nothing to Undo"
+                end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+                buffer poilcpad
+                move poilcpad = poilcpad(xpornum,xrow)
+                if #result .ne. "true"
+                    set globals(ErrChk) = "1"
+                    error "Record not found</p>Cannot "+#command
+                end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+                set xline = poilcpad.xglref
+                buffer pocostlc
+                move pocostlc = pocostlc(xpornum,xline)
+                if #result .ne. "true"
+                    set globals(ErrChk) = "1"
+                    error xline+" Not Found in LC Costing; Nothing to do"
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set mysql = "delete pocostlc where zid="+#id+" and xpornum='"+poilcpad.xpornum+"' and xline='"+poilcpad.xglref+"'"
+                    set del_rec = #sql(mysql)
+                    set xline = globals(xline)
+                end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+                set poilcpad.xstatusdor=""
+                set poilcpad.xglref=""
+                update poilcpad(xpornum,xrow)
+                action show
+                print "<h3><font size=3 color=blue>Undo Successfully </font>"
+            end if
+        end event
+    end field
+
+
+    field Transfer
+          event before
+            set globals(ErrChk) = ""
+            
+//            if xttype .eq. "LATR Adjustment"
+//               set globals(xgltrn) = "PAY-"
+//            else
+//               set globals(xgltrn) = "JV--"
+//            end if
+			
+			set dateyrpr=xdate
+
+        if globals(ErrChk) .ne. "1"
+        	set xacc=xaccdr
+        	buffer glmst
+        	move glmst=glmst(xacc)
+        	if #result .ne. "true"
+        		set globals(ErrChk) = "1"
+        		error "Worng Debit Account Selected; Pick from the List"
+        	end if
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+            call chk_dr_acc
+        end if
+
+        if globals(ErrChk) .ne. "1"
+            set xacc = xacccr
+            buffer glmst
+            move glmst = glmst(xacc)
+            if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Wrong Credit Account Selected; Pick from the List"
+            end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+            if xtrngl .eq. ""
+                set globals(ErrChk) = "1"
+                error "Please Select "+#field(xtrngl.caption)
+            end if
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+            if xstatusrfq .eq. "No"
+                set globals(ErrChk) = "1"
+                error "Cannot Transfer "+#field(xstatusrfq.caption)
+            end if
+        end if
+
+
+            buffer poilcpad
+            move poilcpad=poilcpad(xpornum,xrow)
+
+            if globals(ErrChk) .ne. "1"
+              if poilcpad.xstatusdor .eq. "Transferred"
+                set globals(ErrChk) = "1"
+                error "Cannot "+#command+"<br>Already "+poilcpad.xstatusdor
+              end if
+            end if
+
+            if xstatusdor .ne. "Transferred" .and. xglref .eq. ""
+
+              //call get_gmgli
+
+              if globals(ErrChk) .ne. "1"
+                call upd_header
+              end if
+
+              if globals(ErrChk) .ne. "1"
+                call upd_detail
+              end if
+
+              if globals(ErrChk) .ne. "1"
+                set poilcpad.xstatusdor="Transferred"
+                set poilcpad.xglref=globals(xvoucher)
+                update poilcpad(xpornum,xrow)
+                action show
+                print "<h3><font size=3 color=blue>Transfered to GL; Voucher </font>"+globals(xvoucher)
+              end if
+            end if
+          end event
+        end field
+        
+        field Undo
+            event before
+                set globals(ErrChk) = ""
+                
+                if globals(ErrChk) .ne. "1"
+                    set glref =#sql(str,"select xglref from poilcpad where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrow+"'")
+                    set voucher = #sql(str,"select xvoucher from glheader where zid='"+#id+"' and xvoucher='"+xglref+"'")
+                    if #result .eq. "true" .and. voucher .ne. ""
+                        set globals(ErrChk) = "1"
+                        error "<font color=red size=+2> There is a Voucher in Accounts <br>Cannot Undo ("+voucher+") Delete From Accounts</p>"
+                    end if
+                  end if
+                  
+                if globals(ErrChk) .ne. "1"
+                    buffer poilcpad
+                    move poilcpad = poilcpad(xpornum,xrow)
+                    set poilcpad.xstatusdor=""
+                    set poilcpad.xglref=""
+                    update poilcpad(xpornum,xrow)
+                end if
+                  action show
+                  print "<h3><font size=3 color=blue>Undo Successfully </font>"
+            end event
+        end field
+
+        field Undo_old
+          event before
+             set globals(ErrChk) = ""
+             if xttype .ne. globals(xttype)
+                set globals(ErrChk) = "1"
+                error "Record pointer mismatch</p>Try SHOW instead"
+             end if
+
+             if globals(ErrChk) .ne. "1"
+              if xrow .ne. globals(xrow)
+                set globals(ErrChk) = "1"
+                error "Record pointer mismatch</p>Try SHOW instead"
+              end if
+             end if
+
+             if globals(ErrChk) .ne. "1"
+                if xstatusdor .ne. "Transferred"
+                   set globals(ErrChk) = "1"
+                   error "Not Transfered yet</p>Nothing to Undo"
+                end if
+             end if
+
+             if globals(ErrChk) .ne. "1"
+                set voucher = #sql(str,"select xvoucher from glheader where zid="+#id+" and xvoucher='"+poilcpad.xglref+"' ")
+                error voucher
+             end if
+
+             if globals(ErrChk) .ne. "1"
+                buffer poilcpad
+                move poilcpad = poilcpad(xpornum,xrow)
+                if #result .ne. "true"
+                   set globals(ErrChk) = "1"
+                   error "Record not found</p>Cannot "+#command
+                end if
+             end if
+
+             if globals(ErrChk) .ne. "1"
+                set poilcpad.xstatusdor=""
+                set poilcpad.xglref=""
+                update poilcpad(xpornum,xrow)
+                action show
+                print "<h3><font size=3 color=blue>Undo Successfully </font>"
+             end if
+          end event
+        end field
+
+    embed onsubmit="submitit(this)"
+    field Complete
+      embed onclick="clicked(this)"
+    end field
+
+
+ end form
+
+ script myscript
+    <script language="javascript" type="text/javascript">
+    var detail
+    function clicked(b){
+     detail="clicked"
+    }
+
+    function submitit(form){
+    if (detail=="clicked"){
+      form.page.value = "poilcltrh"
+      form.searchbutton.value = "Find xlcno=?"
+      }      
+    }
+  </script>
+ end script
+
+ method get_gmgli
+    buffer poglipad
+    move poglipad=poglipad(xttype)
+    //print "1:"+#result
+
+    if #result .ne. "true"
+       set globals(ErrChk)="1"
+       error "LATR to GL Interface table not found; Cannot "+#command
+    end if
+
+    if globals(ErrChk) .ne. "1"
+      if poglipad.xaccdr .eq. ""
+        set globals(ErrChk) = "1"
+        error "Debit Account not found in Interface Table"
+      end if
+    end if
+
+ end method
+
+     method upd_header
+                        
+            if globals(ErrChk) .ne. "1"            
+            	call yrpr
+
+            	str per
+	            str year=#sub(xdate,0,4)
+	            set per=#sub(xdate,5,2)
+                set trngl=xtrngl+year+per
+//                error trngl
+				str mysql = #sql(str,"select xvoucher from glheader where xvoucher like '"+trngl+"%' order by xvoucher desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,10,4)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,4,"0")
+				set xvoucher = trngl + mysql
+            end if
+            
+            buffer glheader          
+
+            move glheader = glheader(xvoucher)
+
+            if #result .eq. "true"
+              set globals(ErrChk) = "1"
+              error "Error occured while creating GL Voucher : "+xvoucher+" for Order:"+globals(xlcno)+"; Trn already exist"
+            else
+              set glheader.zid=#id
+              set glheader.xtrngl=xtrngl
+              set glheader.xvoucher=xvoucher
+              set glheader.xref = globals(xttype)
+              set glheader.xnote = globals(xttype)+" - "+globals(xserialnum)
+              set glheader.xdate=poilcpad.xdate
+              set glheader.xyear=tempyear
+              set glheader.xper=tempper
+              set glheader.xstatusjv="Balanced"
+              set glheader.zemail=#user                          
+              //set glheader.xpostflag="Posted"
+              set glheader.xlong = globals(xttype)+" for L/C No. "+globals(xlcno)
+              set glheader.xaction=xaction
+              //if globals(xtrngl) .eq. "BP--" .or. globals(xtrngl) .eq. "BR--" .or. globals(xtrngl) .eq. "BDIS" .or. globals(xtrngl) .eq. "CP--" .or. globals(xtrngl) .eq. "CR--" .or. globals(xtrngl) .eq. "FCP-" .or. globals(xtrngl) .eq. "FCR-"
+              if globals(xtrngl) .eq. "BDIS" .or. globals(xtrngl) .eq. "BP--" .or. globals(xtrngl) .eq. "CP--" .or. globals(xtrngl) .eq. "FCP-" .or. globals(xtrngl) .eq. "TCP-"
+                 set glheader.xaccdr=poilcpad.xacccr
+                 set glheader.xsubdr=poilcpad.xsubcr
+               else if globals(xtrngl) .eq. "BR--" .or. globals(xtrngl) .eq. "CR--" .or. globals(xtrngl) .eq. "FCR--" .or. globals(xtrngl) .eq. "TCR--"
+                 set glheader.xaccdr=poilcpad.xaccdr
+                 set glheader.xsubdr=poilcpad.xsubdr
+             end if
+                 //set glheader.xpaymode="02-Disbursement"
+                 set glheader.xcheque=poilcpad.xcheque
+                 set glheader.xpaytype=poilcpad.xpaytype
+                 set glheader.xdatedue=poilcpad.xdatedue
+              
+              set globals(xvoucher) = xvoucher
+              insert glheader
+              move glheader=glheader(xvoucher)
+
+              if #result .ne. "true"
+                 set globals(ErrChk) = "1"
+                 error "Error occured while creating GL Voucher : "+xvoucher
+              end if
+            end if
+     end method
+
+     method upd_detail
+          buffer poglipad
+          move poglipad=poglipad(xttype)
+
+          buffer gldetail
+          if globals(ErrChk) .ne. "1"
+            set gldetail.zid=#id
+            set gldetail.xvoucher=globals(xvoucher)
+            //if globals(xtrngl) .eq. "BP--" .or. globals(xtrngl) .eq. "BR--" .or. globals(xtrngl) .eq. "BDIS" .or. globals(xtrngl) .eq. "CP--" .or. globals(xtrngl) .eq. "CR--" .or. globals(xtrngl) .eq. "FCP-" .or. globals(xtrngl) .eq. "FCR-"
+            if globals(xtrngl) .eq. "BDIS" .or. globals(xtrngl) .eq. "BP--" .or. globals(xtrngl) .eq. "CP--" .or. globals(xtrngl) .eq. "FCP-" .or. globals(xtrngl) .eq. "TCP-"
+               set gldetail.xrow=2
+            else if globals(xtrngl) .eq. "BR--" .or. globals(xtrngl) .eq. "CR--" .or. globals(xtrngl) .eq. "FCR-" .or. globals(xtrngl) .eq. "TCR-" .or. globals(xtrngl) .eq. "JV--" .or. globals(xtrngl) .eq. "FJV-"
+               set gldetail.xrow=1
+            end if
+
+            set gldetail.xacc= poilcpad.xaccdr
+
+            set gldetail.xaccusage=#sql(str,"select xaccusage from glmst where xacc='"+poilcpad.xaccdr+"'")
+            set gldetail.xaccsource=#sql(str,"select xaccsource from glmst where xacc='"+poilcpad.xaccdr+"'")
+            set gldetail.xsub=poilcpad.xsubdr
+            set gldetail.xdiv=poilcpad.xdiv
+            set gldetail.xsec=""
+            set gldetail.xproj=poilcpad.xproj
+            set gldetail.xrem=poilcpad.xlong
+            set gldetail.xlong=globals(xttype)+"-"+globals(xserialnum)+" for L/C No. "+globals(xlcno)
+            set gldetail.xcur=poilcpad.xcur
+            set gldetail.xexch=poilcpad.xexch
+            //class osbcustom(#calc(poilcpad.xprime,1,"*",2,gldetail.xprime))
+            set gldetail.xprime=poilcpad.xprime*1
+
+            if globals(xtrngl) .eq. "BDIS" .or. globals(xtrngl) .eq. "BP--" .or. globals(xtrngl) .eq. "CP--" .or. globals(xtrngl) .eq. "FCP-" .or. globals(xtrngl) .eq. "TCP-"
+               set gldetail.xamount=poilcpad.xprime*1
+               set gldetail.xrem=xttype
+            else if globals(xtrngl) .eq. "BR--" .or. globals(xtrngl) .eq. "CR--" .or. globals(xtrngl) .eq. "FCR-" .or. globals(xtrngl) .eq. "TCR-"
+               set gldetail.xamount=poilcpad.xprime*1
+               set gldetail.xrem=xttype
+            end if
+
+            //class osbcustom(#calc(poilcpad.xprime,poilcpad.xexch,"*",2,gldetail.xbase))
+            set gldetail.xbase=poilcpad.xprime*poilcpad.xexch
+            insert gldetail
+          end if
+
+          if globals(ErrChk) .ne. "1"
+             set gldetail.zid=#id
+            set gldetail.xvoucher=globals(xvoucher)
+
+            if globals(xtrngl) .eq. "BDIS" .or. globals(xtrngl) .eq. "BP--" .or. globals(xtrngl) .eq. "CP--" .or. globals(xtrngl) .eq. "FCP-" .or. globals(xtrngl) .eq. "TCP-"
+               set gldetail.xrow=1
+            else if globals(xtrngl) .eq. "BR--" .or. globals(xtrngl) .eq. "CR--" .or. globals(xtrngl) .eq. "FCR-" .or. globals(xtrngl) .eq. "TCR-" .or. globals(xtrngl) .eq. "JV--" .or. globals(xtrngl) .eq. "FJV-"
+               set gldetail.xrow=2
+            end if
+            
+            set gldetail.xacc=poilcpad.xacccr
+            set gldetail.xaccusage=#sql(str,"select xaccusage from glmst where xacc='"+poilcpad.xacccr+"'")
+            set gldetail.xaccsource=#sql(str,"select xaccsource from glmst where xacc='"+poilcpad.xacccr+"'")
+            set gldetail.xsub=poilcpad.xsubcr
+            set gldetail.xdiv=poilcpad.xdiv
+            set gldetail.xsec=""
+            set gldetail.xproj=poilcpad.xproj
+            set gldetail.xrem=poilcpad.xlong
+            //set gldetail.xlong=globals(xttype)+"-"+globals(xserialnum)
+            set gldetail.xlong=globals(xttype)+"-"+globals(xserialnum)+" for L/C No. "+globals(xlcno)
+            set gldetail.xcur=poilcpad.xcur
+            set gldetail.xexch=poilcpad.xexch
+            decimal tmp_amt = 0.0
+            //class osbcustom(#calc(poilcpad.xprime,-1,"*",2,tmp_amt))
+            set tmp_amt=0.0-poilcpad.xprime
+            //class osbcustom(#calc(tmp_amt,1,"*",2,gldetail.xprime))
+            set gldetail.xprime=0.0+tmp_amt
+
+
+            if globals(xtrngl) .eq. "BDIS" .or. globals(xtrngl) .eq. "BP--" .or. globals(xtrngl) .eq. "CP--" .or. globals(xtrngl) .eq. "FCP-" .or. globals(xtrngl) .eq. "TCP-"
+               set gldetail.xamount=0.0+tmp_amt
+            else if globals(xtrngl) .eq. "BR--" .or. globals(xtrngl) .eq. "CR--" .or. globals(xtrngl) .eq. "FCR-" .or. globals(xtrngl) .eq. "TCR-"
+              set gldetail.xamount=0.0-tmp_amt
+            end if
+
+            //class osbcustom(#calc(tmp_amt,poilcpad.xexch,"*",2,gldetail.xbase))
+            set gldetail.xbase=tmp_amt*poilcpad.xexch
+            insert gldetail
+          end if
+     end method
+
+     method chk_rec
+      if #command .ne. "Add"
+        if xstatusdor .eq. "Transferred"
+           if globals(xcib) .ne. xcib
+              set upd_cib=#sql("update poilcpad set xcib='"+xcib+"' where zid='"+#id+"' and xpornum='"+xpornum+"' and xserialnum='"+xserialnum+"'")
+           end if
+          set globals(ErrChk) = "1"
+          error "Already Transferred; Cannot "+#command
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+          if xrow .ne. globals(xrow)
+            set globals(ErrChk) = "1"
+            error "Record pointer mismatch</p>Try SHOW instead"
+          end if
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+          if xttype .ne. globals(xttype)
+            set globals(ErrChk) = "1"
+            error "Record pointer mismatch</p>Try SHOW instead"
+          end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          if xserialnum .ne. globals(xserialnum)
+            set globals(ErrChk) = "1"
+            error "Record pointer mismatch</p>Try SHOW instead"
+          end if
+        end if
+      else
+      
+          //error typeprop
+          if typeprop .eq. "Entry"
+              set serialnum = #sql("select xserialnum from poilcpad where zid='"+#id+"' and xpornum = '"+globals(xpornum)+"' and xserialnum = '"+xserialnum+"' and xtype='"+xtype+"'")
+              if #result .eq. "true"
+                set globals(ErrChk) = "1"
+                error "Already Exist "+serialnum+" Loan No"
+              end if
+          end if
+      
+          if globals(ErrChk) .ne. "1"
+              if typeprop .ne. "Entry"
+                set serialnum = #sql("select xserialnum from poilcpad where zid='"+#id+"' and xpornum = '"+globals(xpornum)+"' and xserialnum = '"+xserialnum+"' and xevent='Entry'")
+                //error serialnum
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Not Found "+serialnum+" Entry"
+                    end if
+               end if
+          end if
+      end if
+      
+      if #command .eq. "Update"
+          if typeprop .eq. "Entry"
+              set serialnum = #sql("select xserialnum from poilcpad where zid='"+#id+"' and xpornum = '"+globals(xpornum)+"' and xserialnum = '"+xserialnum+"' and xtype='"+xtype+"' and xrow<>'"+xrow+"'")
+              if #result .eq. "true"
+                set globals(ErrChk) = "1"
+                error "Already Exist "+serialnum+" Loan No"
+              end if
+          end if
+
+          if globals(ErrChk) .ne. "1"
+              if typeprop .ne. "Entry"
+                set serialnum = #sql("select xserialnum from poilcpad where zid='"+#id+"' and xpornum = '"+globals(xpornum)+"' and xserialnum = '"+xserialnum+"' and xevent='Entry'")
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                       error "Not Found "+serialnum+" Entry"
+                    end if
+               end if
+          end if
+      end if
+      
+     end method
+
+     method upd_balance
+        decimal amt_new = 0.0
+        if #command .eq. "Add"
+          set amt_new = 0.0+xbase
+        else if #command .eq. "Update"
+          set amt_new = 0.0+xbase-globals(xbase)
+        else // *** for DELETE
+          set amt_new = 0.0-globals(xbase)
+          //print amt_new
+        end if
+        
+        if xttype .eq. "LATR Entry" .or. xttype .eq. "TimeLoan Entry" .or. xttype .eq. "TermLoan Entry" .or. xttype .eq. "ImportLoan Entry"
+           if #command .eq. "Add"
+              set xbalance = xbase
+              //print xbalance
+           else if #command .eq. "Update"
+              set xbalance = xbalance+amt_new
+              //print xbalance
+           end if
+        end if
+
+        if xttype .eq. "LATR Adjustment"
+             set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance - '"+amt_new+"' where xpornum='"+xpornum+"' and xserialnum='"+xserialnum+"' and xttype='LATR Entry'"
+             set updbal = #sql(mysql)
+             
+        else if xttype .eq. "TimeLoan Adjustment"
+             set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance - '"+amt_new+"' where xpornum='"+xpornum+"' and xserialnum='"+xserialnum+"' and xttype='TimeLoan Entry'"
+             set updbal = #sql(mysql)
+             
+        else if  xttype .eq. "TermLoan Adjustment"
+             set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance - '"+amt_new+"' where xpornum='"+xpornum+"' and xserialnum='"+xserialnum+"' and xttype='TermLoan Entry'"
+             set updbal = #sql(mysql)
+             
+        else if   xttype .eq. "ImportLoan Adjustment"
+             set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance - '"+amt_new+"' where xpornum='"+xpornum+"' and xserialnum='"+xserialnum+"' and xttype='ImportLoan Entry'"
+             set updbal = #sql(mysql)
+        end if
+
+
+        if xttype .eq. "LATR Interest"
+             set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance + '"+amt_new+"' where xpornum='"+xpornum+"' and xserialnum='"+xserialnum+"' and xttype='LATR Entry'"
+             set updbal = #sql(mysql)
+             
+        else if xttype .eq. "TimeLoan Interest"
+             set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance + '"+amt_new+"' where xpornum='"+xpornum+"' and xserialnum='"+xserialnum+"' and xttype='TimeLoan Entry'"
+             set updbal = #sql(mysql)
+             
+        else if xttype .eq. "TermLoan Interest"
+             set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance + '"+amt_new+"' where xpornum='"+xpornum+"' and xserialnum='"+xserialnum+"' and xttype='TermLoan Entry'"
+             set updbal = #sql(mysql)
+             
+        else if xttype .eq. "ImportLoan Interest"
+             set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance + '"+amt_new+"' where xpornum='"+xpornum+"' and xserialnum='"+xserialnum+"' and xttype='ImportLoan Entry'"
+             set updbal = #sql(mysql)
+        end if
+
+        if xttype .eq. "LATR Interest Refund"
+             set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance - '"+amt_new+"' where xpornum='"+xpornum+"' and xserialnum='"+xserialnum+"' and xttype='LATR Entry'"
+             set updbal = #sql(mysql)
+        end if
+     end method
+
+     
+     method calc_interestltr
+        decimal pad_amt = 0.0
+        decimal adj_amt = 0.0
+        decimal int_amt = 0.0
+        decimal bal_amt = 0.0
+        int tmp = 0
+        str flag = ""
+        //decimal int_rate = 12.75
+
+        str mysql = "select xrow from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='LATR' and xttype = 'LATR Adjustment'"
+        set chkval = #sql(mysql)
+        if #result .ne. "true"
+           set flag = "1"
+           set xfdate = #sql("select xdate from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='LATR' and xttype = 'LATR Entry'")
+        else
+           set flag = "2"
+           set xfdate = #sql("select xdate from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='LATR' and xttype = 'LATR Adjustment' order by xrow desc")
+        end if
+        //class osbcustom(#days(xfdate,xdate,tmp,"e"))
+        set xfdate=#sub(xfdate,0,10)
+        int tmp = #days(xdate)-#days(xfdate)+1
+        //print tmp
+        if flag .eq. "1"
+           set bal_amt = #sql(decimal,"select xbalance from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='LATR' and xttype = 'LATR Entry'")
+           //print bal_amt
+           //class osbcustom(#calc(bal_amt,xratev,"*",2,int_amt))
+           set int_amt=bal_amt*xratev
+           //class osbcustom(#calc(int_amt,100,"/",2,int_amt))
+           set int_amt=int_amt/100
+           //class osbcustom(#calc(int_amt,360,"/",2,int_amt))
+           set int_amt=int_amt/360
+           //class osbcustom(#calc(int_amt,tmp,"*",2,int_amt))
+           set int_amt=int_amt*tmp
+        else
+           set pad_amt = #sql(decimal,"select xbase from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='LATR' and xttype = 'LATR Entry'")
+           set adj_amt = #sql(decimal,"select sum(xbase) from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='LATR' and xttype = 'LATR Adjustment'")
+           set bal_amt = 0.0 + pad_amt - adj_amt
+
+           //class osbcustom(#calc(bal_amt,xratev,"*",2,int_amt))
+           set int_amt=bal_amt*xratev
+           //print int_amt+"Amt"
+           //class osbcustom(#calc(int_amt,100,"/",2,int_amt))
+           set int_amt=int_amt/100
+           //class osbcustom(#calc(int_amt,360,"/",2,int_amt))
+           set int_amt=int_amt/360
+           //class osbcustom(#calc(int_amt,tmp,"*",2,int_amt))
+           set int_amt=int_amt*tmp
+        end if
+        //print tmp+" B "+bal_amt+" i "+int_amt
+     end method
+
+     method upd_interestltr
+        int tmp_row = 0
+        //print tmp+" B "+bal_amt+" i "+int_amt
+        set row = #sql(int,"select xrow from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"' and xtype='LATR' order by xrow desc")
+
+        buffer poilcpad
+        set poilcpad.xpornum = globals(xpornum)
+        set poilcpad.xrow = 0+row+10
+        set tmp_row = 0+row+10
+        set poilcpad.xtype="LATR"
+        set poilcpad.xttype = "LATR Interest"
+        set poilcpad.xserialnum = globals(xserialnum)
+        set poilcpad.xlcno = globals(xlcno)
+        set poilcpad.xdate = xdate
+		set poilcpad.xper = tempper
+        set poilcpad.xyear = tempyear        
+        set poilcpad.xcur = xcur
+        set poilcpad.xexch = xexch
+        set poilcpad.xsign = 0+1
+        set poilcpad.xline = xrow
+        set poilcpad.xprime = int_amt
+        set poilcpad.xbank=globals(xbank)
+        //class osbcustom(#calc(int_amt,xexch,"*",2,poilcpad.xbase))
+        set poilcpad.xbase = int_amt*xexch
+        insert poilcpad
+
+        if #result .eq. "true"
+           set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance + '"+int_amt+"' where xpornum='"+xpornum+"' and xserialnum='"+globals(xserialnum)+"' and xttype='LATR Entry'"
+           set updbal = #sql(mysql)
+           
+           set mysql="update poilcpad set poilcpad.xline = '"+tmp_row+"' where xpornum='"+xpornum+"' and xrow ='"+globals(xrow)+"' and xttype='LATR Adjustment'"
+           set updbal = #sql(mysql)
+        end if
+     end method
+     
+     method calc_interest_timel
+        decimal pad_amt = 0.0
+        decimal adj_amt = 0.0
+        decimal int_amt = 0.0
+        decimal bal_amt = 0.0
+        int tmp = 0
+        str flag = ""
+        decimal int_rate = 12.00
+
+        str mysql = "select xrow from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='TimeLoan' and xttype = 'TimeLoan Adjustment'"
+        
+        set chkval = #sql(mysql)
+        if #result .ne. "true"
+           set flag = "1"
+           set xfdate = #sql("select xdate from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='TimeLoan' and xttype = 'TimeLoan Entry'")
+        else
+           set flag = "2"
+           set xfdate = #sql("select xdate from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='TimeLoan' and xttype = 'TimeLoan Adjustment' order by xrow desc")
+        end if
+        //class osbcustom(#days(xfdate,xdate,tmp,"e"))
+        set xfdate=#sub(xfdate,0,10)
+        int tmp = #days(xdate)-#days(xfdate)+1
+        //print tmp
+        if flag .eq. "1"
+           set bal_amt = #sql(decimal,"select xbalance from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='TimeLoan' and xttype = 'TimeLoan Entry'")
+           //print bal_amt
+           //class osbcustom(#calc(bal_amt,xratev,"*",2,int_amt))
+           set int_amt=bal_amt*xratev
+           //class osbcustom(#calc(int_amt,100,"/",2,int_amt))
+           set int_amt=int_amt/100
+           //class osbcustom(#calc(int_amt,360,"/",2,int_amt))
+           set int_amt=int_amt/360
+           //class osbcustom(#calc(int_amt,tmp,"*",2,int_amt))
+           set int_amt=int_amt*tmp
+        else
+           set pad_amt = #sql(decimal,"select xbase from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='TimeLoan' and xttype = 'TimeLoan Entry'")           
+           set adj_amt = #sql(decimal,"select sum(xbase) from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='TimeLoan' and xttype = 'TimeLoan Adjustment'")           
+           set bal_amt = 0.0 + pad_amt - adj_amt
+           
+
+           //class osbcustom(#calc(bal_amt,xratev,"*",2,int_amt))
+           set int_amt=bal_amt*xratev
+           //print int_amt+"Amt"
+           //class osbcustom(#calc(int_amt,100,"/",2,int_amt))
+           set int_amt=int_amt/100
+           //class osbcustom(#calc(int_amt,360,"/",2,int_amt))
+           set int_amt=int_amt/360
+           //class osbcustom(#calc(int_amt,tmp,"*",2,int_amt))
+           set int_amt=int_amt*tmp
+        end if
+        //print tmp+" B "+bal_amt+" i "+int_amt
+     end method
+     
+    method upd_interest_timel
+        int tmp_row = 0
+        //print tmp+" B "+bal_amt+" i "+int_amt
+        set row = #sql(int,"select xrow from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"' and xtype='TimeLoan' order by xrow desc")
+
+        buffer poilcpad
+        set poilcpad.xpornum = globals(xpornum)
+        set poilcpad.xrow = 0+row+10
+        set tmp_row = 0+row+10
+        set poilcpad.xtype="TimeLoan"
+        set poilcpad.xttype = "TimeLoan Interest"
+        set poilcpad.xserialnum = globals(xserialnum)
+        set poilcpad.xlcno = globals(xlcno)
+        set poilcpad.xdate = xdate
+        set poilcpad.xper = tempper
+        set poilcpad.xyear = tempyear        
+        set poilcpad.xcur = xcur
+        set poilcpad.xexch = xexch
+        set poilcpad.xsign = 0+1
+        set poilcpad.xline = xrow
+        set poilcpad.xprime = int_amt
+        set poilcpad.xbank=globals(xbank)
+                
+        //class osbcustom(#calc(int_amt,xexch,"*",2,poilcpad.xbase))
+        set poilcpad.xbase = int_amt*xexch
+        insert poilcpad
+
+        if #result .eq. "true"
+           set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance + '"+int_amt+"' where xpornum='"+xpornum+"' and xserialnum='"+globals(xserialnum)+"' and xttype='TimeLoan Entry'"
+           set updbal = #sql(mysql)
+
+           set mysql="update poilcpad set poilcpad.xline = '"+tmp_row+"' where xpornum='"+xpornum+"' and xrow ='"+globals(xrow)+"' and xttype='TimeLoan Adjustment'"
+           set updbal = #sql(mysql)
+        end if
+     end method
+
+     
+      method calc_interest_term
+        decimal pad_amt = 0.0
+        decimal adj_amt = 0.0
+        decimal int_amt = 0.0
+        decimal bal_amt = 0.0
+        int tmp = 0
+        str flag = ""
+        //decimal int_rate = 12.00
+
+        str mysql = "select xrow from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='TermLoan' and xttype = 'TermLoan Adjustment'"
+        set chkval = #sql(mysql)
+        if #result .ne. "true"
+           set flag = "1"
+           set xfdate = #sql("select xdate from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='TermLoan' and xttype = 'TermLoan Entry'")
+        else
+           set flag = "2"
+           set xfdate = #sql("select xdate from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='TermLoan' and xttype = 'TermLoan Adjustment' order by xrow desc")
+        end if
+        //class osbcustom(#days(xfdate,xdate,tmp,"e"))
+        set xfdate=#sub(xfdate,0,10)
+        int tmp = #days(xdate)-#days(xfdate)+1
+        //print tmp
+        if flag .eq. "1"
+           set bal_amt = #sql(decimal,"select xbalance from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='TermLoan' and xttype = 'TermLoan Entry'")
+           //print bal_amt
+           //class osbcustom(#calc(bal_amt,xratev,"*",2,int_amt))
+           set int_amt=bal_amt*xratev
+           //class osbcustom(#calc(int_amt,100,"/",2,int_amt))
+           set int_amt=int_amt/100
+           //class osbcustom(#calc(int_amt,360,"/",2,int_amt))
+           set int_amt=int_amt/360
+           //class osbcustom(#calc(int_amt,tmp,"*",2,int_amt))
+           set int_amt=int_amt*tmp
+        else
+           set pad_amt = #sql(decimal,"select xbase from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='TermLoan' and xttype = 'TermLoan Entry'")
+           set adj_amt = #sql(decimal,"select sum(xbase) from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='TermLoan' and xttype = 'TermLoan Adjustment'")
+           set bal_amt = 0.0 + pad_amt - adj_amt
+
+           //class osbcustom(#calc(bal_amt,xratev,"*",2,int_amt))
+           set int_amt=bal_amt*xratev
+           //print int_amt+"Amt"
+           //class osbcustom(#calc(int_amt,100,"/",2,int_amt))
+           set int_amt=int_amt/100
+           //class osbcustom(#calc(int_amt,360,"/",2,int_amt))
+           set int_amt=int_amt/360
+           //class osbcustom(#calc(int_amt,tmp,"*",2,int_amt))
+           set int_amt=int_amt*tmp
+        end if
+        //print tmp+" B "+bal_amt+" i "+int_amt
+     end method
+     
+    method upd_interest_term
+        int tmp_row = 0
+        //print tmp+" B "+bal_amt+" i "+int_amt
+        set row = #sql(int,"select xrow from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"' and xtype='TermLoan' order by xrow desc")
+
+        buffer poilcpad
+        set poilcpad.xpornum = globals(xpornum)
+        set poilcpad.xrow = 0+row+10
+        set tmp_row = 0+row+10
+        set poilcpad.xtype="TermLoan"
+        set poilcpad.xttype = "TermLoan Interest"
+        set poilcpad.xserialnum = globals(xserialnum)
+        set poilcpad.xlcno = globals(xlcno)
+        set poilcpad.xdate = xdate
+        set poilcpad.xper = tempper
+        set poilcpad.xyear = tempyear       
+        set poilcpad.xcur = xcur
+        set poilcpad.xexch = xexch
+        set poilcpad.xsign = 0+1
+        set poilcpad.xline = xrow
+        set poilcpad.xprime = int_amt
+        set poilcpad.xbank=globals(xbank)
+        //class osbcustom(#calc(int_amt,xexch,"*",2,poilcpad.xbase))
+        set poilcpad.xbase = int_amt*xexch
+        insert poilcpad
+
+        if #result .eq. "true"
+           set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance + '"+int_amt+"' where xpornum='"+xpornum+"' and xserialnum='"+globals(xserialnum)+"' and xttype='TermLoan Entry'"
+           set updbal = #sql(mysql)
+
+           set mysql="update poilcpad set poilcpad.xline = '"+tmp_row+"' where xpornum='"+xpornum+"' and xrow ='"+globals(xrow)+"' and xttype='TermLoan Adjustment'"
+           set updbal = #sql(mysql)
+        end if
+     end method
+
+
+      method calc_interest_import
+        decimal pad_amt = 0.0
+        decimal adj_amt = 0.0
+        decimal int_amt = 0.0
+        decimal bal_amt = 0.0
+        int tmp = 0
+        str flag = ""
+        //decimal int_rate = 12.00
+
+        str mysql = "select xrow from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='ImportLoan' and xttype = 'ImportLoan Adjustment'"
+        set chkval = #sql(mysql)
+        if #result .ne. "true"
+           set flag = "1"
+           set xfdate = #sql("select xdate from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='ImportLoan' and xttype = 'ImportLoan Entry'")
+        else
+           set flag = "2"
+           set xfdate = #sql("select xdate from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='ImportLoan' and xttype = 'ImportLoan Adjustment' order by xrow desc")
+        end if
+        //class osbcustom(#days(xfdate,xdate,tmp,"e"))
+        set xfdate=#sub(xfdate,0,10)
+        int tmp = #days(xdate)-#days(xfdate)+1
+        //print tmp
+        if flag .eq. "1"
+           set bal_amt = #sql(decimal,"select xbalance from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='ImportLoan' and xttype = 'ImportLoan Entry'")
+           //print bal_amt
+           //class osbcustom(#calc(bal_amt,xratev,"*",2,int_amt))
+           set int_amt=bal_amt*xratev
+           //class osbcustom(#calc(int_amt,100,"/",2,int_amt))
+           set int_amt=int_amt/100
+           //class osbcustom(#calc(int_amt,360,"/",2,int_amt))
+           set int_amt=int_amt/360
+           //class osbcustom(#calc(int_amt,tmp,"*",2,int_amt))
+           set int_amt=int_amt*tmp
+        else
+           set pad_amt = #sql(decimal,"select xbase from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='ImportLoan' and xttype = 'ImportLoan Entry'")           
+           set adj_amt = #sql(decimal,"select sum(xbase) from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"'  and xtype='ImportLoan' and xttype = 'ImportLoan Adjustment'")           
+           set bal_amt = 0.0 + pad_amt - adj_amt
+           
+
+           //class osbcustom(#calc(bal_amt,xratev,"*",2,int_amt))
+           set int_amt=bal_amt*xratev
+           //print int_amt+"Amt"
+           //class osbcustom(#calc(int_amt,100,"/",2,int_amt))
+           set int_amt=int_amt/100
+           //class osbcustom(#calc(int_amt,360,"/",2,int_amt))
+           set int_amt=int_amt/360
+           //class osbcustom(#calc(int_amt,tmp,"*",2,int_amt))
+           set int_amt=int_amt*tmp
+        end if
+        //print tmp+" B "+bal_amt+" i "+int_amt
+     end method
+     
+    method upd_interest_import
+        int tmp_row = 0
+        //print tmp+" B "+bal_amt+" i "+int_amt
+        set row = #sql(int,"select xrow from poilcpad where zid = "+#id+" and xpornum = '"+globals(xpornum)+"' and xtype='ImportLoan' order by xrow desc")
+
+        buffer poilcpad
+        set poilcpad.xpornum = globals(xpornum)
+        set poilcpad.xrow = 0+row+10
+        set tmp_row = 0+row+10
+        set poilcpad.xtype="ImportLoan"
+        set poilcpad.xttype = "ImportLoan Interest"
+        set poilcpad.xserialnum = globals(xserialnum)
+        set poilcpad.xlcno = globals(xlcno)
+        set poilcpad.xdate = xdate
+        set poilcpad.xper = tempper
+        set poilcpad.xyear = tempyear        
+        set poilcpad.xcur = xcur
+        set poilcpad.xexch = xexch
+        set poilcpad.xsign = 0+1
+        set poilcpad.xline = xrow
+        set poilcpad.xprime = int_amt
+        set poilcpad.xbank=globals(xbank)
+        //class osbcustom(#calc(int_amt,xexch,"*",2,poilcpad.xbase))
+        set poilcpad.xbase = int_amt*xexch
+        insert poilcpad
+
+        if #result .eq. "true"
+           set mysql="update poilcpad set poilcpad.xbalance = poilcpad.xbalance + '"+int_amt+"' where xpornum='"+xpornum+"' and xserialnum='"+globals(xserialnum)+"' and xttype='ImportLoan Entry'"
+           set updbal = #sql(mysql)
+
+           set mysql="update poilcpad set poilcpad.xline = '"+tmp_row+"' where xpornum='"+xpornum+"' and xrow ='"+globals(xrow)+"' and xttype='ImportLoan Adjustment'"
+           set updbal = #sql(mysql)
+        end if
+     end method
+     
+     method chk_dr_acc
+      if xaccdr .ne. ""
+       set xacc=xaccdr
+        if xaccdr .ne. ""
+         if xaccdr .ne. globals(xaccdr)
+           buffer glmst
+           move glmst=glmst(xacc)
+           if #result .ne. "true"
+              set globals(ErrChk)="1"
+              error "Wrong Debit Account Code Chosen"
+           else
+                if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+                     print "<h2><font color=blue>Please update record with correct Debit Sub Account</font></h2>"
+                 else if glmst.xaccusage .eq. "Bank" .and. glmst.xaccsource .eq. "Subaccount"
+                     print "<h2><font color=blue>Please update record with correct Debit Sub Account</font></h2>"
+                     set globals(FlagStat) = "1"
+                else if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "None"
+                     set globals(FlagStat) = "2"
+                end if
+           end if
+         end if
+        end if
+      end if
+     end method
+
+     method yrpr
+            int offset
+	            int per
+	            int year=#sub(dateyrpr,0,4)	           
+	            int tempper
+	            int tempyear
+	            set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+	            set per=12+#sub(dateyrpr,5,2)-offset
+	            if per<=12
+	                set tempper=per
+	                set tempyear=year-1
+	            else
+	                set tempper=per-12
+	                set tempyear=year
+	            end if
+     end method
+     
+   	valid valid
+		config
+
+            set dummy1= #sql(str,"select xdesc from glmst where xacc='"+xaccdr+"'")
+			set xaccusage = #sql(str,"select xaccusage from glmst where xacc='"+xaccdr+"'")
+            set xaccsource = #sql(str,"select xaccsource from glmst where xacc='"+xaccdr+"'")
+            if xaccusage .eq. "Ledger" .or. xaccusage .eq. "Bank" .or. xaccusage .eq. "Cash" .and. xaccsource .eq. "Subaccount"
+                set #field(xsubdr.pick)="list xsubdr"
+                set dummy2=#sql(str,"select xdesc from glsub where xacc='"+xaccdr+"' and xsub='"+xsubdr+"'")
+//            else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+            else if xaccsource .eq. "Supplier"
+                set #field(xsubdr.pick)="list posup"
+                set dummy2= #sql(str,"select xorg from casup where xsup='"+xsubdr+"'")
+//            else if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+            else if xaccsource .eq. "Customer"
+                set #field(xsubdr.pick)="list pocus"
+                set dummy2= #sql(str,"select xorg from cacus where xcus='"+xsubdr+"'")
+             else
+                set #field(xsubdr.display) = "hide"
+                set #field(dummy2.display) = "hide"
+                set xsub = ""
+                set dummy2 = ""
+            end if
+            
+
+            set dummy3= #sql(str,"select xdesc from glmst where xacc='"+xacccr+"'")
+   			set xaccusage = #sql(str,"select xaccusage from glmst where xacc='"+xacccr+"'")
+            set xaccsource = #sql(str,"select xaccsource from glmst where xacc='"+xacccr+"'")
+            print xaccsource
+            if xaccusage .eq. "Ledger" .or. xaccusage .eq. "Bank" .or. xaccusage .eq. "Cash" .and. xaccsource .eq. "Subaccount"
+                set #field(xsubcr.pick)="list subcr"
+                set dummy4=#sql(str,"select xdesc from glsub where xacc='"+xacccr+"' and xsub='"+xsubcr+"'")
+//            else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+            else if xaccsource .eq. "Supplier"
+                set #field(xsubcr.pick)="list posup"
+                set dummy4= #sql(str,"select xorg from casup where xsup='"+xsubcr+"'")
+//            else if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+            else if xaccsource .eq. "Customer"
+                set #field(xsubcr.pick)="list pocus"
+                set dummy4= #sql(str,"select xorg from cacus where xcus='"+xsubcr+"'")
+             else
+                set #field(xsubcr.display) = "hide"
+                set #field(dummy4.display) = "hide"
+                set xsub = ""
+                set dummy4 = ""
+            end if
+            
+            if xpaytype .eq. "Cash"
+                set #field(xcheque.display) = "hide"
+                set #field(xdatedue.display)= "hide"
+            else if xpaytype .eq. ""
+                set #field(xcheque.display) = "hide"
+                set #field(xdatedue.display)= "hide"
+            end if
+            
+            if xttype .ne. "LATR Entry" .and. xttype .ne. "TimeLoan Entry" .and. xttype .ne. "TermLoan Entry" .and. xttype .ne. "ImportLoan Entry"
+                set #field(xdayab.display)="hide"
+                set #field(xdateto.display)="hide"
+                set #field(xdayscom.display)="hide"
+                set #field(xdatecom.display)="hide"
+            end if
+
+		end config
+	end valid
+
+
+end page

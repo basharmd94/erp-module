@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table imstk
+  caption "Inventory Stock Master"
+  
+  columns ztime,zutime,zid,xitem, xwh, xreordqty,xreordlvl,xminordqty, xlsafe,xlmax,xlmin
+          
+  primary key zid, xitem,xwh
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xitem references caitem.zid,xitem
+  end foreign key
+  
+end table

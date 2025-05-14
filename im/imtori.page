@@ -1,0 +1,1025 @@
+page imtori
+
+	caption header
+     sidebar list open,picked,completed
+     sections form one, list detail, list two, script myscript
+
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+
+     list detail
+        caption "List of Item(s) Added"
+		table (select imtdt.* ~
+			,(select xdesc from caitem where zid=imtdt.zid and xitem=imtdt.xitem) as xdesc ~
+			from imtdt) tbl
+
+        order ximtor,xtorlno DESC
+        fixed ximtor
+        rows 5
+        objects xtorlno attrib(link #servlet+"?page=imtdti&command=Show&ximtor=?&xtorlno=?"), ~
+                xitem,xdesc,xqtyord,xunit,xrate,xdtwotax
+                
+totals "Totals",sum,sum,sum,"","",sum
+        field xunit
+          caption Unit
+        end field
+
+        field xtorlno
+        	caption Line No.
+        end field
+        
+        field xdesc
+          storage varchar
+          caption Description
+        end field
+                
+     end list
+    
+    list open
+        caption "Open TOs"
+        select "(xstatustor like '1%') and (xaction = 'Default') and (xtrnimto='IPTO')"
+        table imtor
+        order ximtor desc
+        rows 5
+        objects ~
+         ximtor attrib(link #servlet+"?page=imtori&command=Show&ximtor=?"), ~
+         xdate,xfwh,xtwh,xfproj ,xtproj,xstatustor
+         
+     end list
+     
+    list picked
+        caption "Picked TOs"
+        select "(xstatustor like '2%') and (xaction = 'Default') and (xtrnimto='IPTO')"
+        table imtor
+        order ximtor desc
+        rows 5
+        objects ~
+         ximtor attrib(link #servlet+"?page=imtori&command=Show&ximtor=?"), ~
+         xdate,xfwh,xtwh,xstatustor
+         
+     end list
+     
+    list short
+        caption "TOs With Shortages"
+        select "(xstatustor like 'S%') and (xaction = 'Default') and (xtrnimto='IPTO')"
+        table imtor
+        order ximtor desc
+        rows 5
+        objects ~
+         ximtor attrib(link #servlet+"?page=imtori&command=Show&ximtor=?"), ~
+         xdate,xfwh,xtwh,xstatustor
+         
+     end list
+     
+    list completed
+        caption "Completed TOs"
+        select "(xstatustor like '5%') and (xaction = 'Default') and (xtrnimto='IPTO')"
+        table imtor
+        order ximtor desc
+        rows 5
+        objects ~
+			ximtor attrib(link #servlet+"?page=imtori&command=Show&ximtor=?"), ~
+			xdate,xfwh,xtwh,xstatustor
+			
+     end list
+
+     form one
+        valid valid,access
+        table imtor
+        order ximtor DESC
+        select "(xaction = 'Default') and (xtrnimto='IPTO')"
+        layout 2
+        objects Show,Add,Detail,Clear, Update, Previous,Delete,Next,~//Pick,Confirm,~//Cost,Undo
+               xtrnimto,ximtor display(text) attrib(search),~
+			   xdate, xdatecom default(#d),~
+               xfwh,xtwh,xfdiv attrib(hidden),xtdiv attrib(hidden),xfsec attrib(hidden),~
+               xtsec attrib(hidden),xfproj ,xtproj ,~
+               xrem,"",xcost display(const),xstatustor display(constant),zemail display(const),xemail display(const),~
+               xdaterel default(#d) display(hide),~
+               xteam display(const),xmember display(const),xmanager display(const),~
+               xaction display(hide),dumzid display(hide),xictrnno display(hide)
+
+      field ximtor
+        event after
+			set globals(ximtor)=ximtor
+			set globals(xfwh)=xfwh
+			set globals(xtwh)=xtwh
+			
+			if xstatustor .eq. #status("xstatustor",2) //"2-Picked"
+				set #field(xdate->.display)="constant"
+				set #field(Pick.display)="disable"
+				set #field(add.display)="disable"
+				set #field(delete.display)="disable"
+				set #field(update.display)="disable"
+			end if
+			
+			if xstatustor .eq. #status("xstatustor",5) //"5-Confirmed"
+				set #field(xdate->.display)="constant"
+				set #field(Pick.display)="disable"
+				set #field(Confirm.display)="disable"
+				set #field(Undo.display)="disable"
+				//set #field(add.display)="disable"
+				set #field(delete.display)="disable"
+				set #field(update.display)="disable"
+				set #field(Cost.display)="disable"
+			end if
+			
+			if xstatustor .ne. #status("xstatustor",5)
+				call checkserial
+				if err==0
+					call checkbatch
+				end if
+			end if					
+			
+			if xstatustor .gt. #status("xstatustor",5)
+				set #field(Confirm.display)="disable"
+				set #field(Undo.display)="disable"
+				set #field(Cost.display)="disable"
+			end if
+			
+          	if xstatustor .eq. #status("xstatustor",1)
+             	set #field(Confirm.display)="disable"
+             	set #field(Undo.display)="disable"
+			end if						
+
+          	if ximtor .eq. ""
+             	set #field(Confirm.display)="disable"
+             	set #field(Undo.display)="disable"
+             	set #field(Pick.display)="disable"
+             	set #field(Cost.display)="disable"
+             	set #field(Detail.display)="disable"
+             	set #field(Update.display)="disable"
+             	set #field(Delete.display)="disable"
+			end if						
+
+			set globals(returnpage)="imtori"
+			set globals(trnfield)="ximtor"
+			set globals(xtypetrn)="Transfer Order"
+			set globals(xtrnnum)=ximtor
+											
+	      	set #field(zemail.caption) = "Entered By"
+	      	set #field(xemail.caption) = "Last Updated By"     
+        end event
+      end field
+
+	field xtrnimto
+		default "IPTO"	
+		pick select xtrn from xtrn where xtypetrn='Transfer Transaction' and xaction='Default'		
+		display const
+	end field
+
+      field xrem
+        caption Notes
+        width 50
+        height 2
+        columns 3
+      end field
+
+      field xdate
+        default #date
+        event after
+          set globals(xdate)=xdate
+        end event
+      end field
+
+     field xfwh
+      pick select xcode from xcodes where xtype='Warehouse'
+	  display ocmobo
+      event after
+        set globals(xfwh)=xfwh
+      end event
+     end field
+
+     field xtwh
+      pick select xcode from xcodes where xtype='Warehouse'
+	  display ocmobo
+      event after
+        set globals(xtwh)=xtwh
+      end event
+     end field
+	 
+	field xfproj
+		display ocmobo
+		pick "select xcode from xcodes where zid ='"+#id+"' and xtype='Project'"
+	end field
+
+	field xtproj
+		display ocmobo
+		pick "select xcode from xcodes where zid ='"+#id+"' and xtype='Project'"
+	end field
+
+     field xstatustor
+      event after
+        set globals(xstatustor) = xstatustor
+      end event
+     end field
+
+     field trndesc
+     	attrib local
+     	display const
+     	caption
+     end field
+     
+     field add
+      event before
+      	set globals(ErrChk) = ""
+
+        if globals(ErrChk) .ne. "1"
+        	set chkrec = #sql("select xtrn from xtrn where zid='"+#id+"' and xtypetrn='Transfer Transaction' and xtrn='"+xtrnimto+"' and xaction='Default' and zactive='1'")
+//error 	chkrec +" ; "+		
+        	if #result .ne. "true"
+        		set globals(ErrChk) = "1"
+        		error "Wrong Transaction Type</p>Select appropriate prefix"
+        	end if
+        end if
+		      	
+      	if globals(ErrChk) .ne. "1"
+      		call chk_code
+      	end if
+      	
+      	if globals(ErrChk) .ne. "1"
+			str mysql = #sql(str,"select ximtor from imtor where zid='"+#id+"' and ximtor like '"+xtrnimto+"%' order by ximtor desc")
+			if #result .eq. "true" .and. mysql .ne. ""
+				set last_num = 0+#sub(mysql,4,6)
+			end if
+			set last_num = 0+1+last_num
+			set mysql = #padl(""+last_num,6,"0")
+			set ximtor = xtrnimto + mysql            
+      	      		
+        	set zemail=#user
+        	set xstatustor=#status("xstatustor",1)
+            set xmember = #user
+            set xteam = #sql(string,"select xteam from cateam where xmember = '"+xmember+"'")
+            set xmanager = #sql(string,"select xmanager from caman where xteam = '"+xteam+"'")
+            set xaction = #sql("select xaction from xtrn where zid='"+#id+"' and xtypetrn='Transfer Transaction' and xtrn='"+xtrnimto+"'")
+        end if
+      end event
+     end field
+
+     field update
+      event before
+        set globals(ErrChk) = ""
+        
+        if globals(ErrChk) .ne. "1"
+        	if ximtor .ne. globals(ximtor)
+            	set globals(ErrChk)="1"
+            	error "Record pointer mismatch</p>Cannot "+#command
+            end if
+        end if 
+                
+        if globals(ErrChk) .ne. "1"
+        	set xemail=#user
+        	call chk_rec
+        end if
+      end event
+     end field
+
+     field delete
+      event before
+        set globals(ErrChk) = ""
+        
+        if globals(ErrChk) .ne. "1"
+        	if ximtor .ne. globals(ximtor)
+            	set globals(ErrChk)="1"
+            	error "Record pointer mismatch</p>Cannot "+#command
+            end if
+        end if 
+                
+        if globals(ErrChk) .ne. "1"
+        	call chk_rec
+        end if
+      end event
+     end field
+    
+    field Correction
+       event before
+         set globals(ErrChk) = ""
+         if globals(ErrChk) .ne. "1"
+           if globals(ximtor) .ne. ximtor
+             set globals(ErrChk) = "1"
+             error "Record pointer mismatch</p>Cannot "+#command
+           end if
+         end if
+         
+         if globals(ErrChk) .ne. "1"
+         	set tempchk = #sql("select xaction from ztemplog where zid='"+#id+"' and xordernum='"+globals(ximtor)+"'")
+         	if tempchk .eq. "Confirm"
+				str mysql = "delete from imtrn where zid='"+#id+"' and xdocnum='"+globals(ximtor)+"'"
+				set tmpstr = #sql(str,mysql)
+         		
+			    str mysql = "delete from ztemplog where zid='"+#id+"' and xordernum='"+globals(ximtor)+"'"
+			    set tmpstr = #sql(str,mysql)
+
+				set myqry = "update imtor set xstatustor = 'New' where zid='"+#id+"' and ximtor='"+globals(ximtor)+"'"
+				set updval = #sql(str,myqry)
+			    					
+			    print "<font color=blue size=3>Now you can Confirm</font>"
+				action show
+         	end if
+         end if              
+       end event
+    end field
+    
+	field Pick
+		event before
+			set globals(ErrChk) = ""
+			str tempitem
+			set batch = ""
+			set date=#sub(xdate,0,10)
+	        
+	        if globals(ErrChk) .ne. "1"
+		        if ximtor .ne. globals(ximtor)
+		            set globals(ErrChk)="1"
+		            error "Record pointer mismatch</p>Cannot "+#command
+		        end if 
+	        end if
+	        
+	        if globals(ErrChk) .ne. "1"
+	            if xstatustor .eq. #status("xstatustor",1) .or. xstatustor .eq. #status("xstatustor","S") 
+	            else
+	               set globals(ErrChk) = "1"
+	               error "Cannot "+#command+"</p>Status : "+xstatustor
+	            end if
+	        end if
+	        
+		    if globals(ErrChk) .ne. "1"
+		    	set detqty = #sql(decimal,"select sum(xqtyord) from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"'")
+		    	if detqty > 0
+		    	else
+		    		set globals(ErrChk) = "1"
+		    		error "No Item Qty found</p>Cannot "+#command
+		    	end if
+		    end if
+
+			if globals(ErrChk) .ne. "1"
+				if date .gt. #date
+					set globals(ErrChk) = "1"
+					error "Cannot Proceed-Pick Date is Less Then Order Date"
+				end if
+			end if
+				    
+			if globals(ErrChk) .ne. "1"
+				set status = ""
+				int i=0
+				set row=#sql(string,"select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno>'"+i+"'")
+				if xstatustor .eq. #status("xstatustor",1) .or. xstatustor .eq. #status("xstatustor","S")
+					while #result .eq. "true"
+						set tempitem=#sql(string,"select xitem from imtdt where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+xtorlno+"'")
+						set batch=#sql(string,"select xbatch from imtdt where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+xtorlno+"'")
+						double availqty=#sql(double,"select xinhand-xopord-xopdor-xwoalc-xwokit-xtoout-xaltqty from imstock where zid='"+#id+"' and xitem='"+tempitem+"' and xwh='"+xfwh+"'")		
+						double batchqty=#sql(double,"select xqty from imbatview where zid='"+#id+"' and xitem='"+tempitem+"' and xbatch='"+batch+"' and xwh='"+xfwh+"'")			
+						double qtytdt=0.00+imtdt.xqtyord("zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+xtorlno+"'")
+						if availqty < qtytdt
+							print "Available Quantity: <font color=red>"+availqty+"</font> ~
+							is Less Than the Transfer Quantity: <font color=red>"+qtytdt+"</font> ~
+							for Item: <font color=red>"+tempitem+"</font> ~
+							in Row: <font color=red>"+xtorlno+"</font>"
+						end if
+						//print "q,a="+tempitem+"*"+qtytdt+"*"+availqty
+						//print "B "+batch+" "+status
+						if batch .eq. ""
+							if qtytdt > availqty
+								set status = "1"
+							end if
+						else
+							if qtytdt > availqty .or. qtytdt > batchqty
+								set status = "1"
+							end if
+						end if
+					
+						set i=row
+						set row=#sql(string,"select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno>'"+i+"'")
+					end while
+				end if
+				//print "S "+status
+				if status .eq. "1"
+					set temp=#sql(string,"update imtor set xstatustor='"+#status("xstatustor","S")+"' where zid='"+#id+"' and ximtor='"+ximtor+"'")
+				end if
+			
+				if status .ne. "1"
+					int i=0
+					set row=#sql(string,"select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno>'"+i+"'")
+					while #result .eq. "true"					
+						double qtytdt=0.00+imtdt.xqtyord("zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+row+"'")
+												
+						set temp=#sql(string,"update imtdt set xqtyalc='"+qtytdt+"' where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+row+"'")
+						set curdate=#date
+						set temp=#sql(string,"update imtor set xdaterel='"+curdate+"', xstatustor='"+#status("xstatustor",2)+"' where zid='"+#id+"' and ximtor='"+ximtor+"'")
+						//print #result						
+						set i=row
+						set row=#sql(int,"select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno>'"+i+"'")
+					end while
+				end if
+			end if
+			set xstatustor=imtor.xstatustor("zid='"+#id+"' and ximtor='"+ximtor+"'")
+			set #command="Show"
+		end event
+	end field
+    
+     
+    field Confirm
+      event before
+        set globals(ErrChk) = ""
+        set globals(xyear) = 0
+        set globals(xper) = 0
+        string mysql = ""
+        str xtorlno = ""
+        
+        if globals(ErrChk) .ne. "1"
+	        if ximtor .ne. globals(ximtor)
+	            set globals(ErrChk)="1"
+	            error "Record pointer mismatch</p>Cannot "+#command
+	        end if 
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+            if xstatustor .ne. #status("xstatustor",2)
+               set globals(ErrChk) = "1"
+				error "Cannot "+#command+"; Status: "+xstatustor
+            end if
+        end if
+        
+	    if globals(ErrChk) .ne. "1"
+	    	set detqty = #sql(decimal,"select sum(xqtyord) from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"'")
+	    	if detqty > 0
+	    	else
+	    		set globals(ErrChk) = "1"
+	    		error "No Item Qty found</p>Cannot "+#command
+	    	end if
+	    end if
+
+        if globals(ErrChk) .ne. "1"
+         call get_imtrn_code
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+         call chk_stock
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+        	//call templog
+        end if        
+        
+        if globals(ErrChk) .ne. "1"
+        	str date = ""
+            if atcdt .eq. "Show"
+            	set date = globals(xdatecom)
+            else
+            	set date = globals(xdate)
+            end if
+            int offset
+            int per
+            int year=#sub(date,0,4)
+            
+            int tempper
+            int tempyear	            
+            set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+            set per=12+#sub(date,5,2)-offset
+            if per<=12
+                set tempper=per
+                set tempyear=year-1
+            else
+                set tempper=per-12
+                set tempyear=year
+            end if
+            
+			int xtorlno = 0
+			set xtorlno = #sql(int,"select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno>'"+xtorlno+"'")
+			while #result .eq. "true"
+				decimal value = 0.0
+                double batchqty=0.00
+                double batchval=0.00
+									
+				set xitem = #sql("select xitem from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno='"+xtorlno+"'")
+				set xfbin = #sql("select xbin from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno='"+xtorlno+"'")
+				set xtbin = #sql("select xtbin from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno='"+xtorlno+"'")
+				
+				set xqtyord = #sql(decimal,"select xqtyord from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno='"+xtorlno+"'")
+	            double quantity=0.00+imtdt.xqtyalc("zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+xtorlno+"'")
+	            double value=0.00+imtdt.xval("zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+xtorlno+"'")
+	            string batch=imtdt.xbatch("zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+xtorlno+"'")
+
+				set costing=caitem.xcostmeth("zid='"+#id+"' and xitem='"+xitem+"'")
+				//set costing=#prop(xcodes.xprops("xtype='Item Group' and xcode='"+xgitem+"'"),"Costing")
+							               
+	     		if costing .eq. "FIFO"
+                      set batchqty=0.00+imffview.xqty("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xfwh+"'")
+                      set batchval=0.00+imffview.xval("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xfwh+"'")	     		
+	     		else if costing .eq. "Batch"
+					set batchqty=0.00+imbatview.xqty("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xfwh+"' and xbatch= '"+batch+"'")
+					set batchval=0.00+imbatview.xval("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xfwh+"' and xbatch= '"+batch+"'")
+	     		else if costing .eq. "Weighted Average"
+                    set batchqty=0.00+imwtview.xqty("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xfwh+"'")
+                    set batchval=0.00+imwtview.xval("zid='"+#id+"' and xitem='"+xitem+"' and xwh= '"+xfwh+"'")
+	     		end if
+
+                if value == 0.00
+                  if batchqty > 0
+                    set value=batchval/batchqty*quantity
+                  else
+                    set value=0.00
+                  end if
+                end if
+                    
+				set xsign = 0-1
+
+                string imtrnit=#trn("Inventory Transaction",xisscode)
+
+				str mysql = "delete from imtrn where zid='"+#id+"' and xdocnum='"+globals(ximtor)+"' and xdocrow='"+xtorlno+"' and xaction='Issue'"
+				set tmpstr = #sql(str,mysql)
+								
+				set mysql = "insert into imtrn (ztime,zid,ximtrnnum, xitem,xitemrow,xitemcol, xwh,xdate,xyear, xper,~
+						xqty,xval,xvalpost,xdoctype,xdocnum,xdocrow,xnote,xaltqty,xdiv,xsec,xproj,~
+						xbatch,xdateexp,xdaterec, xlicense,xcus,xsup,xaction,xsign,xtime,zemail,xemail,~
+						xteam,xmember,xmanager,xbin)"
+				set mysql = mysql + " values('"+#time+"',"+#id+",'"+imtrnit+"','"+xitem+"','','','"+globals(xfwh)+"',~
+					'"+date+"','"+tempyear+"','"+tempper+"',"+quantity+","+value+","0",'TO--',~
+					'"+globals(ximtor)+"','"+xtorlno+"','',"0",'"+xdiv+"','"+xsec+"','"+xproj+"','"+batch+"',~
+					'"+globals(xdate)+"','"+globals(xdate)+"','','','','Issue','"+xsign+"',~
+					'"+#time+"','"+#user+"','','"+xteam+"','"+xmember+"','"+xmanager+"','"+xfbin+"')"
+				set tmpstr =#sql(mysql)
+				if #result .eq. "true"				
+					str mysql = "update imtdt set ximtrnnum='"+imtrnit+"' where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno='"+xtorlno+"'"
+					set updval = #sql(str,mysql)
+				else
+					set globals(ErrChk) = "1"
+					error "Error in Creating Inventory Trn: "+imtrnit+"<br>TO Row="+xtorlno+"; Item="+xitem
+				end if             	             	
+             
+				if globals(ErrChk) .eq. ""
+                    double totqty=#sql(double,"select sum(xqtyord) from imtdt where zid='"+#id+"' and ximtor='"+ximtor+"'")
+					if totqty > 0
+						double appcost=0.00+imtor.xcost("ximtor='"+ximtor+"'")/totqty*quantity
+					else
+						double appcost=0.00
+					end if
+                    set value = 0.0+value+appcost
+													    
+					set xsign = 0+1
+					
+                	string imtrnrt=#trn("Inventory Transaction",xtrncode)
+					
+					str mysql = "delete from imtrn where zid='"+#id+"' and xdocnum='"+globals(ximtor)+"' and xdocrow='"+xtorlno+"' and xaction='Receipt'"
+					set tmpstr = #sql(str,mysql)
+									
+					set mysql = "insert into imtrn (ztime,zid,ximtrnnum, xitem,xitemrow,xitemcol, xwh,xdate,xyear, xper,~
+							xqty,xval,xvalpost,xdoctype,xdocnum,xdocrow,xnote,xaltqty,xdiv,xsec,xproj,~
+							xbatch,xdateexp,xdaterec, xlicense,xcus,xsup,xaction,xsign,xtime,zemail,xemail,~
+							xteam,xmember,xmanager,xbin)"
+					set mysql = mysql + " values('"+#time+"',"+#id+",'"+imtrnrt+"','"+xitem+"','','','"+globals(xtwh)+"',~
+						'"+date+"','"+tempyear+"','"+tempper+"',"+quantity+","+value+","0",'TO--',~
+						'"+globals(ximtor)+"','"+xtorlno+"','',"0",'"+xdiv+"','"+xsec+"','"+xproj+"','"+batch+"',~
+						'"+globals(xdate)+"','"+globals(xdate)+"','','','','Receipt','"+xsign+"',~
+						'"+#time+"','"+#user+"','','"+xteam+"','"+xmember+"','"+xmanager+"','"+xtbin+"')"
+					set tmpstr =#sql(mysql)
+					if #result .eq. "true"				
+						str mysql = "update imtdt set xdocnum='"+imtrnrt+"' where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno='"+xtorlno+"'"
+						set updval = #sql(str,mysql)
+					else
+						set globals(ErrChk) = "1"
+						error "Error in Creating Inventory Trn: "+imtrnrt+"<br>TO Row="+xtorlno+"; Item="+xitem
+					end if             	             	               
+				end if
+
+				if globals(ErrChk) .ne. "1"
+                    buffer imser                    
+                    int j=0
+                    str xserialnum=""
+                    int totnum=#sql(int,"select count(*) from imser where zid="+#id+" and xitem='"+xitem+"' and xtypeout='Transfer Order' and xnumout='"+ximtor+"'")
+                    while j < totnum
+     
+                      set xserialnum=#sql(str,"select xserialnum from imser where zid="+#id+" and xserialnum>'"+xserialnum+"' and xtypeout='Transfer Order' and xnumout='"+ximtor+"' order by xserialnum")  
+                      set imser.xitem=xitem
+                      set imser.xserialnum=xserialnum
+                      set imser.xtypein="Transfer Order"
+                      set imser.xnumin=ximtor
+                      set imser.xrowin=xtorlno
+                      set imser.xwh=xtwh
+                      insert imser
+                      compute j=j+1
+                    end while
+                    
+                    set temp=#sql(string,"update imtdt set xqtycom="+quantity+" where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+xtorlno+"'")
+				end if
+				
+				set xtorlno = #sql(int,"select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno>'"+xtorlno+"'")
+           end while
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+			set temp=#sql(str,"update imser set xconout='1' where zid="+#id+" and xtypeout='Transfer Order' and xnumout='"+ximtor+"'")
+			set temp=#sql(str,"update imser set xconin='1' where zid="+#id+" and xtypein='Transfer Order' and xnumin='"+ximtor+"'")
+			
+			str mysql = "update imtor set xstatustor='"+#status("xstatustor",5)+"' where zid='"+#id+"' and ximtor='"+globals(ximtor)+"'"
+			set updval = #sql(str,mysql)
+			
+			str mysql = "delete from ztemplog where zid='"+#id+"' and xordernum='"+globals(ximtor)+"'"
+			set tmpstr = #sql(str,mysql)
+			
+          	action show
+          	print "<font color=blue>Transfer Order : "+globals(ximtor)+ "Confirmed</font>"
+        end if
+      end event
+    end field
+
+	field Undo
+		event before
+			set globals(ErrChk) = ""
+			
+			if globals(ErrChk) .ne. "1"
+				if ximtor .ne. globals(ximtor)
+					set globals(ErrChk)="1"
+					error "Record pointer mismatch"
+				end if
+			end if
+			
+			if globals(ErrChk) .ne. "1"
+				if xstatustor .ne. #status("xstatustor",2)
+					set globals(ErrChk)="1"
+					error "Cannot "+#command+"; Status: "+xstatustor
+				end if
+			end if
+			
+			if globals(ErrChk) .ne. "1"
+				int i=0
+				set row=#sql(string,"select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno>'"+i+"'")
+				while #result .eq. "true"					
+					double qtytdt=0.00+imtdt.xqtyord("zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+row+"'")
+											
+					set temp=#sql(string,"update imtdt set xqtyalc="0" where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+row+"'")
+					set curdate=#date
+					set temp=#sql(string,"update imtor set xdaterel='"+curdate+"', xstatustor='"+#status("xstatustor",1)+"' where zid='"+#id+"' and ximtor='"+ximtor+"'")
+
+					//print #result						
+					set i=row
+					set row=#sql(int,"select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno>'"+i+"'")
+				end while							
+				action show
+			end if
+			
+		end event
+	end field
+	
+    field Undo_con
+      event before
+        set globals(ErrChk) = ""
+        call chk_rec
+        
+        if globals(ErrChk) .ne. "1"
+        	  call chk_undo_stock
+		  end if
+        
+        if globals(ErrChk) .ne. "1"
+           str xtorlno = ""
+           str myqry = "select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno>'"+xtorlno+"'"
+           set xtorlno = #sql(str,myqry)
+           while #result .eq. "true"
+           		if globals(ErrChk) .ne. "1"
+	           		set ximtrnnum=#sql("select ximtrnnum from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno='"+xtorlno+"'")
+	           		if ximtrnnum .ne. ""
+	           			str mysql = "delete from imtrn where zid='"+#id+"' and ximtrnnum='"+ximtrnnum+"'"
+	           			set updval = #sql(str,mysql)
+	           			if #result .eq. "true"
+	           				str mysql = "update imtdt set ximtrnnum='' where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno='"+xtorlno+"'"
+	           				set updval = #sql(str,mysql)
+	           			end if
+	           		end if	
+           		end if
+
+           		if globals(ErrChk) .ne. "1"
+	           		set xdocnum=#sql("select xdocnum from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno='"+xtorlno+"'")
+	           		if xdocnum .ne. ""
+	           			str mysql = "delete from imtrn where zid='"+#id+"' and ximtrnnum='"+xdocnum+"'"
+	           			set updval = #sql(str,mysql)
+	           			if #result .eq. "true"
+	           				str mysql = "update imtdt set xdocnum='' where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno='"+xtorlno+"'"
+	           				set updval = #sql(str,mysql)
+	           			end if
+	           		end if	
+           		end if
+
+              str myqry = "select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno>'"+xtorlno+"'"
+              set xtorlno = #sql(str,myqry)
+           end while
+		     if globals(ErrChk) .ne. "1"
+    			  str mysql = "update imtor set xstatustor='' where zid='"+#id+"' and ximtor='"+globals(ximtor)+"'"
+     			  set updval = #sql(str,mysql)
+     			  
+	  	        print "<font color=blue size=3>Transaction : "+globals(ximtor)+ " Undo Successfully</font>"
+	  	        action show
+		     end if	
+        end if
+      end event
+    end field
+
+    embed onsubmit="submitit(this)"
+    field Detail
+      embed onclick="clicked(this)"
+    end field
+    
+    field Cost
+      embed onclick="costed(this)"
+    end field
+		    
+  end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function costed(b){
+          detail="Cost"
+        }        
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtdti"
+            form.searchbutton.value="Top"
+          }
+          if (detail=="Cost"){
+            form.page.value = "imtorcost"
+            form.searchbutton.value = "Top"
+            //return false
+          }          
+        }
+        </script>
+     end script
+
+
+  method chk_rec
+    if #command .ne. "Undo"
+      if globals(xstatustor) .eq. "Confirmed"
+        set globals(ErrChk) = "1"
+        error "Already Confirmed"
+      end if  
+    end if
+
+    if #command .eq. "Undo"
+      if globals(xstatustor) .ne. "Confirmed"
+         set globals(ErrChk) = "1"
+         error "Not Confirmed Yet"
+      end if   
+    end if
+  end method
+
+	 method chk_code
+	    set tmpstr = #sql(str,"select xcode from xcodes where zid='"+#id+"' and xtype='Warehouse' and xcode='"+xfwh+"'")
+	    if #result .ne. "true"
+	       set globals(ErrChk) = "1"
+	       error "Invalid Warehouse Code Selected: "+xfwh
+	    end if
+	
+	    set tmpstr = #sql(str,"select xcode from xcodes where zid='"+#id+"' and xtype='Warehouse' and xcode='"+xtwh+"'")
+	    if #result .ne. "true"
+	       set globals(ErrChk) = "1"
+	       error "Invalid Warehouse Code Selected: "+xtwh
+	    end if    
+	 end method
+  
+  	 method get_imtrn_code
+         string xtrncode=#sub(ximtor,0,4)
+         set xtrncode=xtrnp.xrel("zid='"+#id+"' and xtypetrn='Transfer Transaction' and xtrn='"+xtrncode+"' and xtyperel='Inventory Transaction Receive'")
+         if #result .ne. "true"
+            set globals(ErrChk) = "1"
+            error "Related Inventory Transaction Code for Receive not found</p>Cannot "+#command
+         end if
+         
+         if globals(ErrChk) .eq. ""
+             set imtrncode = xtrn.xtrn("zid='"+#id+"' and xtypetrn='Inventory Transaction' and xtrn='"+xtrncode+"'")
+             if #result .ne. "true"
+               set globals(ErrChk) = "1"
+               error "Inventory Transaction code("+xtrncode+") not found</p>Cannot "+#command
+             end if
+         end if
+
+         if globals(ErrChk) .eq. ""
+	         string xisscode=#sub(ximtor,0,4)
+             set xisscode=xtrnp.xrel("zid='"+#id+"' and xtypetrn='Transfer Transaction' and xtrn='"+xisscode+"' and xtyperel='Inventory Transaction Issue'")
+             if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Related Inventory Transaction Code for Issue not found</p>Cannot "+#command
+             end if
+         end if
+         
+         if globals(ErrChk) .eq. ""
+           	set isscode = xtrn.xtrn("zid='"+#id+"' and xtypetrn='Inventory Transaction' and xtrn='"+xisscode+"'")
+           	if #result .ne. "true"
+             	set globals(ErrChk) = "1"
+             	error "Inventory Transaction code("+xisscode+") not found</p>Cannot "+#command
+            end if
+         end if
+         
+  end method
+
+  method chk_stock
+    set mysql = "select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno>'"+xtorlno+"'"
+    set xtorlno = #sql(str,mysql)
+    while #result .eq. "true"
+       set xitem = #sql("select xitem from imtdt where zid = "+#id+" and ximtor = '"+globals(ximtor)+"' and xtorlno = '"+xtorlno+"'")
+       set xbatch = #sql(str,"select xbatch from imtdt where zid = "+#id+" and ximtor = '"+globals(ximtor)+"' and xtorlno = '"+xtorlno+"'")
+       set item_qty = #sql(decimal,"select xqtyord from imtdt where zid = "+#id+" and ximtor = '"+globals(ximtor)+"' and xtorlno = '"+xtorlno+"'")
+
+       decimal avlqty=0.0        
+       set avlqty = #sql(decimal,"select sum(xinhand-xopord-xwoalc-xwokit-xaltqty) from imstock where zid='"+#id+"' and xitem='"+xitem+"' and xwh='"+globals(xfwh)+"'")
+       if avlqty < 0.0
+	       	set globals(ErrChk) = "1"
+	       	error "Minus Stock</p>Cannot "+#command
+       end if
+	   if globals(ErrChk) .ne. "1"	       
+	       if avlqty<item_qty
+				set globals(ErrChk) = "1"
+				print "<font size=3 color=red>Not enough stock for "+xitem+" <br>Available : "+avlqty+" Req. : "+item_qty+"</font>"
+	       end if
+       end if
+      	if globals(ErrChk) .ne. "1"
+      		set binman = caitem.xbinman("zid='"+#id+"' and xitem='"+xitem+"'")
+      		if binman .eq. "1"          	
+      			set xbin = imtdt.xbin("zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+xtorlno+"'") 
+      			set binqty = #sql(double,"select sum(xqty) from imbinv where zid='"+#id+"' and xitem='"+xitem+"' and xbin='"+xbin+"' and xwh='"+globals(xfwh)+"'")
+      			if xqtyord > binqty
+      				set globals(ErrChk) = "1"
+      				error "Not enough stock on bin "+xbin+"<br>Available: "+binqty+" Required: "+xqtyord
+      			end if
+      		end if
+      	end if
+       
+       set mysql = "select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno>'"+xtorlno+"'"
+       set xtorlno = #sql(str,mysql)
+    end while
+  end method
+
+     method chk_undo_stock
+       str xtorlno=""
+		 set mysql = "select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno>'"+xtorlno+"'"
+       set xtorlno = #sql(str,mysql)
+       while #result .eq. "true"
+          str mysql = "select xitem from imtdt where zid = "+#id+" and ximtor = '"+globals(ximtor)+"' and xtorlno = '"+xtorlno+"'"
+          set xitem = #sql(mysql)
+          set item_qty = #sql(decimal,"select xqtyord from imtdt where zid = "+#id+" and ximtor = '"+globals(ximtor)+"' and xtorlno = '"+xtorlno+"'")
+          
+ 		  set xwh=globals(xtwh)          
+          buffer imstock
+          move imstock=imstock(xitem,xwh)
+          if #result .ne. "true"
+             set globals(ErrChk) = "1"
+             print "<font size=3 color=red>Stock not found for Item : "+xitem+"</font>"
+          else
+             set avlqty = 0.0+imstock.xinhand-imstock.xopord-imstock.xwoalc-imstock.xwokit-imstock.xtoout
+             if avlqty<item_qty
+               set globals(ErrChk) = "1"
+               print "<font size=3 color=red>At present, Not enough stock for "+xitem+" WH: "+globals(xtwh)+" <br>Available : "+avlqty+" Req. : "+item_qty+"</font>"
+             end if
+          end if
+          
+          set mysql = "select xtorlno from imtdt where zid='"+#id+"' and ximtor='"+globals(ximtor)+"' and xtorlno>'"+xtorlno+"'"
+          set xtorlno = #sql(str,mysql)
+       end while
+     end method
+
+     method templog
+		set myqry = "insert into ztemplog (zid,xordernum,xdate,xtime,xobject,xaction,xemail,xrem)"
+		set myqry = myqry + " values('"+#id+"','"+globals(ximtor)+"','"+#date+"','"+#time+"','"+page+"',~
+			'"+#command+"','"+#user+"','')"
+		set tmpstr =#sql(myqry)
+		if #result .eq. "true"
+		else
+			set globals(ErrChk) = "1"
+			error "Error: Contact System Administrator or</p>Run Correction"
+		end if
+     end method
+     
+	valid valid     
+		mandatory xfwh,xtwh,xfproj,xtproj
+		config					
+
+			str header="Internal Transfer Order" 																									
+     	    set header=header+": <a href='"+#report(imtorlist.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+ximtor+"&prompt2="+ximtor+"' target='_new'>"+ximtor+"</a>"			
+     	    set header=header+"<font color=green> ("+xstatustor+")</font>"
+		
+			set globals(xtrnimto) = xtrnimto
+	        set globals(pkey) = ximtor
+	        set trndesc = #sql(str,"select xdesc from xtrn where zid='"+#id+"' and xtypetrn='TO Number' and xtrn='"+xtrnimto+"'")
+			int detcount = #sql(int,"select count(*) from imtdt where zid='"+#id+"' and ximtor='"+ximtor+"'")
+			if ximtor .ne. ""              
+				if detcount < 1
+					print "<span class=bl>No Details Entered -- Go to Detail and Add record.</span>"
+				end if
+			end if
+
+            set atcdt = #sql("select xattribcdt from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atcdt .eq. "Show"
+            else if atcdt .eq. "Constant"
+            	set #field(xdatecom.display) = "const"
+            else if atcdt .eq. "Hide"
+            	set #field(xdatecom.display) = "hide"
+            end if   
+	        	        		
+            set atzemail = #sql("select xattribzemail from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atzemail .eq. "Show"
+            else if atzemail .eq. "Constant"
+            	set #field(zemail.display) = "const"
+            else if atzemail .eq. "Hide"
+            	set #field(zemail.display) = "hide"
+            end if   
+            
+            set atxemail = #sql("select xattribxemail from cadefp where zid='"+#id+"' and zref = 'IM' and zobject='"+page+"'")
+            if atxemail .eq. "Show"
+            else if atxemail .eq. "Constant"
+            	set #field(xemail.display) = "const"
+            else if atxemail .eq. "Hide"
+            	set #field(xemail.display) = "hide"
+            end if                                          
+		end config  	
+	end valid   
+     
+	method checkserial
+		int err=0
+		int xtorlno=-1
+		str sql="select xtorlno from imtdt where zid="+#id+" and ximtor='"+ximtor+"' and (select xtypeserial from caitem where zid=imtdt.zid and xitem=imtdt.xitem) like '1%' and xtorlno>"+xtorlno
+		set xtorlno=#sql(int,sql)
+		while xtorlno>0 
+			set sql="select xqtyord from imtdt where zid="+#id+" and ximtor='"+ximtor+"' and xtorlno="+xtorlno
+			int qty=#sql(int,sql)
+			set sql="select count(*) from imser where zid='"+#id+"' and xtypeout='Transfer Order' and xnumout='"+ximtor+"' and xrowout="+xtorlno
+			int cqty=#sql(int,sql)
+			if qty<>cqty
+				set err=1
+				set tempstr=#sql(int,"update imtor set xstatustor='"+#status("xstatustor",7)+"' where zid='"+#id+"' and ximtor='"+ximtor+"'")
+				set xstatustor=#status("xstatustor",7)
+			else if xstatustor .eq. #status("xstatustor",7)
+				set xstatustor=#status("xstatustor",1)
+				set tempstr=#sql(int,"update imtor set xstatustor='"+#status("xstatustor",1)+"' where zid='"+#id+"' and ximtor='"+ximtor+"'")
+			end if
+			set sql="select xtorlno from imtdt where zid="+#id+" and ximtor='"+ximtor+"' and (select xtypeserial from caitem where zid=imtdt.zid and xitem=imtdt.xitem) like '1%' and xtorlno>"+xtorlno
+			set xtorlno=#sql(int,sql)
+		end while
+	end method
+	
+	method checkbatch
+		int err=0
+		int torlno = 0	
+		set xtorlno=#sql(int,"select xtorlno from imtdt where zid="+#id+" and ximtor='"+ximtor+"' and xtorlno > "+torlno)
+		while torlno>0
+			double blankcount=#sql(double,"select xqtyord from imtdt where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno="+torlno+" and xbatch = ''")
+			double batchcount=#sql(double,"select xqtyord from imtdt where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno="+torlno+" and xbatch <> ''")
+			double totcount=blankcount+batchcount
+			if blankcount > 0
+				//for mandatory batch numbers
+				str batchman =#sql(string,"select (select xbatchman from caitem where zid=imtdt.zid and xitem=imtdt.xitem) from imtdt ~
+					where zid="+#id+" and ximtor='"+ximtor+"' and xtorlno= "+torlno)
+				if batchman .eq. "1"
+					set err=1
+				end if
+			end if
+			
+			if err==1
+				set tempstr=#sql(int,"update imtdt set xstatustdt='"+#status("xstatustor",6)+"' where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+torlno+"'")
+			else
+				set tempstr=#sql(int,"update imtdt set xstatustdt='"+#status("xstatustor",1)+"' where zid='"+#id+"' and ximtor='"+ximtor+"' and xtorlno='"+torlno+"'")
+			end if
+			set torlno=#sql(int,"select xtorlno from imtdt where zid="+#id+" and ximtor='"+ximtor+"' and xtorlno > "+torlno)
+		end while
+		if err==1
+			set tempstr=#sql(int,"update imtor set xstatustor='"+#status("xstatustor",6)+"' where zid='"+#id+"' and ximtor='"+ximtor+"'")
+			set xstatustor=#status("xstatustor",6)
+		else if xstatustor .eq. #status("xstatustor",6)
+			set xstatustor=#status("xstatustor",1)
+			set tempstr=#sql(int,"update imtor set xstatustor='"+#status("xstatustor",1)+"' where zid='"+#id+"' and ximtor='"+ximtor+"'")
+		end if
+	end method
+
+#include access.valid
+     
+end page

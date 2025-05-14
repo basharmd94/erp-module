@@ -1,0 +1,112 @@
+page prtxtupdn
+
+    //caption "Please Press Clear Button Before Text Update Process"
+    sections form imtrn,script myscript
+
+    form imtrn
+      //caption "<font color=black>Text Update</font>"
+      layout 1
+      objects ~
+      		xdate,Process
+
+      field clear
+            event before
+                str mysql = "update pratdummy set xpflag='' where xpflag is null  or xpflag <> 'Updated'"
+    		set updval = #sql(str,mysql)
+            end event
+      end field
+      
+      field process
+        event before
+          set rawdate = ""
+          set globals(ErrChk) = ""      
+          set In_time = ""
+          set Out_time = ""
+          set stat = ""
+          set D_time = ""
+          set P_time = ""
+          set date = #sub(xdate,8,2)+"/"+#sub(xdate,5,2)+"/"+#sub(xdate,2,2)
+          //error date+" - "+xdate
+
+          set chkdate = #sql("select xdate from prath where zid='"+#id+"' and xdate='"+xdate+"'")
+          if #result .ne. "true"
+            set mysql = "insert into prath (zid,xyear,xper,xday,xdate,xshift,xatdrem,zemail,xemail)"
+            set mysql = mysql + " values('"+#id+"','"+#sub(xdate,0,4)+"','"+#sub(xdate,5,2)+"','"+#sub(xdate,8,2)+"','"+xdate+"','Default','','"+#user+"','')"
+            set insdata =#sql(mysql)          
+		  end if          
+
+		  str xemp = ""
+		  str mysql = "select xemp from pratdummy where zid='"+#id+"' and xref='"+date+"' and xemp>'"+xemp+"'"
+		  set xemp = #sql(str,mysql)
+
+		  while #result .eq. "true"
+
+		    set emp_code = #sql("select xemp from prmst where zid='"+#id+"' and xcardno='"+xemp+"'") //activate this if u have another code for emp in prmst
+	  	    set In_time = #sql("select xdesc from pratdummy where zid='"+#id+"' and xref='"+date+"' and xemp='"+xemp+"'")
+            set In_time = #sub(In_time,0,2)+":"+#sub(In_time,3,2)+":"+#sub(In_time,6,2)
+            
+            if In_time .eq. "  :  :  "
+               set In_time=""
+            end if
+                    
+		    set Out_time = #sql("select xdesc from pratdummy where zid='"+#id+"' and xref='"+date+"' and xemp='"+xemp+"' order by xdesc desc")
+		    set Out_time = #sub(Out_time,0,2)+":"+#sub(Out_time,3,2)+":"+#sub(Out_time,6,2)
+		    
+            if Out_time .eq. "  :  :  "
+               set Out_time=""
+            end if
+            
+            set D_time = #sql("select xintime from pratdt where zid='"+#id+"'")
+            set D_time=#sub(D_time,11,8)
+            set P_time = #sql("select xpnlttime from pratdt where zid='"+#id+"'")
+            set P_time=#sub(P_time,11,8)
+            
+//            print In_time+" - "+Out_time+" - "+emp_code+" - "+D_time +" - "+ P_time +" - "+xemp
+
+            if In_time .eq. ""
+              set stat = ""
+            else if In_time .le. D_time
+              set stat = "Present"
+              else if In_time .gt. P_time
+                set stat = "Late"
+            end if
+		               
+            set mysql = "insert into pratd (zid,xyear,xper,xday,xdate,xshift,xemp,~
+            			xintime,xouttime,xlotime,xlitime,xatdstat,xpflag,zemail,xemail,xrem)"
+            set mysql = mysql + " values('"+#id+"','"+#sub(xdate,0,4)+"','"+#sub(xdate,5,2)+"','"+#sub(xdate,8,2)+"','"+xdate+"','Default', ~
+            	'"+emp_code+"','"+In_time+"','"+Out_time+"','','','"+stat+"','','"+#user+"','','')"
+            set insdata =#sql(mysql)
+            
+		  	str mysql = "select xemp from pratdummy where zid='"+#id+"' and xref='"+date+"' and xemp>'"+xemp+"'"
+		  	set xemp = #sql(str,mysql)
+  		  end while        
+  		  print "<font color=blue size=4>Processing Completed"
+        end event
+      end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+          }
+        }
+        function keeplastkey(){
+        document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        }
+        </script>
+    end script
+    
+    
+
+end page

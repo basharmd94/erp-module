@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table pradvhview
+	caption "pradvh Description View"
+
+	columns ztime,zutime,zid,xemp,emp_name,xpaycode,paycode_desc,zemail,xemail
+			
+	sql create view pradvhview (ztime,zutime,zid,xemp,emp_name,xpaycode,paycode_desc,zemail,xemail) ~
+		as select ~
+		pradvh.ztime,pradvh.zutime,pradvh.zid,pradvh.xemp,~
+		(select xname from prmst where zid=pradvh.zid and xemp=pradvh.xemp),~
+		pradvh.xpaycode,~
+		(select xdesc from prpayhead where zid=pradvh.zid and xpaycode=pradvh.xpaycode),~
+		pradvh.zemail,pradvh.xemail ~
+	from pradvh
+end table

@@ -1,0 +1,20 @@
+product ERP on the Net
+
+table opdorglview
+  caption "Opdorgl View"
+  columns zid,xacc,xyear,xper,xdate,xsub,xref,xprime,xbase
+
+  primary key zid,xdate,xsub
+
+
+  sql select zid,xacc,xyear,xper,xdate,xsub,xref, ~
+		(select sum(xprime) from gldetail where xvoucher=gldetailview.xvoucher and xsub=gldetailview.xsub and xtrngl='INOP'), ~	
+		(select sum(xamount) from gldetail where xvoucher=gldetailview.xvoucher and xsub=gldetailview.xsub and xtrngl='RCT-') ~	
+		from gldetailview where xaccusage='AR' order by zid,xdate,xsub
+		
+		
+
+
+end table
+
+

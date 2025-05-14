@@ -1,0 +1,33 @@
+product ERP on the Net
+
+table glalcview
+  caption "GL Allocation View"
+  columns  ztime,zutime,zid,xvoucher,xrow,xalcnum,xalcrow,xdate,xtotamt,xlong,xcur,xexch,xinvcur,xinvexch,xacc,xsub,xaccusage,xproj,xbase,xdateinv,xinvnum
+
+  primary key zid, xvoucher, xrow
+  foreign key
+        zid references zbusiness.zid
+        zid,xvoucher references GLheader.zid,xvoucher
+  end foreign key
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+  sql select  ztime,zutime,zid,xvoucher,xrow,xalcnum,xalcrow,xdate,xtotamt,xlong,~
+                 (SELECT gldetail.xcur FROM gldetail WHERE gldetail.xvoucher = glalc.xvoucher AND gldetail.xrow = glalc.xrow  AND gldetail.zid = glalc.zid) ,~
+                 (SELECT gldetail.xexch FROM gldetail WHERE gldetail.xvoucher = glalc.xvoucher AND gldetail.xrow = glalc.xrow  AND gldetail.zid = glalc.zid ),~
+                 (SELECT gldetail.xcur FROM gldetail WHERE gldetail.xvoucher = glalc.xalcnum AND gldetail.xrow = glalc.xalcrow  AND gldetail.zid = glalc.zid ),~
+                 (SELECT gldetail.xexch FROM gldetail WHERE gldetail.xvoucher = glalc.xalcnum AND gldetail.xrow = glalc.xalcrow  AND gldetail.zid = glalc.zid ),~
+                 (SELECT gldetail.xacc FROM gldetail WHERE gldetail.xvoucher = glalc.xvoucher AND gldetail.xrow = glalc.xrow  AND gldetail.zid = glalc.zid) ,~
+                 (SELECT gldetail.xsub FROM gldetail WHERE gldetail.xvoucher = glalc.xvoucher AND gldetail.xrow = glalc.xrow  AND gldetail.zid = glalc.zid) ,~
+                 (SELECT gldetail.xaccusage FROM gldetail WHERE gldetail.xvoucher = glalc.xvoucher AND gldetail.xrow = glalc.xrow  AND gldetail.zid = glalc.zid) ,~
+                 (SELECT gldetail.xproj FROM gldetail WHERE gldetail.xvoucher = glalc.xalcnum AND gldetail.xrow = glalc.xalcrow  AND gldetail.zid = glalc.zid) ,~
+                 xtotamt*(SELECT gldetail.xexch FROM gldetail WHERE gldetail.xvoucher = glalc.xalcnum AND gldetail.xrow = glalc.xalcrow  AND gldetail.zid = glalc.zid ), ~
+(select xdate from glheader where glheader.xvoucher = glalc.xalcnum AND glheader.zid = glalc.zid ), ~
+                 (SELECT gldetail.xinvnum FROM gldetail WHERE gldetail.xvoucher = glalc.xalcnum AND gldetail.xrow = glalc.xalcrow  AND gldetail.zid = glalc.zid) ~
+                 from glalc
+
+
+
+end table
+
+

@@ -1,0 +1,11 @@
+product ERP on the Net
+
+table fagli
+  caption "FA to GL Interface"
+  columns ztime,zutime,zid,xfatrn,~
+		xastcatg,xasttype,xdiv,xsec,xproj,xaccdr,xsubdr,xacccr,xsubcr
+  primary key zid, xfatrn,xastcatg
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+end table

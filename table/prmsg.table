@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table prmsg
+  caption "Payroll Employee Period Master"
+  columns ztime,zutime,zid,xpaydate,xemp,xremarks,xdayab,xdaylv,xnhour,~
+          xgvothour,xnoothour,xresth,xpflag,xadvflag,zemail,xemail,xratev,xday,xdate,~
+          xdaysuspend,xdaysuspenq,xsuspendf,xsuspenqf,xhour,xref,xdaysdel,xdayscom,xdayspay,xdaystart
+
+  primary key zid,xpaydate,xemp
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xpaydate references prpay.zid,xpaydate
+  end foreign key
+
+end table

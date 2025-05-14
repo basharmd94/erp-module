@@ -1,0 +1,12 @@
+list faunit
+        table xcodes
+        order xcode
+        select "xtype='FA Unit'"
+        navigators alpha
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xastunit')"), ~
+                xdescdet
+
+
+     end list
+

@@ -1,0 +1,152 @@
+page praprsd
+
+	  embed onload="move_caret('one','xcode')"
+	  
+     caption header
+     sidebar list one
+     sections form one ,method chk_access,script myscript
+
+
+     list one
+        table praprsd
+        order xcode,xprmgtgrade
+        fixed xcode
+        navigators alpha
+        rows 20
+        objects  xcode attrib(link #servlet+"?page=praprsd&command=Show&xcode=?"), ~
+                  xprmgtgrade,xmax
+
+     end list
+
+     form one
+        caption "Performance Appraisal Detail"
+        table praprsd
+		valid valid
+        order xcode,xprmgtgrade
+        fixed xcode
+        //select
+        layout 1
+        objects "<b><u><i><font color=blue size=+1>Grading Keys For <font color=red size=+1>"+globals(xcode),""<font></b>",~
+                Show, Add, Complete,Update, Delete, Top, Previous, Next, Bottom,~
+               xprmgtgrade,xdesc,xmax,xlong
+                
+        field xprmgtgrade
+         caption Grading Keys
+        end field
+        
+        field xdesc
+         caption Description
+         display text
+         width 24
+        end field
+        
+        field xlong
+            captio Note
+            width 25
+            height 3
+//          columns 3
+          end field
+          
+          field xmax
+           caption Max Number of Points
+          end field
+        
+        field show
+           event before
+             set globals(ErrChk) = "1"
+             call chk_access
+           end event
+        end field
+
+        field top
+           event before
+             set globals(ErrChk) = "1"
+             call chk_access
+           end event
+        end field
+
+    	field Add
+           event before
+              set globals(ErrChk) = ""
+              call chk_access
+           end event
+    	end field
+
+    	field Update
+           event before
+              set globals(ErrChk) = ""
+              call chk_access
+           end event
+    	end field
+
+    	field Delete
+           event before
+              set globals(ErrChk) = ""
+              call chk_access
+           end event
+    	end field
+
+    embed onsubmit="submitit(this)"
+    field Complete
+      embed onclick="clicked(this)"
+    end field
+
+     end form
+     
+  script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but = ""
+        function clicked(b){
+          but = "clicked"
+        }
+
+        function submitit(form)
+        {
+          if (but == "clicked")
+          {
+            form.page.value = "praprs"
+            form.searchbutton.value="Find xcode=?"
+          }
+        }
+
+        </script>
+  end script
+
+
+     method chk_access
+       set type = "Page"
+       set object = page
+       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"'")
+       if #result .ne. "true"
+          set tmp = "REC-"
+          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+          if #result .eq. "true" .and. mysql .ne. ""
+             set last_num = 0+#sub(mysql,6)
+          end if
+          set last_num = 1+last_num
+          set mysql = #padl(""+last_num,6,"0")
+          set mysql=tmp+mysql
+          buffer xcriminal
+          set xcriminal.xwornum = mysql
+          set xcriminal.xemail = #user
+          set xcriminal.xdate = #date
+          str tmptime = ""
+          class osbcustom(#time(tmptime))
+          set xcriminal.xtime = tmptime
+          set xcriminal.xobject = page
+          insert xcriminal
+
+          set globals(ErrChk) = "1"
+          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+       end if
+     end method
+	 
+	 valid valid
+		config
+			set header = "Performance Appraisal Detail"
+		end config
+	 end valid
+	 
+
+end page

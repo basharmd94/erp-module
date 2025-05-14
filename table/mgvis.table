@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table mgvis
+	caption "Message Visibility"
+	
+	columns ztime, zutime, zid, xmsgid,zemail,xhide
+	
+	primary key zid,xmsgid,zemail
+	
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+	list xhide
+
+end table

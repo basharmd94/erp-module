@@ -1,0 +1,113 @@
+page prlvyear
+     
+	 embed onload="move_caret('one','xyear')"
+     caption "Leave Year"
+     //sidebar list one
+     sections form one, list one,script myscript,method chk_acc_group,~
+              method chk_access, method chk_command,~
+              method upd_log
+     
+     list one
+     	caption "Added Record(s)"
+        table prlvyear
+        order xempcat,xyear
+        rows 10
+        objects xempcat,xyear attrib(link #servlet+"?page="+page+"&command=Show&xempcat=?&xyear=?"),~
+        		xdateeff,xdateexp
+                
+     end list
+
+ form one
+ 	valid valid
+    table prlvyear
+    order xempcat,xyear
+    layout 1
+    objects Add, Show,Clear,Update, Top, Previous, Delete, Next, Bottom,~
+		xempcat,xyear,xdateeff,xdateexp
+
+    
+    field xempcat
+          //display hide
+		  pick "select xcode from xcodes where zid='"+#id+"' and xtype='Employee Category1'"
+    end field
+    
+    field xyear
+    	event after
+    		set globals(xyear) = xyear
+    		set globals(xempcat) = xempcat
+    	end event
+    end field
+           
+
+    field add
+      event before
+      	set globals(ErrChk) = ""  	
+
+		
+      end event
+    end field
+
+    field Update
+      event before
+      	set globals(ErrChk) = ""   	
+      	
+
+        if globals(ErrChk) .ne. "1"
+        	call upd_log
+        end if
+      end event
+    end field
+    
+    field Delete
+    	event before
+    		set globals(ErrChk) = ""
+    		if globals(ErrChk) .ne. "1"
+    			call upd_log
+    		end if
+    	end event
+    end field
+
+        
+ end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+
+		function submitit(form){
+	    	if (detail=="clicked"){
+            	form.page.value = "glsub"
+            	//return false
+          	}
+        }
+
+        </script>
+    end script
+     
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql     
+				
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(xemp)+"','','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+#time+"','"+page+"','')"
+		set tmpstr =#sql(myqry)		
+     end method
+	      
+	valid valid
+		config
+		end config
+	end valid
+	
+end page

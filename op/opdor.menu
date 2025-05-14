@@ -1,0 +1,10 @@
+//op.menu
+caption "Delivery Order" page 3
+//-------------------------------------------------------------------
+option                             |action
+//-------------------------------------------------------------------
+Manage DO                        	|#classPath+"/"+#servlet+"?page=opdor"
+DO Bill Print                  		|#classPath+"/"+#servlet+"?page=opdorbill"
+DO Goods Delivered                   		|#classPath+"/"+#servlet+"?page=opdordell"
+Invoice Create(AR)                 	|#classPath+"/"+#servlet+"?page=opdorinv"
+//-------------------------------------------------------------------

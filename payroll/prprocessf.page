@@ -1,0 +1,233 @@
+page prprocessf
+
+
+    caption "Payroll Process - Final Run"
+    section form one, method getPSamt, method getESamt, ~
+    	method getTRamt, method getADVamt, ~
+    	method getITamt, method chk_access
+
+    form one
+      layout 1
+      object  Process,~
+              xyear default(#cyear),xper default(#cper),~
+			  xempf,xempt
+
+      field xempf
+         pick list xfemp
+         width 10
+         event before
+            //set globals(xfemp)=xfemp
+         end event
+      end field
+
+      field xempt
+         pick list xtemp
+         width 10
+         //def #char(254)
+         event before
+            //set globals(xtemp)=xtemp
+         end event
+      end field
+
+      field Process
+        event before
+			set globals(ErrChk) = ""
+			set globals(dbase_days) = 0.0D
+			
+			int prvper = 0+xper-1
+			call lastday
+			
+			str startdate = ""          
+			str payyrpr = ""+payyr+""+paypr
+			int offday = 0
+			
+			set payday = #days(xpaydate)-#days(prvdate)+1
+			
+			if xper .eq. "01"
+				set mth = "January"
+			else if xper .eq. "02"
+				set mth = "February"
+			else if xper .eq. "03"
+				set mth = "March"
+			else if xper .eq. "04"
+				set mth = "April"
+			else if xper .eq. "05"
+				set mth = "May"
+			else if xper .eq. "06"
+				set mth = "June"
+			else if xper .eq. "07"
+				set mth = "July"
+			else if xper .eq. "08"
+				set mth = "August"
+			else if xper .eq. "09"
+				set mth = "September"
+			else if xper .eq. "10"
+				set mth = "October"          	
+			else if xper .eq. "11"
+				set mth = "November"
+			else if xper .eq. "12"
+				set mth = "December"
+			end if                    
+          
+			if globals(ErrChk) .ne. "1"
+				call chk_access
+			end if
+          			       
+			if globals(ErrChk) .ne. "1"
+          		set basic_code = #sql("select xprbasic from prdef where zid='"+#id+"' and xprbasicapp='Yes'")
+          		if #result .eq. "true"
+					set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+basic_code+"'")
+					if #result .eq. "false"
+						set globals(ErrChk) = "1"
+						error "<font color=red>Basic Code ("+basic_code +") not found in Payment Head Table</font>"
+					end if
+          		end if
+			end if
+							    		
+	        if globals(ErrChk) .ne. "1"
+          		set pf_code = #sql("select xprpf from prdef where zid='"+#id+"' and xprpfapp='Yes'")
+          		if #result .eq. "true"
+					set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+pf_code+"'")
+					if #result .eq. "false"
+						set globals(ErrChk) = "1"
+						error "<font color=red>P.F. Code ("+pf_code +") not found in Payment Head Table</font>"
+					else
+						set xpfempcont = prdef.xpfempcont("zid='"+#id+"'")
+						set xpfcomcont = prdef.xpfcomcont("zid='"+#id+"'")
+						if xpfempcont <= 0.0 
+							set globals(ErrChk) = "1"
+							error "P.F. Employee Contribution% not found"
+						end if
+						if xpfcomcont < 0.0 
+							set globals(ErrChk) = "1"
+							error "P.F. Company Contribution% not found"
+						end if
+					end if
+          		end if
+          	end if
+
+	        if globals(ErrChk) .ne. "1"
+          		set pfloan_code = #sql("select xprpfloan from prdef where zid='"+#id+"' and xprpfloanapp='Yes'")
+          		if #result .eq. "true"
+					set chkcode = #sql(str,"select xpaycode from prpayhead where zid='"+#id+"' and xpaycode='"+pfloan_code+"'")
+					if #result .eq. "false"
+						set globals(ErrChk) = "1"
+						error "<font color=red>P.F. Loan Code ("+pfloan_code +") not found in Payment Head Table</font>"
+					end if
+          		end if
+          	end if
+                                    
+			if globals(ErrChk) .ne. "1" 
+				set globals(xemp) = xempf
+				set mysql = "select xemp from prmst where zid='"+#id+"' and xstatusemp='A-Active' and xemp>='"+globals(xemp)+"' and xemp<='"+xempt+"' order by zid,xemp"
+				set globals(xemp) = #sql(str,mysql)
+				while #result .eq. "true" .and. globals(xemp) .ne. ""
+	                decimal basic_amt = 0.0
+	                decimal pf_amt = 0.0
+	                decimal comp_cont = 0.0
+	                decimal totamt = 0.0
+	                
+	                set pflag = #sql(str,"select xpflag from prmsg where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'")
+	                if pflag .ne. "1"	                
+						set basic_amt = #sql(decimal,"select xamount from practrndt where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"' and xpaycode='"+basic_code+"'")
+						set pf_amt = #sql(decimal,"select xamount from practrndt where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"' and xpaycode='"+pf_code+"'")
+						set pfloan_amt = #sql(decimal,"select xamount from practrndt where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"' and xpaycode='"+pfloan_code+"'")
+						//print basic_amt+" "+pf_amt+" "+basic_code+" "+pf_code
+						if pf_amt != 0.0
+							compute comp_cont = basic_amt*(xpfcomcont/100)						
+							
+							set totamt= 0.0+pf_amt+comp_cont
+							
+							set chkrec = #sql("select xdate from prpf where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xdate='"+xpaydate+"'")
+							if #result .eq. "true"
+								str mysql = "delete from prpf where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xdate='"+xpaydate+"'"
+								set tmpstr = #sql(str,mysql)
+							end if
+							
+							set myqry = "insert into prpf (ztime,zid,xemp,xdate,xtypetrn,xdesc,xsign,xpfempcont,xpfcomcont,~
+								xtotamt,xremark,zemail,xemail)"
+							set myqry = myqry + " values('"+#time+"','"+#id+"','"+globals(xemp)+"','"+xpaydate+"','AD','Addition',"1",~
+								"+pf_amt+","+comp_cont+","+totamt+",'','"+#user+"','')"
+							set tmpstr = #sql(myqry)
+						end if	
+						
+						if pfloan_amt > 0.0
+							set myqry = "insert into prpf (ztime,zid,xemp,xdate,xtypetrn,xdesc,xsign,xpfempcont,xpfcomcont,~
+								xtotamt,xremark,zemail,xemail)"
+							set myqry = myqry + " values('"+#time+"','"+#id+"','"+globals(xemp)+"','"+xpaydate+"','RF','Addition',"1",~
+								"0","0","+pfloan_amt+",'','"+#user+"','')"
+							set tmpstr = #sql(myqry)
+						end if		
+
+						if basic_amt != 0.0				
+			            	str mysql = "update prmsg set xpflag='1' where zid='"+#id+"' and xpaydate='"+xpaydate+"' and xemp='"+globals(xemp)+"'"
+			            	set tmpstr = #sql(str,mysql)             
+							set target = #sql("select zemail from xusers where zid='"+#id+"' and xemp='"+globals(xemp)+"'")
+							if #result .eq. "true"
+					      		str msg
+					      		text "prpaymsg.email","string msg"
+								mail from=#user;;to=target;;sub="Payroll Processed for "+prmst.xname(xemp)+" ("+xemp+")" ;;message=msg
+							end if
+						end if
+					end if
+					set mysql = "select xemp from prmst where zid='"+#id+"' and xstatusemp='A-Active' and xemp>'"+globals(xemp)+"' and xemp<='"+xempt+"' order by zid,xemp"
+					set globals(xemp) = #sql(str,mysql)
+				end while
+				
+				if globals(ErrChk) .ne. "1"
+					print "Final Run Payroll Processing Completed"
+				end if
+			end if
+		end event
+	end field
+
+   end form
+
+     
+
+     method lastday
+	  	int day = 0	
+	  	set salcal = prdef.xprsalcalc("zid='"+#id+"'")
+	  	if #result .ne. "true"
+	  		set globals(ErrChk) = "1"
+	  		error "Payroll Default not defined"
+	  	end if
+	  	
+	  	if globals(ErrChk) .ne. "1"
+			if salcal .eq. "Last Day"
+				if xper .eq. "01" .or. xper .eq. "03" .or. xper .eq. "05" .or. xper .eq. "07" .or. xper .eq. "08" .or. xper .eq. "10" .or. xper .eq. "12"
+					int day = 31
+				else if xper .eq. "1" .or. xper .eq. "3" .or. xper .eq. "5" .or. xper .eq. "7" .or. xper .eq. "8" .or. xper .eq. "10" .or. xper .eq. "12"
+					int day = 31
+				end if
+				if xper .eq. "04" .or. xper .eq. "06" .or. xper .eq. "09" .or. xper .eq. "11"
+					int day = 30
+				else if xper .eq. "4" .or. xper .eq. "6" .or. xper .eq. "9" .or. xper .eq. "11"
+					int day = 30
+				end if
+				if xper .eq. "02"
+					int day = 29 
+				else if xper .eq. "2" 
+					int day = 29
+				end if
+	          	set prvdate = xyear+"-"+xper+"-01"
+			else if salcal .eq. "Custom"
+	      		set chkday = prdef.xperend("zid='"+#id+"'")
+	      		if chkday == 0 .or. #result .eq. "false"
+      				set globals(ErrChk) = "1"
+      				error "Period ending date not defined in Setup table"
+	      		else
+					int day = prdef.xperend("zid='"+#id+"'")+1 
+		          	int prvday = 0+prdef.xperend("zid='"+#id+"'")+1
+	      		end if
+	      		set prvdate = xyear+"-"+prvper+"-"+prvday
+	      		//print prvdate
+			end if
+			
+          	set tmpdate = xyear+"-"+xper+"-"+day
+          	set temp = #days(tmpdate)
+          	set xpaydate=#longtodate(temp)
+		end if            
+     end method
+   
+end page

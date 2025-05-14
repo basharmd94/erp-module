@@ -1,0 +1,183 @@
+page opodttop
+ 
+	caption header 
+	
+     sidebar list opodt
+     sections form one, list active, script myscript
+	 
+     list opodt
+        caption "<font size=2>Item(s) Added</font>"
+        table  opodttop
+        order xordernum,xrow
+        fixed xordernum
+        rows 10
+        objects xrow attrib(link #servlet+"?page=opodttop&command=Show&xordernum=?&xrow=?"), ~
+                xinvnum,xcus,~
+				Customer_Name equals((select xorg from cacus where zid=opodttop.zid and xcus=opodttop.xcus)),~
+				xarea,xsp,xlineamt
+
+        totals count,"Totals","","","","",sum,sum,sum,sum,sum
+
+     end list
+
+	 
+     
+		form one
+			valid valid
+			table opodttop
+			order xordernum,xrow desc
+			fixed xordernum
+			layout 2
+			default Show
+			objects ~
+			Show,Clear,Add,Update,Previous,Delete,Next,Return,~                
+			xrow attrib(row 0 1),xinvnum attrib(submit),xcus display(const) atrrib(submit;attach),cusname,~
+			xarea display(const),xsp display(const) attrib(attach),spname,xlineamt display(const),xemail1,zemail,xemail
+
+
+			field zemail
+				display const
+				caption Added By
+			end field
+			
+			field spname
+				display const
+				attrib local
+				event after
+					set spname=#sql("select xname from prmst where zid='"+#id+"' and xemp='"+xsp+"'")
+				end event
+			end field
+			
+		 field xcity
+		   display ocombo
+            pick "select xcode from xcodes  where zid='"+#id+"' and xtype='Area'"
+         end field
+			
+
+			field xemail
+				display const
+				caption Updated By
+			end field
+			
+			field xinvnum
+				caption Customer No
+				pick list opord
+				event after
+					set xcus=#sql("select xcus from opord where zid='"+#id+"' and xordernum='"+xinvnum+"'")
+					set xarea=#sql("select xdiv from opord where zid='"+#id+"' and xordernum='"+xinvnum+"'")
+					set xsp=#sql("select xsp from opord where zid='"+#id+"' and xordernum='"+xinvnum+"'")
+					set xlineamt=#sql("select xtotamt from opord where zid='"+#id+"' and xordernum='"+xinvnum+"'")
+				end event
+			end field
+			
+			field xlineamt
+				caption Total Amount
+			end field
+			
+			field cusname
+				attrib local
+				display const
+				event after
+					set cusname=#sql("select xorg from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+				end event
+			end field
+
+			field xemail1
+				display hide
+				caption Approve By
+			end field
+
+
+			field Add
+				event before
+					set globals(ErrChk) = ""
+					
+					if globals(ErrChk) .ne. "1"
+						set chkord=#sql("select xinvnum from opodttop where zid='"+#id+"' and xinvnum='"+xinvnum+"'")
+						set chktop=#sql("select xordernum from opodttop where zid='"+#id+"' and xinvnum='"+xinvnum+"'")
+						//error chkord+" "+chktop
+						if #result .eq. "true"
+							set globals(ErrChk)="1"
+							error "<font color=red size=+2> Already Added this Order No '"+chkord+"' in this Top Sheet No :"+chktop
+						end if
+					end if
+					
+					
+				end event
+			end field
+
+			field update
+				event before
+					set globals(ErrChk) = ""
+					
+					if globals(ErrChk) .ne. "1"
+						set chkord=#sql("select xinvnum from opodttop where zid='"+#id+"' and xinvnum='"+xinvnum+"'")
+						set chktop=#sql("select xordernum from opodttop where zid='"+#id+"' and xinvnum='"+xinvnum+"'")
+						//error chkord+" "+chktop
+						if #result .eq. "true"
+							set globals(ErrChk)="1"
+							error "<font color=red size=+2> Already Added this Order No '"+chkord+"' in this Top Sheet No :"+chktop
+						end if
+					end if
+					
+				end event
+			end field
+
+			field Delete
+				event before
+					set globals(ErrChk) = ""
+				end event
+			end field
+			
+			embed onsubmit="submitit(this)"
+			field Return
+				embed onclick="clicked(this)"
+			end field
+
+			field Payment
+				embed onclick="Payment(this)"
+			end field
+
+		end form
+
+     script myscript
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+          button=b.value
+        }
+
+        function Payment(b){
+          button=b.value
+        }
+
+        function submitit(form){
+          if (button=="Return"){
+            form.page.value = "opordtop"
+            form.searchbutton.value = "Find xordernum=?"
+            //return false
+          }else if (button=="Payment"){
+            form.page.value = "opamt"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        </script>
+     end script
+
+
+     valid valid
+     	config
+			
+			
+			set chkstatus=#sql("select xstatusord from opordtop where zid='"+#id+"' and xordernum='"+xordernum+"'")
+			if chkstatus .eq. "Completed"
+				set #field(Add.display)="disable"
+				set #field(Delete.display)="disable"
+				set #field(Update.display)="disable"
+			end if
+			//print globals(xordernum)
+     	end config
+     end valid
+          
+end page

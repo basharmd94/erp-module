@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table prclubdet
+  caption "Employee Master"
+  columns ztime,zutime,zid,xemp,xrow,xmemtype,xdate,xannfee,xinstut,~
+          xremarks,zemail,xemail,ztype
+
+  primary key zid,xemp,xrow
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xemp references prmst.zid,xemp
+  end foreign key
+ 
+end table

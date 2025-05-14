@@ -1,0 +1,20 @@
+product ERP on the Net
+
+table opord
+
+  caption "Customer Order"
+  columns ztime,zutime,zid,xordernum,xdate,xcus,xcuspo,xdatecuspo,xdiv,xsec,xproj,~
+          xstatusord,xappamt,xappcode,xcur,xexch,xdisc,xdiscf,xwh,zemail,xemail,~
+          xdtwotax,xdtdisc,xdttax,xval,xdiscamt,xtotamt,xsp,xremark,xsltype,xsalescat,~
+          xtrnord,xdocnum,xdtcomm,xteam,xmember,xmanager,xinvrule,xquoteby,xref,~
+          xcounterno,xyear,xper,xdept,xemp,xpflag,xtaxed,xstr01,xinvnum,xdornum,xwhoption,~
+          xmethodpay,xthana
+
+  primary key zid, xordernum
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xcus references cacus.zid,xcus
+  end foreign key
+  
+end table

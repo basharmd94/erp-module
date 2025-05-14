@@ -1,0 +1,11 @@
+//BOM.menu
+caption "BOM" page 3
+//---------------------------------------------------------------------------------------
+option                  |action                                          |modules|models
+//---------------------------------------------------------------------------------------
+Bill of Materials       |#classPath+"/"+#servlet+"?page=bmbom"                 |
+//Item Master             |#classPath+"/"+#servlet+"?menu=caitems"                 |
+//Create BOM from Similar BOM |#classPath+"/"+#servlet+"?page=BmBomS"                 |
+//Non-Stock Items for BOM |#classPath+"/"+#servlet+"?page=bmnstkh"                |
+//-------------------------------------------------------------------
+

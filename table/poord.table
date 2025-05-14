@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table poord
+  caption "Purchase Order"
+  columns ztime,zutime,zid,xpornum,xdate,xsup,xsupref,xdatesupref,xdiv,xsec,xproj,~
+          xstatuspor,xappamt,xpartial,xcur,xexch,xcoststat,xrem,xwh,xtempstr1,~
+          xdisc,xdtwotax,xdtdisc,xdttax,xval,xdiscamt,xtotamt,zemail,xemail,xtrnpor,~
+          xtypepor,xwhoption,xteam,xmember,xmanager,xcounterno
+          
+
+  primary key zid, xpornum
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xsup references casup.zid,xsup
+  end foreign key
+
+end table

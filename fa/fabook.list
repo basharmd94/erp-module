@@ -1,0 +1,12 @@
+list fabook
+        table xcodes
+        order xcode
+        select "xtype='FA Book'"
+        navigators alpha
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xastbook')"), ~
+                xlong
+
+
+     end list
+

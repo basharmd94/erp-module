@@ -1,0 +1,712 @@
+page poodtimptemp
+
+    caption "<span class=bl>Details for I.P.O. : <a href=/da/portal?page=poordimptemp&command=Show&xpornum="+xpornum+">" +xpornum+ "</a></span>"
+    embed onload="move_caret('detail','xitem')"
+
+    sidebar  list details, list Item_Details
+    sections form detail,list sup, text top, script myscript//list poord,
+
+    text top
+        "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list poord
+        caption "<font size=2>P.O. Number "+globals(xpornum)
+        table poordtemp
+        order xpornum
+        fixed xpornum
+        select "zid='"+#id+"' and xtypepor='Import'"
+        rows 1
+        objects xpornum attrib(link #servlet+"?page=poordimptemp&command=Show&xpornum=?"), ~
+                xsup,supdesc equals((select xorg from casup where zid=poordtemp.zid and xsup=poordtemp.xsup)),~
+                xdtwotax,xdttax,xtotamt
+
+        field xpornum
+            caption P.O. Number
+        end field
+
+        field supdesc
+            caption Name
+            storage varchar
+        end field
+
+        field xdtwotax
+            caption Amount w/o Tax
+        end field
+
+        field xdttax
+            caption Tax
+        end field
+
+    end list
+
+    list Item_Details
+        caption "Quotation Details"
+        table poappqot
+        order xitem,xpoqot
+        select "zid='"+#id+"' and xsup = '"+globals(xsup)+"'"
+        rows 2
+        objects xitem attrib(link "abc" embed onclick="return pickItemQot(this:qty#:rate#:qotno#:lno#)"),~
+                itemdesc equals((select xdesc from caitem where zid=poappqot.zid and xitem=poappqot.xitem)),~
+                xqtyord attrib(name qty#),xrate attrib(name rate#),xpoqot attrib(name qotno#),xline attrib(name lno#)
+
+        field xbalqty
+            caption Bal. Qty
+        end field
+
+        field xref
+            caption Reference
+            storage varchar
+        end field
+
+        field xsrqnum
+            caption Requisition No.
+        end field
+
+        field xqtyord
+            len 10.2
+        end field
+
+        field xrate
+            caption Unit Rate
+            len 10.2
+        end field
+        
+        field itemdesc
+            caption Description
+        end field
+
+    end list
+
+
+    list details
+        caption "Item(s) Added"
+        table poodttemp
+        order xpornum,xrow
+        fixed xpornum
+        select "zid='"+#id+"'"
+        rows 20
+        objects xrow attrib(link #servlet+"?page=poodtimptemp&command=Show&xpornum=?&xrow=?"), ~
+                xitem, desc equals((select xdesc from caitem where zid=poodttemp.zid and xitem=poodttemp.xitem)),~
+                xunitpur,xqtyord,xrate,xlineamt
+
+        totals "Total","","","","","",sum
+
+        field xcur
+            caption Cur
+        end field
+
+        field desc
+            storage varchar
+            caption Description
+        end field
+
+        field xqtyord
+            len 10.2
+        end field
+
+        field xrate
+            caption Unit Rate
+            len 10.2
+        end field
+
+    end list
+
+    list sup
+        caption "Last Buying Prices for <font color=red >"+xitem+"</font>: "+caitem.xdesc("zid='"+#id+"' and xitem='"+xitem+"'")+"</b>"
+        table poodtview
+        order xitem,xsup,xdate desc
+        fixed xitem,xsup
+        select "zid='"+#id+"'"
+        rows 5 f
+        objects ~
+            xdate,xpornum,xrow,xqtyord,xrate
+
+        field xqtyord
+            len 10.2
+        end field
+
+        field xrate
+            caption Unit Rate
+            len 10.2
+        end field
+
+    end list
+
+     form detail
+        //caption "Details"
+        valid detail,access
+        table poodttemp
+        order xpornum,xrow
+        fixed xpornum
+        select "zid='"+#id+"'"
+        layout 2
+        objects Show,Add, Update, Clear, Top, Previous, Delete, Next, Bottom,Return,~
+                xrow attrib(row 0 1),xstatuspdt display(hide), xcode display(hide), ~
+                xitem attrib(submit;attach),itemdesc ,xqtyord attrib(attach), ~
+                xunitpur display(const),xdatesch default(#d),~
+                xcodebasis attrib(hidden),xlong attrib(hidden),xstype attrib(hidden),~
+                xwh display(hide), xdropship attrib(hidden), ~
+                xcur display(hide),xexch display(hide),~
+                xcfpur attrib(hidden),xqtystk attrib(hidden),~
+                xwtunit attrib(hidden),xunitwt attrib(hidden),~
+                xpricebasis attrib(hidden), xrate,xdisc displa(hide),xdiscf display(hide),~
+                xmargin attrib(hidden),xcomm attrib(hidden),~
+                xcurprice attrib(hidden),xexchbuy attrib(hidden),xprice attrib(hidden),~
+                xtaxcat attrib(hidden), xtaxcode1 ,xtaxrate1 attrib(hidden),~
+                xtaxcode2 attrib(hidden),xtaxrate2 attrib(hidden),~
+                xtaxcode3 attrib(hidden),xtaxrate3 attrib(hidden),~
+                xtaxcode4 attrib(hidden),xtaxrate4 attrib(hidden),~
+                xtaxcode5 attrib(hidden),xtaxrate5 attrib(hidden),~
+                xdttax display(const),xdtdisc display(hide),~
+                xdtwotax display(const),xlineamt display(const),~
+                xpoqot display(const),xline display(hide),xtempstr1 display(hide),~
+                xqtygrn display(const),xlandcost display(const),xbatch display(hide),~
+                xcompwh display(hide)
+
+        field Item_search
+          event before
+            class osbcustom(search(xitem,"s","caitem","xitem:xdesc","pickItem","xitem:xdesc:xgitem","yes","Code:Description:Group"))
+            //class osbcustom(search)
+//  p1 -  Search String
+//  p2 -  Search Type: s - Starts with, e - Ends With, A - Any Where
+//  p3 -  Table Name
+//  p4 -  Table Field Name; For multiple fields, use colon(:) as field seperator
+//  p5 -  Pick Script Name
+//  p6 -  Fields To be Shown in Search Result
+//  p7 -  Search List Header; Yes, Default No
+//  p8 -  if header is Yes the Field Heading to show, if ommitted then fields name will be header name
+          end event
+        end field
+
+        field Quotation_search
+          event before
+            class osbcustom(search(xitem,"s","poordqot","xitem:xpoqot","pickItemQot:xitem:xqtyord:xrate:xpoqot:xline","xitem:xdesc:xqtyord:xrate:xpoqot:xdate:xline","yes","Item:Descrption:Quantity:Rate:Quotation No.:Date:Line No."))
+            //class osbcustom(search(xitem,"s","poordqot inner join caitem on caitem.zid=poordqot.zid and caitem.xitem=poordqot.xitem","poordqot.xitem:poordqot.xpoqot","pickItemQot:xitem:xqtyord:xrate:xpoqot:xline","xitem:caitem.xdesc:xqtyord:xrate:xpoqot:xline","yes","Item:Description:Quantity:Rate:Quotation No.:Line No."))
+//  p1 -  Search String
+//  p2 -  Search Type: s - Starts with, e - Ends With, A - Any Where
+//  p3 -  Table Name
+//  p4 -  Table Field Name; For multiple fields, use colon(:) as field seperator
+//  p5 -  Pick Script Name
+//  p6 -  Fields To be Shown in Search Result
+//  p7 -  Search List Header; Yes, Default No
+//  p8 -  if header is Yes the Field Heading to show, if ommitted then fields name will be header name
+          end event
+        end field
+
+
+        field show
+        	event before
+        		set globals(temp) = xrow
+        		set globals(tempitem)=xitem
+        	end event
+        	event after
+        		set globals(temp) = xrow
+        		set globals(tempitem)=xitem
+        	end event
+        end field
+
+        field Top
+        	event after
+        		set globals(temp) = xrow
+        		set globals(tempitem)=xitem
+        	end event
+        end field
+
+        field xrow
+            event after
+                set globals(xrow)=xrow
+
+                if xstatuspdt .eq. #status("xstatuspdt",1)
+                    set #field(Schedule.display) = "disabled"
+                    set #field(Undo.display) = "disabled"
+                else if xstatuspdt .eq. #status("xstatuspdt",2)
+                    set #field(Verify.display) = "disabled"
+                else if xstatuspdt .eq. #status("xstatuspdt",3)
+                    set #field(Schedule.display) = "disabled"
+                    set #field(Verify.display) = "disabled"
+                    set #field(Delete.display) = "disabled"
+                else
+                    set #field(Schedule.display) = "disabled"
+                    set #field(Undo.display) = "disabled"
+                end if
+                if xqtygrn <> 0 .and. xqtygrn >= xqtyord
+                    set #field(Update.display) = "disabled"
+                    set #field(Delete.display) = "disabled"
+                    set #field(Undo.display) = "disabled"
+                end if
+                set statuspor=#sql("select xstatuspor from poordtemp where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                if statuspor .ge. #status("xstatuspor",4)
+                    set #field(xitem->.display) = "constant"
+                    set #field(Update.display) = "disabled"
+                    set #field(Delete.display) = "disabled"
+                    set #field(Clear.display) = "disabled"
+                    set #field(Add.display) = "disabled"
+                end if
+            end event
+        end field
+
+        field xitem
+            event after
+                set globals(xitem)=xitem
+            end event
+        end field
+
+        field itemdesc
+            attrib local
+            display const
+            caption Description
+            event after
+                set itemdesc = #sql(str,"select xdesc from caitem where zid='"+#id+"' and xitem='"+globals(xitem)+"'")
+            end event
+        end field
+
+        field xcode
+            event after
+                if xitem .eq. ""
+                  // ** if xcode used *** set #field(xitem.display)="hidden"
+                end if
+            end event
+        end field
+
+        field xqtyord
+            len 10.2
+            event after
+                set globals(xqtyord) = poodttemp.xqtyord("zid='"+#id+"' and xpornum='"+globals(xpornum)+"' and xrow='"+globals(xrow)+"'")
+            end event
+        end field
+
+        field xrate
+            caption Unit Rate
+            len 10.2
+        end field
+        
+        field xqtygrn
+            len 10.2
+        end field
+        
+        field xlandcost
+            len 10.2
+        end field
+
+        field comment
+            attrib local
+            caption
+            display const
+            event after
+                if xrow > 0
+                    if xwh .ne. xcompwh
+                        set comment="Warehouse Changed"
+                    else
+                        set comment=""
+                    end if
+                end if
+            end event
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk) = ""
+                set globals(ErrMsg) = ""
+
+                if xqtyord <= 0
+                    set xqtyord = 1
+                end if
+
+                set xstatuspdt = ""
+                set xdate=globals(xdate)
+                set xqtygrn = 0
+                set xqtystk = 0
+                set xtempstr1 = "Import"
+                set xtaxcode2 = ""
+                set xtaxcode3 = ""
+                set xtaxcode4 = ""
+                set xtaxcode5 = ""
+                set xtaxrate1 = 0
+                set xtaxrate2 = 0
+                set xtaxrate3 = 0
+                set xtaxrate4 = 0
+                set xtaxrate5 = 0
+
+                set xwh=poordtemp.xwh("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                set xcur=poordtemp.xcur("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                set xexch=poordtemp.xexch("zid='"+#id+"' and xpornum='"+xpornum+"'")
+
+                set xcurprice = ""
+                set xexchbuy = 0.0
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_code
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_price
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call upd_tax
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call upd_price
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set zemail=#user
+                    set xcompwh=xwh
+                end if
+            end event
+
+            event after
+                if globals(ErrChk) .ne. "1"
+                    call upd_stath
+                end if
+            end event
+        end field
+
+        field update
+            event before
+                set globals(ErrChk) = ""
+                set globals(flagchk) = ""
+                set globals(ErrMsg) = ""
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(xrow)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(temp)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xitem .ne. globals(tempitem)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_item
+                    call chk_code
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_price
+                    call upd_tax
+                    call upd_price
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xemail = #user
+                    set xcompwh=xwh
+                    set xwh=poordtemp.xwh("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set xcur=poordtemp.xcur("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set xexch=poordtemp.xexch("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                end if
+            end event
+            event after
+                if globals(ErrChk) .ne. "1"
+                    call upd_stath
+                end if
+            end event
+        end field
+
+        field delete
+            event before
+                set globals(ErrChk) = ""
+                set globals(flagchk) = ""
+                set globals(ErrMsg) = ""
+                set globals(old_qot) = xpoqot
+            
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(xrow)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xrow .ne. globals(temp)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xitem .ne. globals(tempitem)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+            end event
+
+            event after
+                if globals(ErrChk) .ne. "1"
+                    call upd_stath
+                end if
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+            embed onclick="clicked(this)"
+        end field
+
+        field Details
+          embed onclick="back(this)"
+        end field
+        
+     end form
+
+     script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+            $.hotkeys.add('Ctrl+s',function(){
+                //alert('Pressed Ctrl+s');
+                var form=document.forms[0];
+                form.searchbutton.value="Add";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+e',function(){
+                //alert('Pressed Ctrl+e');
+                var form=document.forms[0];
+                form.searchbutton.value="Update";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+d',function(){
+                //alert('Pressed Ctrl+d');
+                var form=document.forms[0];
+                form.searchbutton.value="Delete";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+r',function(){
+                //alert('Pressed Ctrl+r');
+                var form=document.forms[0];
+                form.searchbutton.value="Clear";
+                form.submit();
+            });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+
+        function back(b){
+          b.value = "Top"
+          detail="back"
+        }
+
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "poordimptemp"
+            form.searchbutton.value = "Find xpornum=?"
+            //return false
+          }else if (detail=="back"){
+            form.page.value= "poodtreqimp"
+            form.searchbutton.value = "Top"
+         }
+        }
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.detail.xitem.xvalue=link.text
+          }else{
+            document.detail.xitem.value=link.innerText
+          }
+          return false
+        }
+
+        function pickItemQot(link,qty,rate,qotno,line){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.detail.xitem.value=link.text
+            document.detail.xqtyord.value=qty.text
+            document.detail.xrate.value=rate.text
+            document.detail.xpoqot.value=qotno.text
+            document.detail.xline.value=line.text
+          }else{
+            document.detail.xitem.value=link.innerText
+            document.detail.xqtyord.value=qty.innerText
+            document.detail.xrate.value=rate.innerText
+            document.detail.xpoqot.value=qotno.innerText
+            document.detail.xline.value=line.innerText
+          }
+          return false
+        }
+
+
+        </script>
+     end script
+
+    method chk_code
+        set tmpcode=xitem
+        buffer caitem
+        move caitem=caitem(xitem)
+        if #command .eq. "Add"
+            if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Wrong Item Code"
+            else
+                set xitem = caitem.xitem
+                set xstype = caitem.xstype
+                set xunitpur = caitem.xunitpur
+                if caitem.xcfpur == 0.0
+                    set xcfpur = 1.0
+                else
+                    set xcfpur = 0.0+caitem.xcfpur
+                end if
+
+                set xcode = xitem
+                set xtaxcat = caitem.xtaxcat
+                set xcodebasis = "Our Code"
+                set xstatuspdt = "Item Verified"
+            end if
+        else
+            set xtaxcat = caitem.xtaxcat
+        end if
+    end method
+
+    method chk_rec
+        if globals(ErrChk) .ne. "1"
+            set statuspor = poordtemp.xstatuspor("zid='"+#id+"' and xpornum='"+xpornum+"'")
+            if statuspor .ne. #status("xstatuspor",1)
+                set globals(ErrChk) = "1"
+                error "Cannot "+#command+"</p>Status "+statuspor
+            end if
+        end if
+    end method
+
+     method chk_price
+        str tmpcatg = ""
+        str mysql = ""
+        decimal tmpval = 0.0
+
+        buffer caitem
+        move caitem=caitem(xitem)
+
+        if caitem.xstdcost <= 0
+          set globals(ErrChk) = "1"
+          error "Item price undefined"
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          set xpricebasis = "Standard Cost"
+          set xcurprice = caitem.xcurprice
+          set xprice = 0.0+caitem.xstdcost
+          set tmpcatg = ""+caitem.xpricecat
+
+          set mysql = "select xexchbuy from xcur where zid='"+#id+"' and xcur='"+xcurprice+"'"
+          set tmpval = 0.0+#sql(decimal,mysql)
+          if #result .eq. "true"
+            set xexchbuy = 0.0+tmpval
+          end if
+
+          if xrate <= 0
+            set xrate= 0.0+(xprice*xexchbuy/xexch)
+          else
+            set xpricebasis = "Entered"
+          end if
+			
+          if xdisc > 0.0
+          else
+	          set mysql = "select xdisc from podis where zid='"+#id+"' and xpricecat='"+tmpcatg+"' and xqty<="+xqtyord+" order by zid,xpricecat,xqty DESC"
+	          set tmpval = 0.0
+	          set tmpval = 0.0+#sql(decimal, mysql)
+	          if #result .eq. "true" .and. tmpval > 0
+	            set xdisc = 0.0+tmpval
+	          end if
+		  end if
+          set mysql = "select xcomm from podis where zid='"+#id+"' and xpricecat='"+tmpcatg+"' and xqty<="+xqtyord+" order by zid,xpricecat,xqty DESC"
+          set tmpval = 0.0
+          set tmpval = 0.0+#sql(decimal, mysql)
+          if #result .eq. "true" .and. tmpval > 0
+           set xcomm = 0.0+tmpval
+          else
+            set xcomm = 0.0
+          end if
+
+          if #field(xdiscf.display) .sw. "Con" .or. #field(xdiscf.display) .sw. "con" .or. #field(xdiscf.display) .sw. "Hid" .or. #field(xdiscf.display) .sw. "hid"
+            set xdiscf = 0.0
+          end if
+          set xstatuspdt = "Priced"
+        end if
+     end method
+
+    method upd_tax
+        set xtaxscope = #sql("select xtaxscope from casup where zid='"+#id+"' and xsup='"+globals(xsup)+"'")
+        str mysql = "select xtaxrate from catax where zid='"+#id+"' and xtaxcode='"+xtaxcode1+"' and xtaxscope='"+xtaxscope+"' and xtaxcat='"+xtaxcat+"'"
+        set xtaxrate1 = #sql(str,mysql)
+        if #result .ne. "true"
+            set xtaxrate1=0.0
+        end if
+    end method
+
+    method upd_price
+        set xdtwotax = 0.0+xrate*xqtyord
+        if xtaxrate1 > 0.0
+            set xtaxrate1 = 0.00+xtaxrate1
+            set tempval=0.0+xtaxrate1/100
+            set xdttax = xdtwotax*tempval
+        end if
+        if xdisc > 0
+            set xdisc = 0.00+xdisc
+            set tempdisc=0.0+xdisc/100
+            set xdtdisc = xdtwotax*tempdisc
+        end if
+        set xlineamt = 0.0+xdtwotax-xdtdisc-xdiscf+xdttax
+    end method
+
+    method upd_stath
+        set totdisc = #sql(decimal,"select sum(xdtdisc) from poodttemp where zid='"+#id+"' and xpornum='"+globals(xpornum)+"'")
+        set tottax = #sql(decimal,"select sum(xdttax) from poodttemp where zid='"+#id+"' and xpornum='"+globals(xpornum)+"'")
+        set totwotax = #sql(decimal,"select sum(xdtwotax) from poodttemp where zid='"+#id+"' and xpornum='"+globals(xpornum)+"'")
+        set totgamt = #sql(decimal,"select sum(xdtwotax+xdttax) from poodttemp where zid='"+#id+"' and xpornum='"+globals(xpornum)+"'")
+        set totamt = #sql(decimal,"select sum(xlineamt) from poodttemp where zid='"+#id+"' and xpornum='"+globals(xpornum)+"'")
+        str mysql = "update poordtemp set xdttax="+tottax+",xdtdisc="+totdisc+",xdtwotax="+totwotax+",xval="+totgamt+",xtotamt="+totamt+" where zid='"+#id+"' and xpornum='"+globals(xpornum)+"'"
+        set tmpstr = #sql(str,mysql)
+    end method
+
+    valid detail
+        mandatory xitem
+        config
+            set globals(pkey) = xpornum+" "+xrow
+            set tpage = "poodtimptemp"
+            set itemdesc = #sql("select xdesc from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+            if xunitpur .eq. ""
+                set xunitpur=caitem.xunitpur("zid='"+#id+"' and xitem='"+xitem+"'")
+            end if
+        end config
+    end valid
+
+#include access.valid
+
+end page

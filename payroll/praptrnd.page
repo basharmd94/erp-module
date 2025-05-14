@@ -1,0 +1,147 @@
+page praptrnd
+
+	embed onload="move_caret('one','xjobfactor')"
+	caption "Performance Appraisal of Employee " +xemp+ "</a></span>"+" ("+globals(xname)+")"
+	section form one,list one, script myscript,~
+		method mustcheck, method calc_score, method upd_header
+
+  list one
+    caption "<font color=black size=2>"+globals(xaprstype)+" Performance Appraisal of <font color=red>"+globals(name)+"</font></font>"
+     table praptrnd
+     order xemp,xdatefrom,xdateto,xaprstype,xjobfactor
+     fixed xemp,xdatefrom,xdateto,xaprstype
+     rows 20
+     objects xjobfactor attrib(link #servlet+"?page="+page+"&command=Show&xjobfactor=?"),~
+             xmgtgrade,xscore,xbase
+             
+     totals "Total","","",sum
+     
+     field xbase
+        caption Sub Score
+     end field
+
+  end list
+
+  form one
+    //caption "<font color=black size=4>"+globals(xaprstype)+" Performance Appraisal of <font color=white></p>"+globals(name)+"</font></font>"
+    table praptrnd
+    order xemp,xdatefrom,xdateto,xaprstype,xjobfactor
+    fixed xemp,xdatefrom,xdateto,xaprstype
+    layout 1
+    objects Add,Show,Clear,Update,Delete,Previous, Next, Top, Bottom,Return,~
+            xjobfactor,xmgtgrade,xscore display(const),xmargin,xbase,xlong,~
+      	   zemail display(hide),xemail display(hide)
+
+    field xlong
+     caption Remarks
+     widht 50
+     height 3
+    end field
+    
+    field xmargin
+      caption Weight %
+      display const
+    end field
+    
+    field xbase
+      caption Sub Score
+      display const
+    end field
+    
+    field Add
+      event before
+         set globals(ErrChk) = ""
+         call mustcheck
+         if globals(ErrChk) .eq. ""
+            call calc_score
+         end if
+      end event
+      event after
+        call upd_header
+      end event
+    end field
+
+    embed onsubmit="submitit(this)"
+    field Return
+      embed onclick="clicked(this)"
+    end field
+
+  end form
+     
+   method mustcheck
+      set factor = #sql(str,"select xcode from xcodes where xtype='Job Factor' and xcode='"+xjobfactor+"'")
+      if #result .eq. "false"
+         set globals(ErrChk) = "1"
+         error "Please enter/select "+#field(xjobfactor.caption)
+      end if
+      if globals(ErrChk) .eq. ""
+         set grade = #sql(str,"select xcode from xcodes where xtype='Grading Key' and xcode='"+xmgtgrade+"'")
+         if #result .eq. "false"
+            set globals(ErrChk) = "1"
+            error "Please enter/select "+#field(xmgtgrade.caption)
+         end if
+      end if
+      if globals(ErrChk) .eq. ""
+         set chkrec=#sql(str,"select xjobfactor from praptrnd where xemp='"+xemp+"' and xdatefrom ='"+xdatefrom+"' and xdateto='"+xdateto+"' and xaprstype='"+xaprstype+"' and xjobfactor='"+xjobfactor+"'")
+         if #result .eq. "true"
+            set globals(ErrChk)="1"
+            error "Duplicate Record</p>Cannot "+#command
+         end if
+      end if
+   end method
+   
+   method calc_score
+      decimal tmp=0.00
+      //class osbcustom(get_code_prop("Grading Key", xmgtgrade,"Point",xscore))
+   	  set xprops = #sql("select xprops from xcodes where xtype='Grading Key' and xcode='"+xmgtgrade+"'")
+   	  set xscore=#prop(xprops,"Point")          	 
+      
+   	  //class osbcustom(get_code_prop("Job Factor", xjobfactor,"Weight%",xmargin))
+   	  set xprops = #sql("select xprops from xcodes where xtype='Job Factor' and xcode='"+xjobfactor+"'")
+   	  set xmargin=#prop(xprops,"Weight%")          	 
+   	  
+   	  set tmp = 0.00+xmargin/100
+   	  set xbase = 0.00+xscore*tmp
+      //class osbcustom(#calc(xmargin,100,"/",2,tmp))
+      //class osbcustom(#calc(xscore,tmp,"*",2,xbase))
+   end method
+   
+   method upd_header
+      set pe_score = #sql(double,"select sum(xbase) from praptrnd where xemp='"+xemp+"' and xdatefrom ='"+xdatefrom+"' and xdateto='"+xdateto+"' and xaprstype='"+xaprstype+"'")
+      set pe_grade = #sql(str,"select xmgtgrade from praprstype where xaprstype = '"+xaprstype+"' and xrate >= '"+pe_score+"' and xscore <= '"+pe_score+"'")
+      set pe_stat = #sql(str,"select xstataprs from praprstype where xaprstype = '"+xaprstype+"' and xmgtgrade = '"+pe_grade+"'")
+
+      //print "Score "+pe_score+ "Grade "+pe_grade+" Status "+pe_stat
+      str mysql = "update praptrn set xappamt="+pe_score+" where xemp='"+xemp+"' and xdatefrom ='"+xdatefrom+"' and xdateto='"+xdateto+"' and xaprstype='"+xaprstype+"'"
+      set updval = #sql(str,mysql)
+
+      str mysql = "update praptrn set xtempstr1='"+pe_grade+"' where xemp='"+xemp+"' and xdatefrom ='"+xdatefrom+"' and xdateto='"+xdateto+"' and xaprstype='"+xaprstype+"'"
+      set updval = #sql(str,mysql)
+
+      str mysql = "update praptrn set xstataprs='"+pe_stat+"' where xemp='"+xemp+"' and xdatefrom ='"+xdatefrom+"' and xdateto='"+xdateto+"' and xaprstype='"+xaprstype+"'"
+      set updval = #sql(str,mysql)
+   end method
+
+   script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but = ""
+        function clicked(b){
+          but = "clicked"
+        }
+
+        function submitit(form)
+        {
+          if (but == "clicked")
+          {
+            form.page.value = "praptrn"
+            form.searchbutton.value="Find xemp=?&xdatefrom=?&xdateto=?&xaprstype=?"
+          }
+        }
+
+        </script>
+  end script
+
+end page
+
+

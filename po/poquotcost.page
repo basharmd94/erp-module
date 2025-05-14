@@ -1,0 +1,272 @@
+page poquotcost
+
+    caption "Quotation Cost"
+    sidebar list one
+    sections form one, script myscript
+     
+    list one
+        table poquotcost
+        order xpoqot,xname
+        fixed xpoqot
+        select "zid='"+#id+"'"
+        rows 10
+        objects xname attrib(link #servlet+"?page=poquotcost&command=Show&xpoqot=?&xname=?"), ~
+                xcost,xlong
+
+        totals "Totals",sum,""
+
+        field xcost
+            len 10.2
+        end field
+
+        field xname
+            caption Code Code
+        end field
+
+    end list
+
+    form one
+        valid valid,access
+        table poquotcost
+        order xpoqot,xname
+        fixed xpoqot
+        select "zid='"+#id+"'"
+        layout 1
+        objects ~
+            Show,Add,Clear,Update, Top, Previous,Delete,Next, Bottom,Return,~
+            xname,xcur ,xexch display(hide),xcost,xlong
+
+		field show
+			event before
+				set globals(temp) = xname
+			end event
+			event after
+                set globals(temp) = xname
+			end event
+		end field
+
+		field Top
+			event before
+                set globals(temp) = xname
+			end event
+			event after
+                set globals(temp) = xname
+			end event
+		end field
+
+        field xcur
+            display hide
+        end field
+
+        field xname
+            caption Cost Code
+            display combo
+            pick "select xcode from xcodes where zid='"+#id+"' and xtype='Quotation Cost'"
+            event after
+                set globals(xname)=xname
+                set #field(xname.caption) = "<font color=red>"+#field(xname.caption)+"</font>"
+
+                //set xstatusgrn = pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+				if xstatusgrn .ne. #status("xstatusgrn",1)
+					//set #field(xdate->.display) = "constant"
+					//set #field(Add.display) = "disable"
+					//set #field(Update.display) = "disable"
+					//set #field(Delete.display) = "disable"
+				end if
+            end event
+        end field
+
+        field xlong
+            width 70
+            height 2
+        end field
+
+        field Add
+        	event before
+        		set globals(ErrChk)=""
+
+        		if globals(ErrChk) .ne. "1"
+        			set chkcode = #sql("select xcode from xcodes where zid='"+#id+"' and  xtype='Quotation Cost' and xcode='"+xname+"'")
+        			if #result .ne. "true"
+        				set globals(ErrChk)="1"
+        				error "Wrong Code Selected"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			set xcur="BDT"
+        			set xexch=0.0+1
+        		end if
+
+                //if globals(ErrChk) .ne. "1"
+                    //set xstatusgrn = pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    //if xstatusgrn .ne. #status("xstatusgrn",1)
+                    //    set globals(ErrChk) = "1"
+                    //    error "Cannot "+#command+"</p>Status "+xstatusgrn
+                   // end if
+                //end if
+
+        	end event
+        end field
+
+        field Update
+        	event before
+                set globals(ErrChk)=""
+
+                if globals(ErrChk) .ne. "1"
+                	if xname .ne. globals(xname)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xname .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+        		if globals(ErrChk) .ne. "1"
+        			set chkcode = #sql("select xcode from xcodes where zid='"+#id+"' and  xtype='Quotation Cost' and xcode='"+xname+"'")
+        			if #result .ne. "true"
+        				set globals(ErrChk)="1"
+        				error "Wrong Code Selected"
+        			end if
+        		end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusgrn = pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if xstatusgrn .ne. #status("xstatusgrn",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"</p>Status "+xstatusgrn
+                    end if
+                end if
+
+        	end event
+        end field
+        
+        field delete
+        	event before
+        		set globals(ErrChk)=""
+
+                if globals(ErrChk) .ne. "1"
+                	if xname .ne. globals(xname)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xname .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                //if globals(ErrChk) .ne. "1"
+               ///     set xstatusgrn = pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                //    if xstatusgrn .ne. #status("xstatusgrn",1)
+                //        set globals(ErrChk) = "1"
+                //        error "Cannot "+#command+"</p>Status "+xstatusgrn
+                //    end if
+                //end if
+
+        	end event
+        end field
+        
+        embed onsubmit="submitit(this)"
+        field Return
+            embed onclick="clicked(this)"
+        end field
+
+        field Details
+          embed onclick="Details(this)"
+        end field
+
+     end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function Details(b){
+          detail="Details"
+        }
+ 
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "poquotapp"
+            form.searchbutton.value = "Find xpoqot=?"
+          }else if (detail=="Details"){
+            form.page.value = "pogrcostemp"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        function pickCur(link, exch){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcur.value=link.text
+            document.one.xexch.value=exch.text
+          }else{
+            document.one.xcur.value=link.innerText
+            document.one.xexch.value=exch.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+	valid valid
+		config
+			set globals(pkey)=globals(xgrnnum)+" "+xname
+            //set xstatusgrn = pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+			if xstatusgrn .ne. #status("xstatusgrn",1)
+				//set #field(xdate->.display) = "constant"
+				//set #field(Add.display) = "disable"
+				//set #field(Update.display) = "disable"
+				//set #field(Delete.display) = "disable"
+			end if
+    	end config
+	end valid     
+	
+#include access.valid	
+	
+end page

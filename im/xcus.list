@@ -1,0 +1,27 @@
+     list xcus
+        caption "Customersssssssssssssss"
+        size 600,600
+        table cacus
+        order xcus
+        //select "(xcus like '%"+zvalue+"%' or xshort like '%"+zvalue+"%' ~
+        //         or xorg like '%"+zvalue+"%' or xadd1 like '%"+zvalue+"%' or xadd2 like '%"+zvalue+"%' ~
+        //         or xfirst like '%"+zvalue+"%' or xlast like '%"+zvalue+"%' or xid like '%"+zvalue+"%' ~
+        //         or xphone like '%"+zvalue+"%' or xmobile like '%"+zvalue+"%' or xorg like '%"+zvalue+"%' ~
+        //        )"
+        
+        select  #query(zvalue xcus,xshort,xorg,xadd1,xadd2,xfirst,xlast,xid,xphone,xmobile)
+
+        navigators alpha
+        rows 10
+        //objects  xcur attrib(link #servlet+"?page=xcur&command=Show&xcur=?"),
+        objects xcus attrib(link "javascript:void(0);" embed onclick="return updateParent(this:'')"), ~
+                xshort,xorg,xfirst,xlast,xphone,xmobile,xadd1 caption(Address),xadd2 caption(Sub-Area)
+
+
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

@@ -1,0 +1,9 @@
+     list xdiscacc
+        table glmst
+        order xacc
+        select "((xacc like '%"+zvalue+"%' or xdesc like '%"+zvalue+"%') and (xacctype='Income' or xacctype='Expenditure' ))"
+        //navigators alpha
+        rows 10
+        objects xacc attrib(link "abc" embed onclick="return updateParent(this:'xdiscacc')"), ~
+                xdesc,xacctype, xaccusage, xaccsource, xaccgroup
+     end list

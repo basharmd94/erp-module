@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table prtrndt
+  caption "Payment Details"
+  columns ztime,zutime,zid,xpaydate,xemp,xpaycode,xamount,zemail,xemail,xtype,xoption,xdateeff,xdayab,xnoothour,xyear,xper,xday,xprrate ,xnhour
+
+  primary key zid,xpaydate,xemp,xpaycode
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xpaydate,xemp references prmsg.zid,xpaydate,xemp
+  end foreign key
+
+end table

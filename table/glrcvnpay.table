@@ -1,0 +1,12 @@
+product ERP on the Net
+
+table glrcvnpay
+	caption "Receipts & Payments"
+	columns ztime,zutime, zid, xyear,xper,xtype,xrow,xacc,xprime,xcashacc,xbase
+
+	primary key zid,xyear,xper,xtype,xrow
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+end table

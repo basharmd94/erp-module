@@ -1,0 +1,12 @@
+table pratdvw
+	caption "Balance File"
+
+	columns zid,xdate,xemp,xname,xdesig,xdept,xjoindate,xsec, xpaytyp,xproj,xyear,xper,xday,xdayname,xremark,xcat
+
+	primary key zid,xemp,xdate
+
+	sql create view pratdvw (zid,xdate,xemp,xname,xdesig,xdept,xjoindate,xsec, xpaytyp,xproj,xyear,xper,xday,xdayname,xremark,xcat) as ~
+		SELECT prmst.zid, cadate.xdate,prmst.xemp, prmst.xname, prmst.xdesig, prmst.xdept,  prmst.xjoindate,prmst.xsec,prmst.xpaytyp,prmst.xproj,DATEPART(year,cadate.xdate),DATEPART(month,cadate.xdate),DATEPART(day,cadate.xdate),cadate.xname,cadate.xremark,prmst.xcat ~
+		FROM cadate INNER JOIN prmst ON cadate.zid = prmst.zid 
+
+end table

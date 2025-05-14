@@ -1,0 +1,90 @@
+page glbudhed
+
+  caption "Budget Header"
+  //embed onload="move_caret('one','xyear')"
+  sidebar list budget
+  sections form one, script myscript
+
+  list budget
+   		caption "Added Record(s)"
+        table glbudhed
+        order xyear,xper
+        //navigators alpha
+        rows 12
+        objects  xyear,xper attrib(link #servlet+"?page=glbudhed&command=Show&xyear=?&xper=?"),xrem
+  end list
+
+  form one
+       //caption "Budget for "+xyear+"("+xper+")"
+       table glbudhed
+       order xyear,xper
+       layout 1
+	   default Add
+       objects Show,Add, Update, Clear, Delete, Top, Previous, Next, Bottom,Details,~
+       	xyear,xper,xrem,zemail display(hide),xemail display(hide)
+
+    field xyear
+       event after
+        set globals(xyear)=xyear
+       end event
+    end field
+
+    field xper
+       event after
+        set globals(xper)=xper
+       end event
+    end field
+
+    field xrem
+       col 3
+       width 80
+       height 2
+    end field
+
+    field clear
+      event after
+       set #field(Details.display) = "hidden"
+       set #field(Delete.display) = "hidden"
+       set #field(Update.display) = "hidden"
+       set #field(Show.display) = "hidden"
+      end event
+    end field
+    
+    field Add
+      event before
+         set zemail = #user
+      end event
+    end field
+
+    field Update
+      event before
+         set xemail = #user
+      end event
+    end field
+
+        embed onsubmit="submitit(this)"
+        field Details
+          embed onclick="clicked()"
+        end field
+  end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "glbudacc"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+        </script>
+     end script
+
+
+end page

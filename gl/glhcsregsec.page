@@ -1,0 +1,115 @@
+page glhcsregsec
+
+    caption "Cheque Search"
+    sections form imtrn,list oneopen,script myscript
+	
+	list oneopen
+		caption "Lists of Cheque(s) Receive"
+		empty " There is no records this Date"
+		table (select *,~
+		(select xorg from cacus where zid=glhcsreg.zid and xcus=glhcsreg.xcus) as xorg from glhcsreg) as tbl
+		order xordernum desc
+		select "(xchqstat='Completed') and xdatecom='"+xdatecom+"'"
+		rows 10
+		objects xordernum attrib(link #servlet+"?page=glsubbnk&command=Show&xordernum=?"),~
+				xtype,xbank,xbankbr,xcheque,xamount
+				
+				
+
+		field xordernum
+			caption Money Receipt
+		end field
+		
+		field xdate
+			caption Cash/Cheque Receive Date
+		end field
+		
+		field xtype
+			caption Payment Type
+		end field
+		
+		field xbank
+			caption Issue Bank Name
+		end field
+		
+		field xbankbr
+			caption Branch Name
+		end field
+		
+		field xcheque
+			caption Cheque Number
+		end field
+		
+		field xdatedue
+			caption Cheque Date
+		end field
+		
+		field xdatecom
+			caption Cheque Deposited Date
+		end field
+		
+		field xdatenotice
+			caption Dep. Confirm Date
+		end field
+		
+		field xamount
+			caption Cheque Amount
+		end field
+		
+		
+		field xprime
+			caption Outstanding
+		end field
+		
+		field xremark
+			caption Remarks
+		end field
+		
+		field zemail
+			caption Entry By
+		end field
+		
+		field xemail
+			caption Updated By
+		end field
+		
+		field xchqstat
+			caption Cheque Status
+		end field
+		
+	end list
+	
+
+    form imtrn      
+      layout 1
+      objects ~
+      		xdatecom,Show,Clear //attrib(submit),Show
+      		
+       field xdatefrom
+            caption Date
+       end field
+	   
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+          }
+        }
+         function keeplastkey(){
+        document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        }
+        </script>
+    end script
+
+end page

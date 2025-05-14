@@ -1,0 +1,121 @@
+
+      group cnf 2 2 "CnF Info"
+       form cnf (1, 1)//(col,row,colspan,rowspan,width,height)
+       list lccnf (1, 2)
+       //access " xordernum .ne. "+#char(34)+#char(34)
+       keys "Top"
+     end group
+
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list lccnf
+		caption "CnF info"
+        table lccnf
+        order xlctrnnum,xline
+        fixed xlctrnnum
+        //navigators alpha
+        rows 20
+        objects  xline attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xline=?"), ~
+                 xdateesc,xdateund,xdatefrom,xdateto
+
+        field xdateesc
+         caption ETA Port
+        end field
+
+        field xdateund
+         caption ETA ICD/AIR
+        end field
+
+        field xdatefrom
+         caption Original to C&F
+        end field
+
+       field xdateto
+         caption Release Date
+        end field
+
+     end list
+
+     form cnf
+		caption "CnF Info"
+        table lccnf
+        order xlctrnnum,xline
+        fixed xlctrnnum
+        
+        layout 1
+        objects "<b>C & F Information for LC No <font color=red size=+1>"+xlcno,"</font></b><p>",~
+                Add,  Show,Clear,Update, Delete, Top, Previous, Next, Bottom,"" ,~
+                xline attrib(row 0 10;search),xname,xdateesc default(#d),~
+                xdateund default(#d),xdatefrom default(#d),xdateto default(#d),xlong
+
+
+        field xdateesc
+         caption ETA CTG.
+        end field
+        
+        field xname
+            caption C & F Name
+            pick list xcaname
+        end field
+
+        field xdateund
+         caption ETA ICD/AIR
+        end field
+
+        field xdatefrom
+         caption Original to C&F
+        end field
+
+        field xdateto
+         caption Release Date
+        end field
+
+        field xlong
+          caption Remarks
+          width 60
+          height 3
+        end field
+        
+        field Add
+          event before
+            set globals(ErrChk) = ""
+            str cnfag = ""
+            set cnfag=#sql("select xcaname from canam where xcaname='"+xname+"' and xnamestatus='3-CnF Agent'")
+            if cnfag .ne. xname
+              set globals(ErrChk)= "1"
+              error "Not a valid Code<br>Pick from the list"
+            end if
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Exit
+          embed onclick="clicked(this)"
+        end field
+
+  end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+
+	    if (detail=="clicked"){
+           form.page.value = "poilcp"
+           form.searchbutton.value = "Find xpornum=?"
+          }
+        }
+
+        </script>
+     end script
+
+

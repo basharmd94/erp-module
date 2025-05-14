@@ -1,0 +1,18 @@
+//Suppliers.menu
+caption "Suppliers"
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Supplier Master                        |#classPath+"/"+#servlet+"?page=casup"|common
+//Supplier Contract Prices         |#classPath+"/"+#servlet+"?page=poprc"|common
+//Supplier Contract Discounts      |#classPath+"/"+#servlet+"?page=poprd"                   |common
+-
+//Our Receiving Depots                  |#classPath+"/"+#servlet+"?page=cadep"|common
+Supplier Groups                  |#classPath+"/"+#servlet+"?page=xcodes(xtype=Supplier Group)"|common
+Supplier Status                  |#classPath+"/"+#servlet+"?page=xcodes(xtype=Supplier Status)"|common
+//Materials Managers               |#classPath+"/"+#servlet+"?page=xcodes(xtype=Materials Manager)"|common
+//Buyers                           |#classPath+"/"+#servlet+"?page=xcodes(xtype=Buyer)"|common
+//Incoterms                           |#classPath+"/"+#servlet+"?page=xcodes(xtype=International Commercial Terms)"|common
+Default Locations                           |#classPath+"/"+#servlet+"?page=xcodes(xtype=Location)"|common
+//-------------------------------------------------------------------
+

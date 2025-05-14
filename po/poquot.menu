@@ -1,0 +1,7 @@
+//poquot.menu
+caption "Quotations" page 3
+//-------------------------------------------------------------------
+option                |action
+//-------------------------------------------------------------------
+Quotations Entry      |#classPath+"/"+#servlet+"?page=poquot&command=clear"
+Quotations Approval   |#classPath+"/"+#servlet+"?page=poquota&command=clear"

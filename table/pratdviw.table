@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table pratdviw
+	caption "Attendance View"
+
+	columns zid,xdate,xemp,xname,xempcat,xlocation,xdiv,xdept,xdesig,xpaytyp,xsec,xremark,xlsafe,dayname
+
+	primary key zid, xdate ,xemp
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+	sql create view pratdviw (zid,xdate,xemp,xname,xempcat,xlocation,xdiv,xdept,xdesig,xpaytyp,xsec,xremark,xlsafe,dayname) ~
+		as SELECT zid, xdate,xemp,xname,xempcat,xlocation,xdiv,xdept,xdesig,xpaytyp,xsec,xremark,~
+		coalesce((select count(xemp) from pratd where pratd.xdate=prempvw.xdate and pratd.xemp=prempvw.xemp and pratd.zid=prempvw.zid),0),dayname ~
+		FROM prempvw
+end table

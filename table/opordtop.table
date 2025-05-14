@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table opordtop
+
+  caption "Customer Order"
+  columns ztime,zutime,zid,xordernum,xdate,xcity,zemail,xemail,xemail1,xstatusord
+
+  primary key zid, xordernum,xdate,xcity
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+end table

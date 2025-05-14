@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table prmanbudget
+
+  caption "Yearly Manpower Budget Entry"
+  
+  columns ztime,zutime,zid,xyear,xdept,xqtyreq,zemail,xemail,xremarks,xpostflag
+  
+  
+  
+  primary key zid,xyear,xdept
+
+  foreign key
+    zid references zbusiness.zid
+  end foreign key
+
+end table

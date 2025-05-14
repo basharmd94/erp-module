@@ -1,0 +1,23 @@
+product ERP on the Net
+
+table opcrn
+  caption "Sales Return"
+  columns ztime,zutime,zid,xcrnnum,xdate,xcus,xorg,xcuspo,xdatecuspo,xdiv,xsec,xproj,~
+          xstatuscrn,xappamt,xappcode,xcur,xexch,xdisc,xdiscf,~
+          xwh,xglref,xordernum,xdornum,xinvnum,xtrncrn,xteam,xmember,xmanager,xdtdisc,~
+          xtotamt,xcounterno,xyear,xper,xdept,xemp,~
+          xreason,xrem,xpayccnum,xtype,xpflag,xref,xvoucher,xnote,xstr01,xtyperet,xretvstat,~
+          xdttax,xdtcomm,xdtwotax
+
+  primary key zid, xcrnnum
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xcus references cacus.zid,xcus
+        zid,xdornum references opdor.zid,xdornum
+  end foreign key
+
+  check
+  end check
+
+end table

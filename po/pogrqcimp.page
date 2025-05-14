@@ -1,0 +1,461 @@
+page pogrqcimp
+    caption "Q.C. Details for "+xgrnnum
+
+    sidebar list Item_Details
+
+    sections form detail,list order, script myscript
+
+     list Item_Details
+        caption "<br><center><b><font size=3>"GRN Details"</b></font>"
+        table pogdt
+        order xgrnnum,xrow
+        select "xgrnnum ='"+globals(xgrnnum)+"'"
+        rows 5
+        objects xrow attrib(link #servlet+"?page=pogrqcimp&command=ShowLoad&xitem=?&xrow=?&xqty=?"), ~
+                xitem ,item_desc equals((select xdesc from caitem where caitem.zid=pogdt.zid and caitem.xitem=pogdt.xitem)),~
+                xqty,xunitpur
+        field item_desc
+            caption Description
+        //    storage varchar
+        end field  
+
+     end list
+
+    list order
+        caption "<b>Added Item(s) for Q.C. for <font color=red >"+xgrnnum+"</font></b><p>"
+       // table pogrqc
+        table (select * , ~
+				(select xdesc from caitem where zid=pogrqc.zid and xitem=pogrqc.xitem) as Item_Name ~
+				from pogrqc) as tbl
+        order xgrnnum,xrow
+        fixed xgrnnum
+        select "zid='"+#id+"'"
+        rows 20
+        objects xrow attrib(link #servlet+"?page=pogrqcimp&command=Show&xgrnnum=?&xrow=?"), ~
+                xitem,Item_Name,~
+                xqtyord,xqtycrn,xaction
+
+        field xqtyord
+            len 10.2
+        end field
+        
+        field xqtycrn
+            len 10.2
+            caption Qty Returnable
+        end field
+
+        field xprime
+            len 10.2
+            caption Chargable Amount
+        end field
+
+        field item_desc
+            caption Description
+            storage varchar
+        end field
+
+    end list
+
+    form detail
+        //caption "<font color=black size=3>Q.C. Details for "+xgrnnum
+        valid valid,access
+        table pogrqc
+        order xgrnnum,xrow
+        fixed xgrnnum
+        select "zid='"+#id+"'"
+        layout 2
+        objects Show, Add, Update, Clear,Delete,Top, Previous, Next, Bottom,Return,ShowLoad display(hide),~
+                xrow,xitem attrib(attach;readonly),item_desc,xqtyord,xaction,xqtycrn,~
+                xprime attrib(readonly),xrem,xpercent,ximtrnnum display(hide),xcfpur display(hide),~
+                xunitpur display(hide)
+
+		field show
+			event before
+				set globals(temp) = xrow
+				set globals(tempitem)=xitem
+			end event
+			event after
+				set globals(temp) = xrow
+				set globals(tempitem)=xitem
+			end event
+		end field
+
+		field ShowLoad
+			event before
+				set xqtyord=xqty
+				set xaction="Cleared"
+			end event
+		end field
+
+		field Top
+			event before
+				set globals(temp) = xrow
+				set globals(tempitem)=xitem
+			end event
+			event after
+				set globals(temp) = xrow
+				set globals(tempitem)=xitem
+			end event
+		end field
+
+        field xrow
+            event after
+                set globals(xrow) = xrow
+                set xstatusqc=pogrn.xstatusqc("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                if xstatusqc .ne. #status("xstatusqc",1)
+                    set #field(Add.display) = "disable"
+                    set #field(Update.display) = "disable"
+                    set #field(Delete.display) = "disable"
+                end if
+            end event
+        end field
+        
+        field xitem
+            event after
+                set globals(xitem)=xitem
+            end event
+        end field
+
+        field xqtyord
+            len 10.2
+            //attrib readonly
+        end field
+                 
+        field item_desc
+            display const
+            attrib local
+            caption Description
+            event after
+                set item_desc=#sql(str,"select xdesc from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+            end event
+        end field
+        
+        field xqtycrn
+            len 10.2
+            caption Qty Returnable
+        end field
+        
+        field xprime
+            len 10.2
+            caption Chargable Amount
+        end field
+        
+        field xrem
+            col 3
+            width 75
+            height 2
+        end field
+        
+        field xpercent
+            caption Wastage Percent
+            len 10.2
+        end field
+        
+        field xaction
+            display combo
+            pick "Return,DN,Return & DN,Cleared"
+            default "Cleared"
+        end field
+        
+        field Add
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    set grnstatus=pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if grnstatus .ne. #status("xstatusgrn",5)
+                    	set globals(ErrChk) = "1"
+                    	error "Cannot "+#command+"; Status "+grnstatus
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusqc = pogrn.xstatusqc("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if xstatusqc .ne. #status("xstatusqc",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"</p>QC Status "+xstatusqc
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    if xaction .eq. ""
+                        set globals(ErrChk) = "1"
+                        error "Action not found</p>Cannot "+#command
+                    end if
+                end if
+            
+                if globals(ErrChk) .ne. "1"
+                    str mysql = "select xitem from pogdt where zid='"+#id+"' and  xgrnnum = '"+globals(xgrnnum)+"' and xrow='"+xrow+"' and xitem='"+xitem+"'"
+                    set chkval = #sql(mysql)
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Please Pick From The Sidebar"
+                    end if
+                end if
+            
+                if globals(ErrChk) .ne. "1"
+                    if xaction .eq. "Return"
+                        set xprime = 0.0
+                        if xqtycrn <= 0.0
+                            set globals(ErrChk) = "1"
+                            error "Reject Qty not entered "
+                        else if xqtycrn > xqtyord
+                            set globals(ErrChk) = "1"
+                            error "Reject Qty cannot be more than Actual Qty "
+                        end if
+                    else if xaction .eq. "DN"
+                        set xqtycrn=0.0
+                        if xprime<=0.0
+                            set globals(ErrChk)="1"
+                            error "Key in Chargeable Amount"
+                        end if
+                    else if xaction .eq. "Return and DN"
+                        if xqtycrn <= 0.0
+                            set globals(ErrChk) = "1"
+                            error "Reject Qty not entered "
+                        else if xqtycrn > xqtyord
+                            set globals(ErrChk) = "1"
+                            error "Reject Qty cannot be more than Actual Qty "
+                        end if
+                        if xprime<=0.0
+                            set globals(ErrChk)="1"
+                            error "Key in Chargeable Amount"
+                        end if
+                    else if xaction .eq. "Cleared"
+                        set xqtycrn=0.0
+                        set xprime=0.0
+                    end if
+                    set xcfpur=0.0+#sql(dec,"select xcfpur from pogdt where zid='"+#id+"' and  xgrnnum = '"+globals(xgrnnum)+"' and xrow='"+xrow+"'")
+                    set xunitpur=#sql(str,"select xunitpur from pogdt where zid='"+#id+"' and  xgrnnum = '"+globals(xgrnnum)+"' and xrow='"+xrow+"'")
+                end if
+
+            end event
+        end field
+        
+        field Update
+            event before
+                set globals(ErrChk)=""
+
+                if globals(ErrChk) .ne. "1"
+                	if xrow .ne. globals(xrow)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrow .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set grnstatus=pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if grnstatus .ne. #status("xstatusgrn",5)
+                    	set globals(ErrChk) = "1"
+                    	error "Cannot "+#command+"; Status "+grnstatus
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusqc = pogrn.xstatusqc("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if xstatusqc .ne. #status("xstatusqc",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"</p>QC Status "+xstatusqc
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    str mysql = "select xrow from pogdt where zid='"+#id+"' and  xgrnnum='"+globals(xgrnnum)+"' and xrow='"+xrow+"'"
+                    set chkrow = #sql(mysql)
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Record not found</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xqtygrn=0.0D+#sql(double,"select xqty from pogdt where zid='"+#id+"' and  xgrnnum='"+globals(xgrnnum)+"' and xrow='"+globals(xrow)+"'")
+                    if xqtycrn > xqtygrn
+                        set globals(ErrChk) = "1"
+                        error "Return Qty more than Original Qty "+xqtygrn
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    if xaction .eq. ""
+                        set globals(ErrChk) = "1"
+                        error "Action not found</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    if xaction .eq. "Return"
+                        set xprime = 0.0
+                        if xqtycrn <= 0.0
+                            set globals(ErrChk) = "1"
+                            error "Reject Qty not entered "
+                        else if xqtycrn > xqtyord
+                            set globals(ErrChk) = "1"
+                            error "Reject Qty cannot be more than Actual Qty "
+                        end if
+                    else if xaction .eq. "DN"
+                        set xqtycrn=0.0
+                        if xprime<=0.0
+                            set globals(ErrChk)="1"
+                            error "Key in Chargeable Amount"
+                        end if
+                    else if xaction .eq. "Return and DN"
+                        if xqtycrn <= 0.0
+                            set globals(ErrChk) = "1"
+                            error "Reject Qty not entered "
+                        else if xqtycrn > xqtyord
+                            set globals(ErrChk) = "1"
+                            error "Reject Qty cannot be more than Actual Qty "
+                        end if
+                        if xprime<=0.0
+                            set globals(ErrChk)="1"
+                            error "Key in Chargeable Amount"
+                        end if
+                    else if xaction .eq. "Cleared"
+                        set xqtycrn=0.0
+                        set xprime=0.0
+                    end if
+                    set xcfpur=0.0+#sql(dec,"select xcfpur from pogdt where zid='"+#id+"' and  xgrnnum = '"+globals(xgrnnum)+"' and xrow='"+xrow+"'")
+                    set xunitpur=#sql(str,"select xunitpur from pogdt where zid='"+#id+"' and  xgrnnum = '"+globals(xgrnnum)+"' and xrow='"+xrow+"'")
+                end if
+
+            end event
+        end field
+
+        field Delete
+            event before
+                set globals(ErrChk)=""
+
+                if globals(ErrChk) .ne. "1"
+                	if xrow .ne. globals(xrow)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrow .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set grnstatus=pogrn.xstatusgrn("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if grnstatus .ne. #status("xstatusgrn",5)
+                    	set globals(ErrChk) = "1"
+                    	error "Cannot "+#command+"; Status "+grnstatus
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusqc = pogrn.xstatusqc("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+                    if xstatusqc .ne. #status("xstatusqc",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"</p>QC Status "+xstatusqc
+                    end if
+                end if
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+            embed onclick="clicked(this)"
+        end field
+
+    end form
+
+
+    script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+            var detail
+            function clicked(b){
+                detail="clicked"
+            }
+            function submitit(form){
+                if (detail=="clicked"){
+                    form.page.value = "pogrnqimp"
+                    form.searchbutton.value = "Find xgrnnum=?"
+                    //return false
+                }
+            }
+
+            function pickItem(link,item,qty,unitpur){
+                if (navigator.appName.indexOf("Netscape") >= 0){
+                    document.detail.xrow.value=link.text
+                    document.detail.xitem.value=item.text
+                    document.detail.xqtyord.value=qty.text
+                    document.detail.xunitpur.value=unitpur.text
+                }else{
+                    document.detail.xrow.value=link.innerText
+                    document.detail.xitem.value=item.innerText
+                    document.detail.xqtyord.value=qty.innerText
+                    document.detail.xunitpur.value=unitpur.innerText
+                }
+                return false
+            }
+
+        </script>
+    end script
+
+    valid valid
+        mendatory xitem,xaction
+        config
+        	set globals(pkey) = xgrnnum+" "+xrow
+
+            set xstatusqc=pogrn.xstatusqc("zid='"+#id+"' and xgrnnum='"+xgrnnum+"'")
+            if xstatusqc .ne. #status("xstatusqc",1)
+                set #field(Add.display) = "disable"
+                set #field(Update.display) = "disable"
+                set #field(Delete.display) = "disable"
+            end if
+
+        end config
+    end valid
+
+#include access.valid
+
+end page

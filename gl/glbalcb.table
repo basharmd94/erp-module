@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table glbalcb
+  caption "Cash & Bank Balance"
+  columns zid,xyear,xper,xcashacc,xdiv,xsec,xproj,xtotamt
+
+  primary key zid,xyear,xper,xcashacc,xdiv,xsec,xproj
+
+  sql create view glbalcb (zid,xyear,xper,xcashacc,xdiv,xsec,xproj,xtotamt) as ~
+  SELECT glheader.zid, glheader.xyear, glheader.xper, glmst.xcashacc,gldetail.xdiv, gldetail.xsec,~
+    gldetail.xproj, SUM(gldetail.xprime * gldetail.xexch) AS xtotamt ~
+  FROM gldetail ~
+  INNER JOIN glmst ON gldetail.zid = glmst.zid AND gldetail.xacc = glmst.xacc ~
+  INNER JOIN glheader ON gldetail.zid = glheader.zid AND gldetail.xvoucher = glheader.xvoucher ~
+  WHERE glheader.xstatusjv = 'Balanced' and glmst.xcashacc = 'Cash' ~
+  GROUP BY glheader.zid,glheader.xyear, glheader.xper, glmst.xcashacc, gldetail.xdiv, gldetail.xsec, gldetail.xproj
+    
+end table

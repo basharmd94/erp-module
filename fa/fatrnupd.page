@@ -1,0 +1,43 @@
+page fatrnupd
+	sections form one
+   caption "FA Depreciation Process"
+
+     list one
+        table facode
+        order xcode
+        navigators alpha
+        rows 10
+        objects  xtype,xcode attrib(link #servlet+"?page=facode&command=Show&xtype=?&xcode=?"),xdesc
+     end list
+
+   form one
+      caption "Update Famst->Fatrn"
+      table
+      order
+      layout 1
+      
+      objects Process
+
+      field process
+        event before
+        	str xcode = ""
+        	str mysql = "select xcode from famst where xcode>'"+xcode+"'"
+        	set xcode = #sql(str,mysql)
+        	while #result .eq. "true"
+        		 set voucode = "AC--"
+                 set xvoucher = #trn("Fixed Asset Transaction",voucode)
+                 buffer fatrn
+                 move fatrn=famst(xcode)
+                 set fatrn.xvoucher=xvoucher
+                 insert fatrn
+        	
+	        	str mysql = "select xcode from famst where xcode>'"+xcode+"'"
+	        	set xcode = #sql(str,mysql)
+        	end while
+        	print "<font color=blue size=3>Processing Completed"        	
+        end event
+      end field
+
+   end form
+
+end page

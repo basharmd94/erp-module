@@ -1,0 +1,502 @@
+page poreqappim //poreqapp
+     //embed onload = "move_caret('one','xtrnporeq')"
+     caption header
+     sidebar list poreqd
+     sections form one,list one,app,close,script myscript
+   		
+    text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1>Go Top</font></a>"
+    end text
+
+     list poreqd
+        caption "<font size=2>Item(s) for "+xporeqnum
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=poreqd.zid and xitem=poreqd.xitem) as itemdesc ~
+			from poreqd) as tbl
+        order xporeqnum,xrow
+        fixed xporeqnum
+        select "zid='"+#id+"'"
+        rows 5
+        objects xrow attrib(link #servlet+"?page=poreqdapp&command=Show&xgrnnum=?&xrow=?"), ~
+                xitem,itemdesc,xqtyreq,xporeq
+
+        totals count,"Totals","",sum,sum
+
+        field itemdesc
+          storage varchar
+          caption Description
+        end field
+        
+        field xqtyreq
+            len 10.2
+        end field
+
+        field xporeq
+            len 10.2
+        	caption Approved Qty
+        end field
+
+     end list
+    
+    list one
+        caption "To Be Approve this Purchase Requisition(New)"
+        table poreq
+        order xdatereq,xporeqnum desc   
+		select "xstatusreq='1-New'  and xtrnporeq='ISPR'"//and xemail1='"+#users+"'"		
+        rows 5
+        objects xporeqnum attrib(link #servlet+"?page=poreqappim&command=Show&xporeqnum=?"), ~
+                xdatereq,xref,xwh,xdept,xstatusreq
+
+        field xporeqnum
+          caption Requisition No.
+        end field
+
+     end list
+
+    list app
+        caption "Purchase Requisition(Approved)"
+		empty "There has no records "
+        table poreq
+        order xdateapp,xporeqnum desc 
+		select "xstatusreq='6-Approved'  and xtrnporeq='ISPR'"//and xemail1='"+#users+"'"	
+        rows 5
+        objects xporeqnum attrib(link #servlet+"?page=poreqappim&command=Show&xporeqnum=?"), ~
+                xdateapp,xref,xwh,xdept,xstatusreq
+
+        field xporeqnum
+          caption Requisition No.
+        end field
+
+     end list
+
+    list close-off
+        caption "Purchase Requisition(closed)"
+        table poreq
+        order xdateapp,xporeqnum desc        
+        rows 5
+        objects xporeqnum attrib(link #servlet+"?page=poreqappim&command=Show&xporeqnum=?"), ~
+                xdateapp,xref,xwh,xdept,xstatusreq
+
+        field xporeqnum
+          caption Requisition No.
+        end field
+
+     end list
+
+     form one
+        //caption "<font color=black size=3>Purchase Requisition Entry"
+        valid valid,access
+        table poreq
+        order xporeqnum DESC
+        layout 1
+		focus xref
+        objects ~
+                Show,Add attrib(hidden),Details,Update attrib(hidden),Clear,Delete attrib(hidden),Previous, Next,Approve,~
+                xtrnporeq  display(hide),xporeqnum  display(text),xdatereq default(#d),~
+                xref,xwh display(hide),xnreq display(hide),xdept,xemail1 display(const) caption(Approver ID),xsec display(hide),xdiv display(hide),xproj display(hide),xporef display(hide),~
+                xlong,xstatusreq,zemail display(const),xemail display(const),~
+                xapprover display(hide) attrib(attach),xdateapp display(hide),xapptime display(hide),~
+                xteam display(hide),xmember display(hide),xmanager display(hide),xtypepor display(hide)
+
+        field show
+        	event before
+        		set globals(hed) = xporeqnum
+        		set globals(tempwh)=xwh
+        	end event
+        	event after
+        		set globals(hed) = xporeqnum
+        		set globals(tempwh)=xwh
+        	end event
+        end field
+
+        field Top
+        	event after
+        		set globals(hed) = xporeqnum
+        		set globals(tempwh)=xwh
+        	end event
+        end field
+
+        field xporeqnum
+            width 20
+            event before
+				call setselect
+			end event
+           event after
+              set globals(returnpage)="poreqapp"
+              set globals(trnfield)="xporeqnum"           
+
+              set globals(xporeqnum)=xporeqnum
+			  set #field(zemail.caption) = "Entered By"
+			  set #field(xemail.caption) = "Last Updated By"                      
+           end event
+        end field
+        
+        field xlong
+            caption Where to be used
+            width 50
+            height 2
+        end field
+        
+        field xtrnporeq
+            pick "select xtrn from xtrn where zid='"+#id+"' and xtypetrn='PO Requisition'"
+            //default "REQ-"
+        end field
+							   
+        field xstatusreq
+          display const
+          event after
+            set globals(xstatusreq)=xstatusreq
+          end event
+        end field
+	
+		field xwh
+			event after
+				set globals(xwh)=xwh
+			end event
+		end field
+
+		field xnreq            
+            caption Lead Time
+		end field
+
+		field xdept
+		    display ocombo
+            caption Department
+            pick "select xcode from xcodes where zid='"+#id+"' and xtype='Department1'"
+            event after
+                set globals(xdept)=xdept
+            end event
+		end field
+
+        field Add
+          event before
+            set globals(ErrChk) = ""
+
+            set globals(ErrChk) = "1"
+            error " "
+
+            //set xtrnporeq=""
+			if globals(ErrChk) .eq. ""
+				set poreqcode = xtrn.xtrn("zid='"+#id+"' and xtypetrn='PO Requisition' and xtrn='"+xtrnporeq+"'")
+				if #result .ne. "true"
+					set globals(ErrChk) = "1"
+					error "SPR code("+poreqcode+") not found</p>Cannot "+#command
+				end if
+			end if
+			if globals(ErrChk) .ne. "1"
+                set shortbus=#sql(str,"select xshort from zbusiness where zid='"+#id+"'")
+                int shortlen=0+#length(shortbus)
+                if shortlen<4
+                    set globals(ErrChk)="1"
+                    error "Business Short Name is not defined"
+                end if
+            end if
+            if globals(ErrChk) .ne. "1"
+                set xdate=#date
+                set poreqper=#sub(xdate,5,2)
+                set poreqyr=#sub(xdate,2,2)
+                set poreqcode = #sub(poreqcode,0,4)
+                set shortbus=#sub(shortbus,0,4)
+                set poreqprefix=shortbus+poreqcode+poreqper+poreqyr+"-"
+
+				str mysql = #sql(str,"select xporeqnum from poreq where  zid='"+#id+"' and xporeqnum like '"+poreqprefix+"%' order by xporeqnum desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,13,6)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set xporeqnum = poreqprefix + mysql
+            end if
+
+			if globals(ErrChk) .eq. ""
+                if xwh .eq. ""
+				    set xwh = cadef.xwh("zid='"+#id+"'")
+                end if
+                set globals(tempwh)=xwh
+                set xstatusreq = #status("xstatusreq",1)
+                set xtypepor="Local"
+                set zemail = #user               
+	            set xmember = #user
+	            set xteam = #sql(string,"select xteam from cateam where zid='"+#id+"' and xmember = '"+xmember+"' and xrole='Member'")
+	            set xmanager = #sql(string,"select xmanager from caman where zid='"+#id+"' and xteam = '"+xteam+"'")
+            end if
+          end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk)=""
+
+                set globals(ErrChk) = "1"
+                error " "
+
+        		if globals(ErrChk) .ne. "1"
+        			if xporeqnum .ne. globals(xporeqnum)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xporeqnum .ne. globals(hed)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+                  	set stat = poreq.xstatusreq(" zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+                  	if stat .ne. #status("xstatusreq",1)
+                        set globals(ErrChk)="1"
+                  		error "Cannot "+#command+" Status "+stat
+                  	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    if xwh .ne. globals(tempwh)
+                        set #command = "show"
+                        print "<font color=red>Cannot Change Warehouse</font>"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xemail=#user
+                end if
+            end event
+        end field
+
+        field Delete
+          event before
+                set globals(ErrChk) = ""
+
+                set globals(ErrChk) = "1"
+                error " "
+
+        		if globals(ErrChk) .ne. "1"
+        			if xporeqnum .ne. globals(xporeqnum)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xporeqnum .ne. globals(hed)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+                  	set stat = poreq.xstatusreq(" zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+                  	if stat .ne. #status("xstatusreq",1)
+                        set globals(ErrChk)="1"
+                  		error "Cannot "+#command+" Status "+stat
+                  	end if
+                end if
+            end event
+        end field
+        
+        field Approve
+        	event before
+        		set globals(ErrChk) = ""
+        		
+        		if globals(ErrChk) .ne. "1"
+        			if xporeqnum .ne. globals(xporeqnum)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Approve<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+        			if xporeqnum .ne. globals(hed)
+        				set globals(ErrChk) = "1"
+        				set #command = "show"
+        				print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Approve<br> New Record Retrieved</font>"
+        			end if
+        		end if
+
+        		if globals(ErrChk) .ne. "1"
+                  	set stat = poreq.xstatusreq(" zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+                  	if stat .ne. #status("xstatusreq",1)
+                        set globals(ErrChk)="1"
+                  		error "Cannot "+#command+" Status "+stat
+                  	end if
+                end if
+
+        		if globals(ErrChk) .ne. "1"
+        			set chkrec = #sql(int,"select count(*) from poreqd where zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+        			if chkrec == 0
+        				set globals(ErrChk) = "1"
+        				error "Detail has no record"
+        			end if
+        		end if
+        		
+        		if globals(ErrChk) .ne. "1"
+        			set stat = poreq.xstatusreq("zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+        			if stat .eq. #status("xstatusreq",6)
+        				set globals(ErrChk) = "1"
+        				error "Already Approved"
+        			end if
+        		end if
+        		
+        		if globals(ErrChk) .ne. "1"
+        			str mysql = "update poreq set xstatusreq='"+#status("xstatusreq",6)+"',xapprover='"+#user+"',xdateapp='"+#date+"' where zid='"+#id+"' and xporeqnum='"+xporeqnum+"'"
+        			set tmpstr = #sql(str,mysql)
+
+        			str mysql = "update poreq set xapptime='"+#time+"' where zid='"+#id+"' and xporeqnum='"+xporeqnum+"'"
+        			set tmpstr = #sql(str,mysql)
+
+                    str mysql = "update poreqd set xstatusreqd='6-Approved' where zid='"+#id+"' and xporeqnum='"+xporeqnum+"'"
+        			set tmpstr = #sql(str,mysql)
+        			
+        			action show
+        		end if
+        		
+        	end event
+        end field
+
+        field Close
+           // caption Cancell
+            event before
+                set globals(ErrChk) = ""
+                if globals(ErrChk) .ne. "1"
+                	if xporeqnum .ne. globals(xporeqnum)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xporeqnum .ne. globals(hed)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set statusreq = poreq.xstatusreq("zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+                    if statusreq .ne. #status("xstatusreq",6)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"</p>Status "+statusreq
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusreq=#status("xstatusreq","5")
+                    //set xfailer=#user
+                    //set xfailedt=#time
+                    action Update
+                end if
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+      
+        field Details
+            embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+            $.hotkeys.add('Ctrl+s',function(){
+                //alert('Pressed Ctrl+s');
+                var form=document.forms[0];
+                form.searchbutton.value="Add";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+e',function(){
+                //alert('Pressed Ctrl+e');
+                var form=document.forms[0];
+                form.searchbutton.value="Update";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+d',function(){
+                //alert('Pressed Ctrl+d');
+                var form=document.forms[0];
+                form.searchbutton.value="Delete";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+r',function(){
+                //alert('Pressed Ctrl+r');
+                var form=document.forms[0];
+                form.searchbutton.value="Clear";
+                form.submit();
+            });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "poreqdappim"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+     valid valid
+     	//mandatory xwh
+     	config    		
+
+            set globals(pkey)=xporeqnum
+            
+        	set stat = poreq.xstatusreq("zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+        	if stat .eq. #status("xstatusreq",6)
+        		set #field(Approve.display) = "disable"
+        		set #field(Update.display) = "hide"
+        		set #field(Delete.display) = "hide"
+        		set #field(xref.display) = "const"
+            else
+                set #field(Close.display) = "disable"
+        	end if
+
+			set chkrec = #sql(int,"select count(*) from poreqd where zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+			if chkrec == 0
+				print "<span class=bl>No Details Entered -- Go to Details and Add record.</span>"
+				set #field(Approve.display) = "disable"
+			end if
+
+     	    str header="Purchase Requisition Approval"+"<a href='"+#report(poreq.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xporeqnum+"&prompt2="+xporeqnum+"' target='_new'>Print</a>"
+     	    
+     	    set globals(xref) = poreq.xref("zid='"+#id+"' and xporeqnum='"+xporeqnum+"'")
+     	    
+     	end config
+     end valid
+
+    method setselect //***mssql
+        str setselect=" zid="+#id+" and ("
+        set setselect= setselect + " (zemail = '"+#user+"') or "
+        set setselect= setselect + " (xemail = '"+#user+"') or "
+        set setselect= setselect + " (xmember = '"+#user+"') or "
+        set setselect= setselect + " (xmanager = '"+#user+"') or "
+        set setselect= setselect + " ('"+#user+"' in (select xmember from cateam where zid='"+#id+"' and xteam=poreq.xteam and xrole='Guest')) or "
+        set setselect= setselect + " ('"+#user+"' in (select xmember from cateam where zid='"+#id+"' and xteam=poreq.xteam and xrole='Member')) or "
+        set setselect= setselect + " ('"+#user+"' in (select xmanager from caman where zid='"+#id+"' and xteam=poreq.xteam)) or "
+        set setselect= setselect + " ('"+#user+"' in (select xmanager from caman where zid='"+#id+"' and (xteam='Supervisor' or xteam='Administrator'))) "
+        set setselect= setselect + " )"
+        //print setselect
+    end method
+
+#include access.valid
+									  
+end page

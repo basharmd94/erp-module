@@ -1,0 +1,606 @@
+page glmst
+	 
+     caption header
+	 
+     sidebar list sub//, text act
+     sections form one, list one, script myscript
+     
+     list one
+     	caption "List of Account(s)"
+        table glmst
+        order xacc
+        select "zactive='1'"        
+        rows 10
+        objects xacc attrib(link #servlet+"?page=glmst&command=Show&xacc=?"),xdesc,~
+        		xacctype,xaccsource
+                
+     end list
+
+     list obsolete
+     	caption "<font color=red>List of Obsolete Account(s)</font>"
+        table glmst
+        order xacc
+        select "zactive='0'"        
+        rows 10
+        objects xacc attrib(link #servlet+"?page=glmst&command=Show&xacc=?"),xdesc,~
+        		xacctype,xaccsource
+                
+     end list
+     
+	 list sub
+	    caption "Subaccount(s) of <font color=black>" +xacc+" ("+xdesc+")</font>"
+	    table glsub
+	    order xacc,xsub
+	    fixed xacc
+	  	//navigators alpha
+	    rows 100 f
+	    objects xsub attrib(link #servlet+"?page=glsub&command=Show&xacc=?&xsub=?"),~
+	    	xdesc
+	    	
+	 end list
+     
+     form one
+     	caption "Financial Year: "+#glyear+"; Period: "+#glper
+     	valid valid,access
+        table glmst
+        order xacc
+		default Add
+        layout 1
+        objects Show, Add, Sub, Clear,Update, Previous, Delete, Next, Activate,Deactivate,~
+			   Transactions,Budget,~
+               xacc, xdesc width(50), op_bal,cu_bal,cl_bal,xacctype,xmsttype display(hide),~
+               xaccusage, xaccsource,xaccgroup display(hide),xaccgroup1 display(hide),~
+			   xhrc1 attrib(submit),xhrc2 attrib(submit),xhrc3 attrib(submit),xhrc4 attrib(submit),xhrc5,~
+			   xan1 display(hide),xan2 display(hide),xan3 display(hide),xan4 display(hide),xan5 display(hide),~
+               xcashacc display(hide),xcoracc display(hide),~
+               zemail display(const),xemail display(const),zactive,~
+               xteam display(hide),xmember display(hide),xmanager display(hide)
+              
+		field xacc	
+			second list xaccobs		
+			event after				
+				set globals(xacc)=xacc
+				set globals(xdesc) = xdesc
+				set #field(xacc.caption) = "<font color=red>"+#field(xacc.caption)+"</font>"
+				//str reppipe="glcode.rpt"
+				str repcall="gltest1"			
+				//set reppipe="#report("+reppipe+")"
+				//set reppipe=#eval(reppipe)
+				set repcall="#report("+repcall+")"
+				set repcall=#eval(repcall)									
+				console "R:"+repcall			
+				if zactive .eq. "1"
+					set #field(Activate.display) = "disable"
+				else if zactive .eq. "0"
+					set #field(Deactivate.display) = "disable"
+				end if	
+				if xacc .eq. ""
+					set #field(Activate.display) = "disable"
+					set #field(Deactivate.display) = "disable"
+					set #field(Delete.display) = "disable"
+					set #field(Update.display) = "disable"
+					set #field(Sub.display) = "disable"
+				end if
+				if xaccsource .ne. "Subaccount"
+					set #field(Sub.display) = "disable"
+				end if
+      	  		set #field(zemail.caption) = "Entered By"
+      	  		set #field(xemail.caption) = "Last Updated By" 					
+			end event
+		end field
+		
+        field op_bal
+          caption <font color=red>Opening Balance</font>
+          attrib local
+          display const
+          event after
+			set op_bal=#sql(double,"select sum(xtotamt) from glbal where zid='"+#id+"' and xacc='"+xacc+"' and xyear='"+#glyear+"' and xper<"+#glper+"")
+          end event
+        end field
+
+        field cu_bal
+          caption <font color=red>Current Balance</font>
+          attrib local
+          display const
+          event after
+			set cu_bal=#sql(double,"select sum(xtotamt) from glbal where zid='"+#id+"' and xacc='"+xacc+"' and xyear='"+#glyear+"' and xper="+#glper+"")
+          end event
+        end field
+
+        field cl_bal
+          caption <font color=red>Closing Balance</font>
+          attrib local
+          display const
+          event after
+			set cl_bal=#sql(double,"select sum(xtotamt) from glbal where zid='"+#id+"' and xacc='"+xacc+"' and xyear='"+#glyear+"' and xper<="+#glper+"")
+          end event
+        end field
+		
+        field xhrc1
+          pick "xhrc1"
+        end field
+        
+        field xhrc2
+          pick "xhrc2"
+        end field
+        
+        field xhrc3
+          pick "xhrc3"
+        end field
+        
+        field xhrc4
+          pick "xhrc4"
+        end field
+        
+        field xhrc5
+          pick "xhrc5"
+        end field
+        
+        field zactive
+        	display hide
+        	default "1"
+        end field
+		
+        field add
+          event before
+          	set globals(ErrChk) = ""
+          	
+          	if globlas(ErrChk) .ne. "1"
+          		if xacc .eq. ""
+          			set globals(ErrChk) = "1"
+          			error "Blank Code not Allowed"
+          		end if
+          	end if
+          	
+          	if globals(ErrChk) .ne. "1"
+      			if xacctype .eq. "Asset" .or. xacctype .eq. "Liability"
+      				set xmsttype = "Balance Sheet"
+      			else if xacctype .eq. "Income" .or. xacctype .eq. "Expenditure"
+      				set xmsttype = "Revenue"
+      			end if 
+			          	
+          		if xaccusage .eq. "Cash" .or. xaccusage .eq. "Bank"
+          			set xcashacc="Cash"
+          		else
+          			set xcashacc=""
+          		end if
+          		
+          		if xaccusage .eq. "AP"
+          			set xaccsource = "Supplier"
+          		else if xaccusage .eq. "AR"
+          			set xaccsource = "Customer"
+          		else
+          			set xaccsource = "None"
+          		end if
+          		
+	            set zemail = #user
+	            set xemail = ""
+	            set zactive = "1"
+	            set xmember = #user
+	            set xteam = #sql(string,"select xteam from cateam where xmember = '"+xmember+"'")
+	            set xmanager = #sql(string,"select xmanager from caman where xteam = '"+xteam+"'")            
+	        end if
+          end event
+        end field
+
+        field Update
+          event before
+          	set globals(ErrChk) = ""
+          	
+          	if globlas(ErrChk) .ne. "1"
+          		if xacc .eq. ""
+          			set globals(ErrChk) = "1"
+          			error "Blank Code not Allowed"
+          		end if
+          	end if
+          			
+    		if globals(ErrChk) .ne. "1"
+    			if xacc .ne. globals(xacc)
+    				set globals(ErrChk)="1"
+    				error "Record pointer mismatch"
+    			end if
+    		end if
+          	          	
+          	if globals(ErrChk) .eq. ""
+      			if xacctype .eq. "Asset" .or. xacctype .eq. "Liability"
+      				set xmsttype = "Balance Sheet"
+      			else if xacctype .eq. "Income" .or. xacctype .eq. "Expenditure"
+      				set xmsttype = "Revenue"
+      			end if 
+          	
+          		if xaccusage .eq. "Cash" .or. xaccusage .eq. "Bank"
+          			set xcashacc="Cash"
+          		else
+          			set xcashacc=""
+          		end if
+
+          		if xaccusage .eq. "AP"
+          			set xaccsource = "Supplier"
+          		else if xaccusage .eq. "AR"
+          			set xaccsource = "Customer"
+          		end if
+          		
+          		//set xdesc = #upper(xdesc)
+          		//set s = #sqllist("select xacc from glmst where zid="+#id+")
+          		console "Check Account Value : "+xacc
+	            set xemail=#user
+	            set zactive = "1"
+	            set xmember = #user
+	            set xteam = #sql(string,"select xteam from cateam where xmember = '"+xmember+"'")
+	            set xmanager = #sql(string,"select xmanager from caman where xteam = '"+xteam+"'")
+				activity shortname=xacc;;opp=xdesc;;source="Chart of Accounts";;type="Auto";;team=xteam;;note="Account Code: "+xacc+" updated."
+	        end if
+          end event
+        end field
+        
+        field Delete
+        	event before
+        		set globals(ErrChk) = ""
+        		if globals(ErrChk) .ne. "1"
+        			if xacc .ne. globals(xacc)
+        				set globals(ErrChk)="1"
+        				error "Record pointer mismatch"
+        			end if
+        		end if
+        	end event
+        end field
+
+        field Activate
+        	event before
+        		globals(ErrChk) .eq. ""
+				
+        		if globals(ErrChk) .ne. "1"
+        			set chkacc = #sql("select xdesc from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+        			if #result .ne. "true"
+        				set globals(ErrChk) = "1"
+        				error "Wrong Account Code"
+        			end if 
+        		end if
+        		
+        		if globals(ErrChk) .ne. "1"
+        			if xacc .ne. globals(xacc)
+        				set globals(ErrChk) = "1"
+        				error "Record pointer mismatch"		
+        			end if
+        		end if
+        		
+			
+				str mysql = "update glmst set zactive='1' where zid='"+#id+"' and xacc='"+globals(xacc)+"'"
+				set tmpstr = #sql(str,mysql)
+				action show
+				
+        	end event
+        end field
+                
+        field deactivate
+        	event before
+        		
+        		if globals(ErrChk) .ne. "1"
+        			set chkacc = #sql("select xdesc from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+        			if #result .ne. "true"
+        				set globals(ErrChk) = "1"
+        				error "Wrong Account Code"
+        			end if 
+        		end if
+        		
+        		if globals(ErrChk) .ne. "1"
+        			if xacc .ne. globals(xacc)
+        				set globals(ErrChk) = "1"
+        				error "Record pointer mismatch"		
+        			end if
+        		end if
+        		
+        		if globals(ErrChk) .ne. "1"
+        			str mysql = "update glmst set zactive='0' where zid='"+#id+"' and xacc='"+globals(xacc)+"'"
+        			set tmpstr = #sql(str,mysql)
+        			
+        			action show
+        		end if
+        	end event
+        end field
+        
+		field Copy
+			event before
+				set globals(ErrChk) = ""
+				set dumzid = 0+100002
+				if globals(ErrChk) .ne. "1"
+		             set xacc = ""
+		             set xacc = #sql("select xacc from glmst where zid ="+#id+" and xacc<>'' and xacc > '"+xacc+"' order by xacc")
+		             while #result .eq. "true"
+		                set chk_acc = #sql("select xacc from glmst where zid="+dumzid+" and xacc='"+xacc+"'")
+		                if #result .ne. "true"
+							buffer glmst
+							move glmst = glmst(xacc)
+							set glmst.zid=dumzid
+							insert glmst
+							
+							//set xaccsource=glmst.xaccsource("zid='"+#id+"' and xacc='"+xacc+"'")
+							//if xaccsource .eq. "Subaccount"
+								str xsub = ""
+								set xsub = #sql("select xsub from glsub where zid="+#id+" and xacc='"+xacc+"' and xsub>'"+xsub+"' order by xsub")
+								while #result .eq. "true"
+									buffer glsub
+									move glsub = glsub(xacc,xsub)
+									set glsub.zid=dumzid
+									insert glsub
+									
+									set xsub = #sql("select xsub from glsub where zid="+#id+" and xacc='"+xacc+"' and xsub>'"+xsub+"' order by xsub")
+								end while
+							//end if
+		                   	//print "Account "+xacc+" ("+xdesc+") copied to "+org_name+" ("+dumzid+")"
+		                else
+		                   	print "Account "+xacc+" ("+xdesc+") Already Exists in "+org_name+" ("+dumzid+")"		                   
+		                end if
+		                set xacc = #sql("select xacc from glmst where zid ="+#id+" and xacc<>'' and xacc > '"+xacc+"' order by xacc")
+		             end while
+				end if
+          	end event
+        end field
+
+		field Business Copy
+			event before
+				set globals(ErrChk) = ""
+				set dumzid = 0+100005
+				if globals(ErrChk) .ne. "1"
+		             set zemail = ""
+		             set zemail = #sql("select zemail from zxusers where zid ="+#id+" and zemail > '"+zemail+"' order by zemail")
+		             while #result .eq. "true"
+						buffer zxusers
+						move zxusers = zxusers(zemail)
+						set zxusers.zid=dumzid
+						insert zxusers
+						if #result .eq. "true"
+							str xrole = ""
+							set xrole = #sql("select xrole from zxroles where zid="+#id+" and zemail='"+zemail+"' and xrole>'"+xrole+"'")
+							while #result .eq. "true"
+						
+								buffer zxroles
+								move zxroles = zxroles(zemail,xrole)
+								set zxroles.zid=dumzid
+								insert zxroles
+								set xrole = #sql("select xrole from zxroles where zid="+#id+" and zemail='"+zemail+"' and xrole>'"+xrole+"'")
+							end while
+						end if
+		                set zemail = #sql("select zemail from zxusers where zid ="+#id+" and zemail > '"+zemail+"' order by zemail")
+		             end while
+				end if
+          	end event
+        end field
+		
+		field Copy_one_by_one
+			event before
+				set globals(ErrChk) = ""
+				if globals(ErrChk) .ne. "1"
+		             int dumzid = 0
+		             set dumzid = #sql("select dumzid from glbid where zid ="+#id+" and dumzid<>'"+#id+"' and dumzid > '"+dumzid+"'")
+		             while #result .eq. "true"
+		                set org_name = #sql("select zorg from zbusiness where zid = '"+dumzid+"'")
+		                set chk_acc = #sql("select xacc from glmst where zid="+dumzid+" and xacc='"+globals(xacc)+"'")
+		                if #result .ne. "true"
+							buffer glmst
+							move glmst = glmst(xacc)
+							set glmst.zid=dumzid
+							insert glmst
+							
+							if xaccsource .eq. "Subaccount"
+								str xsub = ""
+								set xsub = #sql("select xsub from glsub where zid="+#id+" and xacc='"+globals(xacc)+"' and xsub>'"+xsub+"'")
+								while #result .eq. "true"
+									buffer glsub
+									move glsub = glsub(xacc,xsub)
+									set glsub.zid=dumzid
+									insert glsub
+									
+									set xsub = #sql("select xsub from glsub where zid="+#id+" and xacc='"+globals(xacc)+"' and xsub>'"+xsub+"'")
+								end while
+							end if
+		                   	print "Account "+xacc+" ("+xdesc+") copied to "+org_name+" ("+dumzid+")"
+		                else
+		                   	print "Account "+xacc+" ("+xdesc+") Already Exists in "+org_name+" ("+dumzid+")"		                   
+		                end if
+		                set dumzid = #sql("select dumzid from glbid where zid ="+#id+" and dumzid<>'"+#id+"' and dumzid > '"+dumzid+"'")
+		             end while
+				end if
+          	end event
+        end field
+        
+        embed onsubmit="submitit(this)"
+        field Sub
+          embed onclick="clicked(this)"
+        end field
+
+        field Transactions
+          embed onclick="trn(this)"
+        end field
+
+        field Budget
+          embed onclick="bud(this)"
+        end field
+        
+     end form
+
+     text act
+        "<iframe name='actframe' border=0 src='"+repcall+"&HasGroupTree=false&promptonrefresh=y&prompt0="+#id+"&prompt1="+xacc+"&prompt2="+xacc+"' height='500' width='600' ></iframe>"
+     end text
+
+     text act_one
+        "<iframe name='actframe' border=0 src='"+repcall+"&HasGroupTree=false&promptonrefresh=y&prompt0="+#id+"&prompt1="00"&prompt2="zz"' height='800' width='900' ></iframe>"
+     end text
+	 
+     text pipe
+        "<iframe name='actframe' border=0 src='"+reppipe+"&HasGroupTree=false&promptonrefresh=y&prompt0="+#id+"' height='800' width='500' ></iframe>"        
+     end text
+     
+     script myscript
+        <script language="javascript" type="text/javascript">
+        var c=0
+        var t
+                
+        var but = ""
+        function clicked(b){
+          but = "clicked"
+        }
+
+        function trn(b){
+           but = "trn"
+        }
+        
+        function bud(b){
+           but = "bud"
+        }
+        
+    	function PickName(link){
+			if (navigator.appName.indexOf("Netscape")>=0){
+			    document.one.xacc.value=link.text
+			}else{
+				document.one.xacc.value=link.innerText
+				}
+			  return false
+			}
+
+		function submitit(form){
+			if (but=="clicked"){
+				form.page.value = "glsub"
+				//return false
+			}else if (but=="trn"){
+				form.page.value = "gltrn"
+			}else if (but=="bud"){
+				form.page.value = "glbudget"
+			}
+		}
+        
+        function loaded(){
+            var t=setTimeout("timedCount()",30000)
+            //alert('5 seconds Gone!')
+        }
+                
+        function timedCount(){
+            location.reload()
+            
+            t=setTimeout("timedCount()",30000)
+            //alert('5 seconds Gone!')
+        }               
+
+        </script>
+     end script
+	 
+     valid valid
+      
+     end valid
+	 
+     
+	valid valid         
+		preconfig
+			set alert="no"
+		end preconfig
+		config		
+	        //set globals(xacc)=xacc
+	        set globals(pkey) = xacc
+	        set globals(xhrc1)=xhrc1
+	        set globals(xhrc2)=xhrc2
+	        set globals(xhrc3)=xhrc3
+	        set globals(xhrc4)=xhrc4
+	        set globals(xhrc5)=xhrc5
+			
+			set header = "<font color=green size=4+>Chart of Accounts </font><br>"
+			set header=header+"<br><span class=l><a href='"+#servlet+"?page=glshowfrm&xacc="+xacc+"&embeddedpage=0'target='_new'>Print</a></span>"
+	        	        	        	        
+     		set chkid = #sqllist("select count(dumzid) from glbid where zid='"+#id+"' and dumzid<>'"+#id+"'")
+     		if chkid > 0
+     		else
+     			set #field(Copy.display) = "hide"
+     		end if
+     		
+			set cu_rec=#sql(int,"select count(xvoucher) from gldetailview where zid='"+#id+"' and xacc='"+xacc+"' and xyear='"+#glyear+"' and xper="+#glper+"")
+			if cu_rec > 0
+			else
+				set #field(Transactions.display) = "disable"
+			end if     		
+	        	        	        	        
+			set chk01 = #sql(str,"select xhrc1 from glhrc1 where zid='"+#id+"' and xhrc1='"+xhrc1+"'")
+            if #result .ne. "true"
+            	set #field(xhrc2.display)="hide"
+            else
+                set #field(xhrc2.pick)="list xhrc2"           
+            end if
+            
+            set chk02 = #sql(str,"select xhrc2 from glhrc2 where zid='"+#id+"' and xhrc1='"+xhrc1+"' and xhrc2='"+xhrc2+"'")
+            if #result .ne. "true"
+            	set #field(xhrc3.display)="hide"
+            else
+            	set #field(xhrc3.pick)="list xhrc3"            
+            end if
+            
+            set chk03 = #sql(str,"select xhrc3 from glhrc3 where zid='"+#id+"' and xhrc1='"+xhrc1+"' and xhrc2='"+xhrc2+"' and xhrc3='"+xhrc3+"'")
+       		if #result .ne. "true"
+            	set #field(xhrc4.display)="hide"
+            else
+            	set #field(xhrc4.pick)="list xhrc4"            
+            end if
+            
+            set chk04 = #sql(str,"select xhrc4 from glhrc4 where zid='"+#id+"' and xhrc1='"+xhrc1+"' and xhrc2='"+xhrc2+"' and xhrc3='"+xhrc3+"' and xhrc4='"+xhrc4+"'")
+            if #result .ne. "true"
+            	set #field(xhrc5.display)="hide"
+            else
+            	set #field(xhrc5.pick)="list xhrc5"
+            end if
+            
+            set atzemail = #sql("select xattribzemail from cadefp where zid='"+#id+"' and zobject='"+page+"'")
+            if atzemail .eq. "Show"
+            else if atzemail .eq. "Constant"
+            	set #field(zemail.display) = "const"
+            else if atzemail .eq. "Hide"
+            	set #field(zemail.display) = "hide"
+            end if   
+            
+            set atxemail = #sql("select xattribxemail from cadefp where zid='"+#id+"' and zobject='"+page+"'")
+            if atxemail .eq. "Show"
+            else if atxemail .eq. "Constant"
+            	set #field(xemail.display) = "const"
+            else if atxemail .eq. "Hide"
+            	set #field(xemail.display) = "hide"
+            end if           
+			
+		    //str chit=#replace(xacc,"1","-")+"-conchit.txt"
+		    str chit="conchit.txt"
+		    str path=#root+"docs"+#sep+"x"+#id+#sep+chit
+		    if #exists(path) .eq. "true"
+		      //print "ok"
+		      //set printlist="<a href='docs/x"+#id+"/"+chit+"' target='Text'>"+switch+" Chit</a>"
+		    else
+		      set printlist=""
+		    end if
+		    
+			//call printpathreq
+			if #exists(printpathreq) .eq. "true"
+				//set printlist=printlist+ "/<a href='"+printurlreq+"' target='Text'>Addend Request</a>"
+			end if
+		    
+			//print "Print: "+printlist
+			//text "kcconchit.template","docs/x"+#id+"/"+chit
+			//set printlist="</tr><tr class=bl><td>"+printlist+"</td>" 	                
+		end config  
+		after Add
+			set alert="yes"
+			set acc=xacc
+			//action Clear
+		end after
+		display
+			if alert .eq. "yes" .and. #result .eq. "true"
+			  set #page(embed)="onload=alert('Account "+acc+" Added');"
+			end if
+		end display
+	end valid
+	
+	method printpathreq
+		print "ok"
+	//PRINT***************************************************************************
+		//str doc=#replace(xkcconnum,"1","-")+xrowadd+"-kcreq.txt"
+		str doc="conchit.doc"
+		str printpathreq=#root+"docs"+#sep+"x"+#id+#sep+doc
+		str printurlreq="docs/x"+#id+"/"+doc
+	end method
+	     
+#include access.valid
+     
+end page

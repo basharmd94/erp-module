@@ -1,0 +1,25 @@
+product ERP on the Net
+
+table podrngrnview
+	caption "PO Debit Note View for GRNs"
+	
+	columns zid,xgrnnum,xpornum,xsinnum,xglref,xdate,xsup,xsupref,xdatesupref,xdiv,xsec,xproj,~
+			xstatusgrn,xcur,xexch,xref,xtypepor,zemail,xemail,xteam,xmember,xmanager,xqty,xqtycrn
+			
+	primary key zid, xgrnnum, xrow
+  
+	foreign key
+		zid references zbusiness.zid
+		zid,xgrnnum references pogrn.zid,xgrnnum
+	end foreign key
+  
+	sql create view podrngrnview (zid,xgrnnum,xpornum,xsinnum,xglref,xdate,xsup,xsupref,xdatesupref,xdiv,xsec,xproj,~
+			xstatusgrn,xcur,xexch,xref,xtypepor,zemail,xemail,xteam,xmember,xmanager,~
+			xqty,xqtycrn) ~
+	as select zid,xgrnnum,xpornum,xsinnum,xglref,xdate,xsup,xsupref,xdatesupref,xdiv,xsec,xproj,~
+			xstatusgrn,xcur,xexch,xref,xtypepor,zemail,xemail,xteam,xmember,xmanager,~
+		coalesce((SELECT SUM(pogdt.xqty) FROM pogdt WHERE pogdt.zid = pogrn.zid and pogdt.xgrnnum = pogrn.xgrnnum),0),~
+		coalesce((SELECT SUM(poddt.xqty) FROM poddt WHERE poddt.zid = pogrn.zid and poddt.xgrnnum = pogrn.xgrnnum),0) ~
+	from pogrn
+                 
+end table

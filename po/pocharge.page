@@ -1,0 +1,156 @@
+page pocharge
+     caption "Import Charge Master"
+	 dependent
+     sections form one,list one,text top, script myscript,~
+              method chk_acc,method chk_subacc,~
+    	  	  method chk_access, method chk_command             
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list one
+        table pocharge
+        order xpocode
+       	navigators alpha
+        rows 10 f
+        objects  xpocode attrib(link #servlet+"?page=pocharge&command=Show&xpocode=?"),xdesc,xpotype
+     end list
+
+     form one     
+		valid valid,access
+        table pocharge
+        order xpocode
+        //select
+        
+        layout 1
+        objects Add,Update,Clear,Show, Delete, Top, Previous, Next, Bottom,~
+               xpocode,xdesc,xpotype,zactive,xcostacc,xsubdr,xlong
+               
+        field xpocode
+          pick list xcostcode
+          event after
+              set #field(zactive.caption) = "<font color=red>"+#field(zactive.caption)+"</font>"          
+          end event
+        end field
+
+        field xpotype
+          pick select xcode from xcodes where xtype='Import Costing'
+        end field
+
+        field xdesc
+          width 50
+        end field
+
+        field zactive
+          caption Include in Landed Cost
+          pick "Yes"
+        end field
+
+        field xlong
+          width 50
+          height 2
+        end field
+
+        field xsubdr
+          display text
+          pick list xcostsub
+        end field
+
+
+        field xcostacc
+          pick list xcostacc
+          caption GL Debit Account
+          event after
+            set globals(xcostacc)=xcostacc
+          end event
+        end field
+
+        field add
+          event before
+            set globals(ErrChk) = ""
+            
+            if globals(ErrChk) .ne. "1"
+            	call chk_acc
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+                call chk_subacc
+            end if
+          end event
+        end field
+
+       field update
+          event before
+            set globals(ErrChk) = ""
+            
+            if globals(ErrChk) .ne. "1"
+            	call chk_acc
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+                call chk_subacc
+            end if
+          end event
+        end field
+        
+        field Delete
+        	event before
+        		set globals(ErrChk)=""
+
+        	end event
+        end field
+
+  end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+
+        </script>
+     end script
+
+     method chk_acc
+        set xacc=xcostacc
+        if xacc .ne. ""
+           buffer glmst
+           move glmst=glmst(xacc)
+           if #result .ne. "true"
+              set globals(ErrChk)="1"
+              error "Wrong Account Code Chosen"
+           else
+                if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+                   if xsubdr .eq. ""
+                     print "Please update record with correct Sub Account"
+                   end if
+                end if
+           end if
+        end if
+     end method
+
+     method chk_subacc
+        set xacc=xcostacc
+        set xsub=xsubdr
+        if xsub .ne. ""
+           buffer glsub
+           move glsub=glsub(xacc,xsub)
+           if #result .ne. "true"
+              set globals(xErrChk)="1"
+              error "Wrong Sub Account Code Chosen"
+           end if
+        end if
+     end method
+
+#include access.valid
+
+	valid valid
+		config
+		end config
+	end valid
+	
+end page

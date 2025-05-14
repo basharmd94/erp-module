@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table poappqot
+	caption "Approved File"
+	
+	columns zid,xitem,xsup,xpoqot,xline,xrate,xqtyord,xstatusqdt
+
+	primary key zid,xitem,xsup,xpoqot
+
+	sql create view poappqot (zid,xitem,xdate,xsup,xpoqot,xline,xrate,xqtyord,xstatusqdt) as ~
+		SELECT poquot.zid, poquot.xitem, poquot.xdate,poqudt.xsup,poqudt.xpoqot,poqudt.xrow,poqudt.xrate,poqudt.xqtyord,poqudt.xstatusqdt ~
+		FROM poqudt INNER JOIN poquot ON poqudt.zid = poquot.zid AND poqudt.xpoqot = poquot.xpoqot ~
+	WHERE poqudt.xstatusqdt = '4-Approved'
+
+end table

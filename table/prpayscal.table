@@ -1,0 +1,14 @@
+Product ERP on The Net
+
+table prpayscal
+   caption "Pay Scale"
+   columns ztime,zutime,zid,xpsclcode,xdesc,zemail,xemail,~
+   		xqty01,xqty02,xqty03,xqty04,xqty05,xvalue01,xvalue02,~
+   		xvalue03,xvalue04,xvalue05
+
+   primary key zid,xpsclcode
+
+   foreign key
+      zid references zbusiness.zid
+   end foreign key
+end table

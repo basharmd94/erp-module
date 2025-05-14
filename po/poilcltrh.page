@@ -1,0 +1,217 @@
+page poilcltrh
+     caption "L.C. Information"
+     sections form one, list poilc, text top, script myscript
+
+
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+
+     list one
+        caption "<font size=3>P.O. List</font>"
+        table poord
+        order xpornum DESC
+        select "xstatuspor='Cleared' and {fn LEFT(xpornum,4)}='IP--' and xcoststat<>'LC Opened' and xcoststat<>'LC Completed'"
+        navigators alpha
+        rows 10
+        objects xpornum attrib(link "abc" embed onclick="return pickPO(this)"), ~
+                xdate,xsup,desc equals((select xorg from casup where casup.zid=poord.zid and casup.xsup=poord.xsup)),xstatuspor
+
+        field desc
+          caption Description
+          storage varcahr
+        end field
+
+     end list
+
+     list poilc
+        caption "<font size=3>L.C. List for LTR</font>"
+        table poilc
+        order xpornum desc
+        navigators alpha
+        rows 10
+        objects xlcno attrib(link #servlet+"n?page=poilcltrh&command=Show&xpornum=?"),~
+                xpornum, xsup,desc equals((select xorg from casup where casup.zid=poilc.zid and casup.xsup=poilc.xsup)),~
+                xlcopndate,xbank,xcur,xlcvalue
+
+        field desc
+          caption Description
+          storage varcahr
+        end field
+
+     end list
+
+     form one
+        caption "L.C. Information for LTR"
+        table poilc
+        order xpornum desc
+        layout 2
+        objects ~
+                Details,Top, Previous, Next,Clear, Bottom,LC_search,"<p>",~
+                xlcno attrib(search),xlcopndate default(#d),xcur display(const),xlcvalue display(const),~
+                xpornum display(const),xbank
+
+//xindent-Revised Proforma No,xdateord-RPN data,xlcano-Insurance Addendum,xdate-IA Date,xtarget-Insurance,xcarrier-Carrier,xvgroup-c&f
+
+        field LC_search
+          event before
+            class osbcustom(search(xlcno,"a","poilc","xlcno","pickLC","xlcno:xlcvalue","yes","L.C. Number:L.C. Value"))
+//  p1 -  Search String
+//  p2 -  Search Type: s - Starts with, e - Ends With, A - Any Where
+//  p3 -  Table Name
+//  p4 -  Table Field Name; For multiple fields, use colon(:) as field seperator
+//  p5 -  Pick Script Name
+//  p6 -  Fields To be Shown in Search Result
+//  p7 -  Search List Header; Yes, Default No
+//  p8 -  if header is Yes the Field Heading to show, if ommitted then fields name will be header name
+          end event
+        end field
+
+        field xlcno
+          event after
+            set globals(xlcno)=xlcno
+            if xlcno .eq. " "
+               set #field(Details.display) = "hide"
+            end if
+          end event
+        end field
+
+        field xpornum
+          event after
+            set globals(xpornum) = xpornum
+          end event
+        end field
+
+        field xsup
+          caption Supplier
+          display text
+          pick
+          attrib readonly
+          event before
+           set xsup=#sql("select xsup from poord where xpornum='"+xpornum+"'")
+          end event
+        end field
+        
+        field xbank
+          caption L.C. Opening Bank
+          display const
+          //pick select xcode from xcodes where xtype='Bank'
+          event after
+                set globals(xbank)=xbank
+          end event
+        end field
+
+        field Details
+          embed onclick="clicked(this)"
+        end field
+        embed onsubmit="submitit(this)"
+
+   end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but= ""
+        function clicked(b){
+          but="clicked"
+        }
+
+        function submitit(form){
+          if (but=="clicked"){
+            form.page.value = "poilcltr"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        function pickCur(link, exch){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcur.value=link.text
+            document.one.xexch.value=exch.text
+          }else{
+            document.one.xcur.value=link.innerText
+            document.one.xexch.value=exch.innerText
+          }
+          return false
+        }
+
+        function pickPO(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xpornum.value=link.text
+//            document.one.xexch.value=exch.text
+          }else{
+            document.one.xpornum.value=link.innerText
+ //           document.one.xexch.value=exch.innerText
+          }
+          return false
+        }
+
+        function pickLC(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xlcno.xvalue=link.text
+          }else{
+            document.one.xlcno.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+     method mth_check
+        buffer xlocals
+        set globals(xtypelocal)="Module"
+        set globals(xname)="gl"
+        move xlocals=xlocals(xtypelocal,xname)
+        int offset
+        int per
+        int year=#sub(xlcopndate,0,4)
+        set offset=#prop(xlocals.xprops,"offset")
+        set per=12+#sub(xlcopndate,5,2)-offset
+        if per<=12
+           set xper=per
+           set xyear=year-1
+        else
+           set xper=per-12
+           set xyear=year
+        end if
+
+        set mth_status = #sql(str,"select xpflag from pomthend where xyear='"+xyear+"' and xper='"+xper+"'")
+        if mth_status .eq. "1"
+          set globals(ErrChk) = "1"
+          error xyear+"("+xper+") Already Closed; Cannot "+#command
+        end if   
+     end method
+     
+
+     method chk_rec
+       if #command .eq. "Add" 
+         if poord.xstatuspor .ne. "Cleared"
+            set globals(ErrChk) = "1"
+            error "Cannot Open L.C. ; Status is : "+poord.xstatuspor
+         end if
+         if globals(xlcno) .eq. xlcno
+            set globals(ErrChk) = "1"
+            error "Cannot "+#command +" ; Duplicate L.C. No. found"
+         end if
+       end if
+
+       if globals(ErrChk) .ne. "1"
+         if poord.xstatuspor .eq. "Received" .or. poord.xstatuspor .eq. "Partial Received" .or. poord.xstatuspor .eq. "Completed"
+            set globals(ErrChk) = "1"
+            error "Cannot "+#command+"<br>Already "+globals(xstatuspor)
+         end if
+       end if
+     end method
+
+     method check_status
+        if xstatusord .ne. "Open"
+           set globals(ErrChk) = "1"
+           error "Cannot "+#command+"<br>Already "+xstatusord
+        end if
+     end method
+
+end page
+
+

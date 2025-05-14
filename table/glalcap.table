@@ -1,0 +1,51 @@
+product ERP on the Net
+
+table glalcap
+  caption "AP Allocation View"
+  columns  zid, xalcnum,xalcrow,xinvnum,xacc,xaccusage,xaccsource,xsub,xdiv,xsec,xproj,~
+           xdatedue,xdateapp,~
+           xinvcur,xinvexch,xprime,xbase,xlong,~
+           xref,xdate,xmember,xteam,xmanager,
+           xallocation,xstatus,xtypegl,xexchval,xoriginal
+  primary key zid, xvoucher, xrow
+  foreign key
+        zid references zbusiness.zid
+        zid,xvoucher references GLheader.zid,xvoucher
+  end foreign key
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+//  sql create view glalcap (zid, xalcnum,xalcrow,xinvnum,xacc,xaccusage,xaccsource,xsub,xdiv,xsec,xproj,~
+//                xdatedue,xdateapp, ~
+//                  xinvcur,xinvexch,xprime,xbase,xlong,~
+//                  xref,xdate,xmember,xteam,xmanager,~
+//                  xallocation,xstatus,xtypegl,xexchval) ~
+//                 as select  gldetail.zid, gldetail.xvoucher,gldetail.xrow,gldetail.xinvnum,xacc,gldetail.xaccusage,gldetail.xaccsource,gldetail.xsub,gldetail.xdiv,gldetail.xsec,gldetail.xproj,~
+//                 gldetail.xdatedue,gldetail.xdateapp, ~
+//                 gldetail.xcur,gldetail.xexch,-gldetail.xprime,-gldetail.xprime*gldetail.xexch,gldetail.xlong,~
+//                 glheader.xref,glheader.xdate,glheader.xmember,glheader.xteam,glheader.xmanager,~
+//                 cast(coalesce((SELECT SUM(((glalc.xtotamt/glalc.xinvexch*glalc.xexch)*glalc.xdifcur)+(glalc.xtotamt*glalc.xsamecur)) FROM glalc WHERE glalc.xalcnum = gldetail.xvoucher AND glalc.xalcrow = gldetail.xrow AND glalc.zid=gldetail.zid),0) as numeric(18,4)), ~
+//                  gldetail.xstatus, ~
+//                  gldetail.xtypegl,xexchval ~
+//                 from gldetail,glheader ~
+//      WHERE gldetail.xaccusage='AP' and gldetail.xprime<0 ~
+//            and gldetail.zid=glheader.zid and gldetail.xvoucher=glheader.xvoucher
+
+  sql create view glalcap (zid, xalcnum,xalcrow,xinvnum,xacc,xaccusage,xaccsource,xsub,xdiv,xsec,xproj,~
+                xdatedue,xdateapp, ~
+                  xinvcur,xinvexch,xprime,xbase,xlong,~
+                  xref,xdate,xmember,xteam,xmanager,~
+                  xallocation,xstatus,xtypegl,xexchval,xoriginal) ~
+                 as select  zid, xvoucher,xrow,xinvnum,xacc,xaccusage,xaccsource,xsub,xdiv,xsec,xproj,~
+                 xdatedue,xdateapp, ~
+                 xcur,xexch,-xprime,-xprime*xexch,xlong,~
+                 xref,xdate,xmember,xteam,xmanager,~
+                 cast(coalesce((SELECT SUM(((glalc.xtotamt/glalc.xinvexch*glalc.xexch)*glalc.xdifcur)+(glalc.xtotamt*glalc.xsamecur)) FROM glalc WHERE glalc.xalcnum = gldetailview.xvoucher AND glalc.xalcrow = gldetailview.xrow AND glalc.zid=gldetailview.zid),0) as numeric(18,4)), ~
+                  xstatus, ~
+                  xtypegl,xexchval,xoriginal ~
+                 from gldetailview ~
+      WHERE gldetailview.xaccusage='AP' and gldetailview.xprime<0
+
+
+end table
+

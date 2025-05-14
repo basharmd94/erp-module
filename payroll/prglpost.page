@@ -1,0 +1,346 @@
+page prglpost
+
+    caption "Payroll To GL Transfer"
+    section form one, method chk_interface,method upd_header,method upd_detail
+
+    form one
+      layout 1
+      object  Process,~
+              xyear default(#cyear),xper default(#cper),xtrngl default("PRJV")//xempf,xempt,xdiv,
+
+		field xdiv
+			//pick "select xcode from xcodes where zid='"+#id+"' and xtype='Department'"
+		end field
+		
+      field xempf
+         pick list xemp
+         width 10
+         default "0"
+      end field
+	  
+      field xempt
+         pick list xemp
+         width 10
+         default "z"
+      end field
+	  
+		
+
+      field Process
+        event before
+          set globals(ErrChk) = ""
+          set longdesc=xdiv
+          
+          int prvper = 0+xper-1
+          call lastday
+          
+          if globals(ErrChk) .ne. "1"
+          	call chk_interface
+          end if
+	  
+          if globals(ErrChk) .ne. "1"
+		set chkvoucher = #sql("select xvoucher from glheader where zid='"+#id+"' and xyear='"+xyear+"' and xper='"+xper+"' and xref='Salary Voucher'")		
+		print chkvoucher
+		if chkvoucher .ne. ""
+			error "Already Process"
+		end if
+          end if
+	  
+
+          if globals(ErrChk) .ne. "1"
+            //set globals(xpaydate) = #sql("select xpaydate from prpay where zid='"+#id+"' and xyear='"+xyear+"' and xper='"+xper+"' and xpaydate='"+xpaydate+"'")
+            set globals(xpaydate) = #sql("select xpaydate from prpay where zid='"+#id+"' and xyear='"+xyear+"' and xper='"+xper+"' order by xpaydate desc")
+	    //error globals(xpaydate)
+			//print globals(xpaydate)+"-"+xyear+"-"+xper 
+            if #result .ne. "true"
+                set globals(ErrChk)="1"
+                error "Invalid PayDate"
+            end if
+          end if
+
+            if globals(ErrChk) .ne. "1"
+                call upd_header
+            end if
+                
+                if globals(ErrChk) .ne. "1"
+                    set xemp=""
+					//set globals(xemp) = xempf
+					//set mysql = "select xemp from prmsgview where zid='"+#id+"' and xpaydate='"+globals(xpaydate)+"' and xemp>='"+globals(xemp)+"' and xemp<='"+xempt+"' order by zid,xpaydate,xemp"								
+					//set globals(xemp) = #sql(str,mysql)
+					
+                    set xemp = #sql(str,"select xemp from prmsgview where  zid='"+#id+"' and xpaydate='"+globals(xpaydate)+"' and xemp>'"+xemp+"' order by zid,xpaydate,xemp")//and xpflag='1' and xref='' and xdiv='"+xdiv+"'
+					//print globals(xemp)
+                    
+                    while #result .eq. "true"
+
+                        call upd_detail
+                       
+                        
+                            str mysql = "update prmsg set xref='"+globals(xvoucher)+"' where zid='"+#id+"' and xemp='"+xemp+"' and xpaydate='"+globals(xpaydate)+"' and xpflag='1'"
+                            //set updval = #sql(str,mysql)
+
+					//set mysql = "select xemp from premp where zid='"+#id+"' and zactive='1' and xemp>'"+globals(xemp)+"' and xemp<='"+xempt+"' ~
+					//				and xemp in(select xemp from hrmst where zid='"+#id+"' and xsec='"+xsec+"') order by zid,xemp"
+					//set globals(xemp) = #sql(str,mysql)
+                            
+                        set xemp = #sql(str,"select xemp from prmsgview where  zid='"+#id+"' and xpaydate='"+globals(xpaydate)+"' and xemp>'"+xemp+"' order by zid,xpaydate,xemp")//and xpflag='1' and xref='' and xdiv='"+xdiv+"'
+                    end while
+                end if
+
+            print "<font color=blue size=+2>Processing Completed "+globals(xvoucher)+" Created"
+
+        end event
+      end field
+
+   end form
+
+
+     method chk_interface
+        set chkrec=""
+        set xpaycode=""
+        set mysql = "select xpaycode from prpayhead where zid='"+#id+"' and xprsign<>'3-Total Pay' and xprsign<>'4-Total Deduction' and xpaycode>'"+xpaycode+"' order by zid,xpaycode"	
+        set xpaycode = #sql(str,mysql)
+	//error #result+";"+xpaycode
+        while #result .eq. "true" .and. xpaycode .ne. ""
+            set chkpcode=#sql(str,"select xpaycode from prgli where zid='"+#id+"' and xpaycode='"+xpaycode+"'")
+			//error chkpcode
+            if #result .ne. "true"
+                set globals(ErrChk)="1"
+                error "Paycode  "+xpaycode+" not found in Interface Tableggg"
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+                buffer prgli
+                move prgli=prgli(xpaycode)                
+                //move prgli=prgli(xpaycode,xsec,xdiv)                
+                if #result .ne. "true"
+                    set globals(ErrChk)="1"
+                    error "Error in Buffering Interface Table"
+                 else
+                    set xacc=prgli.xacc
+                    buffer glmst
+                    move glmst=glmst(xacc)
+                    if #result .ne. "true"
+                        set globals(ErrChk)="1"
+                        error "Wrong Account Code Chosen"
+                     else
+                        if glmst.xaccusage .eq. "Ledger" .and. glmst.xaccsource .eq. "Subaccount"
+                            set xsub=prgli.xsub
+                            if xsub .eq. ""
+                                set globals(ErrChk)="1"
+                                error "Please update record with correct Sub Account"
+                             else
+                                buffer glsub
+                                move glsub=glsub(xacc,xsub)
+                                if #result .ne. "true"
+                                    set globals(ErrChk)="1"
+                                    error "Wrong Sub Account Code Chosen"
+                                end if
+                            end if
+                        end if
+                    end if
+                end if
+            end if
+            //print xpaycode
+            set mysql = "select xpaycode from prpayhead where zid='"+#id+"' and xprsign<>'3-Total Pay' and xprsign<>'4-Total Deduction' and xpaycode>'"+xpaycode+"' order by zid,xpaycode"
+            set xpaycode = #sql(str,mysql)
+        end while
+     end method
+
+     method upd_header
+
+         int tempper
+         int tempyear
+
+         int year
+         int offset
+         int per
+         str date
+
+         set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+	 	 set date = #sub(globals(xpaydate),0,10)
+	 	 int year = #sub(globals(xpaydate),0,4)
+	 	 int per = 12+#sub(globals(xpaydate),5,2)-offset
+
+         if per<=12
+            set tempper=per
+            set tempyear=year-1
+         else
+            set tempper=per-12
+            set tempyear=year
+         end if
+	 
+	 
+	set doctype = "Salary Voucher"
+        //set docnum = xdiv+" "+#sub(globals(xpaydate),0,10)
+        set docnum =#sub(globals(xpaydate),0,10)
+        
+         set voucher=glheaderview.xvoucher("xdoctype='"+doctype+"' and xdocnum='"+docnum+"' and xstatusvou='Undone'")
+    
+        if voucher .ne. ""
+            print "Reusing Undone Voucher "+voucher
+            int itemp=#sql(int, "update glheader set xlong=xlong||'"+#char(13)+#char(10)+"** Reposted On "+#date+" **' where xvoucher='"+voucher+"'")
+        else
+            set voucher =#trn("GL Voucher",xtrngl)
+          end if
+		  
+		
+        
+		set globals(xvoucher)=voucher
+        
+          buffer glheader
+          set glheader.xvoucher=voucher
+          set glheader.xdate=globals(xpaydate)
+          set glheader.xyear=tempyear
+          set glheader.xper=tempper
+          if ref .eq. ""
+            set glheader.xref=doctype
+          else
+            set glheader.xref=ref
+          end if
+      
+          set glheader.xlong="** Created By System On "+#date+" **"
+
+          set glheader.xstatusjv="Balanced"
+          set glheader.xstatusjv="Posted"
+          set glheader.xapproved="1"
+          set glheader.xaction="Journal"
+
+          //set glheader.xdoctype=doctype
+          //set glheader.xdocnum=docnum
+          insert glheader
+		  //print #result
+     end method
+
+     method upd_detail
+        set xcur="BDT"
+        set xpaycode=""
+        set glqry="select xpaycode from practrndt where zid='"+#id+"' and xpaydate='"+globals(xpaydate)+"' and xemp='"+xemp+"' and xpaycode>'"+xpaycode+"' order by zid,xpaycode"
+        set xpaycode=#sql(str,glqry)
+		//error xpaycode
+
+        while #result .eq. "true"
+            set paycodesign = #sql(str,"select xprsign from prpayhead where zid='"+#id+"' and xpaycode='"+xpaycode+"'")//and xpflag='1' and xref='' and xdiv='"+xdiv+"'
+            buffer prgli
+            move prgli = prgli(xpaycode)
+            //move prgli = prgli(xpaycode,xsec,xdiv)
+            if #result .ne. "true" .and. paycodesign<>"3-Total Pay" .and. paycodesign<>"4-Total Deduction"
+                set globals(ErrChk)="1"
+                error "Error in Buffering Interface Tables"+xpaycode
+            end if
+            if globals(ErrChk) .ne. "1"
+                set payamt=0.0+#sql(dec,"select xamount from practrndt where zid='"+#id+"' and xpaydate='"+globals(xpaydate)+"' and xemp='"+xemp+"' and xpaycode='"+xpaycode+"'")
+				//error payamt
+                set chkrow=0+#sql(int,"select xrow from gldetail where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"' and xacc='"+prgli.xacc+"' and xsub='"+prgli.xsub+"'")
+                set paycodesign = #sql(str,"select xprsign from prpayhead where zid='"+#id+"' and xpaycode='"+xpaycode+"'")
+                //set div=#sql(str,"select xdiv from hrmst where zid='"+#id+"' and xemp='"+xemp+"'")
+				
+				//set prdiv=#sql(str,"select xdiv from premp where zid='"+#id+"' and xemp='"+xemp+"'")
+				//set prsec=#sql(str,"select xsec from premp where zid='"+#id+"' and xemp='"+xemp+"'")
+				set prproj=#sql(str,"select xproj from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+                
+                if paycodesign .eq. "1-Pay"
+                    set amtsign=0+1
+                else
+                    set amtsign=0-1
+                end if
+                
+                set payamt=0.0+payamt*amtsign
+                
+
+                if chkrow<=0
+                    set rownum = 0+1+rownum
+                    set subacccode=""
+                    set xaccusage=#sql(str,"select xaccusage from glmst where zid='"+#id+"' and xacc='"+prgli.xacc+"'")
+                    set xaccsource=#sql(str,"select xaccsource from glmst where zid='"+#id+"' and xacc='"+prgli.xacc+"'")
+                    set xacctype=#sql(str,"select xacctype from glmst where  zid='"+#id+"' and xacc='"+prgli.xacc+"'")
+                    set acccode=prgli.xacc
+                    if xaccsource .eq. "Subaccount"
+                        set subacccode=prgli.xsub
+                    end if
+                    if xaccsource .eq. "Employee"
+                        set subacccode=xemp
+                    end if
+                    
+                    buffer gldetail
+                    set gldetail.zid=#id
+                    set gldetail.xvoucher=globals(xvoucher)
+
+                    set gldetail.xrow=rownum
+                    set gldetail.xcur=xcur
+                    set gldetail.xexch=1
+                    set gldetail.xacc=acccode
+                    set gldetail.xsub=subacccode
+                    //set gldetail.xdiv=prdiv
+                    //set gldetail.xsec=prsec
+                    set gldetail.xproj=prproj
+                    if invnum .ne. ""
+                  set gldetail.xinvnum=invnum
+                  //set gldetail.xdateinv=dateinv
+                  //set gldetail.xdatedue=datedue
+                end if
+                    
+                    set gldetail.xprime=payamt
+                    set gldetail.xbase=payamt
+                    set gldetail.xaccsource=xaccsource
+                    set gldetail.xaccusage=xaccusage
+                    insert gldetail
+        
+                    if #result .ne. "true" .and. paycodesign<>"3-Total Pay" .and. paycodesign<>"4-Total Deduction"
+                        set globals(ErrChk) = "1"
+                        error "Error in Creating Voucher Details"
+                    end if
+                else
+                    set updsql=#sql(str,"update gldetail set xprime=xprime + '"+payamt+"' where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"' and xrow='"+chkrow+"'")
+                end if
+            end if
+            set glqry="select xpaycode from practrndt where zid='"+#id+"' and xpaydate='"+globals(xpaydate)+"' and xemp='"+xemp+"' and xpaycode>'"+xpaycode+"' order by zid,xpaycode"
+            set xpaycode=#sql(str,glqry)
+        end while
+     end method
+
+    method lastday
+	  	int day = 0
+	  	set salcal = prdef.xprsalcalc("zid='"+#id+"'")
+	  	if #result .ne. "true"
+	  		set globals(ErrChk) = "1"
+	  		error "Payroll Default not defined"
+	  	end if
+
+	  	if globals(ErrChk) .ne. "1"
+			if salcal .eq. "Last Day"
+				if xper .eq. "01" .or. xper .eq. "03" .or. xper .eq. "05" .or. xper .eq. "07" .or. xper .eq. "08" .or. xper .eq. "10" .or. xper .eq. "12"
+					int day = 32
+				else if xper .eq. "1" .or. xper .eq. "3" .or. xper .eq. "5" .or. xper .eq. "7" .or. xper .eq. "8" .or. xper .eq. "10" .or. xper .eq. "12"
+					int day = 32
+				end if
+				if xper .eq. "04" .or. xper .eq. "06" .or. xper .eq. "09" .or. xper .eq. "11"
+					int day = 31
+				else if xper .eq. "4" .or. xper .eq. "6" .or. xper .eq. "9" .or. xper .eq. "11"
+					int day = 31
+				end if
+				if xper .eq. "02"
+					int day = 29
+				else if xper .eq. "2"
+					int day = 29
+				end if
+	          	set prvdate = xyear+"-"+xper+"-01"
+			else if salcal .eq. "Custom"
+	      		set chkday = prdef.xperend("zid='"+#id+"'")
+	      		if chkday == 0 .or. #result .eq. "false"
+      				set globals(ErrChk) = "1"
+      				error "Period ending date not defined in Setup table"
+	      		else
+					int day = prdef.xperend("zid='"+#id+"'")+1
+		          	int prvday = 0+prdef.xperend("zid='"+#id+"'")+1
+	      		end if
+	      		set prvdate = xyear+"-"+prvper+"-"+prvday
+			end if
+
+          	set tmpdate = xyear+"-"+xper+"-"+day
+	
+          	set temp = #days(tmpdate)
+          	set xpaydate=#longtodate(temp)
+		end if
+     end method
+end page

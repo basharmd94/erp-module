@@ -1,0 +1,11 @@
+product ERP on the Net
+
+list prmstcv
+      table prmstcv
+        order xemp
+	      navigators alpha group xemp
+        rows 20
+        objects xemp attrib(link "abc" embed onclick="return updateParent(this:'xemp')")
+                
+
+end table

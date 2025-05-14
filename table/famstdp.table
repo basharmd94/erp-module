@@ -1,0 +1,22 @@
+product ERP on the Net
+
+table famstdp
+  caption "Fixed Asset Disposal Detail"
+  columns ztime,zutime, zid, xcode,xvoucher,xdate,~
+          xyear,xper,xcur,xexch,xprime,xbase
+          //xrebkval,xredate,xdisval,xdisdate,xsaleval,xsaledate,xscrpval,xscrpdate,~
+
+  primary key zid, xcode,xvoucher
+  foreign key
+        zid references zbusiness.zid
+        zid,xcode references famst.zid,xcode
+  end foreign key
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+  //field xcus
+    //extend
+    //attrib trn Sales Order, 10
+  //end field
+  //sql
+end table

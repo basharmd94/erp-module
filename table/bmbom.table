@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table bmbom
+	caption "Bill of Materials"
+	
+	columns ztime,zutime,zid,xbom,xgitem,zemail,xemail,xdesc
+
+	primary key zid, xbom
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+end table

@@ -1,0 +1,903 @@
+page opcrn
+    
+    caption header 
+    sidebar list return,del_order
+    sections form one, list one, script myscript
+
+     list del_order
+        caption "Delivery Order List"
+		table (select *,~
+			(select xorg from cacus ~
+			where zid=opdor.zid and xcus=opdor.xcus) as cusdesc ~
+			from opdor) as tbl
+		
+        order xdornum DESC
+        select "xstatusdor <>'1-Open'"
+        rows 5
+        objects xdornum attrib(link "abc" embed onclick="return pickOrder(this)"),~
+                xcus,cusdesc,xdate,xstatusdor,xordernum
+
+        field cusdesc
+          caption Name
+          storage varchar
+        end field
+
+     end list
+	 
+     list return
+        caption "Items Added for Return"
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=opcdt.zid and xitem=opcdt.xitem) as xdesc ~
+			from opcdt) as tbl
+		
+        table opcdt
+        order xrow
+        fixed xcrnnum
+        rows 10
+        objects xrow attrib(link #servlet+"?page=opcdt&command=Show&xrow=?"),~
+                xitem,xdesc,xqty,xrate,xlineamt
+       totals count,"Totals",,sum,sum
+
+       field itemdesc
+        storage varchar
+        caption Description
+       end field
+
+     end list
+	 
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        caption "Last 5  Record(s)"
+		table (select *,~
+			(select xorg from cacus ~
+			where zid=opcrn.zid and xcus=opcrn.xcus) as cusdesc ~
+			from opcrn) as tbl
+		
+        table opcrn
+        order xcrnnum DESC
+        select "zid='"+#id+"' and xtrncrn<>'DSR-'"
+        rows 5
+        objects xcrnnum attrib(link #servlet+"?page="+page+"&command=Show&xcrnnum=?"), ~
+                xdate,xdornum,xordernum,xcus
+
+        field cusdesc
+          storage varchar
+          caption Customer
+        end field
+     end list
+
+     form one
+        //caption "<font color=black size=4>Sales Return Entry"
+        valid valid,access
+        table opcrn
+        order xcrnnum DESC
+        focus xdornum
+        layout 2
+        objects Show, Clear,Add, Details, Update, Previous,Delete, Next, ~    //   Accept Returns, Issue CRN,
+                xtrncrn,xcrnnum,xdate,~
+				xdornum display(text),xinvnum,xordernum display(const),~
+                xcus attrib(attach; readonly),org display(constant),xemp,xwh display(constant),xstr01,~
+                xcur,xexch,xdiv display(hide),xsec,xreason caption(Return Reason),xproj display(const),~
+                xstatuscrn display(constant),~
+                xdisc display(hide),xappamt display(hide),xappcode display(hide),xglref display(const),~
+                xdiscf display(hide),xcuspo display(hide),xdatecuspo display(hide),~
+                xteam display(const),xmember display(const),xmanager display(const)
+
+        field xdornum
+          event after
+            set globals(xdornum)=xdornum
+          end event
+        end field
+		
+		field xtrncrn
+			display const
+			//pick "select xtrn from xtrn where zid='"+#id+"' and xtypetrn='Sales Returns'"
+			default "SR--"
+		end field 
+		
+		field xemp
+			caption Salesperson
+			attrib mandatory
+			w 20
+			
+		end field
+		
+		field xstr01
+			caption Deliveryman ID
+			attrib mandatory
+			w 20
+			pick list xemp
+		end field
+		
+		field xsec
+			caption Return Type
+			pick "Normal,Damage"
+			default "Normal"
+		end field
+		
+		field xreason
+			display combo
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Return Reason' and zactive='1'"		
+			attrib mandatory
+		end field
+
+        field xordernum
+          event after
+            set globals(xordernum) = xordernum
+          end event
+        end field
+
+        field xcrnnum
+          attrib search 
+          event after
+            if xcrnnum .ne. ""
+            	set #field(xtrncrn.display) = "const"
+            end if
+            set globals(xcrnnum)=xcrnnum
+			if xstatuscrn .eq. "6-Batch Quantity Mismatch" .or. xstatuscrn .eq. "7-Serial Number Mismatch"
+				set #field(Accept.display) = "disabled"
+				set #field(Issue.display) = "disabled"
+			end if
+			if xstatuscrn .eq. "3-Issued"
+				set #field(Accept.display) = "disabled"
+				set #field(Issue.display) = "disabled"
+				set #field(Update.display) = "disabled"
+				set #field(Delete.display) = "disabled"
+				set #field(xdornum->.display) = "constant"
+			end if
+			if xstatuscrn .eq. "2-Accepted"
+				set #field(Accept.display) = "disabled"
+				set #field(Update.display) = "disabled"
+				set #field(Delete.display) = "disabled"
+				set #field(xdornum->.display) = "constant"
+			end if
+            if xcrnnum .eq. ""
+			  set #field(xdornum.caption) = "<font color=red>"+#field(xdornum.caption)+"</font>"
+              set #field(Delete.display) = "disable"
+              set #field(Update.display) = "disable"
+              set #field(Accept.display) = "disable"
+              set #field(Issue.display) = "disable"
+			else if xstauscrn .ne. "2-Accepted" .and. xstatuscrn .ne. "3-Issued"
+			  call checkserial
+              if err==0
+				  call checkbatch
+              end if
+			end if
+            str header="<font color=green>"+xstatuscrn+"</font> Sales Returns Entry "
+            str print=opdef.xprintcrn()
+            if print .ne. "0"            
+              set header=header+"<a href='"+#report(opcrnn.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xcrnnum+"&prompt2="+xcrnnum+"&prompt3="+opdef.xtitlecrn()+"' target='_new'>Print</a>"
+            end if
+          end event
+        end field
+
+        field xdate
+          default #date
+          event after
+            set globals(xdate)=xdate
+          end event
+        end field
+
+        field xcus
+          caption Customer Code
+          event after
+            set globals(xcus)=xcus
+          end event
+        end field
+
+        field org
+          attrib local
+          display constant
+          caption Customer
+          event after
+            set org = #sql(str,"select xorg from cacus where xcus='"+xcus+"'")
+          end event
+        end field
+
+        field xwh
+          event after
+            set globals(xwh)=xwh
+          end event
+        end field
+
+        field xwhdesc
+          attrib local
+          display constant
+          event after
+          set xwhdesc=#sql("select xlong from xcodes where xtype='Warehouse' and xcode='"+xwh+"'")
+          end event
+        end field
+
+        field xcur
+          display hidden //constant
+          event after
+            set globals(xcur)=xcur
+          end event
+        end field
+
+        field xexch
+          display hidden //constant
+          event after
+            set globals(xexch) = xexch
+          end event
+        end field
+
+        field xstatuscrn
+          event after
+            set globals(xstatuscrn) = xstatuscrn
+          end event
+        end field
+        
+        field xdiv
+          display hide
+        end field
+
+        field Add
+          event before
+            set globals(ErrChk) = ""
+
+            //call chkprvcrn
+
+            if globals(ErrChk) .ne. "1"
+              call updcrn
+            end if
+
+			if globals(ErrChk) .ne. "1"
+				decimal tot_chl=0.00
+				decimal tot_ret=0.00
+
+				//set tot_ret = 0.0+#sql(decimal,"select sum(xqty) from opddt where  zid='"+#id+"' and xdornum='"+xdornum+"'")
+				set tot_chl = 0.0+#sql(decimal,"select sum(xqty) from opddt where  zid='"+#id+"' and xdornum='"+xdornum+"'")
+//error tot_ret
+				if tot_ret >= tot_chl
+					set globals(ErrChk) = "1"
+					error "Not Enough Qty to Create a Return_1"
+				end if
+				if globals(ErrChk) .ne. "1"
+					set tot_ret = 0.0+#sql(decimal,"select sum(xqty) from opcdt where  zid='"+#id+"' and xcrnnum in (select xcrnnum from opcrn where  zid='"+#id+"' and xdornum='"+xdornum+"')")
+					if tot_ret >= tot_chl
+						set globals(ErrChk) = "1"
+						error <font color=red size=5>"Not Enough Qty to Create a Return"
+                    end if
+				end if
+			end if
+			
+            if globals(ErrChk) .ne. "1"
+				str mysql = #sql(str,"select xcrnnum from opcrn where xcrnnum like '"+xtrncrn+"%' order by xcrnnum desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,4,6)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set xcrnnum = xtrncrn + mysql                
+			
+	            set xstatuscrn="1-Open"
+	            set xmember = #user
+	            set xteam = #sql(string,"select xteam from cateam where xmember = '"+xmember+"'")
+	            set xmanager = #sql(string,"select xmanager from caman where xteam = '"+xteam+"'")
+            end if
+            
+          end event
+        end field
+					   
+        field update
+          event before
+            set globals(cusflag) = ""
+            set globals(ErrChk) = ""
+
+            call chkrec
+
+            if globals(ErrChk) .ne. "1"
+              call chkord
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+         //     call chkprvcrn
+            end if
+
+			if globals(ErrChk) .ne. "1"
+				decimal tot_chl=0.00
+				decimal tot_ret=0.00
+
+				//set tot_ret = 0.0+#sql(decimal,"select sum(xqty) from opddt where  zid='"+#id+"' and xdornum='"+xdornum+"'")
+				set tot_chl = 0.0+#sql(decimal,"select sum(xqty) from opddt where  zid='"+#id+"' and xdornum='"+xdornum+"'")
+//error tot_ret
+				if tot_ret >= tot_chl
+					set globals(ErrChk) = "1"
+					error "Not Enough Qty to Create a Return_1"
+				end if
+				if globals(ErrChk) .ne. "1"
+					set tot_ret = 0.0+#sql(decimal,"select sum(xqty) from opcdt where  zid='"+#id+"' and xcrnnum in (select xcrnnum from opcrn where  zid='"+#id+"' and xdornum='"+xdornum+"')")
+					if tot_ret >= tot_chl
+						set globals(ErrChk) = "1"
+						error <font color=red size=5>"Not Enough Qty to Create a Return"
+                    end if
+				end if
+			end if
+			
+            if globals(ErrChk) .ne. "1"
+              call updcrn
+            end if
+          end event
+        end field
+
+        field Delete
+          event before
+            set globals(ErrChk) = ""
+            call chkrec
+          end event
+        end field
+
+        field Accept
+          event before
+            set globals(ErrChk) = ""
+            set globals(xtrn) = #sub(globals(xcrnnum),0,4)
+            set doctype = #sub(globals(xcrnnum),0,4)
+			
+			if globals(ErrChk) .ne. "1"
+				if xcrnnum .ne. globals(xcrnnum)
+					set globals(ErrChk) = "1"
+					error "Record pointer mismatch"
+				end if
+			end if
+
+			if globals(ErrChk) .ne. "1"
+				set status = opcrn.xstatuscrn("xcrnnum='"+xcrnnum+"'")
+				if status .ne. "1-Open"
+					set globals(ErrChk) = "1"
+					error "Cannot "+#command +"; Status: "+status
+				end if
+			end if
+			
+            if globals(ErrChk) .ne. "1"
+              buffer opcrn
+              move opcrn=opcrn(xcrnnum)
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call get_imtrn_code
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+	            int offset
+	            int per
+	            int year
+	            
+	            int tempper
+	            int tempyear	            
+	            set offset=castatus.xinteger("xtypestatus='GL Period Offset'")
+				int year=#sub(opcrn.xdate,0,4)
+	            set per=12+#sub(opcrn.xdate,5,2)-offset
+	            if per<=12
+	                set tempper=per
+	                set tempyear=year-1
+	            else
+	                set tempper=per-12
+	                set tempyear=year
+	            end if            
+            
+            	int xrow = 0
+				set mysql = "select xrow from opcdt where xcrnnum='"+globals(xcrnnum)+"' and xrow>'"+xrow+"'"
+				set xrow = #sql(int,mysql)
+				while #result .eq. "true"
+					buffer opcdt
+					move opcdt=opcdt(xcrnnum,xrow)
+					//print opcdt.xrow
+					decimal crnval = 0.0D
+					set doqty = #sql(decimal,"select sum(xqty) from imtrn where xdoctype='Delivery Order' and xdocnum ='"+opcrn.xdornum+"' and xdocrow='"+xrow+"'")
+					set doval = #sql(decimal,"select sum(xval) from imtrn where xdoctype='Delivery Order' and xdocnum ='"+opcrn.xdornum+"' and xdocrow='"+xrow+"'")
+					set crnval = 0.0+(doval/doqty)*opcdt.xqty
+										
+//					string ximtrnnum = #trn("Inventory Transaction",globals(xtrn))       					
+				set xisscode="SRE-"
+				str mysql = #sql(str,"select ximtrnnum from imtrn where ximtrnnum like '"+xisscode+"%' order by ximtrnnum desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,6)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set ximtrnnum = xisscode + mysql            
+
+					set mysql = "delete from imtrn where xdoctype='"+doctype+"' and xdocnum='"+opcrn.xcrnnum+"' and xdocrow='"+xrow+"'"
+					set tmpstr = #sql(str,mysql)
+										
+					set mysql = "insert into imtrn (zid,ximtrnnum, xitem,xitemrow,xitemcol, xwh,xdate,xyear, xper,~
+							xqty,xval,xvalpost,xdoctype,xdocnum,xdocrow,xnote,xaltqty,xdiv,xsec,xproj,~
+							xbatch,xdateexp,xdaterec, xlicense,xcus,xsup,xaction,xsign,xtime,zemail,xemail,~
+							xteam,xmember,xmanager)"
+					set mysql = mysql + " values("+#id+",'"+ximtrnnum+"','"+opcdt.xitem+"','','','"+globals(xwh)+"',~
+						'"+opcrn.xdate+"','"+tempyear+"','"+tempper+"',"+opcdt.xqty+","+crnval+","0",'"+doctype+"',~
+						'"+opcrn.xcrnnum+"','"+xrow+"','',"0",'"+xdiv+"','"+xsec+"','"+xproj+"','"+batch+"',~
+						'"+opcrn.xdate+"','"+opcrn.xdate+"','','"+opcrn.xcus+"','','Receipt',"1",~
+						'"+#time+"','"+#user+"','','"+xteam+"','"+xmember+"','"+xmanager+"')"
+					set tmpstr =#sql(mysql)
+									
+					set mysql = "select xrow from opcdt where xcrnnum='"+globals(xcrnnum)+"' and xrow>'"+xrow+"'"
+					set xrow = #sql(int,mysql)
+				end while
+            end if
+
+            if globals(ErrChk) .eq. ""
+				str mysql = "update opcrn set xstatuscrn='2-Accepted' where xcrnnum='"+globals(xcrnnum)+"'"
+				set tmpstr = #sql(str,mysql)
+
+				print "Sales Return Accepted-Inventory Updated"
+               	action show
+            end if
+
+          end event
+        end field
+
+        field Issue
+          event before
+            set globals(ErrChk) = ""
+            set globals(xtrn) = #sub(globals(xcrnnum),0,4)
+            set globals(xgltrn) = ""
+
+			if globals(ErrChk) .ne. "1"
+				if xcrnnum .ne. globals(xcrnnum)
+					set globals(ErrChk) = "1"
+					error "Record pointer mismatch"
+				end if
+			end if
+
+			if globals(ErrChk) .ne. "1"
+				set status = opcrn.xstatuscrn("xcrnnum='"+xcrnnum+"'")
+				if status .ne. "2-Accepted"
+					set globals(ErrChk) = "1"
+					error "Cannot "+#command +"; Status: "+status
+				end if
+			end if
+
+            if globals(ErrChk) .eq. "" 
+              call get_gltrn_code
+            end if
+
+			if globals(ErrChk) .eq. ""
+              call chk_interface
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+	             set chk_voucher = #sql("select xvoucher from glheader where xref='"+globals(xcrnnum)+"'")
+	             
+	             str mysql = "delete from glalc where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+	             set updval = #sql(mysql)
+
+                 str mysql = "delete from gldetail where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+                 set updval = #sql(mysql)
+                 
+                 str mysql = "delete from glheader where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+                 set updval = #sql(mysql)
+                 if globals(ErrChk) .eq. "1"
+                     error "CN for this Sales Return exists in GL : "+chk_voucher
+                 end if
+            end if
+			            
+             if globals(ErrChk) .eq. ""
+				 buffer opcrn
+				 move opcrn=opcrn(xcrnnum)             
+             
+	             int tempper
+	             int tempyear	            
+	
+	             int year         	 
+	             int offset
+	             int per
+	             str date
+	             
+	             set offset=castatus.xinteger("xtypestatus='GL Period Offset'")     
+			 	 int year = #sub(opcrn.xdate,0,4)
+			 	 int per = 12+#sub(opcrn.xdate,5,2)-offset               
+				 
+	             if per<=12
+	                set tempper=per
+	                set tempyear=year-1
+	             else
+	                set tempper=per-12
+	                set tempyear=year
+	             end if
+	             
+                 set xglcode=globals(xtrn)
+             
+				 set xvoucher = #trn("GL Voucher",xglcode)
+             
+                 set myqry = "insert into glheader (zid, xvoucher,xref,xdate,xlong,xpostflag,~
+           			xyear,xper,xstatusjv,xdatedue,xdesc01,xdesc02,xdesc03,xdesc04,xdesc05,xictrnno,dumzid,~
+           			zemail,xemail,xaccdr,xsubdr,xnumofper,xcheque,xpaytype,xstatus,xtrngl,xnote,xteam,xmember,~
+           			xmanager,xapproved,xaction)"
+				 set myqry = myqry + " values('"+#id+"','"+xvoucher+"','"+xcrnnum+"','"+opcrn.xdate+"',~
+					'System Generated Credit Note from OP','','"+tempyear+"','"+tempper+"','Balanced','"+opcrn.xdate+"',~
+					'','','','','','',"0",'"+#user+"','','','',"0",'','','','"+xglcode+"','System Generated Credit Note from OP',~
+					'"+xteam+"','"+xmember+"','"+xmanager+"','','Journal')"
+				 set tmpstr =#sql(myqry)                      
+                 if #result .ne. "true"
+                   set globals(ErrChk) = "1"
+                 end if
+              end if
+ 
+              if globals(ErrChk) .eq. ""
+                int rownum = 0
+                double tot_amt=0.0
+                int xrow = 0
+                set glqry="select xrow from opcdt where xcrnnum='"+globals(xcrnnum)+"' and xrow > '"+xrow+"'"
+                set xrow=#sql(int,glqry)
+                while #result .eq. "true"
+                  buffer opcdt
+                  move opcdt = opcdt(xcrnnum,xrow)
+
+                  if opcdt.xqty > 0.0
+                     set rownum = 0+10+xrow
+                     set xaccusage=#sql(str,"select xaccusage from glmst where xacc='"+opgli.xaccret+"'")
+                     set xaccsource=#sql(str,"select xaccsource from glmst where xacc='"+opgli.xaccret+"'")
+                     set xacctype=#sql(str,"select xacctype from glmst where xacc='"+opgli.xaccret+"'")
+                     set tot_base = 0.00+opcdt.xlineamt*xexch
+                     set tot_amt=0.0+opcdt.xlineamt+tot_amt
+
+                     set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+                     	xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+                     	xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+                     	xstatus,xtypegl)"							
+                     set mysql = mysql + " values('"+#id+"','"+xvoucher+"','"+xrow+"','"+opgli.xaccret+"','"+xaccusage+"',~
+                     	'"+xaccsource+"','"+opgli.xretsub+"','"+opcrn.xdiv+"','"+opcrn.xsec+"','"+opcrn.xproj+"',~
+						 '"+opcrn.xcur+"','"+opcrn.xexch+"',~
+                     	"+opcdt.xlineamt+","+tot_base+",'','','','"+xacctype+"','"+#user+"','','','','','','',"0",'',"0",~
+                     	'','','','')"
+                     set tmpstr = #sql(mysql) 
+                                           
+                     if #result .ne. "true"
+                       set globals(ErrChk) = "1"
+                     end if
+                  end if
+
+                  set glqry="select xrow from opcdt where xcrnnum='"+globals(xcrnnum)+"' and xrow >  '"+xrow+"'"
+                  set xrow=#sql(int,glqry)
+                end while
+             end if
+
+            if globals(ErrChk) .eq. ""                
+                 set mysql = "insert into gldetail (zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+                	xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xlong,xicacc,xicsub,xacctype,zemail,xemail,~
+                	xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,~
+                	xstatus,xtypegl)"							
+                 set mysql = mysql + " values('"+#id+"','"+xvoucher+"',"+rownum+",'"+xaccar+"','AR',~
+                	'Customer','"+opcrn.xcus+"','"+opcrn.xdiv+"','"+opcrn.xsec+"','"+opcrn.xproj+"',~
+					'"+opcrn.xcur+"','"+opcrn.xexch+"',~
+                	"+0-tot_amt+","+0-tot_amt+",'','','','"+xacctype+"','"+#user+"','','','','','','',"0",'',"0",~
+                	'','','','')"        
+                 set tmpstr = #sql(mysql) 
+
+                 if #result .ne. "true"
+                   set globals(ErrChk) = "1"
+                 end if
+             end if
+
+             if globals(ErrChk) .eq. "1" .or. globals(ErrChk) .eq. ""
+                set tot_prime = #sql(decimal,"select sum(xprime) from gldetail where xvoucher='"+xvoucher+"'")
+                if tot_prime <> 0.0
+                  set globals(ErrChk) = "1"
+                  str mysql = "update glheader set xstatusjv = 'Out of Balance' where xref = '"+globals(xcrnnum)+"'"
+                  set tmpstr = #sql(str,mysql)
+                  error "Cannot Update("+xvoucher+")Out of Balance</p>Check Error Logs "
+                end if
+             end if
+
+            if globals(ErrChk) .eq. ""
+				str mysql = "update opcrn set xstatuscrn='3-Issued',xglref='"+xvoucher+"' where xcrnnum='"+globals(xcrnnum)+"'"
+				set tmpstr = #sql(str,mysql)
+
+				print "Credit Note Issued"+xvoucher
+               	action show
+            end if
+            
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Details
+          embed onclick="clicked(this)"
+        end field
+
+
+     end form
+
+    script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          //$.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          //var form=document.forms[0];
+          //form.searchbutton.value="Clear";
+          //form.submit();
+          });
+        </script>
+
+      <script language="javascript" type="text/javascript">
+        var button
+
+        function clicked(b){
+          button=b.value
+        }
+
+        function submitit(form){
+            //alert(form.xordernum_ONE.value)
+          if (button=='Details'){
+                form.page.value = "opcdt"
+                form.searchbutton.value = "Top"
+          }
+        }
+
+      	function pickCus(link){
+      	  if (navigator.appName.indexOf("Netscape")>=0){
+	          document.one.xcus.value=link.text
+      	  }else{
+	          document.one.xcus.value=link.innerText
+      	  }
+      	  return false
+      	}
+
+        function pickOrder(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xdornum.value=link.text
+          }else{
+            document.one.xdornum.value=link.innerText
+          }
+          return false
+        }
+        
+      </script>
+    end script
+
+     method chkrec
+       if xstatuscrn .eq. "2-Accepted" .or. xstatuscrn .eq. "3-Issued"
+         set globals(ErrChk) = "1"
+         error "Cannot "+#command+"<br>Already "+globals(xstatuscrn)
+       end if
+     end method
+
+     method updcrn
+		  if xdornum .eq. ""
+			set xdornum = #sql(str,"select xdornum from opdor where xinvnum='"+xinvnum+"'")
+		  end if
+     
+		  buffer opdor
+		  move opdor=opdor(xdornum)
+		  if opdor.xstatusdor .lt. "2-Confirmed"
+		  	set globals(ErrChk) = "1"
+		  	error xdornum+" is Not a Confirmed DO -- Cannot Create Returns Transaction!"
+		  end if
+						
+		  if globals(ErrChk) .ne. "1"
+          	set xcus=opdor.xcus
+          	set xcuspo=opdor.xcuspo
+          	set xdatecuspo=opdor.xdatecuspo
+          	set xappcode=opdor.xappcode
+			set xproj=opdor.xproj
+          	set xwh=opdor.xwh
+          	set xcur=opdor.xcur
+          	set xexch=opdor.xexch
+          	set xdisc=opdor.xdisc
+          	set xdiscf=opdor.xdiscf
+          	set xordernum=opdor.xordernum
+          	set xinvnum=opdor.xinvnum
+          end if
+     end method
+
+     method chkprvcrn
+        str tstat = ""
+        str mysql = "select xcrnnum from opcrn where zid="+#id+" and xdornum='"+xdornum+"'"
+        set tstat = #sql(str,mysql)
+        if #command .eq. "Add" .and. tstat .ne. ""
+          set globals(ErrChk) = "1"
+          error "Already returned<br>CRN Number: "+tstat
+        else if #command .eq. "Update"  .and. tstat .ne. globals(xcrnnum)
+          set globals(ErrChk) = "1"
+          error "Already returned<br>CRN Number: "+tstat
+        end if
+     end method
+
+     method chkord
+        str tstat = ""
+        str mysql = "select xline from opcdt where zid="+#id+" and xcrnnum='"+globals(xcrnnum)+"' and xline>'0'"
+        set tstat = #sql(str,mysql)
+        if xdornum .ne. globals(xdornum) .and. tstat .ne. ""
+          set globals(ErrChk) = "1"
+          error "Cannot change D.O. Number"
+        end if
+     end method
+
+     method get_gltrn_code
+          set mysql = "select xrel from xtrnp where xtypetrn='Sales Returns' and xtrn='"+globals(xtrn)+"' and xtyperel='GL Voucher'"
+          set tmptrn = #sql(str,mysql)
+          if #result .eq. "true"
+            set globals(xtrn) = tmptrn
+          else
+            set globals(ErrChk) = "1"
+            error "Related Transaction Code for Sales Return Type '<font color=blue>"+globals(xtrn)+"</font>' not found"
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            set mysql = "select xtrn from xtrn where xtypetrn='GL Voucher' and xtrn='"+globals(xtrn)+"'"
+            set tmptrn = #sql(str,mysql)
+            if #result .eq. "true"
+              set globals(xtrn) = tmptrn
+            else
+              set globals(ErrChk) = "1"
+              error "Related GL Voucher Code '<font color=blue>"+globals(xtrn)+"</font>' not found"
+              //set globals(xtrn) = ""
+            end if
+          end if
+     end method
+
+     method chk_interface
+        int xrow = 0
+        set mysql = "select xrow from opcdt where xcrnnum='"+globals(xcrnnum)+"' and xrow > '"+xrow+"'"
+        set xrow=#sql(int,mysql)
+        while #result .eq. "true"
+    		set xitem=opcdt.xitem("zid='"+#id+"' and xcrnnum='"+xcrnnum+"' and xrow='"+xrow+"'")
+			str xoptrn = opcrn.xordernum("xcrnnum='"+xcrnnum+"'")
+			set xoptrn = #sub(xoptrn,0,4)
+			set xgitem=#sql(str,"select xgitem from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+			///set xaccret=#sql("select xaccret from opgli where zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'")
+			///set xaccret="select xaccret from opgli where zid='"+#id+"' and xoptrn='"+xoptrn+"' and xwh='"+xwh+"' and xgitem='"+xgitem+"'"
+			///error xaccret
+			
+            buffer opgli
+			
+            move opgli=opgli(xoptrn,xwh,xgitem)
+	//		print #result
+            if #result .ne. "true"
+              set globals(ErrChk) = "1"
+              error "Interface Table Not Found</p>Process Aborted" +xoptrn+" "+xgitem+" "+xwh
+			end if   
+
+          	if globals(ErrChk) .ne. "1"
+            	set retacc=#sql(str,"select xacc from glmst where xacc='"+opgli.xaccret+"'")
+             	if #result .ne. "true"
+                	set globals(ErrChk) = "1"
+                	error "Sales Return Account not found</p>Process Aborted"
+             	else   
+                	set globals(chk_source)=#sql("select xaccsource from glmst where xacc='"+opgli.xaccret+"'")
+                	if globals(chk_source) .eq. "Subaccount"
+                  		set chk_subacc=#sql("select xsub from glsub where xacc='"+opgli.xaccret+"' and xsub='"+opgli.xretsub+"'")
+                  		if #result .ne. "true"
+                     		set globals(ErrChk) = "1"
+                     		error "Subaccount not found for A/C Code "+opgli.xaccret+"</p>Process Aborted"
+                  		end if   
+                	end if
+             	end if
+          	end if                    
+
+          set mysql = "select xrow from opcdt where xdornum='"+globals(xcrnnum)+"' and xrow > '"+xrow+"'"
+          set xrow=#sql(int,mysql)
+        end while
+        
+        if globals(ErrChk) .ne. "1"
+           set xaccar = #sql("select xaccar from cacus where xcus='"+xcus+"'")
+           set chkacc = #sql("select xacc from glmst where xacc='"+xaccar+"'")
+           if #result .ne. "true"
+              set globals(ErrChk) = "1"
+              error "Wrong Receivable Account Selected in Customer Table"
+           end if
+        end if
+     end method
+     
+     method get_imtrn_code
+          set mysql = "select xrel from xtrnp where xtypetrn='Sales Returns' and xtrn='"+globals(xtrn)+"' and xtyperel='Inventory Transaction'"
+          set tmptrn = #sql(str,mysql)
+          if #result .eq. "true"
+            set globals(xtrn) = tmptrn
+          else
+            set globals(ErrChk) = "1"
+            error "Related Transaction Code for Sales Return Type '<font color=blue>"+globals(xtrn)+"</font>' not found"
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            set mysql = "select xtrn from xtrn where xtypetrn='Inventory Transaction' and xtrn='"+globals(xtrn)+"'"
+            set tmptrn = #sql(str,mysql)
+            if #result .eq. "true"
+              set globals(xtrn) = tmptrn
+            else
+              set globals(ErrChk) = "1"
+              error "Related IM Trn Code '<font color=blue>"+globals(xtrn)+"</font>' not found"
+              //set globals(xtrn) = ""
+            end if
+          end if
+     end method
+     
+		method checkserial
+			int row = 0	
+			set row=#sql(int,"select xrow from opcdt where zid="+#id+" and xcrnnum='"+xcrnnum+"' and xrow > "+row+" ~
+				and (select xtypeserial from caitem where zid=opcdt.zid and xitem=opcdt.xitem) like '1%'")
+			while row>0
+				set tempcount=#sql(double,"select count(xserialnum) from imser where xtypein='Sales Returns' and xnumin='"+xcrnnum+"' and xrowin='"+row+"'")
+				set qtycrn=#sql(double,"select xqty*xcfsel from opcdt where xcrnnum='"+xcrnnum+"' and xrow='"+row+"'")
+				double xtempcount=0.00+tempcount
+				double xqtycrn=0.00+qtycrn
+				console "xtempcount="+xtempcount+"*"+xqtycrn
+				if xtempcount<>xqtycrn
+					set tempstr=#sql(int,"update opcrn set xstatuscrn='7-Serial Number Mismatch' where xcrnnum='"+xcrnnum+"'")
+					set tempstr=#sql(int,"update opcdt set xstatuscdt='7-Serial Number Mismatch' where xcrnnum='"+xcrnnum+"' and xrow='"+row+"'")
+					set xstatuscrn="7-Serial Number Mismatch"
+				else if xstatuscrn .eq. "7-Serial Number Mismatch"
+					set xstatuscrn="1-Open"
+					set tempstr=#sql(int,"update opcrn set xstatuscrn='1-Open' where xcrnnum='"+xgrnnum+"'")
+					set tempstr=#sql(int,"update opcdt set xstatuscdt='1-Open' where xcrnnum='"+xgrnnum+"' and xrow='"+row+"'")
+				end if
+				
+				set row=#sql(int,"select xrow from opcdt where zid="+#id+" and xcrnnum='"+xcrnnum+"' and xrow > "+row+" ~
+					and (select xtypeserial from caitem where zid=opcdt.zid and xitem=opcdt.xitem) like '1%'")
+			end while
+		end method
+
+		method checkbatch             
+			//check for all items
+			int err=0
+			int row = 0	
+			set row=#sql(int,"select xrow from opcdt where zid="+#id+" and xcrnnum='"+xcrnnum+"' and xrow > "+row)
+			while row>0
+				double blankcount=#sql(double,"select xqty*xcfsel from opcdt where xcrnnum='"+xcrnnum+"' and xrow="+row+" and xbatch = ''")
+				double batchcount=#sql(double,"select xqty*xcfsel from opcdt where xcrnnum='"+xcrnnum+"' and xrow="+row+" and xbatch <> ''")
+				double totcount=blankcount+batchcount
+				//print "totcount=blankcount+batchcount="+totcount+"*"+blankcount+"*"+batchcount
+				if blankcount > 0
+				//for mandatory batch numbers
+					str batchman =#sql(string,"select (select xbatchman from caitem where zid=opcdt.zid and xitem=opcdt.xitem) from opcdt ~
+						where zid="+#id+" and xcrnnum='"+xcrnnum+"' and xrow= "+row)
+					if batchman .eq. "1"
+						set err=1
+					end if
+				end if
+				
+				if err==1
+					set tempstr=#sql(int,"update opcdt set xstatuscdt='6-Batch Quantity Mismatch' where xcrnnum='"+xcrnnum+"' and xrow='"+row+"'")
+				else
+					set tempstr=#sql(int,"update opcdt set xstatuscdt='1-Open' where xcrnnum='"+xcrnnum+"' and xrow='"+row+"'")
+				end if
+				set row=#sql(int,"select xrow from opcdt where zid="+#id+" and xcrnnum='"+xcrnnum+"' and xrow > "+row)
+			
+			end while
+			
+			//print "err="+err
+			if err==1
+				set tempstr=#sql(int,"update opcrn set xstatuscrn='6-Batch Quantity Mismatch' where xcrnnum='"+xcrnnum+"'")
+				set xstatuscrn="6-Batch Quantity Mismatch"
+			else if xstatuscrn .eq. "6-Batch Quantity Mismatch"
+				set xstatuscrn="1-Open"
+				set tempstr=#sql(int,"update opcrn set xstatuscrn='1-Open' where xcrnnum='"+xcrnnum+"'")
+			end if
+		end method
+
+     valid valid
+     	config
+     		set globals(pkey) = xcrnnum
+     	end config
+     end valid     
+
+#include access.valid
+	      
+end page

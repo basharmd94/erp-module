@@ -1,0 +1,841 @@
+page poshipfeedvs
+
+    //embed onload="move_caret('one','xpornum')"
+
+    caption "Shipment Loading Information"
+
+    sections form one,list one, text top,script myscript
+
+    text top
+        "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list one
+        table poshipfeedvs
+        order xpornum,xshiplno,xrow
+        select "xpornum like '%"+xpornum+"%' and xshiplno like '%"+xshiplno+"%'"
+        rows 20
+        objects xrow attrib(link #servlet+"?page=poshipfeedvs&command=Show&xpornum=?&xshiplno=?&xrow=?"), ~
+                lcno equals((select xlcno from poship where zid=poshipfeedvs.zid and xpornum=poshipfeedvs.xpornum and xshiplno=poshipfeedvs.xshiplno)),~
+                xshiplno,xpornum,~
+                mvessel equals((select xcarrier from poship where zid=poshipfeedvs.zid and xpornum=poshipfeedvs.xpornum and xshiplno=poshipfeedvs.xshiplno)),~
+                xfeedervs,xdatedel,xdaterec,xqtydel,xstatuscase
+
+        field xrow
+            caption SL No
+        end field
+
+        field xshiplno
+            caption BL No
+        end field
+        
+        field xpornum
+            caption Purchase Order No
+        end field
+
+        field xfeedervs
+            caption Feeder Vessel No
+        end field
+
+        field mvessel
+            storage varchar
+            caption M. Vessel
+        end field
+
+        field lcno
+            storage varchar
+            caption LC No
+        end field
+
+        field xdatedel
+            caption Unloading Date of M.Vessel
+        end field
+
+        field xdaterec
+            caption Unloading Date of F.Vessel
+        end field
+
+        field xqtydel
+            caption Unload Qty
+            len 10.2
+        end field
+        
+        field xstatuscase
+            caption Status
+        end field
+
+        totals "Totals","","",,,,sum,"",sum,,sum,,sum
+
+    end list
+
+    form one
+        valid valid,access
+        table poshipfeedvs
+        order xpornum,xshiplno,xrow
+        layout 2
+        objects Show,Add,Details,Clear,Update, Delete, Top, Previous, Next, Bottom,~
+                Create MRR for QC,Return to Ship Info,~
+                xlcno attrib(submit;local),xrow,xpornum,xshiplno attrib(submit),xdelivery,xfeedervs,xdatedel,~
+                xdaterec,xqtydel,xcarrier,xstatuscase,zemail display(hide),xemail display(hide),~
+                xconuser display(hide),xconfirmt display(hide),~
+                xteam display(hide),xmember display(hide),xmanager display(hide),~
+                xsornum display(hide),dumzid display(hide)
+
+		field show
+			event before
+                set globals(temppo) = xpornum
+				set globals(tempship) = xshiplno
+				set globals(temp)=xrow
+			end event
+			event after
+                set globals(temppo) = xpornum
+				set globals(tempship) = xshiplno
+				set globals(temp)=xrow
+			end event
+		end field
+
+		field Top
+			event before
+                set globals(temppo) = xpornum
+				set globals(tempship) = xshiplno
+				set globals(temp)=xrow
+			end event
+			event after
+                set globals(temppo) = xpornum
+				set globals(tempship) = xshiplno
+				set globals(temp)=xrow
+			end event
+		end field
+		
+		field xpornum
+            pick list xporlcno
+            width 20
+            caption P.I. No
+            event after
+                set globals(xpornum)=xpornum
+            end event
+		end field
+
+        field xrow
+            caption Sl No
+//            event before
+//				call setselect
+//		end event
+            event after
+                set globals(xrow)=xrow
+                set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                if xstatusord .ne. "Open"
+                    set #field(Create.display) = "disabled"
+                    set #field(Add.display) = "disabled"
+                    set #field(Delete.display) = "disabled"
+                    set #field(Update.display) = "disabled"
+                end if
+                set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                if xstatussrn .ne. #status("xstatussrn",1) .and. xstatussrn .ne. #status("xstatussrn",3)
+                    //set #field(Create.display) = "disabled"
+                    //set #field(Add.display) = "disabled"
+                    //set #field(Delete.display) = "disabled"
+                    set #field(Update.display) = "disabled"
+                end if
+                set xstatuscase = poshipfeedvs.xstatuscase("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                if xstatuscase .ne. #status("xstatuscase",1)
+                    set #field(Create.display) = "disabled"
+                    //set #field(Add.display) = "disabled"
+                    set #field(Delete.display) = "disabled"
+                    set #field(Update.display) = "disabled"
+                end if
+            end event
+        end field
+        
+        field xshiplno
+            caption BL SL No
+            display text
+            pick list xshipslno
+            //pick "select xshiplno from poship where zid=poshipfeedvs.zid and xpornum=poshipfeedvs.xpornum and xshiplno=poshipfeedvs.xshiplno"
+            event after
+                set globals(xshiplno)=xshiplno
+            end event
+        end field
+
+        field xcarrier
+            caption M. Vessel
+            display hide
+            attrib local
+            event after
+                set xcarrier=poship.xcarrier("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+            end event
+        end field
+
+        field xlcno
+            caption LC No
+            display text
+            storage varchar
+            pick list xlcno
+        end field
+
+        field xfeedervs
+			display hide
+            caption F. Vessel
+            pick list xvmavailvs
+            width 20
+            event after
+                set globals(xfeedervs) = xfeedervs
+            end event
+        end field
+
+        field xdatedel
+			display hide
+            caption Unloading Date of M.Vessel
+        end field
+
+        field xdaterec
+			display hide
+            //caption Unloading Date of F.Vessel
+            caption Sailing Date of F.Vessel
+        end field
+
+        field xqtydel
+            caption Unload Qty
+            display const
+            len 10.2
+        end field
+
+        field xstatuscase
+            caption Status
+            display const
+        end field
+
+        field xdelivery
+            caption Delivery Terms
+            display ocombo
+            pick "Outside,Company"
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk)=""
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>LC Already "+xstatusord
+                    end if
+                end if
+                if globals(ErrChk) .ne. "1"
+                    set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    if xstatussrn .ne. #status("xstatussrn",1) .and. xstatussrn .ne. #status("xstatussrn",3)
+//                        set globals(ErrChk) = "1"
+//                        error "Cannot "+#command+"<br>Shipment Already "+xstatussrn
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    if xfeedervs .ne. "" .and. xdelivery .eq. "Company"
+                        set dumzid=0+#sql(int,"select dumzid from vmavail where zid='"+#id+"' and xvehicle='"+xfeedervs+"'")
+                        if dumzid<=0
+                            set globals(ErrChk)="1"
+                            error "Invalid "+#field(xfeedervs.caption)
+                        else
+                            set xid=0+#sql(int,"select xid from vmavail where zid='"+#id+"' and xvehicle='"+xfeedervs+"'")
+                            if xid<>#id
+                                set globals(ErrChk)="1"
+                                error "This Cargo/Barge No is Only available for "+xid
+                            else
+                                set xsornum=#sql(str,"select xsornum from vmavail where zid='"+dumzid+"' and xvehicle='"+xfeedervs+"'")
+                            end if
+                        end if
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xrow = 0+#sql(int,"select xrow from poshipfeedvs where zid='"+#id+"' and xpornum ='"+xpornum+"' and xshiplno='"+xshiplno+"' order by xrow desc")
+                    set xrow=0+xrow+10
+
+                    set xstatuscase=#status("xstatuscase",1)
+                    set zemail=#user
+                end if
+            end event
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk)=""
+
+                if globals(ErrChk) .ne. "1"
+                	if xpornum .ne. globals(xpornum)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+                if globals(ErrChk) .ne. "1"
+                	if xpornum .ne. globals(temppo)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrow .ne. globals(xrow)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrow .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xshiplno .ne. globals(tempship)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>LC Already "+xstatusord
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    if xstatussrn .ne. #status("xstatussrn",1) .and. xstatussrn .ne. #status("xstatussrn",3)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Shipment Already "+xstatussrn
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatuscase = poshipfeedvs.xstatuscase("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                    if xstatuscase .ne. #status("xstatuscase",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatuscase
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    if xfeedervs .ne. "" .and. xdelivery .eq. "Company"
+                        set dumzid=0+#sql(int,"select dumzid from vmavail where zid='"+#id+"' and xvehicle='"+xfeedervs+"'")
+                        if dumzid<=0
+                            set globals(ErrChk)="1"
+                            error "Invalid "+#field(xfeedervs.caption)
+                        else
+                            set xid=0+#sql(int,"select xid from vmavail where zid='"+#id+"' and xvehicle='"+xfeedervs+"'")
+                            if xid<>#id
+                                set globals(ErrChk)="1"
+                                error "This Cargo/Barge No is Only available for "+xid
+                            else
+                                set xsornum=#sql(str,"select xsornum from vmavail where zid='"+dumzid+"' and xvehicle='"+xfeedervs+"'")
+                            end if
+                        end if
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xemail=#user
+                end if
+            end event
+        end field
+
+        field Delete
+            event before
+                set globals(ErrChk)=""
+
+                if globals(ErrChk) .ne. "1"
+                	if xpornum .ne. globals(xpornum)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+                if globals(ErrChk) .ne. "1"
+                	if xpornum .ne. globals(temppo)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrow .ne. globals(xrow)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrow .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xshiplno .ne. globals(tempship)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>LC Already "+xstatusord
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    if xstatussrn .ne. #status("xstatussrn",1) .and. xstatussrn .ne. #status("xstatussrn",3)
+                        set globals(ErrChk) = "1"
+//                        error "Cannot "+#command+"<br>Shipment Already "+xstatussrn
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatuscase = poshipfeedvs.xstatuscase("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                    if xstatuscase .ne. #status("xstatuscase",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatuscase
+                    end if
+                end if
+
+            end event
+        end field
+
+        field Create
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                	if xpornum .ne. globals(xpornum)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+                if globals(ErrChk) .ne. "1"
+                	if xpornum .ne. globals(temppo)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrow .ne. globals(xrow)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xrow .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xshiplno .ne. globals(tempship)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>LC Already "+xstatusord
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatussrn = poship.xstatussrn("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                    if xstatussrn .ne. #status("xstatussrn",1) .and. xstatussrn .ne. #status("xstatussrn",3)
+                        //set globals(ErrChk) = "1"
+                        //error "Cannot "+#command+"<br>Shipment Already "+xstatussrn
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatuscase = poshipfeedvs.xstatuscase("zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                    if xstatuscase .ne. #status("xstatuscase",1)
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatuscase
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    if xfeedervs .ne. "" .and. xdelivery .eq. "Company"
+                        set dumzid=0+#sql(int,"select dumzid from vmavail where zid='"+#id+"' and xvehicle='"+xfeedervs+"'")
+                        if dumzid<=0
+                            set globals(ErrChk)="1"
+                            error "Invalid "+#field(xfeedervs.caption)
+                        else
+                            set xid=0+#sql(int,"select xid from vmavail where zid='"+#id+"' and xvehicle='"+xfeedervs+"'")
+                            if xid<>#id
+                                set globals(ErrChk)="1"
+                                error "This Cargo/Barge No is Only available for "+xid
+                            else
+                                set xsornum=#sql(str,"select xsornum from vmavail where zid='"+dumzid+"' and xvehicle='"+xfeedervs+"'")
+                            end if
+                        end if
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set chkrow =0+#sql(int,"select xrowin from poshipitem where xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xlandcost='0'")
+                    if chkrow>0
+                        set globals(ErrChk)="1"
+                        error "Cannot "+#command+"<br>Landed Cost not found in Row "+chkrow
+                    end if
+                end if
+                
+                if globals(ErrChk) .ne. "1"
+                    set detqty = #sql(decimal,"select sum(xqty) from poshipfditem where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+                    if detqty <= 0.0
+                        set globals(ErrChk)="1"
+                        error "Detail has no record</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    double totgrnqty=0.0+#sql(numeric,"select sum(xqty) from pogdt where zid='"+#id+"' and xgrnnum in (select xgrnnum from pogrn where zid='"+#id+"' and xpornum='"+xpornum+"')")
+                    double totpoqty=0.0+#sql(numeric,"select sum(xqty) from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set balqty=0.0+totpoqty-totgrnqty
+                    if balqty <= 0
+                        set globals(ErrChk) = "1"
+                        error "Nothing to Receive!"+balqty
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    double totgrnqty=0.0+#sql(numeric,"select sum(xqty) from pogdt where zid='"+#id+"' and  and xpornum='"+xpornum+"'")
+                    double totpoqty=0.0+#sql(numeric,"select sum(xqty) from poshipfditem where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set balqty=0.0+totpoqty-totgrnqty
+                    if balqty <= 0
+                        set globals(ErrChk) = "1"
+                        error "Nothing to Receive!"+balqty
+                    end if
+                end if
+
+                set xtrncode=#sub(xpornum,0,4)
+
+                if globals(ErrChk) .eq. ""
+                    set xtrncode=xtrnp.xrel("zid='"+#id+"' and xtypetrn='Purchase Order' and xtrn='"+xtrncode+"' and xtyperel='Goods Receipt Note'")
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Related GRN code not found</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .eq. ""
+                    set pogrncode = xtrn.xtrn("zid='"+#id+"' and xtypetrn='Goods Receipt Note' and xtrn='"+xtrncode+"'")
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "GRN code("+pogrncode+") not found</p>Cannot "+#command
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set shortbus=#sql(str,"select xshort from zbusiness where zid='"+#id+"'")
+                    int shortlen=0+#length(shortbus)
+                    if shortlen<4
+                        set globals(ErrChk)="1"
+                        error "Business Short Name is not defined"
+                    end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    str dategrn=#date
+                    set pogrnper=#sub(dategrn,5,2)
+                    set pogrnyr=#sub(dategrn,2,2)
+                    set pogrncode = #sub(pogrncode,0,4)
+                    set shortbus=#sub(shortbus,0,4)
+                    set pogrnprefix=shortbus+pogrncode+pogrnper+pogrnyr+"-"
+
+                	str mysql = #sql(str,"select xgrnnum from pogrn where zid='"+#id+"' and xgrnnum like '"+pogrnprefix+"%' order by xgrnnum desc")
+                	if #result .eq. "true" .and. mysql .ne. ""
+                		set last_num = 0+#sub(mysql,13,6)
+                	end if
+                	set last_num = 0+1+last_num
+                	set mysql = #padl(""+last_num,6,"0")
+                	set xgrnnum = pogrnprefix + mysql
+
+                end if
+
+                 if globals(ErrChk) .eq. ""
+                    buffer pogrn
+                    move pogrn=poord(xpornum)
+                    
+                    set pogrn.xshiplno=poshipfeedvs.xshiplno("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set pogrn.xrow=poshipfeedvs.xrow("zid='"+#id+"' and xpornum='"+xpornum+"'")
+
+                    set pogrn.xgrnnum=xgrnnum
+                    set pogrn.xdate=dategrn
+                    set pogrn.xdatedue=dategrn
+                    set pogrn.xstatusgrn=#status("xstatusgrn",1)
+                    set pogrn.xcur=poord.xcur("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set pogrn.xexch=0.0D+poord.xexch("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set pogrn.xstatusqc=#status("xstatusqc",1)
+                    set pogrn.xref=""
+                    set pogrn.ztime=#time
+                    set pogrn.zemail=#user
+                    set pogrn.xtypepor="Import"
+                    set pogrn.xmember=#user
+                    set pogrn.xteam=#sql(string,"select xteam from cateam where zid='"+#id+"' and  xmember = '"+#user+"' and xrole='Member'")
+                    set pogrn.xmanager=#sql(string,"select xmanager from caman where zid='"+#id+"' and  xteam = '"+pogrn.xteam+"'")
+                    insert pogrn
+
+                    if #result .ne. "true"
+                        set globals(ErrChk) = "1"
+                        error "Error in creating GRN Header</p>Cannot proceed"
+                    end if
+                end if
+
+                if globals(ErrChk) .eq. ""
+                    decimal ordqty=0.0
+                    decimal grnqty=0.0
+                    decimal balqty=0.0
+                    decimal totval=0.0
+
+                    int xrowin = 0
+                    set mysql = "select xrowin from poshipfditem where zid='"+#id+"' and xpornum = '"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"' and xrowin > '"+xrowin+"' order by xrowin"
+                    set xrowin=#sql(int, mysql)
+                    while #result .eq. "true"
+                        set grnqty = 0.0+#sql(decimal,"select sum(xqtygrn) from poshipfditem where zid='"+#id+"' and xpornum='"+xpornum+"' and xrowin = '"+xrowin+"'")
+                        set grndtqty = 0.0+#sql(decimal,"select sum(xqty) from pogdt where zid='"+#id+"' and xgrnnum in (select xgrnnum from pogrn where zid='"+#id+"' and xpornum='"+xpornum+"') and xrow ='"+xrowin+"'")
+                        if grnqty <> grndtqty
+                            set globals(ErrChk)="1"
+                            error "Quantity mismatch in F.Vessel/MRR"
+                        end if
+                        if globals(ErrChk) .eq. ""
+                            set totshipqty = 0.0+#sql(decimal,"select sum(xqtygrn) from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"' and xrowin = '"+xrowin+"'")
+                            set totfedqty = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where zid='"+#id+"' and xpornum='"+xpornum+"' and xrowin = '"+xrowin+"'")
+                            if totshipqty <> totfedqty
+                                set globals(ErrChk)="1"
+                                error "Quantity mismatch in Shipment/F.Vessel"
+                            end if
+                        end if
+                        if globals(ErrChk) .eq. ""
+                            set ordqty = #sql(decimal,"select sum(xqty) from poshipfditem where zid='"+#id+"' and xpornum = '"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"' and xrowin = '"+xrowin+"'")
+                            set rate = #sql(decimal,"select xrate from poodt where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrowin+"'")
+                            set xtaxrate1 = #sql(decimal,"select xtaxrate1 from poodt where zid='"+#id+"' and xpornum='"+xpornum+"' and xrow='"+xrowin+"'")
+                            set landcost = #sql(decimal,"select xlandcost from poshipitem where xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin='"+xrowin+"'")
+                            set balqty = 0.00+ordqty
+                            set shiprow=0+xrow
+                            set xrow=0+xrowin
+                            if ordqty > 0.0
+                                buffer pogdt
+                                move pogdt=poodt(xpornum,xrow)
+                                set pogdt.xgrnnum=pogrn.xgrnnum
+                                set pogdt.xqty = 0.00+ordqty
+                                set pogdt.xqtygrn = 0.00+ordqty
+                                set pogdt.xcur=#sql(str,"select xcur from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                                set pogdt.xexch=0.0+#sql(dec,"select xexch from poord where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                                set pogdt.xchgapply="Yes"
+                                set pogdt.xprice=0.0+rate
+                                set pogdt.xrate=0.0+landcost
+                                set pogdt.xlandcost=0.0+landcost
+                                set pogdt.xstatusgdt="LC Shipment"
+
+                                decimal tmpval = 0.0
+                                compute tmpval = 0.00+balqty*landcost
+                                if xtaxrate1 > 0.0
+                                    set pogdt.xdttax = 0.00+(xtaxrate1/100)*tmpval
+                                end if
+                                set pogdt.xdtwotax = tmpval
+                                compute lineamt=pogdt.xdttax+pogdt.xdtwotax
+                                set pogdt.xlineamt = lineamt
+                                compute totval = 0.0+totval+tmpval
+
+                                insert pogdt
+
+                                if #result .ne. "true"
+                                    set globals(ErrChk) = "1"
+                                    error "Error in creating GRN Details</p>Cannot proceed"
+                                else
+                                    buffer pogdtbat
+                                    set pogdtbat.xgrnnum=pogrn.xgrnnum
+                                    set pogdtbat.xrow=xrow
+                                    set pogdtbat.xline=10
+                                    set pogdtbat.xbatch=""
+                                    set pogdtbat.xdaterec=#sub(pogrn.xdate,0,10)
+                                    set pogdtbat.xqty=pogdt.xqty
+                                    insert pogdtbat
+
+                                    set grndtqty = 0.0+#sql(decimal,"select sum(xqty) from pogdt where zid='"+#id+"' and xgrnnum in (select xgrnnum from pogrn where zid='"+#id+"' and xpornum='"+xpornum+"') and xrow ='"+xrow+"'")
+                                    str mysql = "update poodt set xqtygrn="+grndtqty+" where zid='"+#id+"' and xpornum = '"+xpornum+"' and xrow = '"+xrow+"'"
+                                    set tmpstr = #sql(str,mysql)
+
+                                    set updsql = #sql(str,"update poshipfditem set xqtygrn='"+ordqty+"' where zid='"+#id+"' and xpornum = '"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+shiprow+"' and xrowin = '"+xrowin+"'")
+
+                                    set totshipqty = 0.0+#sql(decimal,"select sum(xqty) from poshipfditem where zid='"+#id+"' and xpornum = '"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin = '"+xrowin+"'")
+                                    set updsql = #sql(str,"update poshipitem set xqtygrn='"+totshipqty+"' where zid='"+#id+"' and xpornum = '"+xpornum+"' and xshiplno='"+xshiplno+"' and xrowin = '"+xrowin+"'")
+                                end if
+                            end if
+                        end if
+                        set xrow=0+shiprow
+                        set mysql = "select xrowin from poshipfditem where zid='"+#id+"' and xpornum = '"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"' and xrowin > '"+xrowin+"' order by xrowin"
+                        set xrowin=#sql(int, mysql)
+                    end while
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set updsql=#sql(str,"update poshipfeedvs set xstatuscase='"+#status("xstatuscase",3)+"',xconuser='"+#user+"',xconfirmt='"+#time+"' where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"' and xrow='"+xrow+"'")
+
+                    set totshipqty=0.0+#sql(dec,"select sum(xqty) from poshipitem where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set totfedshipqty=0.0+#sql(dec,"select sum(xqty) from poshipfditem where zid='"+#id+"' and xpornum='"+xpornum+"'")
+
+                    if totshipqty<>totfedshipqty
+                		set temp=#sql(int,"update poship set xstatussrn='"+#status("xstatussrn",3)+"' where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                	else
+                		set temp=#sql(int,"update poship set xstatussrn='"+#status("xstatussrn",4)+"' where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                	end if
+
+                    set totpoqty=0.0+#sql(dec,"select sum(xqtyord) from poodt where zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    set totfedshipqty=0.0+#sql(dec,"select sum(xqty) from poshipfditem where zid='"+#id+"' and xpornum='"+xpornum+"'")
+
+                    if totpoqty<>totfedshipqty
+                		set temp=#sql(int,"update poord set xstatuspor='"+#status("xstatuspor",4)+"' where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                	else
+                		set temp=#sql(int,"update poord set xstatuspor='"+#status("xstatuspor",5)+"' where zid='"+#id+"' and xpornum='"+xpornum+"' and xshiplno='"+xshiplno+"'")
+                	end if
+                	action show
+                    print "<span class=bl>GRN No <a href=/da/portal?page=pogrnimp&command=Show&xgrnnum="+xgrnnum+">" +xgrnnum+ "</a> Created.</span>"
+                end if
+            end event
+        end field
+
+
+        embed onsubmit="submitit(this)"
+
+        field Details
+            embed onclick="det()"
+        end field
+
+        field Cost
+            embed onclick="cost()"
+        end field
+
+        field Return
+          embed onclick="back()"
+        end field
+
+    end form
+
+    script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+            $.hotkeys.add('Ctrl+s',function(){
+                //alert('Pressed Ctrl+s');
+                var form=document.forms[0];
+                form.searchbutton.value="Add";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+e',function(){
+                //alert('Pressed Ctrl+e');
+                var form=document.forms[0];
+                form.searchbutton.value="Update";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+d',function(){
+                //alert('Pressed Ctrl+d');
+                var form=document.forms[0];
+                form.searchbutton.value="Delete";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+r',function(){
+                //alert('Pressed Ctrl+r');
+                var form=document.forms[0];
+                form.searchbutton.value="Clear";
+                form.submit();
+            });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+            var detail
+            function det(){
+                detail="clicked"
+            }
+            function cost(){
+                detail="cost"
+            }
+
+            function back(){
+                detail="back"
+            }
+
+            function submitit(form){
+                if (detail=="clicked"){
+                    form.page.value = "poshipfditem"
+                    form.searchbutton.value="Top"
+                }else if (detail=="back"){
+                    form.page.value= "poship"
+                    form.searchbutton.value = "Find xpornum=?&xshiplno=?"
+                }else if (detail=="cost"){
+                    form.page.value= "poshipcost"
+                    form.searchbutton.value = "Find xpornum=?"
+                }
+            }
+
+        </script>
+    end script
+
+
+    valid valid
+        config
+            set globals(pkey) = xpornum+" "+xshiplno+" "+xrow
+
+            set page = "poshipfeedvs"
+            
+            if xpornum .eq. ""
+                set xpornum=poilc.xpornum("zid='"+#id+"' and xlcno='"+xlcno+"'")
+            end if
+            if xlcno .eq. ""
+                set xlcno=poilc.xlcno("zid='"+#id+"' and xpornum='"+xpornum+"'")
+            end if
+            set globals(xlcno)=xlcno
+        end config
+    end valid
+
+    method setselect //***mssql
+        str setselect=" zid="+#id+" and ("
+        set setselect= setselect + " (zemail = '"+#user+"') or "
+        set setselect= setselect + " (xemail = '"+#user+"') or "
+        set setselect= setselect + " (xmember = '"+#user+"') or "
+        set setselect= setselect + " (xmanager = '"+#user+"') or "
+        set setselect= setselect + " ('"+#user+"' in (select xmember from cateam where zid='"+#id+"' and xteam=poshipfeedvs.xteam and xrole='Guest')) or "
+        set setselect= setselect + " ('"+#user+"' in (select xmember from cateam where zid='"+#id+"' and xteam=poshipfeedvs.xteam and xrole='Member')) or "
+        set setselect= setselect + " ('"+#user+"' in (select xmanager from caman where zid='"+#id+"' and xteam=poshipfeedvs.xteam)) or "
+        set setselect= setselect + " ('"+#user+"' in (select xmanager from caman where zid='"+#id+"' and (xteam='Supervisor' or xteam='Administrator'))) "
+        set setselect= setselect + " )"
+        //print setselect
+    end method
+
+#include access.valid
+
+end page

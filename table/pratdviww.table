@@ -1,0 +1,23 @@
+product ERP on the Net
+
+table pratdviww
+	caption "Attendance View"
+
+	columns zid,xdate,xemp,xname,xempcat,xlocation,xdiv,xdept,xdesig,xpaytyp,xsec,xremark,xlsafe,xleave,status
+
+	primary key zid, xdate ,xemp
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+	sql create view pratdviww (zid,xdate,xemp,xname,xempcat,xlocation,xdiv,xdept,xdesig,xpaytyp,xsec,xremark,xlsafe,xleave,status) ~
+		as SELECT zid, xdate,xemp,xname,xempcat,xlocation,xdiv,xdept,xdesig,xpaytyp,xsec,xremark,xlsafe,~
+		coalesce((select xleave from prleave where prleave.xemp=pratdviw.xemp and pratdviw.xdate >=prleave.xfdate and pratdviw.xdate <=prleave.xtdate and  prleave.zid=pratdviw.zid and  prleave.xstatusleave='3-Sanctioned'),''),~
+		coalesce((select xatdstat from pratd where pratd.zid = pratdviw.zid AND pratd.xdate = pratdviw.xdate AND pratd.xemp = pratdviw.xemp AND xlsafe = 1), '')~
+		FROM pratdviw
+end table
+
+
+
+

@@ -1,0 +1,9 @@
+list ximtmptrnr
+	caption "Transaction List"
+	table imtemptrn
+	order ximtmptrn DESC
+	select "(ximtmptrn like '%"+zvalue+"%' and xaction='Receipt')"
+	rows 10
+	objects ximtmptrn attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+			xdate,xwh
+end list

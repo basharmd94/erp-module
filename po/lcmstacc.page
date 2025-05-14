@@ -1,0 +1,607 @@
+page lcmst
+     caption "L.C. Information"
+     //sidebar list one,two
+	 layout mylayout 1 1 1 //columns rows  tabrows
+	 //group order,amendment,shipment,bank,cnf,bill,cost,docs,neword_unpaid,neword_paid,closed,held,process,complete(1,1)
+	 group order,amend,shipment,bank,cnf,bill(1,1)
+	 //group order,shipment,bank,cnf,bill(1,1)
+       //cuslink,itemlink,
+       //script opscript,imstk (0,0)
+     end layout
+	 
+	 
+	 group order 2 1 "LC Info" //columns rows caption select
+       //list ins, list opencus, form order, list heldcus,closedcus  (1, 1)//(col,row,colspan,rowspan,width,height)
+	   form order (1, 1)//(col,row,colspan,rowspan,width,height)
+       keys "Find xlctrnnum=?"
+     end group
+	 #include lcamend.include
+	 #include lcshipment.include
+	 #include lcbank.include
+	 #include lccnf.include
+	 #include lcbill.include
+	 
+     //sections form one, list Locallc, List ForeignLc , text top, script myscript,~
+              //method mth_check,method chk_rec,method check_status,~
+    	  	  //method chk_access, method chk_command
+              
+     
+
+     form order
+        caption "LC Info"
+        table lcmst
+        order xlctrnnum DESC
+        
+        
+        layout 2
+        objects ~
+                Add,Show,Clear, Update, Top, Previous,Delete,Next, Bottom,~
+                //Amendment,Shipment Information,Bank Info,Cnf Info,Bill of Entry Info,Cost Details,~
+                xlctrnnum display(trn LC Trn Number),xlctype,xlcno,xlcopndate default(#d),xcur,xexch,xlcvalue,~
+                xfreight,xfobval,xbank,xpinvno,xpinvdate default(#d),xicno,xlcclsdate default(#d),~
+                xshipupto,xshipdate default(#d),xexchcost,xdesc,xtotamt display(constant),~
+                xinscomp,xinscvr,xdateass default(#d),xlcano,xamddate,xlmemt,xcountry,xpsino,xlong,~
+                xdesc02,xdateord display(hide),xpayact display(hide),~
+                xdate display(hide), xdateres display(hide),~
+                xcarrier display(hide), xdatesch display(hide), xblno display(hide),~
+                xbeno display(hide), xdateeff display(hide),xtype,xproj,~
+                xpornum ,xordernum,zemail display(const),xemail display(const),xstatusord display(const)
+                
+
+        
+                        
+       
+        field zemail
+         caption Created By
+        end field
+        
+        field xemail
+         caption Updated By
+        end field
+        
+        field xpsino
+            col 3
+        end field
+        
+        field xexchcost
+              caption Custom Rate
+			  display hide
+			  default 1
+        end field
+        
+        field xdesc
+              caption CRV Value
+        end field
+
+        field xpornum
+         event after
+          set globals(xpornum)=xpornum
+          set #field(xlcno.caption) = "<font color=red>"+#field(xlcno.caption)+"</font>"
+          set #field(xlcvalue.caption) = "<font color=red>"+#field(xlcvalue.caption)+"</font>"
+          set #field(xtotamt.caption) = "<font color=red>"+#field(xtotamt.caption)+"</font>"
+          set #field(xbank.caption)="<font color=red>"+#field(xbank.caption)+"</font>"
+         end event
+        end field
+
+        field xlong
+          col 3
+          width 100
+          height 2
+          caption Notes
+        end field
+
+        field xstatusord
+          caption L.C. Status
+          default "Open"
+        end field
+        
+        field xlctype
+              caption L.C Type
+              display combo
+              pick "Local,Import - Master, Import - Back to Back,Export - Master"
+        end field
+        
+        field xproj
+            caption Unit Name
+        end field
+        
+        field xinscomp
+            pick list xcaname
+        end field
+        
+        field xdateass
+          caption Insurance Cover Date
+        end field
+        
+        field xdesc02
+              display combo
+              caption LC Mode
+              pick "At Site, Deferred"
+        end field
+        
+        field xstyle
+            caption Type of L.C
+            display combo
+            pick "ILC,FLC"
+        end field
+        
+        field xdesc01
+              caption
+              display combo
+              pick ",C TO C"
+        end field
+
+        field xtotamt
+          caption P.O. Value
+		  display hide
+          //event after
+          //  str mysql="select sum(xqtyord*xrate*(1-xdisc/100)/(1-xmargin/100)-xdiscf) from poodt where xpornum='"+xpornum+"'"
+          //  set xtotamt=#sql(double,mysql)
+          //end event
+        end field
+
+        field xbank
+          caption L.C. Opening Bank
+          display combo
+          pick select xcode from xcodes where xtype='Bank'
+        end field
+
+        field xlcno
+          event after
+            set globals(xlcno)=xlcno
+          end event
+        end field
+
+        field xstatusord
+          event after
+            set globals(xstatusord) = xstatusord
+          end event
+        end field
+
+        field xsup
+          caption Supplier
+          display const
+          pick
+          //attrib readonly
+          event before
+           set xsup=#sql("select xsup from poord where xpornum='"+xpornum+"'")
+          end event
+        end field
+        
+        field sup_name
+            attrib local
+            //caption Company
+            display constant
+            event after
+                set sup_name=#sql(string,"select xorg from casup where xsup = '"+xsup+"'")
+            end event
+        end field
+
+
+        field xcur
+          //pick list xcur
+          display combo
+          default "USD"
+          width 3
+        end field
+
+        field add
+          event before
+             set globals(ErrChk) = ""
+
+             call chk_access
+
+             if globals(ErrChk) .ne. "1" 
+               //buffer poord
+               //move poord=poord(xpornum)
+               //if #result .ne. "true"
+               //   set globals(ErrChk) = "1"
+               //   error "P.O. Not found"
+               //else
+               //   call chk_rec
+               //end if   
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+                if xpornum .sw. "PO--" .or. xpornum .sw. "POIT"
+                   set globals(ErrChk)="1"
+                   error "Wrong PO selected for LC Open."
+                end if
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+               if xpornum .sw. "IP--"
+                   set xinscomp =#sql("select xcaname from canam where zid="+#id+" and xcaname='"+xinscomp+"'")
+                   if #result .eq. "false"
+                      set globals(ErrChk)="1"
+                      error "Select Insurance Company for LC Open."
+                   end if
+             end if
+
+             if globals(ErrChk) .ne. "1"
+               if xlcno .eq. ""
+                  set globals(ErrChk) = "1"
+                  error "L.C. Number not Found; Cannot "+#command
+               end if     
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+                if xbank .eq. ""
+                    set globals(ErrChk) = "1"
+                    error "Please Select "+#field(xbank.caption)
+                end if
+             end if
+
+             if globals(ErrChk) .ne. "1"
+               if xcur .eq. ""
+                  set xcur=poord.xcur
+               end if
+               set xtotamt = poord.xtotamt
+               set xexch = #sql(double,"select xexch from xcur where xcur = '"+xcur+"'")
+               set poord.xcoststat="LC Opened"
+               update poord(xpornum)
+               set zemail=#user
+             end if
+          end event
+        end field
+
+        field delete
+          event before
+             set globals(ErrChk) = ""
+
+             call chk_access
+             
+             if globals(ErrChk) .ne. "1"
+               buffer poord
+               move poord=poord(xpornum)
+               if #result .ne. "true"
+                  set globals(ErrChk) = "1"
+                  error "P.O. Not found"
+               else
+                  call chk_rec
+               end if   
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+              call check_status
+             end if
+
+             if globals(ErrChk) .ne. "1"
+                set chk_loan=#sql("select count(xpornum) from poilcpad where zid="+#id+" and xpornum='"+xpornum+"' ")
+                if chk_loan>0
+                   set globals(ErrChk)="1"
+                   error "Can't "+#command+"<br> Loan Already Entered."
+                end if
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+               set poord.xcoststat=""
+               update poord(xpornum)
+             end if
+          end event
+        end field
+
+        field Update
+          event before
+             set globals(ErrChk) = ""
+
+             call chk_access
+
+             if globals(ErrChk) .ne. "1"
+               if xpornum .ne. globals(xpornum)
+                  set globals(ErrChk) = "1"
+                  error "Record pointer Mismatch, Try SHOW instead.<br>"
+               end if   
+             end if
+
+             if globals(ErrChk) .ne. "1"
+               if xlcno .ne. globals(xlcno)
+                  set globals(ErrChk) = "1"
+                  error "Cannot Change L.C. Code"
+               end if   
+             end if
+
+             if globals(ErrChk) .ne. "1"
+               buffer poord
+               move poord=poord(xpornum)
+               call chk_rec
+             end if  
+
+             if globals(ErrChk) .ne. "1"
+              call check_status
+             end if
+             
+             if globals(ErrChk) .ne. "1"
+                   set xinscomp =#sql("select xcaname from canam where zid="+#id+" and xcaname='"+xinscomp+"'")
+                   if #result .eq. "false" and xtrnpor .eq. "IP--"
+                      set globals(ErrChk)="1"
+                      error "Select Insurance Company for LC Open."
+                   end if
+             end if
+
+             if globals(ErrChk) .ne. "1"
+                set xemail=#user
+             end if
+          end event
+        end field
+
+
+        field Details
+          embed onclick="clicked(this)"
+        end field
+        embed onsubmit="submitit(this)"
+
+        field Cost
+          embed onclick="costing(this)"
+        end field
+
+        field Shipment
+          embed onclick="Shipment(this)"
+        end field
+
+        field Bank
+          embed onclick="Bank(this)"
+        end field
+
+        field cnf
+          embed onclick="Cnf(this)"
+        end field
+        
+        field Bill of Entry Info
+           embed onclick="bill(this)"
+        end field
+        
+        field Amendment
+            embed onclick="Amendment(this)"
+        end field
+
+
+   end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but= ""
+        function clicked(b){
+          but="clicked"
+        }
+
+        function costing(b){
+           but ="costing"
+        }
+
+        function Shipment(b){
+          but = "Shipment"
+        }
+
+        function Amendment(b){
+          but = "Amendment"
+        }
+
+        function Bank(b){
+          but = "Bank"
+        }
+
+        function Cnf(b){
+          but = "Cnf"
+        }
+
+         function Insurance(b){
+          but = "Insurance"
+        }
+         function bill(b){
+          but = "bill"
+        }
+
+
+        function submitit(form){
+          if (but=="clicked"){
+            form.page.value = "poodtqp"
+            form.searchbutton.value = "Top"
+          }else{
+          if (but=="costing"){
+            form.page.value = "pocostlc"
+            form.searchbutton.value = "Top"
+          }else{
+          if (but=="Cnf"){
+            form.page.value = "pocnf"
+            form.searchbutton.value = "Top"
+          }else{
+          if (but=="Shipment"){
+            form.page.value = "poship"
+            form.searchbutton.value = "Top"
+          }else{
+          if (but=="Bank"){
+            form.page.value = "pobank"
+            form.searchbutton.value = "Top"
+            }else{
+            if (but=="bill"){
+            form.page.value = "pobill"
+            form.searchbutton.value = "Top"
+            }else{
+            if (but=="PSI"){
+            form.page.value = "popsi"
+            form.searchbutton.value = "Top"
+            }else{
+          if (but=="Insurance"){
+            form.page.value = "poinsurance"
+            form.searchbutton.value = "Top"
+          }else{
+          if (but=="Amendment"){
+            form.page.value = "poamend_com"
+            form.searchbutton.value = "Top"
+          }
+          }
+         }
+         }
+         }
+         }
+         }
+         }
+        }
+        }
+
+        function pickCur(link, exch){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcur.value=link.text
+            document.one.xexch.value=exch.text
+          }else{
+            document.one.xcur.value=link.innerText
+            document.one.xexch.value=exch.innerText
+          }
+          return false
+        }
+
+        function pickPO(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xpornum.value=link.text
+//            document.one.xexch.value=exch.text
+          }else{
+            document.one.xpornum.value=link.innerText
+ //           document.one.xexch.value=exch.innerText
+          }
+          return false
+        }
+
+        function pickLC(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xpornum.xvalue=link.text
+          }else{
+            document.one.xpornum.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+     method mth_check
+        buffer xlocals
+        set globals(xtypelocal)="Module"
+        set globals(xname)="gl"
+        move xlocals=xlocals(xtypelocal,xname)
+        int offset
+        int per
+        int year=#sub(xlcopndate,0,4)
+        set offset=#prop(xlocals.xprops,"offset")
+        set per=12+#sub(xlcopndate,5,2)-offset
+        if per<=12
+           set xper=per
+           set xyear=year-1
+        else
+           set xper=per-12
+           set xyear=year
+        end if
+
+        set mth_status = #sql(str,"select xpflag from pomthend where xyear='"+xyear+"' and xper='"+xper+"'")
+        if mth_status .eq. "1"
+          set globals(ErrChk) = "1"
+          error xyear+"("+xper+") Already Closed; Cannot "+#command
+        end if   
+     end method
+     
+
+     method chk_rec
+       if #command .eq. "Add" 
+         if poord.xstatuspor .ne. "Active"
+            set globals(ErrChk) = "1"
+            error "Cannot Open L.C. ; Status is : "+poord.xstatuspor
+         end if
+         if globals(ErrChk) .ne. "1"
+             set chklc= #sql("select xlcno from poilc where xlcno='"+xlcno+"'")
+             if chklc .eq. xlcno
+                set globals(ErrChk) = "1"
+                error "Cannot "+#command +" ; Duplicate L.C. No. found"
+             end if
+         end if
+       end if
+
+       if globals(ErrChk) .ne. "1"
+         if poord.xstatuspor .eq. "Received" .or. poord.xstatuspor .eq. "Partial Received" .or. poord.xstatuspor .eq. "Completed"
+            set globals(ErrChk) = "1"
+            error "Cannot "+#command+"<br>Already "+poord.xstatuspor
+         end if
+       end if
+       
+        //str incomp = ""
+        //set incomp=#sql("select xcaname from canam where xcaname='"+xinscomp+"' and xnamestatus='6-Insurance Company'")
+        //if incomp .ne. xinscomp
+        //    set globals(ErrChk)= "1"
+        //    error "Not a valid Code<br>Pick from the list"
+       // end if
+     end method
+
+     method check_status
+        if xstatusord .ne. "Open"
+           //set globals(ErrChk) = "1"
+           //error "Cannot "+#command+"<br>Already "+xstatusord+chk_statusord+
+        end if
+     end method
+
+     method chk_access
+     	set stype = ""
+       	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+       	 set stype=#prop(xprops,"security")          	 
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          
+			  set myqry = "insert into xcriminal (zid,xwornum,xemail,xdate,xtime,xobject)"
+			  set myqry = myqry + " values('"+#id+"','"+mysql+"','"+#user+"','"+#date+"',~
+				'"+#time+"','"+page+"')"
+			  set tmpstr =#sql(myqry)		
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method     
+     
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	else if excomm .eq. "Approve"
+     		set #field(Approve.display) = "hide"
+     	end if    
+     end method
+     
+end page

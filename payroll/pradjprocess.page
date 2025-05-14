@@ -1,0 +1,342 @@
+page pradjprocess
+
+    embed onload = "move_caret('one','xdate')"
+
+    caption header
+    section form one, method getPSamt, method getESamt, method getTRamt, method getADVamt
+
+
+    form one      
+	  valid valid
+      layout 1
+      object  Process,~
+              xdate,xempf,xempt
+
+
+      field xptype
+        attrib local
+        display radio
+        caption Select Processing Type
+        pick "Test Run,Final Run"
+        default "Test Run"
+      end field
+
+      field xdate
+         caption  Pay Date
+         default #date
+         event before
+            //set globals(xdate)=xdate
+         end event
+      end field
+
+      field xempf
+         pick list xfemp
+         width 10
+         event before
+            //set globals(xfemp)=xfemp
+         end event
+      end field
+
+      field xempt
+         pick list xtemp
+         width 10
+         //def #char(254)
+         event before
+            //set globals(xtemp)=xtemp
+         end event
+      end field
+
+      field Process
+        event before
+          set globals(ErrChk) = ""
+          set globals(dbase_days) = 0.0D
+
+          str startdate = ""
+          str paydate = ""
+          set payyr = #sub(xdate,0,4)
+          set paypr = #sub(xdate,5,2)
+          str payyrpr = ""+payyr+""+paypr
+          int offday = 0
+
+          class osbcustom(lastdate(payyr,paypr,paydate))
+          set paydate = #sub(paydate, 0,10)
+          set tmpstr = #sub(xdate,0,10)
+
+          //print "date="+tmpstr+"; yr="+payyr+"; pr="+paypr+"; ldate="+paydate
+          if tmpstr .ne. paydate
+            set globals(ErrChk) = "1"
+            error "Not a valid pay date"
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            buffer prpay
+            set xpaydate = paydate
+            set xemail=#user
+            move prpay=prpay(xpaydate)
+            if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Pay date not found"
+            end if
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            set globals(xemp) = xempf
+            set mysql = "select xemp from prmst where zid='"+#id+"' and xemp>='"+globals(xemp)+"' and xemp<='"+xempt+"' order by zid,xemp"
+            set globals(xemp) = #sql(str,mysql)
+
+            while #result .eq. "true" .and. globals(xemp) .ne. ""
+              buffer prmst
+              move prmst=prmst(xemp)
+              if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Error in Reading Employee Master"
+              end if
+
+              if globals(ErrChk) .ne. "1"
+                set tmpstr = prmst.xpaytyp
+                set globals(xpsclcode) = prmst.xpayscl
+
+                if tmpstr .sw. "Held" .or. tmpstr .sw. "Non-Pay" .or. tmpstr .sw. "Retired"
+                  set globals(HNPstat) = "1"
+                end if
+
+                buffer prmsg
+                move prmsg = prmsg(xpaydate,xemp)
+                if #result .eq. "true"
+                  set globals(abday) = 0+globals(abday)+prmsg.xdayab
+                  set globals(lvday) = 0.0+globals(lvday)+prmsg.xratev
+                  if prmsg.xpflag .eq. "1"
+                    set globals(poststat) = "1"
+                  end if
+                end if
+
+                //print "found;"+globals(xpaycode)+";"+globals(abday)+";"+globals(payamt)
+                if globals(payamt) > 0.0D
+                  buffer practrndt
+                  move practrndt = prmsg(xpaydate,xemp)
+                end if
+              end if
+
+              set mysql = "select xemp from prmst where zid='"+#id+"' and xemp>'"+globals(xemp)+"' and xemp<='"+xempt+"' order by zid,xemp"
+              set globals(xemp) = #sql(str,mysql)
+              if globals(ErrChk) .ne. ""
+                set #result = "false"
+              end if
+            end while
+
+            if globals(ErrChk) .ne. "1"
+              //print "<font color=blue size=+1><strong>Processing Completed</strong></font>"
+            end if
+          end if
+        end event
+      end field
+
+   end form
+
+
+   method getPSamt
+      double tmpamt=0.0D
+      buffer prpayheaddt
+      move prpayheaddt=prpayheaddt(xpsclcode,xpaycode)
+
+      if #result .eq. "true"
+        if prpayheaddt.xpcode .ne. ""
+          int opflag = 0
+          int opflag1 = 0
+          str firstOP = ""
+          str lastOP = ""
+          str tmpfrml = prpayheaddt.xpcode
+          // *** begin of checking formula ***
+          class osbcustom(#find("+", tmpfrml, "1", opflag))
+          class osbcustom(#find("-", tmpfrml, "1", opflag1))
+          if opflag>0 .or. opflag1>0
+            // *** begin of formula parsing algorithm ***
+            while tmpfrml .ne. ""
+              class osbcustom(#find("+", tmpfrml, "1", opflag))
+              class osbcustom(#find("-", tmpfrml, "1", opflag1))
+              //print "p="+opflag+";m="opflag1
+
+              if opflag>0 .and. opflag1>0 .and. opflag<opflag1
+                set firstOP = "+"
+                //print "in 1"
+              else if opflag>0 .and. opflag1>0 .and. opflag1<opflag
+                set firstOP = "-"
+                //print "in 2"
+              else if opflag>0
+                set firstOP = "+"
+                //print "in 3"
+              else if opflag1>0
+                set firstOP = "-"
+                //print "in 4"
+              else
+                set firstOP = ""
+                //print "in else"
+              end if
+              //print "New="+firstOP+";formula="+tmpfrml
+
+              if firstOP .ne. ""
+                class osbcustom(#find(firstOP, tmpfrml, "1", opflag))
+                set opflag = 0+opflag - 1
+                str tmpcode = #sub(tmpfrml,0,opflag)
+
+                set mysql = "select xamount from practrndt where zid='"+#id+"' and xpaydate='"+prpay.xpaydate+"' and xemp='"+globals(xemp)+"' and xpaycode='"+tmpcode+"'"
+                set tmpstr = #sql(mysql)
+                if #result .eq. "true"
+                  if lastOP .eq. "" // ** means firsttime in the loop ***
+                    set tmpamt= 0.0+tmpamt+tmpstr
+                  else if lastOP .eq. "+"
+                    set tmpamt= 0.0+tmpamt+tmpstr
+                  else if lastOP .eq. "-"
+                    set tmpamt= 0.0+tmpamt-tmpstr
+                  end if
+                end if
+                set opflag = 0+opflag+1
+                set tmpfrml = #sub(tmpfrml,opflag)
+                set lastOP = firstOP
+                //print "afterParse code="tmpcode+";formula="+tmpfrml+";curamt="+tmpamt
+
+              else
+                set tmpcode = tmpfrml
+                //print "lastcode="+tmpcode
+                set mysql = "select xamount from practrndt where zid='"+#id+"' and xpaydate='"+prpay.xpaydate+"' and xemp='"+globals(xemp)+"' and xpaycode='"+tmpcode+"'"
+                set tmpstr = #sql(mysql)
+                if #result .eq. "true"
+                  if lastOP .eq. "+"
+                    set tmpamt= 0.0+tmpamt+tmpstr
+                  else if lastOP .eq. "-"
+                    set tmpamt= 0.0+tmpamt-tmpstr
+                  end if
+                end if
+                set tmpfrml = ""
+                //print "final amount="+tmpamt
+              end if
+            end while
+            // *** end of parsing formula ***
+          end if
+          // *** end of checking formula ***
+          //print "after formula;"+globals(xpaycode)+"="+tmpamt
+          if tmpamt <= 0
+            set mysql = "select xamount from practrndt where zid='"+#id+"' and xpaydate='"+prpay.xpaydate+"' and xemp='"+globals(xemp)+"' and xpaycode='"+prpayheaddt.xpcode+"'"
+            set tmpstr = #sql(mysql)
+            if #result .eq. "true"
+              set tmpamt= 0.0+tmpstr
+            end if
+          end if
+          //print "after trndt;"+globals(xpaycode)+"="+tmpamt
+
+          decimal tmpday = 0.0+globals(abday)+globals(lvday)
+          //print tmpday
+          if prpayhead.xprsign .sw. "2" .and. prpayhead.xdesc .sw. "Absent"
+            if dbase .eq. "Annual"
+              set tmpamt = 12.0D*tmpamt*tmpday/globals(dbase_days)
+            else if dbase .eq. "Month"
+              set tmpamt = 0.0D+tmpamt*tmpday/globals(dbase_days)
+              //print "absent found:days="+tmpday+"amt="+tmpamt
+            end if
+          else
+            set tmpamt = tmpamt*prpayheaddt.xpercent/100
+          end if
+        else
+            set tmpamt = 0.0D+prpayheaddt.xamount
+        end if
+
+        if prpayheaddt.xminpay > 0 .and. tmpamt < prpayheaddt.xminpay
+          set tmpamt = 0.0D+prpayheaddt.xminpay
+        end if
+
+        if prpayheaddt.xmaxpay > 0 .and. tmpamt > prpayheaddt.xmaxpay
+          set tmpamt = 0.0D+prpayheaddt.xmaxpay
+        end if
+
+        set globals(payamt) = 0.0D+tmpamt
+        //print prpayheaddt.xpcode+" ** "+prpayheaddt.xpercent
+      end if
+   end method
+
+
+   method getESamt
+      double tmpamt=0.0
+      buffer prpaymentdt
+      move prpaymentdt=prpaymentdt(xemp,xpaycode)
+
+      if #result .eq. "true"
+        if prpaymentdt.xamount > 0
+          set tmpamt = 0.0D+prpaymentdt.xamount
+          set globals(payamt) = tmpamt
+        end if
+      end if
+   end method
+
+
+   method getTRamt
+      double tmpamt=0.0D
+      set mysql = "select xamount from prtrndt where zid='"+#id+"' and xpaydate='"+prpay.xpaydate+"' and xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"'"
+      set tmpstr = #sql(mysql)
+
+      if #result .eq. "true"
+        set tmpamt = 0.0D+tmpstr
+        if tmpamt > 0
+          set globals(payamt) = tmpamt
+        end if
+      end if
+   end method
+
+
+   method getADVamt
+      double tmpamt = 0.0D
+      str xrow = "0"
+
+      buffer pradvh
+      move pradvh=pradvh(xemp,xpaycode)
+
+      if #result .eq. "true"
+          set mysql = "select xrow from pradvd where xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"' and xrow>'"+xrow+"'"
+          set xrow = #sql(mysql)
+
+          while #result .eq. "true"
+            buffer pradvd
+            move pradvd=pradvd(xemp,xpaycode,xrow)
+            double tmpamtd = 0.0D+pradvd.xamount
+            double restamt = 0.0D+pradvd.xadvance-pradvd.xamount
+
+            if pradvd.xpflag .eq. ""
+              if prpay.xpaydate .ge. pradvd.xpaydate
+                if restamt < pradvd.xprrate
+                  set tmpamt = 0.0D +tmpamt+ restamt
+                  set tmpamtd = tmpamtd + restamt
+                else
+                  set tmpamt = 0.0D +tmpamt+ pradvd.xprrate
+                  set tmpamtd = tmpamtd + pradvd.xprrate
+                end if
+
+                if xptype .eq. "Final Run"
+                  set pradvd.xamount = tmpamtd
+                  if tmpamtd >= pradvd.xadvance
+                    set pradvd.xpflag = "1"
+                  end if
+                  update pradvd(xemp,xpaycode,xrow)
+                end if
+              end if
+            end if
+
+
+            set mysql = "select xrow from pradvd where xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"' and xrow>'"+xrow+"'"
+            set xrow = #sql(mysql)
+          end while
+      end if
+
+      if tmpamt > 0
+        set globals(payamt) = tmpamt
+      end if
+
+   end method
+	 valid valid
+		config
+			set header = "<font color=green size=4+>Payroll Processing Page</font><br>"
+		end config
+	 end valid
+
+
+end page
+
+

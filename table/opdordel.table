@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table opdordel
+
+  caption "Delivery Order Delivery Details"
+
+  columns ztime,zutime,zid,xdornum,xcus,xrow,xorg,xadd1, xadd2, xcity, xstate,xzip,xcountry,~
+          xsalute, xfirst,xmiddle,xlast, xtitle, xemail, xphone, xfax, xurl, ~
+          xcur, xwh, xmr,xrg,xtr,xsp,xordernum
+          
+  primary key zid,xdornum,xrow
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xdornum references opdor.zid,xdornum
+  end foreign key
+  
+end table

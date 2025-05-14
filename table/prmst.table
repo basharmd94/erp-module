@@ -1,0 +1,24 @@
+product ERP on the Net
+
+table prmst
+  caption "Employee Master"
+  columns ztime,zutime,zid,xemp,xtrnemp,xcostcent,xname,xfirst,xmiddle,xlast,xshort,xcat,xdiv,xsec,xproj,xdept,xempcat,~
+  		xdesig,xpayscl,xpaytyp,xadd,xfadd,xpadd,xpost,xphone,xdtbirth,xplbirth,xmstatus,xsex,xrace,xreligi,xcitizen,ximage,~
+        xfather,xmother,xbank,xpayact,xbloodgrp,zemail,xemail,xcardno,xlicense,xexpiry,~
+        xpassport,xtinno,xtype,xjoindate,xempnature,xprobfrdate,xprobtodate,xcondate,xgrade,~
+        xobjective,xkeyarea,xtasks,xrepto,xempnew,xnewdept,xnewdesig,xlocation,dumzid,xdateto,xpfflag,~
+        xstatusemp,xpsclcode,xdtwotax,xunionmem,xwelfund,xquarter,xshift,xspitno,~
+        xfphone,xwpno,xwptype,xwpeffect,xwpexpire,xvhclass,xplace,xtemdate,~
+        xlicentype,xdtmarr,xpostflag,xphonec,xfax,xmobile,xremarks,~
+        xid,xuserid,xappby1,xappid1,xappby2,xappid2,xappby3,xappid3,~
+        xrecby1,xrecid1,xrecby2,xrecid2,xrecby3,xrecid3,xlink,xdisease,xtypepay,xsalary,xprovider,xplaceiss,xdateiss,~
+        xppexpdt,xmobile1,xemaila,xemailb,xcontactd,xoffice1,xoffice,xphoneb,xbankbr,xcardnum,xotflag,xlocatadd, ~
+        xleftdate,xleftre,xresignstat,xsepmode,xlensv
+          
+  primary key zid,xemp
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+ 
+end table

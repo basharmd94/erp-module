@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table glsub
+  caption "GL Sub Account"
+  columns  ztime,zutime,zid,xacc,xsub,xdesc,zemail,xemail
+  primary key zid, xacc, xsub
+  foreign key
+        zid references zbusiness.zid
+        zid,xacc references glmst.zid,xacc
+  end foreign key
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+  //field xcus
+    //extend
+    //attrib trn Sales Order, 10
+  //end field
+  //sql
+end table

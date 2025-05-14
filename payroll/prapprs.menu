@@ -1,0 +1,12 @@
+//Set up for aprs
+//---------------------------------------------------------------------------------------
+caption "Appraisal Menu" page 3
+option                  |action                                      |modules|models
+//---------------------------------------------------------------------------------------
+Performance Appraisal   |#classPath+"/"+#servlet+"?page=praptrn"
+//Job Factors             |#classPath+"/"+#servlet+"?page=praprs" |
+-
+Appraisal Type          |#classPath+"/"+#servlet+"?page=praprstype"  |
+Job Factors             |#classPath+"/"+#servlet+"?page=xcodes(xtype=Job Factor)"      |
+Grading Keys            |#classPath+"/"+#servlet+"?page=xcodes(xtype=Grading Key)"     |
+//---------------------------------------------------------------------------------------

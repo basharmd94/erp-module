@@ -1,0 +1,76 @@
+page caitemupd
+
+     caption "Item Copy to another Business"
+     //sidebar list one
+     sections form one,method updtempdr,method updtempcr,method deltempdr,method deltempcr, script myscript
+
+     form one
+        //caption "IM to GL Posting Process"
+        table
+        order
+        fixed
+        layout 1
+        objects Copy,dumzid caption(Destination Business ID)
+
+
+        field xdate
+	    default #d	
+          caption Posting Date
+          //pick list ximtrnt
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Copy
+          event before
+	    set chkid=#sql("select zorg from zbusiness where zid='"+dumzid+"' and zid>10 and zactive='1'")
+	    if #result .eq. "true"
+		    int rec=0
+		    set xitem=""
+		    set xitem=#sql("select xitem from caitem where zid='"+#id+"' and xitem>'"+xitem+"' order by xitem")
+		    while #result .eq. "true"			
+			
+			buffer caitem
+			move caitem = caitem(xitem)
+			set caitem.zid=dumzid
+			insert caitem
+			if #result .eq. "true"
+				set rec=0+rec+1
+			end if
+			
+			set xitem=#sql("select xitem from caitem where zid='"+#id+"' and xitem>'"+xitem+"' order by xitem")
+		    end while
+		    set zorg=#sql("select zorg from zbusiness where zid='"+dumzid+"'")
+	    else
+		error "<font color=red size=4+>Wrong Business ID</font>"
+	    end if
+	    //print "R:"+rec
+	    if rec > 0
+		print "<font color=red size=3+>"+rec+" record(s) inserted in : </font><font color=blue size=3+>"+zorg+"</font>"
+	    else
+		print "<font color=red size=4+>Nothing to Copy</font>"
+	    end if
+          end event
+        end field
+     end form
+     
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Another Code"){
+            form.page.value = "caship"
+            form.searchbutton.value = "Find xcode=?"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+end page

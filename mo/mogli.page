@@ -1,0 +1,143 @@
+page mogli
+     caption "MO to GL Interface Table"
+     sections  form one,script myscript
+
+
+
+     list one
+        table mogliv
+        order xitem
+        //fixed xvoucher
+        //select none
+		navigators alpha 
+        //navigators alpha,group xacc "select xacc from glmst" // where xtype = 'Country'"
+        rows 20
+        objects  xitem attrib(link "Main?page=mogli&command=Show&xitem=?"),xdesc,xmoaccdr,~
+		     xmoacccr	
+
+        //headers none
+     end list
+
+
+     form one
+        caption "MO to GL Interface Table for Non-Stock Items"
+        table mogli
+        order xstype,xitem
+        return "Main"
+        layout 2
+        objects Show,Clear,Add, Update, Delete, Top, Previous, Next, Bottom,"<p>" ,~
+               xstype,"<b>",xitem,xdumitem,xmoaccdr,xdumdes1,xsubdr,xdumsubdr,~
+               xmoacccr,xdumdes2,xsubcr,xdumsubcr
+
+
+        field xstype
+          pick
+          display text
+          attrib readonly
+          default "Non-Stock"
+          column 3
+        end field
+
+        field xitem
+          pick list xmoitem
+        end field
+
+        field xdumitem
+          attrib local
+          display constant
+          caption Item Description
+          event after
+            set xdumitem=#sql(str,"select xdesc from caitem where xitem='"+xitem+"'")
+          end event
+        end field
+
+	      field xmoaccdr
+	        display text
+	        pick list xmoaccdr
+          event after
+            set globals(xmoaccdr)=xmoaccdr
+          end event  
+	      end field
+
+        field xdumdes1
+          attrib local
+          display constant
+          caption Description
+          event after
+            set xdumdes1=#sql(str,"select xdesc from glmst where xacc='"+xmoaccdr+"'")
+          end event
+        end field
+
+        field xmoacccr
+          display text
+          pick list xmoacccr
+          event after
+            set globals(xmoacccr)=xmoacccr
+          end event  
+        end field
+
+        field xdumdes2
+          attrib local
+          display constant
+          caption Description
+          event after
+            set xdumdes2=#sql(str,"select xdesc from glmst where xacc='"+xmoacccr+"'")
+          end event
+        end field
+
+        field xsubdr
+          display text
+          pick list xmosubdr
+        end field
+
+        field xdumsubdr
+          attrib local
+          display constant
+          caption Debit Sub Description
+          event after
+            set xdumsubdr=#sql(str,"select xdesc from glsub where xsub='"+xsubdr+"'")
+          end event
+        end field
+
+        field xsubcr
+          display text
+          pick list xmosubcr
+        end field
+
+        field xdumsubcr
+          attrib local
+          display constant
+          caption Credit Sub Despription
+          event after
+            set xdumsubcr=#sql(str, "select xdesc from glsub where xsub='"+xsubcr+"'")
+          end event
+        end field
+
+
+        embed onsubmit="submitit(this)"
+
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+
+	    if (detail=="clicked"){
+            form.page.value = "glsub"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+
+
+end page

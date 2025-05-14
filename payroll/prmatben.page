@@ -1,0 +1,15 @@
+page prmatben
+     caption "Maternity Benefits"
+     sections form one
+     
+	form one
+		//valid valid
+		table prdef
+		layout 1
+        objects Clear,Show,Update,~
+			xprmatlv display(const),~
+			xefffrom caption(Min Job Duration (Days)),xmaxoffers caption(Eligible if not having children more than),xlvprenatal,xlvpostnatal
+
+     end form
+     
+end page

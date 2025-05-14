@@ -1,0 +1,21 @@
+     list xlocation
+        table xcodes
+        order xcode
+        select "xtype='Location1' and xcode like '%"+zvalue+"%' and zactive='1'"
+        navigators alpha
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+                xdescdet,xprops
+
+        field xcostcent
+            caption Group Office
+        end field
+        
+        field xdiv
+            caption Divisional Office
+        end field
+
+
+     end list
+
+

@@ -1,0 +1,20 @@
+list xpoqot
+	table poquot
+	order xpoqot desc
+	select "(xpoqot like '%"+zvalue+"%' or xref like '%"+zvalue+"%')"
+	rows 10
+	objects xpoqot attrib(link "abc" embed onclick="return updateParent(this:'')"), ~
+			xdate,xitem,name equals((select xdesc from caitem where zid=poquot.zid and xitem=poquot.xitem)),xref
+
+	field xref
+		caption Requisition No.
+	end field
+
+	field name
+		caption Name
+		storage varchar
+	end field
+
+end list
+
+

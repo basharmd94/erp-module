@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table glchqr
+
+	caption "Simple Cheque Receive Register"
+
+	columns ztime,zutime,zid,xbank,xref,xdate,xcus,xsup,xdatedue,xprime,xremark,zemail,~
+			xemail,xchqstat,xpostflag,xaction
+
+	primary key zid, xref
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+end table

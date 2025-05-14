@@ -1,0 +1,84 @@
+page imreorder
+     caption "Reorder Status"  
+     sidebar list reord   
+     sections script myscript,imstk
+
+     list reord
+     	caption "Reorder Status"
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=imreorder.zid and xitem=imreorder.xitem) as desc ~
+			from imreorder) as tbl
+		
+        order xitem,xwh
+        rows 25
+        objects xitem,desc,xwh attrib(link #servlet+"?page="+page+"&command=Show&xitem=?&xwh=?"), ~
+			xinhand,xreordlvl,xsup
+			
+			field desc
+				caption Description
+				storage varchar
+			end field
+			
+     end list     
+     
+     form detail
+        //caption "Stock Parameters"
+        table imreorder
+        order xitem,xwh
+        //select
+        
+        layout 2
+        objects Show, Clear,Add,Update, Delete,Previous, Next,~
+          xitem attrib(attach), itemdesc, xwh,xinhand,xreordlvl,xsup
+
+		field itemdesc
+			caption Description
+			attrib local
+			width 50
+			display const
+			event after
+				set xtempstr1=caitem.xdesc("xitem='"+xitem+"'")
+			end event
+		end field
+    
+		field xitem
+			event after
+				set globals(xitem)=xitem
+			end event
+		end field
+		
+		field xlong
+			display text
+		end field
+
+        embed onsubmit="submitit(this)"
+
+	end form
+
+    script myscript
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "caext"
+            form.searchbutton.value = "Find xitem=?"
+          }
+        }
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.detail.xcode.value=link.text
+          }else{
+            document.detail.xcode.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+     
+end page

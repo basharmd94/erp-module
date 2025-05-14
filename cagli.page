@@ -1,0 +1,49 @@
+page cagli
+     caption "GL Interface Table"
+     //sidebar list gli,text html
+     sections form gli,list gli
+
+
+     form gli
+       caption "GL Interface Table"
+        table cagli
+        order xtypegli,xgitem,xgcsa,xwh
+        //select
+        
+        layout 5
+        objects Show, Clear,Add,Update, Delete,Top, Previous, Next, Bottom,~
+            xtypegli,xgitem,xgcsa,xwh,xacc
+
+		 field xwh
+            attrib -mandatory
+            default ""
+         end field
+
+		 field xtypegli
+			display ocombo
+			pick "Sales,Discount,Returns,Commission,Purchase Commission,Purchase Discount,Cost of Sales,~
+				Cost of Sales Variance,Inventory/Accruals,Purchase Variance,Accrued Purchases-Suppliers,~
+				Accrued Purchases-Sundries,Work In Progress-RM,Work In Progress-FG,~
+				Cheque-in-Hand Debit,Cheque-in-Hand Credit"
+		 end field
+
+     end form
+
+     list gli
+       caption "GL Interface Table"
+        table cagli
+        order xtypegli,xgitem,xgcsa,xwh
+        navigators alpha
+        rows 50
+        objects xtypegli attrib(link #servlet+"?page=cagli&command=Show&xtypegli=?&xgitem=?&xgcsa=?&xwh=?"), ~
+                xgitem,xgcsa,xwh,xacc
+
+
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+
+end page

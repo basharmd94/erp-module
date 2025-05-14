@@ -1,0 +1,38 @@
+//PO Codes.menu
+//-------------------------------------------------------------------
+caption "PO Codes" page 3
+option                           |action
+//-------------------------------------------------------------------
+PO Defaults                      |#classpath+"/"+#servlet+"?page=podef"
+GRN Cost Proration               |#classPath+"/"+#servlet+"?page=castatusgrncost"
+-
+Purchase Requisition Codes       |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=PO Requisition)"
+Purchase Quotation            	 |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Purchase Quotation)"
+-
+Purchase Order Codes             |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Purchase Order)"
+Purchase Order Parameters        |#classPath+"/"+#servlet+"?page=xtrnp(xtypetrn=Purchase Order)"
+-
+Goods Receipt Note Codes         |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Goods Receipt Note)"
+Goods Receipt Note Parameters    |#classPath+"/"+#servlet+"?page=xtrnp(xtypetrn=Goods Receipt Note)"
+-
+Purchase Return Codes            |#classPath+"/"+#servlet+"?page=xtrn(xtypetrn=Purchase Return)"
+Purchase Return Parameters       |#classPath+"/"+#servlet+"?page=xtrnp(xtypetrn=Purchase Return)"
+-
+Import Charge-Duty Master        |#classpath+"/"+#servlet+"?page=pocharge"
+PO to GL Interface Table         |#classpath+"/"+#servlet+"?page=pogli"
+- 
+PO Condition                  |#classPath+"/"+#servlet+"?page=xcodes(xtype=PO Condition)"
+Port Codes                     |#classPath+"/"+#servlet+"?page=xcodes(xtype=Port)"
+Bank Codes                       |#classPath+"/"+#servlet+"?page=cabank"
+LC Cost Type                     |#classPath+"/"+#servlet+"?page=ximpcost"
+GRN Cost Code                    |#classPath+"/"+#servlet+"?page=xcodes(xtype=GRN Cost)"
+//Nature of Request                |#classPath+"/"+#servlet+"?page=xcodes(xtype=Nature of Request)"
+//Shipping Mode                    |#classPath+"/"+#servlet+"?page=xcodes(xtype=Shipping Mode)"
+//Vessel Handling Revenue          |#classPath+"/"+#servlet+"?page=xcodes(xtype=Vessel Handling Revenue)"
+//Shipping C&F Info Setup          |#classPath+"/"+#servlet+"?page=poshipmtrprcsetup"
+//Shipping Job Description Setup          |#classPath+"/"+#servlet+"?page=poshipmtrjobsetup"
+Item Database        |#classpath+"/"+#servlet+"?menu=pocaitems"
+Supplier Database        |#classpath+"/"+#servlet+"?menu=pocasup"
+//-
+//Create PO From Quotation         |#classPath+"/"+#servlet+"?page=pocpofqot"
+//-------------------------------------------------------------------

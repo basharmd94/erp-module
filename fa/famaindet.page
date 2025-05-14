@@ -1,0 +1,570 @@
+page famaindet
+     embed onload = "move_caret('one','xdesc01')"
+     caption "Maintainence Schedule"
+     sections form one,text top, script myscript,~
+     list one
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list one
+        caption "Maintainence Schedule"
+        table fatrnlease
+        order xvoucher,xrow
+        fixed xvoucher
+        rows 10
+        objects  xrow attrib(link #servlet+"?page=famaindet&command=Show&xvoucher=?&xrow=?"),~
+                xtraintype,xreordqty,xfdate,xvhcat,xqtyspo,xtdate,xtariff,xqtysrec,~
+                xprobfrdate,xdesc02,xqtysavl,xprobtodate
+                
+        field xtariff
+            caption Periodical Maintainance
+        end field
+        
+        field xreordqty
+            caption Qty
+        end field
+        
+        field xqtyspo
+            caption Qty
+        end field
+        
+        field xqtysrec
+            caption Qty
+        end field
+        
+        field xqtysavl
+            caption Qty
+        end field
+        
+        field xvhcat
+            caption Regular Maintainance
+        end field
+
+        field xprobfrdate
+            caption Maintainance Date
+        end field
+
+        field xtdate
+            caption Maintainance Date
+        end field
+
+        field xtraintype
+            caption Normal Maintainance
+        end field
+
+        field xfdate
+            caption Maintainance Date
+        end field
+
+        field xprobfrdate
+            caption Maintainance Date
+        end field
+
+        field xprobtodate
+            caption Maintainance Date
+        end field
+
+        field xdesc02
+            caption Major Overhauling
+        end field
+
+     end list
+     
+
+     form one
+        table fatrnlease
+        order xvoucher,xrow
+        fixed xvoucher        
+        layout 5
+        objects "<b>Lease Schedule(Land) <font color=red >"+xvoucher,"</font></b>",~
+                Add,Update,Clear,Show, Top, Previous, Delete, Next, Bottom,Complete,~
+                xrow attrib(row 0 10;search),xtraintype attrib(attach),item_desc1,xreordqty,xexciserate,xdigit,~
+                xfdate,xvhcat attrib(attach),item_desc2,~
+                xqtyspo,xcessrate,xperofroad,xtdate,xtariff attrib(attach),item_desc3,xqtysrec,xexciserebate,~
+                xperreppan,xprobfrdate,xdesc02 attrib(attach),item_desc4,xqtysavl,xcess,xperrepair,xprobtodate,~
+                xprrate display(hide),xpermitnum display(hide),~
+                xtotdeduc display(hide),xexchadd display(hide),xdpddnt display(hide),xdesc01 display(hide),~
+                xcondate display(hide),xtrandate display(hide),xbudramt1 display(hide),xbuddt display(hide)
+                
+        field xtariff
+            caption Periodical Maintainance
+            width 10
+            pick list xitem
+        end field
+        
+        field item_desc1
+          attrib local
+          display const
+          caption Name
+            event after
+                set item_desc1=#sql(str,"select xdesc from caitem where zid='"+#id+"' and xitem='"+xtraintype+"'")
+            end event
+        end field
+        
+        field item_desc2
+          attrib local
+          display const
+          caption Name
+            event after
+                set item_desc2=#sql(str,"select xdesc from caitem where zid='"+#id+"' and xitem='"+xvhcat+"'")
+            end event
+        end field
+        
+        field item_desc3
+          attrib local
+          display const
+          caption Name
+            event after
+                set item_desc3=#sql(str,"select xdesc from caitem where zid='"+#id+"' and xitem='"+xtariff+"'")
+            end event
+        end field
+        
+        field item_desc4
+          attrib local
+          display const
+          caption Name
+            event after
+                set item_desc4=#sql(str,"select xdesc from caitem where zid='"+#id+"' and xitem='"+xdesc02+"'")
+            end event
+        end field
+        
+        field xvhcat
+            caption Regular Maintainance
+            width 10
+            display text
+            pick list xitem
+        end field
+        
+        field xreordqty
+            caption Qty
+            width 5
+        end field
+
+        field xqtyspo
+            caption Qty
+            width 5
+        end field
+
+        field xqtysrec
+            caption Qty
+            width 5
+        end field
+        
+        field xexciserate
+            caption Amount
+        end field
+        
+        field xcessrate
+            caption Amount
+        end field
+        
+        field xexciserebate
+            caption Amount
+        end field
+        
+        field xcess
+            caption Amount
+        end field
+
+        field xqtysavl
+            caption Qty
+            width 5
+        end field
+        
+        field xprobfrdate
+            caption Maintainance Date
+        end field
+        
+        field xperrepair
+            caption Day
+        end field
+        
+        field xperreppan
+            caption Day
+        end field
+        
+        field xperofroad
+            caption Day
+        end field
+        
+        field xtdate
+            caption Maintainance Date
+        end field
+
+        field xprrate
+            caption Govt. Fee
+        end field
+        
+        field xtraintype
+            caption Normal Maintainance
+            width 10
+            display text
+            pick list xitem
+        end field
+        
+        field xdigit
+            caption Day
+        end field
+        
+        field xrow
+            col 10
+            display const
+        end field
+        
+        field xpermitnum
+            caption Root Permit
+            width 20
+        end field
+        
+        field xtotdeduc
+            caption Govt. Fee
+        end field
+        
+        field xfdate
+            caption Maintainance Date
+        end field
+        
+        field xexchadd
+            caption Tax Tocken Fee
+        end field
+        
+        field xprobfrdate
+            caption Maintainance Date
+        end field
+        
+        field xprobtodate
+            caption Maintainance Date
+        end field
+        
+        field xdpddnt
+            caption Fitness Fee
+        end field
+        
+        field xcondate
+            caption Insurance Dated From
+        end field
+        
+        field xtrandate
+            caption Insurance Dated To
+        end field
+        
+        field xbudramt1
+            caption Insurance Fee
+        end field
+        
+        field xdesc01
+            caption Company Name
+            width 30
+        end field
+        
+        field xdesc02
+            caption Major Overhauling
+            width 10
+            display text
+            pick list xitem
+        end field
+
+        field show
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+          	 if globals(ErrChk) .ne. "1"
+	           	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+	           	 set stype=#prop(xprops,"security")
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Import.display) = "hide"
+		                set #field(Undo_Import.display) = "hide"
+		                set #field(Detail.display) = "hide"
+		                set #field(Confirm.display) = "hide"
+						set #field(Transfer.display) = "hide"
+						set #field(Create.display) = "hide"
+						set #field(Sub.display) = "hide"
+						set #field(Post.display) = "hide"
+						set #field(Docs.display) = "hide"
+						set #field(Manual.display) = "hide"
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if
+           end event
+           event after
+	         if globals(ErrChk) .ne. "1"
+	         	set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+	         	if #result .ne. "true"
+	                set #field(Details.display) = "hide"
+	                set #field(Top.display) = "hide"
+	                set #field(Bottom.display) = "hide"
+	                set #field(Next.display) = "hide"
+	                set #field(Previous.display) = "hide"
+	                set #field(Show.display) = "hide"
+	                set #field(Add.display) = "hide"
+	                set #field(Update.display) = "hide"
+	                set #field(Delete.display) = "hide"
+	                set #field(Clear.display) = "hide"
+	                set #field(Create.display) = "hide"
+	                set #field(Import.display) = "hide"
+	                set #field(Undo_Import.display) = "hide"
+	                set #field(Detail.display) = "hide"
+	                set #field(Confirm.display) = "hide"
+					set #field(Transfer.display) = "hide"
+					set #field(Create.display) = "hide"
+					set #field(Sub.display) = "hide"
+					set #field(Post.display) = "hide"
+					set #field(Docs.display) = "hide"
+					set #field(Manual.display) = "hide"
+	                class osbcustom(clear)
+	         	end if
+	         end if
+           end event
+        end field
+
+        field Top
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+          	 if globals(ErrChk) .ne. "1"
+	           	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+	           	 set stype=#prop(xprops,"security")
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Create.display) = "hide"
+		                set #field(Import.display) = "hide"
+		                set #field(Undo_Import.display) = "hide"
+		                set #field(Detail.display) = "hide"
+		                set #field(Confirm.display) = "hide"
+						set #field(Transfer.display) = "hide"
+						set #field(Create.display) = "hide"
+						set #field(Post.display) = "hide"
+						set #field(Docs.display) = "hide"
+						set #field(Manual.display) = "hide"
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if
+           end event
+           event after
+	         if globals(ErrChk) .ne. "1"
+	         	set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+	         	if #result .ne. "true"
+	                set #field(Details.display) = "hide"
+	                set #field(Top.display) = "hide"
+	                set #field(Bottom.display) = "hide"
+	                set #field(Next.display) = "hide"
+	                set #field(Previous.display) = "hide"
+	                set #field(Show.display) = "hide"
+	                set #field(Add.display) = "hide"
+	                set #field(Update.display) = "hide"
+	                set #field(Delete.display) = "hide"
+	                set #field(Clear.display) = "hide"
+	                set #field(Import.display) = "hide"
+	                set #field(Undo_Import.display) = "hide"
+	                set #field(Detail.display) = "hide"
+	                set #field(Confirm.display) = "hide"
+					set #field(Transfer.display) = "hide"
+					set #field(Create.display) = "hide"
+					set #field(Sub.display) = "hide"
+					set #field(Post.display) = "hide"
+					set #field(Docs.display) = "hide"
+					set #field(Manual.display) = "hide"
+	                class osbcustom(clear)
+	         	end if
+	         end if
+           end event
+        end field
+
+        field add
+          event before
+           set globals(ErrChk) = ""
+            
+//            call chk_access
+
+           if xvoucher .eq. ""
+                set globals(ErrChk) = "1"
+                error "Acquisition Not Created"
+           end if
+
+           int day1 = #days(#date)+xdigit+1
+           set xfdate = #longtodate(day1)
+           
+           int day2 = #days(#date)+xperofroad+1
+           set xtdate = #longtodate(day2)
+           
+           int day3 = #days(#date)+xperreppan+1
+           set xprobfrdate = #longtodate(day3)
+           
+           int day4 = #days(#date)+xperrepair+1
+           set xprobtodate = #longtodate(day4)
+
+          end event
+        end field
+
+       field update
+          event before
+            set globals(ErrChk) = ""
+        //    call chk_access
+           int day1 = #days(#date)+xdigit+1
+           set xfdate = #longtodate(day1)
+
+           int day2 = #days(#date)+xperofroad+1
+           set xtdate = #longtodate(day2)
+
+           int day3 = #days(#date)+xperreppan+1
+           set xprobfrdate = #longtodate(day3)
+
+           int day4 = #days(#date)+xperrepair+1
+           set xprobtodate = #longtodate(day4)
+          end event
+        end field
+        
+        field Delete
+        	event before
+        		set globals(ErrChk)=""
+                //call chk_access
+        	end event
+        end field
+        
+        embed onsubmit="submitit(this)"
+
+        field complete
+          embed onclick="clicked(this)"
+        end field
+
+  end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        
+       function clicked(b){
+          detail="clicked"
+        }
+
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "faacqaircn"
+            form.searchbutton.value = "Find xvoucher=?"
+          }
+        }
+        </script>
+     end script
+     
+     method chk_access
+     	set stype = ""
+       	 set xprops = #sql("select xprops from xlocals where xtypelocal='module' and xname='ca'")
+       	 set stype=#prop(xprops,"security")
+    	//print "P"+stype
+    	if stype .eq. "Yes"
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+
+			  set myqry = "insert into xcriminal (zid,xwornum,xemail,xdate,xtime,xobject)"
+			  set myqry = myqry + " values('"+#id+"','"+mysql+"','"+#user+"','"+#date+"',~
+				'"+#time+"','"+page+"')"
+			  set tmpstr =#sql(myqry)
+
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if
+     end method
+
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	else if excomm .eq. "Allocate"
+     		set #field(Allocate.display) = "hide"
+     	end if
+     end method
+
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql
+
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(xvoucher)+"','"+xrow+"','"+#command+"',~
+					'"+#user+"','"+#date+"','"+#time+"','"+page+"','')"
+		set tmpstr =#sql(myqry)
+     end method
+     end page

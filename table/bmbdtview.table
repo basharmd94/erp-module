@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table bmbdtview
+	caption "bmbdt Detail View"
+
+	columns ztime,zutime,zid,xbom,xoption,xline,xitem,item_desc,item_group,xqty,xunit,xstype,zemail,xemail,xpercent
+
+	sql create view bmbdtview (ztime,zutime,zid,xbom,xoption,xline,xitem,item_desc,item_group,xqty,xunit,xstype,zemail,xemail,xpercent) ~
+		as select ~
+		bmbdt.ztime,bmbdt.zutime,bmbdt.zid,bmbdt.xbom,bmbdt.xoption,bmbdt.xline,bmbdt.xitem,~
+        (select xdesc from caitem where zid=bmbdt.zid and xitem=bmbdt.xitem),~
+        (select xgitem from caitem where zid=bmbdt.zid and xitem=bmbdt.xitem),~
+		bmbdt.xqty,bmbdt.xunit,bmbdt.xstype,bmbdt.zemail,bmbdt.xemail,bmbdt.xpercent ~
+		FROM bmbdt
+end table

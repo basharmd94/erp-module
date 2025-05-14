@@ -1,0 +1,142 @@
+page prpayscaledt
+
+    caption "<span class=bl><font size=+1>Payment Details for Salary Scale: <a href=/da/portal?page=prpayscal&command=Show&xpsclcode="+xpsclcode+">" +xpsclcode+ "</a></span>"
+	sidebar list payhead
+    section form one,list one,text top,script myscript
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list payhead
+        caption "Payment Head(s)"
+        table prpayhead
+        order xpaycode
+        rows 40
+        objects xpaycode attrib(link "abc" embed onclick="return pickPH(this)"),~
+                xdesc
+     end list
+
+  list one
+    caption "Payment Details for<br>Salary Scale: "+globals(xpsclcode)+" - "+globals(xdesc)
+    table prpayheaddt
+    order xpsclcode,xpaycode
+    fixed xpsclcode
+    row 10
+    object  xpaycode attrib(link #servlet+"?page="+page+"&command=Show&xpaycode=?"),~
+            tmpdesc equals((select xdesc from prpayhead where prpayhead.zid=prpayheaddt.zid and prpayhead.xpaycode=prpayheaddt.xpaycode)),~
+            xpcode,xpercent,xamount,xminpay,xmaxpay
+
+    field tmpdesc
+      storage varchar
+      caption Pay Code Description
+    end field
+
+  end list
+
+  form one
+	valid valid,access
+    table prpayheaddt
+    order xpsclcode,xpaycode
+    fixed xpsclcode
+    layout 1
+    object Add, Show,Update, Clear,Previous,Delete, Next,Return,~
+           xpaycode attrib(attach),tmpdesc,xpcode attrib(attach),tmpdesc1,~
+           xpercent attrib(attach),ddesc,xamount,xminpay,xmaxpay,zemail display(hide),xemail display(hide)
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+
+    field xpaycode
+      caption Pay Code
+      width 10
+      display text
+      pick list xpaycode
+    end field
+
+    field tmpdesc
+      attrib local
+      display constant
+      caption Pay Description
+      event after
+        set tmpdesc=#sql(str,"select xdesc from prpayhead where xpaycode='"+xpaycode+"'")
+      end event
+    end field
+
+    field xpcode
+      caption Dependent Code
+      width 10
+      display text
+      pick list xpaycode1
+    end field
+
+
+    field tmpdesc1
+      attrib local
+      display constant
+      caption Dependent Code Description
+      event after
+        set tmpdesc1=#sql(str,"select xdesc from prpayhead where xpaycode='"+xpcode+"'")
+      end event
+    end field
+
+    field xpercent
+      caption Percentage Rate
+    end field
+
+    field ddesc
+      attrib local
+      display constant
+      caption
+      event after
+        set ddesc = "<center>OR</center>"
+      end event
+    end field
+
+    field xamount
+      caption Fixed Amount
+    end field
+
+    embed onsubmit="submitit(this)"
+    field Return
+      embed onclick="clicked(this)"
+    end field
+
+  end form
+
+  script myscript
+    <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail=b.value
+        }
+        function submitit(form){
+          if (detail=="Return"){
+            form.page.value = "prpayscal"
+            form.searchbutton.value = "Find xpsclcode=?"
+          }
+        }
+      
+        function pickPH(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xpaycode.value=link.text
+          }else{
+            document.one.xpaycode.value=link.innerText
+          }
+          return false
+        }
+      
+        </script>
+     end script
+end page

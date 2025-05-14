@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table lcbill
+  caption "Bill of Entry info for LC No"
+  columns  ztime,zutime,zid,xlctrnnum,xline,xastbook,xbeno,xdemqty,xsupqty,xslvval,xamt,xmaxload,xlong,~
+            xdateeco,xfirst,xdateapp,xmenu,xdatecom,xredate,xicno,xlsafe,xlmax,xlmin,xinhand,xavail,~
+            xexpected,xopqut,xopord,xopalc,xopdor,xporeq,xpoord,xpocon,xpogrn,xqtyrej,xwopln,xwoord ,~
+            xworel,xwoins,xwodem,xwoalc,xtaxrate1,xqtycom,xqtyoff,xqtykit,xtaxrate2,xtaxrate3
+            
+  primary key zid, xlctrnnum,xline
+  foreign key 
+        zid references zbusiness.zid
+        zid,xlctrnnum references lcmst.zid,xlctrnnum        
+  end foreign key
+end table

@@ -1,0 +1,24 @@
+//Fixed Asset menu
+//-------------------------------------------------------------------
+caption "Fixed Asset Entry" page 3
+option                       |action
+//-------------------------------------------------------------------
+Land                         |#classPath+"/"+#servlet+"?page=famstland"	|
+Building                     |#classPath+"/"+#servlet+"?page=famstbuild"|
+Civil Works                  |#classPath+"/"+#servlet+"?page=famstcivil"|
+Air Conditiner               |#classPath+"/"+#servlet+"?page=famstaircn"|
+-
+Production Machinery         |#classPath+"/"+#servlet+"?page=famstpmach"|
+Utility Machinery         	 |#classPath+"/"+#servlet+"?page=famstumach"|
+Electrical Substation     	 |#classPath+"/"+#servlet+"?page=famstelsub"|
+//Laboratory Equipment      	 |#classPath+"/"+#servlet+"?page=famstlbeqp"|
+Electrical Equipment      	 |#classPath+"/"+#servlet+"?page=famsteleqp"| 
+Transport                 	 |#classPath+"/"+#servlet+"?page=famsttrnsp"| 
+-
+Furniture & Fixture       	 |#classPath+"/"+#servlet+"?page=famstfurn" | 
+Office Equipment          	 |#classPath+"/"+#servlet+"?page=famstofeqp"| 
+Computer & Others         	 |#classPath+"/"+#servlet+"?page=famstcomp" | 
+-
+//Q.C. Equipment       	 	 |#classPath+"/"+#servlet+"?page=famstqc"   |
+Miscellaneous Asset       	 |#classPath+"/"+#servlet+"?page=famstmisc" | 
+//-------------------------------------------------------------------

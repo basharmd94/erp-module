@@ -1,0 +1,13 @@
+Product ERP on the net
+
+table prath
+   caption "Attendance Header"
+   columns ztime,zutime,zid,xyear,xper,xday,xdate,xshift,xatdrem,zemail,xemail
+
+   primary key zid,xyear,xper,xday,xshift
+
+   foreign key
+      zid references zbusiness.zid
+   end foreign key
+
+end table

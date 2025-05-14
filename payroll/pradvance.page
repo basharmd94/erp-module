@@ -1,0 +1,234 @@
+page pradvance
+     
+	 embed onload="move_caret('one','xemp')"
+     //caption "Advance Information"
+     caption header 
+     sidebar text one
+     sections form one,  script myscript, text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     form one
+        table prmst
+		valid valid
+        order xemp
+        layout 2
+        objects Update,Show,Clear, Top, Previous, Next, Bottom,Back,~
+            dum1,xpassport,xpayact,xprobfrdate display(hide),xprobtodate display(hide),xdatesch2,xdateact2,dum2,xlicense,xplace,xtemdate,xredate,xlicentype,xvhclass,~
+            dum3,dum4,xref0,xrefadd,xrefphone,xemaila1,xrelation1,xdesig1,xorg0,dum5,xref1,xrefadd1,xrefphone1,xemaila2,xrelation2,xdesig2,xorg2,dum6,xref2,xrefadd2,xrefphone2,xemaila3,~
+            xrelation3,xdesig3,xorg3,dum7,xref3,xrefadd3,xrefphone3,xemaila4,~
+            xrelation4,xdesig4,xorg4,dum8,xbank,xpayact,xbankbr,xcardnum
+            
+
+        field xpayact
+            caption Place of Issue
+            width 20
+        end field
+        
+        field xbank
+              pick select xcode from xcodes where xtype='Bank'
+        end field
+        
+        field xcardnum
+              caption ATM Card No.
+              width 20
+        end field
+        
+        field xorg0
+            col 3
+        end field
+        
+        field xorg2
+            col 3
+        end field
+        
+        field xorg3
+            col 3
+        end field
+        
+        field xorg4
+            col 3
+        end field
+        
+        field xpassport
+              width 20
+        end field
+           
+        field xcostcent
+            caption Location
+        end field
+           
+        field xredate
+            caption Date of Expiry
+            width 20
+        end field
+        
+        field xlicentype
+              default "Local"
+        end field
+           
+        field xtemdate
+            caption Date of Issue
+            width 20
+        end field
+        
+        field xvhclass
+//            col 3
+        end field
+           
+        field xdateact2
+            caption Date of Expiry
+            //col 3
+            width 20
+        end field
+        
+        field xlicense
+           caption License No.
+           width 20
+           pick
+        end field
+           
+        field xdatesch2
+            caption Date of Issue
+            width 20
+        end field
+           
+        field xfirst
+            caption Name
+            display const
+        end field
+        
+        field xplace
+            caption Place of Issue
+        end field
+        
+        field dum2
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum2 = "<font color=red>_______________________________________ Driving License Information _______________________________________</font>"
+         end event
+        end field
+        
+        field dum1
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum1 = "<font color=red>_______________________________________ Passport Information _______________________________________</font>"
+         end event
+        end field
+        
+        field dum3
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum3 = "<font color=red>_______________________________________ Referance Information _______________________________________</font>"
+         end event
+        end field
+        
+        field dum4
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum4 = "<font color=red>_______________________________________ Referance1 _______________________________________</font>"
+         end event
+        end field
+        
+        field dum5
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum5 = "<font color=red>_______________________________________ Referance2 _______________________________________</font>"
+         end event
+        end field
+        
+        field dum6
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum6 = "<font color=red>_______________________________________ Referance3 _______________________________________</font>"
+         end event
+        end field
+        
+        field dum7
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum7 = "<font color=red>_______________________________________ Referance4 _______________________________________</font>"
+         end event
+        end field
+        
+        field dum8
+         caption
+         display const
+         col 3
+         attrib local
+         event after
+            set dum8 = "<font color=red>_______________________________________ Salary Account Information _______________________________________</font>"
+         end event
+        end field
+
+
+        field xname
+           width 30
+           display const
+        end field
+           
+        field xjoindate
+          caption Date of Joining
+        end field
+        
+        embed onsubmit="submitit(this)"
+          field back
+            embed onclick="back(this)"
+          end field
+
+  end form
+
+     text one
+        "<img border=1 src=html/images/"+xemp+".jpg>"
+        "<p><b>"+xname+"</b><br>"                
+     end text
+     
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function back(b)
+        {
+          detail="back"
+        }
+
+        function submitit(form){
+          if (detail=="back"){
+            form.page.value = "prmst"
+            form.searchbutton.value="Top"
+          }
+         }
+        </script>
+     end script
+
+	 valid valid
+		config
+			set header = "<span class=bl>Advance Information of Employee <a href=/da/"+#servlet+"?page=prmst&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+		end config
+	 end valid
+	 
+end page

@@ -1,0 +1,30 @@
+product ERP on the Net
+
+table imstock
+	caption "Item Warehouse View"
+	columns zid,xitem,xwh,xstdcost,xinhand,xopord,xopdor,xpoord,xpogrn,xtogin,xtoout,xwoalc,xwokit,xwoord,xaltqty,xpocon
+
+	primary key zid,xitem,xwh
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+	sql create view imstock (zid,xitem,xwh,xstdcost,xinhand,xopord,xopdor,xpoord,xpogrn,xtogin,xtoout,xwoalc,xwokit,xwoord,xaltqty,xpocon) ~
+		as SELECT zid, xitem,xwh,xstdcost, ~
+		coalesce((select sum(xqty*xsign) from imtrn where imtrn.xitem=itemwh.xitem and imtrn.xwh=itemwh.xwh and imtrn.zid=itemwh.zid),0), ~
+		coalesce((select sum((xqtyord-xqtydel)*xcfsel) from opodt where opodt.xitem=itemwh.xitem and opodt.xwh=itemwh.xwh and opodt.zid=itemwh.zid),0), ~
+		coalesce((select sum(xqty*xcfsel) from opddt where opddt.xitem=itemwh.xitem and opddt.xwh=itemwh.xwh and opddt.zid=itemwh.zid and ((select opdor.xstatusdor from opdor where opdor.xdornum=opddt.xdornum and opdor.zid=opddt.zid)<>'2-Confirmed' and (select opdor.xstatusdor from opdor where opdor.xdornum=opddt.xdornum and opdor.zid=opddt.zid)<>'3-Invoiced')),0), ~
+		coalesce((select sum((xqtyord-xqtygrn)*xcfpur) from poodt where poodt.xitem=itemwh.xitem and poodt.xwh=itemwh.xwh and poodt.zid=itemwh.zid),0), ~
+		coalesce((select sum(xqty) from pogdt where pogdt.xitem=itemwh.xitem and pogdt.xwh=itemwh.xwh and pogdt.zid=itemwh.zid and (select pogrn.xstatusgrn from pogrn where pogrn.xgrnnum=pogdt.xgrnnum and pogrn.zid=pogdt.zid)='1-Open'),0), ~
+		coalesce((select sum(xqtyalc-xqtycom) from imtdtview where imtdtview.xitem=itemwh.xitem and imtdtview.xtwh=itemwh.xwh and imtdtview.zid=itemwh.zid),0), ~
+		coalesce((select sum(xqtyalc-xqtycom) from imtdtview where imtdtview.xitem=itemwh.xitem and imtdtview.xfwh=itemwh.xwh and imtdtview.zid=itemwh.zid),0), ~
+		coalesce((select sum(xqty) from moodt where (select xstatusmor from moord where xmoord=moodt.xmoord and zid=moodt.zid) = 'Released' and moodt.xitem=itemwh.xitem and moodt.xwh=itemwh.xwh and moodt.zid=itemwh.zid),0), ~
+		coalesce((select sum(xqty) from moodt where (select xstatusmor from moord where xmoord=moodt.xmoord and zid=moodt.zid) = 'Kitted' and moodt.xitem=itemwh.xitem and moodt.xwh=itemwh.xwh and moodt.zid=itemwh.zid),0), ~
+		coalesce((select sum(xqtyprd) from moord where xstatusmor ='3-Released' and moord.xitem=itemwh.xitem and moord.xwh=itemwh.xwh and moord.zid=itemwh.zid),0), ~
+		coalesce((select sum(xqtyord) from imtempview where imtempview.xitem=itemwh.xitem and imtempview.xwh=itemwh.xwh and imtempview.zid=itemwh.zid and imtempview.xstatustrn not like '5%' and imtempview.xsign<0),0),~
+		coalesce((select sum(xqtyord) from imtempview where imtempview.xitem=itemwh.xitem and imtempview.xwh=itemwh.xwh and imtempview.zid=itemwh.zid and imtempview.xstatustrn not like '5%' and imtempview.xsign>0),0) ~
+		FROM itemwh
+end table
+
+//relation: imstock,imreorder,imstocknew

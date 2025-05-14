@@ -1,0 +1,285 @@
+
+    group shipment 2 2 "Shipment Info"
+       form shipment (1, 1)//(col,row,colspan,rowspan,width,height)
+       //form details  (1, 1)//(col,row,colspan,rowspan,width,height)
+       //access " xordernum .ne. "+#char(34)+#char(34)
+	   list item_Details (2, 1)
+	   list item_Detailsop (2, 2)
+	   list shiplist (1,2)
+       keys "Top"
+     end group
+	 
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list shiplist
+		caption "Shipment Entry hfhf"
+        table lcship
+        order xlctrnnum,xrow
+        //fixed xlctrnnum
+        rows 20
+        objects  xrow attrib(link #servlet+"?page="+page+"&nexttab="+nexttab+"&command=Show&xlctrnnum=?&xrow=?"),~
+                 xcarrier,xshipdate,xavlperc,xunit
+				 //xcarrier, xshipdate default(#d),xport,xdateesc,xblno ,xavlperc
+
+        field xshipdate
+          caption Arrival Date
+        end field
+
+        field xqtydel
+          caption Qty Issued
+        end field
+        
+
+
+        field xunit
+          caption Unit
+        end field
+        
+        field xavlperc
+            caption B / L Qty.
+        end field
+        
+        field xcarrier
+          caption Carrier		  
+        end field
+
+
+        totals "Totals","","",sum,"",sum
+
+     end list
+
+     list order
+        caption "Item(s)"
+        table poshipbal
+        order xpornum,xrow
+        fixed xpornum
+        select "xpornum = '"+globals(xpornum)+"'"
+        rows 20
+        objects xrow attrib(link "abc" embed onclick="return pickType(this:item#:balqty#)"),~
+                xitem attrib(name item#),itemdesc  equals((select xdesc from caitem where zid=poshipbal.zid and xitem=poshipbal.xitem))~
+                xunitpur,balQty attrib(name balqty#)
+
+ 	totals "Total","",sum,"",sum
+
+        field xcur
+          caption Cur
+        end field
+
+        field balQty
+            caption Balance Qty
+        end field
+
+        field itemdesc
+          storage varchar
+          //attrib local
+          caption Description
+        end field
+
+     end list
+     
+
+     form shipment
+		caption "Shipment Info"
+        table lcship
+        order xlctrnnum,xrow
+        fixed xlctrnnum
+        
+        layout 2
+        objects "<b>Shipment Information for LC No <font color=red size=+1>"+xlcno,"</font></b><p>",~
+                Add, Details attrib(hidden) ,Show,Clear,Update, Delete, Top, Previous, Next, Bottom,"",~
+                xrow attrib(row 0 10;search),"",xitemnew,itemDesc,xcarrier, xshipdate default(#d),xport caption(Port of Loading),xdateesc,xblno ,xavlperc,~
+                xdatemor,xqtysrn,xcostass,xtime display(hide),xqtydel,xamt,xlimitgit,xpayperc,xchgdel,~
+                xqtybac,xqty display(hide),xunit,xline,xrem,"",zemail display(const),xemail display(const)
+
+
+        field xitemnew
+              caption Item Code
+              pick list xitem
+        end field
+		
+		field itemshow
+			set xitemnew=xitem
+		end field
+		
+		
+        field itemDesc
+              caption Item Description
+              attrib local
+              display const
+              event after
+                    set itemDesc=#sql("select xdesc from caitem where zid="+#id+" and xitem='"+xitemnew+"'")
+              end event
+        end field
+        field xrow
+		caption Shipment Number
+          col 3
+          event after
+            set globals(xrow)=xrow
+          end event
+        end field
+
+        field xremark
+          width 100
+          height 2
+          col 3
+        end field
+        
+        field xamt
+            caption Shipping Charge
+        end field
+        
+        field xlimitgit
+            caption Port Charge
+        end field
+        
+        field xdateesc
+            caption Bond Date
+            default #d
+        end field
+        
+        field xpayperc
+            caption Shipping Demurrage
+        end field
+        
+        field xchgdel
+            caption Port Demurrage
+        end field
+        
+        field xdatemor
+            caption B / L Maturity Date
+            default #d
+        end field
+        
+        field xavlperc
+            caption B / L Qty.
+        end field
+        
+        field xqtybac
+            caption Landed Qty.
+        end field
+
+        field xshipdate
+          caption Arrival Date
+        end field
+
+        field xcarrier
+          caption Carrier
+          width 30
+		  pick
+          event after
+            set globals(xcarrier) = xcarrier
+          end event
+        end field
+
+        field xunit
+          default "M.Ton"
+        end field
+
+        field xqtydel
+          caption Qty Issued
+          display hide
+        end field
+        
+        field xqtysrn
+            caption Radiation / BCSIR
+        end field
+        
+        field xcostass
+            caption NOC
+        end field
+        
+        field zemail
+            caption Created by
+        end field
+        
+        field xemail
+            caption Updated by
+        end field
+
+        field Add
+          event before
+                set globals(ErrChk)=""
+                
+                //if globals(ErrChk) .ne. "1"
+                //   set chk_balqty=0.0+#sql("select balQty from poshipbal where zid="+#id+" and xpornum='"+globals(xpornum)+"' and xrow='"+xline+"' and xitem='"+xitemnew+"'")
+                //   if #result .eq. "false"
+                //      set globals(ErrChk)="1"
+                //      error "Wrong Item Selected from List.<br> Can't "+#command
+                //   end if
+                //end if
+                
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field Update
+          event before
+                set globals(ErrChk)=""
+                if globals(ErrChk) .ne. "1"
+                   set chk_balqty=0.0+#sql("select balQty from poshipbal where zid="+#id+" and xpornum='"+globals(xpornum)+"' and xrow='"+xline+"' and xitem='"+xitemnew+"'")
+                   if #result .eq. "false"
+                      set globals(ErrChk)="1"
+                      error "Wrong Item Selected from List.<br> Can't "+#command
+                   end if
+                end if
+                
+            set xemail=#user
+          end event
+        end field
+        
+        embed onsubmit="submitit(this)"
+        field Details
+          embed onclick="clicked(this)"
+        end field
+
+        field Back
+          embed onclick="back(this)"
+        end field
+
+
+    end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+
+        function back(b){
+          b.value = "Top"
+          detail="back"
+        }
+
+        function submitit(form){
+
+	    if (detail=="clicked"){
+            form.page.value = "pofeedervs"
+            form.searchbutton.value="Top"
+          }else if (detail=="back"){
+            form.page.value= "poilcp"
+            form.searchbutton.value = "Find xpornum=?"
+         }
+        }
+        function pickType(link,item,balqty){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xline.value=link.text
+            document.one.xitemnew.value=item.text
+            document.one.xavlperc.value=balqty.text
+          }else{
+            document.one.xline.value=link.innerText
+            document.one.xitemnew.value=item.innerText
+            document.one.xavlperc.value=balqty.innerText
+         }
+          return false
+        }
+
+        </script>
+     end script
+
+

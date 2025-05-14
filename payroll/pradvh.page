@@ -1,0 +1,171 @@
+page pradvh
+    embed onload = "move_caret('one','xemp')"
+
+     caption header
+     sections  form one, list one, text top,script myscript
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+      table pradvh
+      order xemp,xpaycode
+      //navigators alpha
+      object xemp attrib(link #servlet+"?page=pradvh&command=Show&xemp=?&xpaycode=?"),~
+             tmpname equals((select xname from prmst where prmst.zid=pradvh.zid and prmst.xemp=pradvh.xemp)),~
+             xpaycode, tmpdesc equals((select xdesc from prpayhead where prpayhead.zid=pradvh.zid and prpayhead.xpaycode=pradvh.xpaycode))
+
+
+      field tmpname
+        storage varchar
+        caption Employee Name
+      end field
+
+      field tmpdesc
+        storage varchar
+        caption Pay Description
+      end field
+     end list
+
+
+     form one
+        //caption "Loans/Advances Information"
+        table pradvh
+		valid valid
+        order xemp,xpaycode
+		default Add
+        layout 2
+        objects Add, Details, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+               xemp attrib(attach),xnamedum,xpaycode attrib(attach),xpaydum,~
+               totadv,totrate,totded,totbal,zemail display(hide),xemail display(hide)
+
+            field add
+              event before
+                set zemail=#user
+                set xemail=""
+              end event
+            end field
+
+            field update		      
+              event before
+                  set xemail=#user
+              end event
+            end field
+
+//               xtotadv display(constant),xprrate display(constant),~
+//               xtotdeduc display(constant),xbalance display(constant)
+
+               field xemp
+                  pick list xemp
+                  event after
+                     set globals(xemp)=xemp
+
+                  end event
+               end field
+
+               field xnamedum
+                  attrib local
+                  display constant
+                  caption Employee Name
+                  event after
+                     set xnamedum=#sql(str, "select xname from prmst where xemp='"+xemp+"'")
+                     set globals(xname)=xnamedum
+                  end event
+               end field
+
+               field xpaycode
+                  display text
+                  width 10
+                  pick list xpaycode2
+				  caption Loan Type
+                  event after
+                    set globals(xpaycode) = xpaycode
+                  end event
+               end field
+
+               field xpaydum
+                  attrib local
+                  display constant
+                  caption Pay Description
+                  event after
+                     set xpaydum=#sql(str,"select xdesc from prpayhead where xpaycode='"+xpaycode+"'")
+                  end event
+               end field
+
+               field totadv
+                attrib local
+                display constant
+                caption Total Amount Taken
+                event after
+                  set totadv = #sql(decimal,"select sum(xadvance) from pradvd where xemp='"+xemp+"' and xpaycode='"+xpaycode+"'")
+                end event
+               end field
+
+               field totrate
+                attrib local
+                display constant
+                caption Current Repayment Rate
+                event after
+                  set totrate = #sql(decimal,"select sum(xprrate) from pradvd where xemp='"+xemp+"' and xpaycode='"+xpaycode+"'")
+                end event
+               end field
+
+               field totded
+                attrib local
+                display constant
+                caption Total Amount Deducted
+                event after
+                  set totded = #sql(decimal,"select sum(xamount) from pradvd where xemp='"+xemp+"' and xpaycode='"+xpaycode+"'")
+                end event
+               end field
+
+               field totbal
+                attrib local
+                display constant
+                caption Current Balance
+                event after
+                  set totbal = #sql(decimal,"select sum(xadvance-xamount) from pradvd where xemp='"+xemp+"' and xpaycode='"+xpaycode+"'")
+                end event
+               end field
+
+
+            embed onsubmit="submitit(this)"
+
+            field details
+               embed onclick="clicked(this)"
+            end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          detail="enter"
+        }
+        function submitit(form)
+        {
+          if (detail=="enter")
+          {
+            form.page.value = "pradvd"
+            form.searchbutton.value= "Find xemp=?&xpaycode=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+
+	 valid valid
+		config
+			set header = "Loans and Advance"
+		end config
+	 end valid
+	 
+end page
+

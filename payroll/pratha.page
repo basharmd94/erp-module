@@ -1,0 +1,223 @@
+
+page pratha
+    embed onload="move_caret('one','xdate')"
+
+     caption "Attendance Information"
+     sidebar text one
+     sections  form one, list one,text top, script myscript
+
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        table prath
+        caption "Available Entries"
+        order xyear,xper,xday,xshift  
+        rows 20
+        navigators
+        objects xyear ,xper,xday, xdate attrib(link #servlet+"?page=pratha&command=-&xyear=?&xper=?&xday=?&xshift=?"),~
+                xshift, xatdrem
+
+        field xday
+          caption Day
+        end field
+
+     end list
+
+
+     form one
+        caption "Attendance Entry Header"
+        table prath
+        order xyear,xper,xday,xshift
+        layout 1
+        objects Clear, Add, Show, Continue, Details, Update, Delete, Top, Previous, Next, Bottom,-,~
+                xyear,xper,xday,xdate,xshift,dummy_1,xattype,xatdrem,zemail display(hide),xemail display(hide)
+
+
+        field xyear
+          display hidden
+          event after
+            set globals(xyear) = xyear
+          end event
+        end field
+
+        field xper
+          display hidden
+          event after
+            set globals(xper) = xper
+          end event
+        end field
+
+        field xday
+          display hidden
+          event after
+            set globals(xday) = xday
+          end event
+        end field
+
+        field xdate
+          event after
+            set globals(xdate) = #sub(xdate,0,10)
+            //print globals(xdate)
+          end event
+        end field
+
+        field xshift
+          display text
+          pick list xshift
+          default "Default"
+          width 10
+          event after
+            set globals(xshift) = xshift
+          end event
+        end field
+
+
+        field dummy_1
+          attrib local
+          display constant
+          caption Shift Description
+          event after
+            set dummy_1 = #sql("select xlong from xcodes where xtype='Shift' and xcode='"+globals(xshift)+"'")
+          end event
+        end field
+
+        field xattype
+          attrib local
+          caption Select Type
+          display combo
+          pick "Time In , Lunch Out , Lunch In , Time Out"
+          //default "Time In"
+          //event after
+          //  set globals(xattype) = xattype
+          //end event
+        end field
+
+        field add
+          event before
+            set xdate = #sub(xdate,0,10)
+            set xyear = 0+#sub(xdate,0,4)
+            set xper = 0+#sub(xdate,5,2)
+            set xday = 0+#sub(xdate,8,2)
+            set mysql = "select xcode from xcodes where xtype='Shift' and xcode='"+xshift+"'"
+            set tmpchk = #sql(str, mysql)
+            if #result .ne. "true"
+              error "Invalid Shift Code"
+            end if
+            set zemail=#user
+            set xemail=""
+         end event
+        end field
+
+        field update
+          event before
+            set xdate = #sub(xdate,0,10)
+            set xyear = 0+#sub(xdate,0,4)
+            set xper = 0+#sub(xdate,5,2)
+            set xday = 0+#sub(xdate,8,2)
+            set mysql = "select xcode from xcodes where xtype='Shift' and xcode='"+xshift+"'"
+            set tmpchk = #sql(str, mysql)
+            if #result .ne. "true"
+              error "Invalid Shift Code"
+            else
+              set xemail=#user              
+            end if
+          end event
+        end field
+
+        field -
+          event before
+            str tmpper=""
+            str tmpyear=""
+            str tmpday=""
+            //print "ok"
+            //print xyear+"-"+xper+"-"+xday
+            if #length(xper)==1
+              set tmpper="0"+xper
+            else
+              set tmpper=xper
+            end if
+            if #length(xday)==1
+              set tmpday="0"+xday
+            else
+              set tmpday=xday
+            end if
+            set xdate=xyear+"-"+tmpper+"-"+tmpday
+            action show
+          end event
+        end field
+
+        field show
+          event before
+            set xyear = #sub(xdate,0,4)
+            set xper = #sub(xdate,5,2)
+            set xday = #sub(xdate,8,2)
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field details
+          embed onclick="clicked(this)"
+        end field
+
+        field continue
+          embed onclick = "cont(this)"
+        end field
+
+     end form
+
+
+     script myscript
+        <script language="javascript" type="text/javascript">
+
+        var detail=""
+
+        function clicked(b){
+          detail = "show_detail"
+        }
+
+        function cont(form){
+          detail = "cont"
+          //window.alert("in fcont:"+document.one.xattype.value)
+        }
+
+        function submitit(form){
+          if (detail == "cont"){
+            //window.alert("in pratd1:"+form.xattype.value)
+            if (form.xattype.value == 'Time In'){
+              form.page.value = "pratd1"
+              form.searchbutton.value= "Find xyear=?&xper=?&xday=?&xshift=?"
+            }
+
+            if (form.xattype.value == 'Time Out'){
+              form.page.value = "pratd4"
+              form.searchbutton.value= "Find xyear=?&xper=?&xday=?&xshift=?"
+            }
+
+            if (form.xattype.value == 'Lunch Out'){
+              form.page.value = "pratd2"
+              form.searchbutton.value= "Find xyear=?&xper=?&xday=?&xshift=?"
+            }
+
+            if (form.xattype.value == 'Lunch In'){
+              form.page.value = "pratd3"
+              form.searchbutton.value= "Find xyear=?&xper=?&xday=?&xshift=?"
+            }
+
+          }
+          if (detail == "show_detail"){
+            form.page.value = "pratd"
+            form.searchbutton.value= "Find xyear=?&xper=?&xday=?&xshift=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+
+end page
+

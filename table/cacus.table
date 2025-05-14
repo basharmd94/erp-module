@@ -1,0 +1,28 @@
+product ERP on the Net
+
+table cacus
+  caption "Customer Master"
+  columns ztime,zutime,zid,xcus,xshort,xorg,xadd1, xadd2, xcity, xstate,xzip,xcountry,~
+          xsalute, xfirst,xmiddle,xlast, xtitle, xemail, xphone, xmobile,xfax, xurl, ~
+          xid,xtaxnum,xaccar,xacctd,xgcus,xgprice,xsic,xtaxscope,xstatuscus,xcrlimit,xcreditr,xcrterms,xdisc,xagent,xcomm,xpayins,~
+          xindustry, xdatecra,xdateapp,xdateexp,xdatecorp,xdatecre,xdatefst,xbilladd,xlicense,xtypebo,~
+          xeccnum,xeccrange,xeccdiv,xecccom,xvatnum,xcstnum,xpannum,xregoff,xmethodpay,xmethodship,xrem,xpoints,xsp
+          
+  primary key zid, xcus
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  //unique zid,xorg
+  
+  index zid,xorg
+  index zid,xmobile
+  
+  check
+    xorg is not null or xorg <> ''
+    xgcus is not null or xgcus <> ''
+  end check
+  
+  list xorg, xcity, xstate,xzip,xcountry,~
+       xemail, xphone, xmobile
+end table

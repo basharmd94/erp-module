@@ -1,0 +1,84 @@
+page opqotdel
+
+     caption "Order Entry-Delivery"
+     sections list one, form one, script myscript
+     
+     list one
+        table cadel
+        order xcus,xrow
+        fixed xcus
+        rows 20
+        objects  xrow attrib(link #servlet+"?page=opqotdel&command=Load&xcus=?&xrow=?"), ~
+                 xorg,xphone,xfirst,xlast,xcur,xwh,xtaxscope
+
+     end list
+
+     form one
+        caption "Order Entry - Delivery Details"
+        table opqotdel
+        order xopqot
+        fixed xopqot,xcus        
+        layout 2
+        objects ~
+            Return,Load,Show,Add,Update,Delete ,~
+            xrow,~
+			xorg,xadd1, xadd2, xcity, xstate,xzip,xcountry,~
+          	xsalute, xfirst,xmiddle,xlast, xtitle, xemail, xphone, xfax, xurl, ~
+          	xcur, xwh, xmr,xrg,xtr,xsp
+
+			field Load
+				event before
+					move #form=cadel(xcus,xrow)						
+				end event
+				event after
+					print "<span class=br>New Address Loaded -- Add/Update to Save!</span>"						
+				end event
+			end field
+
+			field xrow
+				event after
+					set #field(xorg.display)="constant"
+					set #field(xwh->.display)="constant"
+					string temp=opqotdel.xopqotnum("xopqot='"+xopqot+"'")
+					if #result .eq. "true"
+						set #field(Add.display)="disable"
+					else
+						set #field(Update.display)="disable"
+						set #field(Delete.display)="disable"
+					end if
+				end event
+			end field
+			
+			field Add
+				event before
+					set globals(ErrChk)=""
+					if globals(ErrChk) .ne. "1"
+						set xcus=globals(xcus)
+					end if
+				end event
+			end field
+			
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "opqot"
+            form.searchbutton.value = "Find xopqotnum=?"
+            //return false
+          }
+        }
+        </script>
+     end script
+
+end page

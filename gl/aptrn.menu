@@ -1,0 +1,26 @@
+//aptrn.menu
+caption "AP Transactions"
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Vouchers               |#classPath+"/"+#servlet+"?page=glheader"
+Cheque Register Payment             |#classPath+"/"+#servlet+"?page=glheaderpmt"
+Cheque Payment Clear Process            |#classPath+"/"+#servlet+"?page=glchkpayment"
+Cheque Payment Cancel Process            |#classPath+"/"+#servlet+"?page=glchkpaymentcanc"
+
+Bank Cheque Issue Transaction					|#classPath+"/"+#servlet+"?page=glchqisstrn"
+Bank Cheque Register					|#classPath+"/"+#servlet+"?page=glchqureg"
+//Supplier Invoices                      |#classPath+"/"+#servlet+"?page=apinv"
+//Payments               |#classPath+"/"+#servlet+"?page=appay"
+//Supplier Credit Notes                 |#classPath+"/"+#servlet+"?page=apcrn"
+-
+//Payment Approval                 |#classPath+"/"+#servlet+"?page=glapp"
+//Automatic Payment                |#classPath+"/"+#servlet+"?page=glpay"
+-
+//AP Exchange Gain/Loss            |#classPath+"/"+#servlet+"?page=glexchapper"
+//AP Revaluation            |#classPath+"/"+#servlet+"?page=glvalap"
+Bank Reconciliation              |#classPath+"/"+#servlet+"?page=gldetbank"
+-
+Opening Balances                 |#classPath+"/"+#servlet+"?page=glopen"
+//-------------------------------------------------------------------
+

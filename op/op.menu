@@ -1,0 +1,27 @@
+//op.menu
+caption "Order Processing" page 3
+//-------------------------------------------------------------------
+option                         |action
+//---------------------------------------------------------------
+//Mobile Order     	           |#classPath+"/"+#servlet+"?page=opordermob"
+Mobile Order          			|#classPath+"/"+#servlet+"?page=opordermobnew"
+//Mobile Order-new               |#classPath+"/"+#servlet+"?page=opordermob_olldd"
+Mobile License     	           |#classPath+"/"+#servlet+"?page=mobilelic"
+Quotation     	               |#classPath+"/"+#servlet+"?page=opqot&command=clear"
+Customer Order 		   	       |#classPath+"/"+#servlet+"?page=opord&command=clear"
+Create D.O.  		   	       |#classPath+"/"+#servlet+"?page=oporddo&command=clear"
+Top Sheet 		   	           |#classPath+"/"+#servlet+"?page=opordtop&command=clear"
+Delivery Order	               |#classPath+"/"+#servlet+"?menu=opdor&command=clear"
+Invoice Create(AR)             |#classPath+"/"+#servlet+"?page=opdorinv"
+Sales Return                   |#classPath+"/"+#servlet+"?menu=opcrn&command=clear"
+Damage Return                  |#classPath+"/"+#servlet+"?menu=opcrn_damage&command=clear"
+Special Price                  |#classPath+"/"+#servlet+"?page=opspprc&command=clear"
+Sales Type                     |#classPath+"/"+#servlet+"?page=xcodes(xtype=Sales Type)"
+Return Reason              	   |#classPath+"/"+#servlet+"?page=xcodes(xtype=Return Reason)"
+Sales Return(Cr)               |#classPath+"/"+#servlet+"?page=imtemptsrisrtcr&command=clear"
+Set OP Target           	   |#classPath+"/"+#servlet+"?page=optarget&command=clear"
+Sales Person           	   	   |#classPath+"/"+#servlet+"?page=sparea&command=clear"
+//Secondary Sales              |#classPath+"/"+#servlet+"?page=opordsec&command=clear"
+Reports		                   |#classPath+"/"+#servlet+"?menu=opreports"
+Codes and Param 		       |#classPath+"/"+#servlet+"?menu=opcodes"
+//---------------------------------------------------------------

@@ -1,0 +1,174 @@
+page prmsg
+	embed onload="move_caret('one','xemp')"
+    caption "<span class=bl>Payment Date <a href=/da/"+#servlet+"?page=prpay&command=Show&xpaydate="+xpaydate+">" +xpaydate+ "</a></span>"
+     //sidebar text two,list two, text three
+     sections  form one,list one, script myscript,text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        //table prmsg
+		table (select *, ~
+				(select xname from prmst where prmst.zid=prmsg.zid and prmst.xemp=prmsg.xemp) as namm , ~
+				(select xdesig from prmst where prmst.zid=prmsg.zid and prmst.xemp=prmsg.xemp) as edesig, ~
+				(select xdept from prmst where prmst.zid=prmsg.zid and prmst.xemp=prmsg.xemp) as ecata ~
+				from prmsg) as tbl
+        order xpaydate,xemp
+        fixed xpaydate
+        //select none
+        //navigators alpha
+        rows 20
+        objects xemp attrib(link #servlet+"?page=prmsg&command=Show&xpaydate=?&xemp=?"),~
+                namm caption(Name),edesig caption(Designation),ecata caption(Category)
+
+
+        field tmpname
+          storage varchar
+          caption Employee Name
+        end field
+
+        field tmpdept
+          storage varchar
+          caption Department
+        end field
+
+        field tmpcat
+          storage varchar
+          caption Category
+        end field
+
+        field tmpdesig
+          storage varchar
+          caption Designation
+        end field
+     end list
+
+     form one
+        table prmsg
+        order xemp
+        fixed xpaydate
+        layout 2
+        objects Show,Add,Detail,Return,Clear, Update, Delete, Top, Previous, Next, Bottom,~
+                 xemp,xdumname,xdayab,xdaylv,xdaysuspend display(const),xsuspendf display(const),~
+				 xdaysuspenq display(const),xsuspenqf display(const),~
+				 xadvflag,xpflag display(constant),~
+                 xratev,zemail display(hide),xemail display(hide),xday,xdate
+
+          field xemp
+            Pick list xemp
+            width 10
+            event after
+              set globals(xemp)=xemp
+              set globals(xdumname)=xdumname
+              if #user .eq. "sadia@destiny-2000.com" .or. #user .eq. "anupom.das@destiny-2000.com"
+                    //set #field(Update.display) = "hide"
+              end if
+            end event
+          end field
+
+          field xratev
+            caption Leave Day (w/o Pay)
+            display const
+          end field
+
+          field xadvflag
+            default "Yes"
+          end field
+          
+          field xdayab
+            //display const
+          end field
+
+          field xdaylv
+            display const
+            caption Leave Day (with Pay)
+          end field
+          
+          field xday
+            caption Adjustment Day
+          end field
+          
+          field xdate
+            caption Last Salary Processing Date
+            display hide
+          end field
+
+          field xdumname
+            attrib local
+            display constant
+            caption Employee Name 
+            event after
+              set xdumname=#sql(str,"select xname from prmst where xemp='"+xemp+"'")
+              set globals(xdumname)=xdumname
+            end event
+          end field
+
+          embed onsubmit="submitit(this)"
+
+          field add
+            event before
+              set xpflag = ""
+            set zemail=#user
+            set xemail=""
+            end event
+          end field
+
+          field update
+            event before
+              if xpflag .eq. "1"
+                error "Cannot Update<br>already Confirmed"
+              end if
+            set xemail=#user
+            end event
+          end field
+
+          field delete
+            event before
+              if xpflag .eq. "1"
+                error "Cannot Delete<br>already Confirmed"
+              end if
+            end event
+          end field
+
+
+          field Return
+           embed onclick="clicked(this)"
+          end field
+
+          field detail
+            embed onclick="clicked(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail=" "
+        function clicked(b){
+          if (b.value == 'Detail'){
+            detail="showdtl"
+          }else if(b.value == 'Return'){
+            detail="Return"
+          }
+        }
+
+
+        function submitit(form){
+          if (detail=="Return"){
+            form.page.value = "prpay"
+            form.searchbutton.value="Find xpaydate=?"
+            //return false
+          }
+	        if (detail=="showdtl"){
+            form.page.value = "prtrndt"
+            form.searchbutton.value = "Find xpaydate=?&xemp=?"
+         }
+        }
+
+        </script>
+     end script
+
+end page

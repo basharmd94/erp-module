@@ -1,0 +1,15 @@
+     list costcode
+        table xcodes
+        order xcode
+        select "xtype='Cost Center'"
+        navigators alpha
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xsubdept')"),~
+                xdescdet
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

@@ -1,0 +1,78 @@
+page prchildren
+     caption "<span class=bl>Children of Employee <a href=/da/"+#servlet+"?page=prmst&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+     sections form one, list one, script myscript
+
+     list one
+      caption "No. of Children(s)"
+      table prchildren
+      order xchildname
+      fixed xemp
+      object xchildname attrib(link #servlet+"?page="+page+"&command=Show&xchildname=?"),~
+             xdate
+      field xname
+         caption Children Name
+      end field
+     end list
+
+     form one
+        //caption "Children Details <font color=black>"+xemp+"</font>"
+        table prchildren
+        order xemp,xchildname
+        fixed xemp
+        layout 1
+        objects Add, Back, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+          xchildname,xdate,xspppno,xbloodgrp,zemail display(hide),xemail display(hide)
+
+        field xspppno
+            caption Place of Birth
+        end field
+
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+          field xdate
+            caption Birth Date
+          end field
+
+          embed onsubmit="submitit(this)"
+          field Back
+            embed onclick="clicked(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          details="back"
+        }
+        function submitit(form)
+        {
+          if (details=="back")
+          {
+            form.page.value = "prothdt"
+            form.searchbutton.value= "Find xemp=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+
+end page

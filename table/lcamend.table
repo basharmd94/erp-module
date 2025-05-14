@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table lcamend
+  caption "LC Amendment for"
+  columns ztime,zutime,zid,~
+                xlctrnnum,xlcamno,xitem,xqtyreq,xunit,xrate,xcur,xexch,xprime,xlcamdate,xrem,xaction,xsign,~
+                zemail,xemail,xshipdate,xshpdatenew,xcapused
+
+  primary key zid, xlctrnnum,xlcamno 
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xlctrnnum references lcmst.zid,xlctrnnum
+  end foreign key
+  
+end table

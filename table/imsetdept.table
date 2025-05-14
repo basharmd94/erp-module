@@ -1,0 +1,13 @@
+product ERP on the Net
+
+table imsetdept
+	caption "Department Wise Authority Setup"
+	columns ztime,zutime,zid,xdept,xemail1,zemail,xemail
+
+	primary key zid, xdept
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+end table

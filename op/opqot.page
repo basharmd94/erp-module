@@ -1,0 +1,1458 @@
+page opqot
+	caption header
+//     caption "<font color=green>"+xstatusqot+"</font> Quotation ~
+//            <a href='"+#report(opqotn.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xopqot+"&prompt2="+xopqot+"&prompt3="+opdef.xtitleqot()+"' target='_new'>Print</a>"
+            
+     layout mylayout 1 1 2 //columns rows  tabbreak
+       group opqot,details,docs,del,open,held,confirmed,revised,failed,approved (1,1)
+       //group opqot,details,itemlink,work,cus,cuslink,del,docs,open,held,confirmed,revised,failed,prs (1,1)
+       script myscript,imstk (0,0)
+     end layout
+     
+     group docs 2 1 "Documents"
+       form docs,list xdocs  (1, 1)//(col,row,colspan,rowspan,width,height)
+       access " xopqot .ne. "+#char(34)+#char(34)
+     end group
+     
+     group work 2 1 "WorkSchedule"
+       form work,list work  (1, 1)//(col,row,colspan,rowspan,width,height)
+       access " xrow > 0  .and. xopqot .ne. "+#char(34)+#char(34)
+     end group
+
+     group opqot 2 1 "Quotation" //columns rows caption select
+       form opqot,list xdocs (1, 1)//(col,row,colspan,rowspan,width,height)
+       keys "Find xopqot=?"
+     end group
+     
+     group cus 2 1 "Customer" //columns rows
+       form cus (1, 1)//(col,row,colspan,rowspan,width,height)
+       access " xopqot .ne. "+#char(34)+#char(34)
+     end group
+
+     group details 2 1 "Details"
+       form details  (1, 1)//(col,row,colspan,rowspan,width,height)
+       list details,imstk,cus (2, 1)
+       access " xopqot .ne. "+#char(34)+#char(34)
+     end group
+
+     group del 2 1 "Delivery" //columns rows
+       form del,list cadelpage  (1, 1)//(col,row,colspan,rowspan,width,height)
+       access " xopqot .ne. "+#char(34)+#char(34)
+     end group
+
+     group open 2 1 "Open Quotations"
+       list open  (1, 1)//(col,row,colspan,rowspan,width,height)
+     end group
+
+     group held 2 1 "On Hold"
+       list held  (1, 1)//(col,row,colspan,rowspan,width,height)
+     end group
+     
+     group confirmed 2 1 "Confirmed"
+       list confirmed  (1, 1)//(col,row,colspan,rowspan,width,height)
+     end group
+
+     group revised 2 1 "Revised"
+       list revised  (1, 1)//(col,row,colspan,rowspan,width,height)
+     end group
+     
+     group failed 2 1 "Failed"
+       list failed  (1, 1)//(col,row,colspan,rowspan,width,height)
+     end group
+
+     group approved 2 1 "Approved"
+       list approved  (1, 1)//(col,row,colspan,rowspan,width,height)
+     end group
+     
+     list work
+        caption "Work Schedule for <span class=br>"+xdesc+"</span> (Row:"+xrow+" -- Item Code:"+xitem+")"
+        table opqdtsch
+        order xopqot,xrow,xdatesch,xtimef,xtimet
+        fixed xopqot,xrow
+        //select none
+       // navigators alpha
+        rows 20
+        objects  xdatesch,xtimef,xtimet attrib(link #servlet+"?page=opqot&command=Show&nexttab=WorkSchedule&xopqot=?&xrow=?&xdatesch=?&xtimef=?&xtimet=?"), ~
+                 xlong
+        //totals "","Totals","","",sum
+        //headers none
+     end list
+
+//******************************************************************************
+     form docs
+        caption "Documents"
+        table cadocs
+        order xtypetrn,xtrnnum,xdoc
+        fixed xtypetrn,xtrnnum
+        layout 3
+        objects ~
+                Clear,Show, ~
+                Add,Update, Delete, Top, Previous, Next, Bottom,"<p>" ,~
+                xdoc width(20), xlink width(40),zactive
+
+     end form
+
+//******************************************************************************
+     form work
+        caption "WorkSchedule"
+        table opqdtsch
+        order xopqot,xrow,xdatesch,xtimef,xtimet
+        fixed xopqot,xrow
+        layout 4
+        objects ~
+                Clear,Show,Add, Update, Delete, Top, Previous, Next, Bottom,"<p>" ,~
+                 xdatesch,xtimef,xtimet,xlong display(text)
+
+
+     end form
+//******************************************************************************
+
+     list docs
+        caption "<p class=bl>Documents for <font color=red > "+xopqot+"</font><br>"
+        table cadocs
+        order xtypetrn,xtrnnum,xdoc
+        fixed xtypetrn,xtrnnum
+        rows 20
+        objects  xdoc  attrib(link #servlet+"?page=opqot&command=Show&xtypetrn=?&xtrnnum=?&xdoc=?"), ~
+                xlink
+     end list
+
+     list cus
+        caption "Last Selling Prices for <font color=red >"+xitem+"</font>: "+caitem.xdesc("xitem='"+xitem+"'")+"</b>"
+        table opodtview
+        order xdate desc
+		select " xcus='"+globals(xcus)+"' and xitem='"+xitem+"'"
+        rows 5 f
+        objects ~
+                xdate,xordernum,xrow,xitem,xqtyord,xrate
+
+     end list
+
+     list details
+        caption "Details for Quotation <font color=red >"+xopqot+"</font>"
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=opqdt.zid and xitem=opqdt.xitem) as itemdesc ~
+			from opqdt) as tbl
+        order xopqot,xrow
+        fixed xopqot
+        rows 20
+        objects xrow attrib(link #servlet+"?page=opqot&command=Show&nexttab=Details&xopqot=?&xrow=?"), ~
+                xitem,itemdesc,xqtyord,xunitsel,xrate,xdisc,xdiscf,xlineamt equals(xqtyord*xrate*(1-xdisc/100)-xdiscf)
+
+        totals count,"","","","","","",sum
+		
+		field itemdesc
+			caption Description
+			storage varchar
+		end field
+        
+     end list
+
+     list open
+        caption "Open Quotations"
+        table opqot
+        order xopqot DESC
+        select "xstatusqot < '1z'"
+        rows 20
+        objects xopqot attrib(link #servlet+"?page=opqot&command=Show&xcus=?&xopqot=?"), ~
+                xdate,xcus,xorg,xopref,xstatusqot
+
+
+     end list
+
+     list held
+        caption "On Hold"
+        table opqot
+        order xopqot DESC
+        select "xstatusqot like '6%'"
+        navigators alpha
+        rows 20
+        objects  xopqot attrib(link #servlet+"?page=opqot&command=Show&xopqot=?"), ~
+                xdate,xcus,xorg,xopref,xstatusqot
+
+     end list
+
+     list approved
+        caption "Approved"
+        table opqot
+        order xopqot DESC
+        select "xstatusqot like '4%'"
+        navigators alpha
+        rows 20
+        objects  xopqot attrib(link #servlet+"?page=opqot&command=Show&xopqot=?"), ~
+                xdate,xcus,xorg,xopref,xstatusqot
+
+     end list
+
+     list confirmed
+        caption "Confirmed"
+        table opqot
+        order xopqot DESC
+        select "xstatusqot like '7%'"
+        navigators alpha
+        rows 20
+        objects  xopqot attrib(link #servlet+"?page=opqot&command=Show&xopqot=?"), ~
+                xdate,xcus,xorg,xopref,xstatusqot
+                
+     end list
+     
+     list revised
+        caption "Revised"
+        table opqot
+        order xopqot DESC
+        select "xstatusqot like '8%'"
+        navigators alpha
+        rows 20
+        objects  xopqot attrib(link #servlet+"?page=opqot&command=Show&xopqot=?"), ~
+                xdate,xcus,xorg,xopref,xstatusqot
+
+     end list
+     
+     list failed
+        caption "Failed"
+        table opqot
+        order xopqot DESC
+        select "xstatusqot like '9%'"
+        navigators alpha
+        rows 20
+        objects  xopqot attrib(link #servlet+"?page=opqot&command=Show&xopqot=?"), ~
+                xdate,xcus,xorg,xopref,xstatusqot
+
+     end list
+
+
+//******************************************************************************
+     form docs
+        caption "Documents"
+        table cadocs
+        order xtypetrn,xtrnnum,xdoc
+        fixed xtypetrn,xtrnnum
+        select ""
+        layout 3
+        objects ~
+                Clear,Show, ~
+                Add,Update, Delete, Top, Previous, Next, Bottom,~
+                xdoc width(20), xlink width(40),zactive
+
+     end form
+//******************************************************************************
+     list del
+        table cadel
+        order xcus,xrow
+        fixed xcus
+        rows 20
+        objects xrow attrib(link #servlet+"?page=opqot&nexttab=Delivery&command=Load&xcus=?&xrow=?"), ~
+                xorg, xphone,xfirst,xlast
+
+     end list
+
+     form del
+        caption "Delivery"
+        table opqotdel
+        order xopqot,xrow
+        fixed xopqot 
+        layout 2
+        objects ~
+               Load,Show,Add,Update,Delete,~
+                xrow attrib(row 0 10;search),~
+                xorg,xadd1, xadd2, xcity, xstate,xzip,xcountry,~
+                xsalute display(hide),xfirst,xmiddle,xlast, xtitle, xemail, xphone, xfax, xurl, ~
+                xcur display(hide),xwh display(hide),xmr,xrg,xtr,xsp,xcus display(hide)
+
+				field Load
+					event before
+						move #form=cadel(xcus,xrow)						
+					end event
+					event after
+						print "<span class=br>New Address Loaded -- Add/Update to Save!</span>"						
+					end event
+				end field
+
+		        field xrow
+		          event after
+					set #field(xorg.display)="constant"
+					set #field(xwh->.display)="constant"
+		            string temp=opqotdel.xopqot("xopqot='"+xopqot+"'")
+		            if #result .eq. "true"
+		               set #field(Add.display)="disable"
+		            else
+		               set #field(Update.display)="disable"
+		               set #field(Delete.display)="disable"
+		            end if
+		          end event
+		        end field
+		        
+			field Add
+				event before
+					set globals(ErrChk)=""
+					if globals(ErrChk) .ne. "1"
+						set xcus=globals(xcus)
+					end if
+				end event
+			end field		        
+
+     end form
+
+//******************************************************************************
+     form details
+     	valid details,access
+        caption "Details"
+        table opqdt
+        order xopqot,xrow DESC
+        fixed xopqot
+        //select
+        focus xitem
+		default Add
+        layout 1
+        objects ~
+                Clear, Add,Update, Show, Top, Previous,Delete, Next, Bottom,~
+                xrow attrib(row 0 1; search),xstatusodt display(hide),xbotype display(hide),xwh display(hide),~
+                xitem attrib(attach; submit),xstype display(const),itemdesc,~
+                xcode display(hide),xcodebasis display(hide),~
+                xcfsel display(hide),~
+                xqtyreq attrib(attach),xunitsel display(const),xrate,xdisc,~
+                xdtdisc display(const),xdiscf display(hide),~
+                xtaxcode1 ,xtaxrate1 ,~
+                xqtyord display(hide),xqtyalc display(hide),~
+                xqtybac display(hide),xqtydel display(const),xpricebasis display(hide),~
+                xqtyinv display(hide),~
+                xwtunit display(hide),xunitwt display(hide),~
+                xcur display(hide),xexch display(hide),~
+                xdtwotax display(const),xcomm display(hide),~
+                xtaxcat display(hide), ~
+                xtaxcode2 display(hide),xtaxrate2 display(hide),~
+                xtaxcode3 display(hide),xtaxrate3 display(hide),~
+                xtaxcode4 display(hide),xtaxrate4 display(hide),~
+                xtaxcode5 display(hide),xtaxrate5 display(hide),~
+                xdttax display(const),xlineamt display(constant),~
+                xprice display(hide),xcurprice display(hide),xexchsell display(hide),~
+                xdropship display(hide), zemail display(hide),xemail display(hide),~
+                xbatch display(hide),xlong display(hide),xordernum display(hide),xline display(hide)
+
+        field xrow                              
+          event after
+            set qotstatus=#sql(string,"select xstatusqot from opqot where xopqot='"+xopqot+"'")
+            set globals(xrow) = xrow
+            set #field(xbotype.caption) = "<font color=red>"+#field(xbotype.caption)+"</font>" 
+            set #field(xitem.caption) = "<font color=red>"+#field(xitem.caption)+"</font>" 
+			if qotstatus .ge. #status("xstatusqot",7)
+                set #field(Delete.display) = "disable"
+                set #field(Add.display) = "disable"
+                set #field(Update.display) = "disable"
+                set #field(xbotype->.display) = "constant"
+              end if
+			if qotstatus .ge. #status("xstatusqot",4)
+                set #field(Delete.display) = "disable"
+                set #field(Add.display) = "disable"
+                set #field(Update.display) = "disable"
+                set #field(xbotype->.display) = "constant"
+              end if
+          end event
+        end field
+
+        field xitem
+          event after
+            set globals(xitem)=xitem
+          end event
+        end field
+
+        field xdttax
+          caption Total Tax
+        end field
+
+        field xdtwotax
+          caption Gross Amount w/o Tax
+        end field
+
+        field itemdesc
+          attrib local
+          display const
+          caption Description
+          event after
+            set itemdesc = #sql(str,"select xdesc from caitem where xitem='"+globals(xitem)+"'")
+          end event
+        end field
+
+        field xcode
+          event after
+            if xitem .eq. ""
+              // ** if xcode used *** set #field(xitem.display)="hidden"
+            end if
+          end event
+        end field
+
+        field xtaxrate1
+          caption Tax Rate
+        end field
+
+        field xtaxcode1
+        	caption Tax Code
+        end field
+        
+        field xrate
+          caption Unit Rate
+        end field
+
+        field xqtyreq
+          caption Quantity
+          event after
+            set globals(xqtyreq) = opqdt.xqtyreq("xopqot='"+globals(xopqot)+"' and xrow='"+globals(xrow)+"'") // *** dont remove ***
+          end event
+        end field
+
+        field xprice
+          caption Standard Price
+        end field
+
+        field xbotype
+          default "Future Stock"
+          display combo
+        end field
+        
+        field xdtwotax
+        	caption Amt w/o Tax
+        end field
+
+        field Add
+          event before
+            set globals(ErrChk) = ""
+
+            if xqtyreq <= 0
+              set xqtyreq = 1
+            end if
+
+            set xstatusodt = ""
+            set xqtyord = 0
+            set xqtyalc = 0
+            set xqtybac = 0
+            set xqtydel = 0
+            set xqtyinv = 0
+            set xtaxcode2 = ""
+            set xtaxcode3 = ""
+            set xtaxcode4 = ""
+            set xtaxcode5 = ""
+            set xtaxrate2 = 0
+            set xtaxrate3 = 0
+            set xtaxrate4 = 0
+            set xtaxrate5 = 0
+
+            if #field(xcur.display) .sw. "Con" .or. #field(xcur.display) .sw. "con" .or. #field(xcur.display) .sw. "Hid" .or. #field(xcur.display) .sw. "hid"
+      	      set xcur=globals(xcur)
+              set xexch=globals(xexch)
+            end if
+	        set xwh=globals(xwh)
+            set xcurprice = xcur
+            set xexchsell = xexch
+
+            if globals(ErrChk) .ne. "1"
+              call chkcode
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call chkrec
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call chkqty
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call chkprice
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call updtax
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call updprc
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              set zemail=#user
+              //set xbotype="None"
+            end if
+
+            if globals(ErrChk) .ne. ""
+              action show
+            end if
+          end event
+
+          event after
+            if globals(ErrChk) .ne. "1"
+              call updstath
+            end if
+          end event
+        end field
+
+        field update
+          event before
+            set globals(ErrChk) = ""
+           
+            if globals(ErrChk) .ne. "1"
+              call chkrec
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call chkitem
+              call chkcode
+            end if
+            if globals(ErrChk) .ne. "1"
+              call chkqty
+            end if
+            if globals(ErrChk) .ne. "1"
+              call chkprice
+              call updtax
+              call updprc
+            end if
+            if globals(ErrChk) .ne. "1"
+              set xemail = #user
+            end if
+            if globals(ErrChk) .ne. ""
+              action show
+            end if
+          end event
+
+          event after
+            if globals(ErrChk) .ne. "1"
+              call updstath
+            end if
+          end event
+        end field
+
+        field delete
+          event before
+            set globals(ErrChk) = ""
+
+            if globals(ErrChk) .ne. "1"
+              call chkrec
+            end if  
+
+            if globals(ErrChk) .ne. ""
+              action show
+            end if
+          end event
+          event after
+            if globals(ErrChk) .ne. "1"
+              call updstath
+            end if            
+          end event
+        end field
+
+     end form
+//******************************************************************************
+
+//******************************************************************************
+
+    form opqot
+        valid validorder,access
+ 		caption "Quotation"
+        table opqot
+        order xopqot desc
+        focus xtrnopqt
+		default Add
+        layout 1
+        objects ~
+                Show,Revise,Approve,Hold,Release,Failed,Clear, Add,Update, Delete, Top, Previous, Next, Bottom,~
+                xtrnopqt ,xopqot display(text) width(14),xdate default(#d),~
+                xdayab attrib(attach),xdateexp display(const),xtype display(hide),~
+				xcus attrib(attach),cus_name ,xorg display(hide),xphone display(hide),~
+                xoffadd display(hide),xcusenq,xdatecuspo caption(Enquiry Date),~
+				xratingopp,xopqotstage,xref caption(Opportunity Number),xcur,xexch,~
+                xcusref display(hide),xdiv display(hide),xsec display(hide),xproj display(hide),xlong,~
+                xdiscamt display(hide),xdtwotax display(const),xdttax display(const),~
+                xval,xdtdisc display(hide),xtotamt display(constant),~
+                xstatusqot display(constant),xopref display(const),zemail display(hide),xemail display(hide),~
+                xteam display(const),xmember display(const),xmanager display(const),xinvrule display(hide),xquoteby display(hide)
+				
+        field xdate
+          default #date
+        end field
+		
+
+		field xtrnopqt
+			display ocombo
+			pick "select xtrn from xtrn where xtypetrn = 'Sales Quotation' and zactive='1'"
+		end field
+        
+        field Hold
+			event before
+				set xstatusqot=#status("xstatusqot",6)
+				action Update
+			end event
+		end field
+		
+		field Release
+			event before
+				set xstatusqot=#status("xstatusqot",1)
+				action Update
+			end event
+		end field
+
+        field Failed
+          event before
+            set temp=#sql(string,"update opqot set xstatusqot = '"+#status("xstatusqot",9)+"' where xopqot='"+xopqot+"'")
+            set #command="Show"
+          end event
+        end field
+
+        field Approve
+          event before
+            set temp=#sql(string,"update opqot set xstatusqot = '"+#status("xstatusqot",4)+"' where xopqot='"+xopqot+"'")
+            set #command="Show"
+          end event
+        end field
+
+        field xcur
+          default "BDT"
+          event after
+            set globals(xcur) = xcur
+          end event
+        end field
+
+        field xcus
+          event after
+            set globals(xcus) = xcus
+          end event
+        end field
+
+        field xexch
+          event after
+            set globals(xexch) = xexch
+          end event
+        end field
+
+        field xlong
+          caption Note/Remarks
+          col 3
+          height 2
+          width 80
+        end field
+
+        field xval
+          display hide          
+        end field
+        
+        field cus_name
+          attrib local
+          display const
+          caption Name
+          event after
+            set cus_name=#sql(str,"select xorg from cacus where xcus='"+xcus+"'")
+          end event
+        end field
+
+        field xdayab
+          caption Valid Till (Days)
+        end field
+        
+        field xdatecuspo
+        	default #d
+        end field
+        
+        field xorg
+        	caption Customer Name
+        end field
+        
+        field xoffadd
+        	width 75
+        	height 2
+        	col 3
+        end field
+
+        field Add
+          event before
+             set globals(ErrChk) = ""
+
+             if globals(ErrChk) .eq. ""
+               buffer cacus
+               move cacus=cacus(xcus)
+               if #result .ne. "true"
+                  set globals(ErrChk) = "1"
+                  error "Wrong Customer Code"
+               end if
+            end if
+			if globals(ErrChk) .ne. "1"
+				if xdayab <= 0
+					set globals(ErrChk)="1"
+					error "Please Enter Validiy Day(s)"
+				end if
+			end if
+             if globals(ErrChk) .ne. "1"
+				  str mysql = #sql(str,"select xopqot from opqot where zid='"+#id+"' and xopqot like '"+xtrnopqt+"%' order by xopqot desc")
+				  if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,4,6)
+				  end if
+				  set last_num = 0+1+last_num
+				  //print last_num
+				  set mysql = #padl(""+last_num,6,"0")
+				  set xopqot = xtrnopqt + mysql            
+
+                  if xcur .eq. ""
+                     set xcur=zbusiness.xcur("zid='"+#id+"'")
+                  end if
+                  set xstatusqot=#status("xstatusqot",1)
+                  set xdtwotax = 0
+                  set xdttax = 0
+                  set xdtdisc = 0
+                  set xdiscamt = 0
+                  set xval = 0
+                  set xtotamt = 0
+                  set xappamt = 0
+                  set xappcode=""
+                  set xexch = #sql(double,"select xexch from xcur where xcur = '"+xcur+"'")
+                  set zemail=#user
+                  int day = #days(xdate)+xdayab
+                  set xdateexp = #longtodate(day)
+				  set xmember = #user
+				  set xteam = #sql(string,"select xteam from cateam where xmember = '"+xmember+"'")
+				  set xmanager = #sql(string,"select xmanager from caman where xteam = '"+xteam+"'")
+				  set xinvrule = opdef.xinvrule("zid='"+#id+"'") 
+				  set xquoteby = "1-Selling Unit" 
+				  set xopref = ""      
+				  set xratingopp = #status("xratingopp",0)
+				  set xopqotstage = #status("xopqotstage",0) 			            
+            end if
+          end event
+          event after
+			if globals(ErrChk) .ne. "1"
+	            buffer opqotdel
+	            set xrow=cadel.xrow("xcus='"+xcus+"' and xrow>0")
+	            move opqotdel=cadel(xcus,xrow)
+	            set opqotdel.xopqot=xopqot
+	            insert opqotdel			
+			end if          	
+          end event
+        end field
+        
+        field update
+        	event before
+        		set globals(ErrChk) = ""
+        		
+        		if globals(ErrChk) .ne. "1"
+        			if xopqot .ne. globals(xopqot)
+        				set globals(ErrChk) = "1"
+        				error "Record pointer mismatch</p>Cannot "+#command
+        			end if
+        		end if
+        		if globals(ErrChk) .ne. "1"
+					int day = #days(xdate)+xdayab
+					set xdateexp = #longtodate(day)  
+				  	set xinvrule = "1-Standard" 
+				  	set xquoteby = "1-Selling Unit"                  					      		
+        		end if
+        	end event
+        end field
+       
+        field Delete
+          event before
+            set globals(ErrChk) = ""
+    		if globals(ErrChk) .ne. "1"
+    			if xopqot .ne. globals(xopqot)
+    				set globals(ErrChk) = "1"
+    				error "Record pointer mismatch</p>Cannot "+#command
+    			end if
+    		end if
+    		if globals(ErrChk) .ne. "1"
+	            buffer opqotdel
+	            set opqotdel.xopqot=xopqot
+	            delete opqotdel(xopqot)
+    		end if
+          end event
+        end field
+
+//**
+        field Create
+          event before
+          	set stat = opqot.xstatusqot("xopqot='"+xopqot+"'")
+          	if stat .eq. #status("xstatusqot",4)
+          	else
+          		error "Cannot "+#command+" Status "+stat
+          	end if
+          	
+            set checkrow=#sql(string,"select xrow from opqdt where xopqot='"+xopqot+"'")
+            if #result .eq. "false"
+              error "Cannot Proceed With Blank Detail"
+            else
+              set ordernum=xtrnp.xrel("xtypetrn='Quotation' and xtrn='"+#sub(xopqot,0,4)+"' and xtyperel='Customer Order'")
+              set chkord = #sql("select xtrn from xtrn where xtypetrn='Customer Order' and xtrn='"+ordernum+"'")
+              if #result .eq. "false"
+              	error "Related transaction code for OP not found"
+              end if
+              set xordernum=#trn("Customer Order",ordernum)       
+
+              buffer opord
+              set opord.xordernum=xordernum
+              move opord=opqot(xopqot)
+              set opord.xref="Created From "+ xopqot
+              set opord.xdate=#date
+              set opord.xcuspo= xcusenq
+              set opord.xcus= xcus
+              set opord.xcur= xcur
+              set opord.xexch= xexch
+              set opord.xsalescat= "Local"              
+              set opord.zemail= #user
+              set opord.xinvrule= xinvrule
+              set opord.xquoteby= xquoteby
+              set opord.xstatusord= #status("xstatusord",1)
+			  set whoption = opdef.xwhselect("zid='"+#id+"'")
+			  if whoption .eq. "1"
+			  	 set opord.xwhoption = "Detail"
+			  else
+				 set opord.xwhoption = "Header"
+				 set opord.xwh= cadef.xwh("zid='"+#id+"'")
+			  end if              
+              insert opord
+              if #result .eq. "false"
+              	error "Order not created"
+              end if
+              
+              buffer oporddel
+              set oporddel.xordernum=xordernum
+              move oporddel=opqotdel(xopqot)
+              insert oporddel
+              
+              print "<span class=bl>Customer Order No <a href=/da/"+#servlet+"?page=opordr&command=Show&xordernum="+xordernum+">" +xordernum+ "</a> Created.</span>"
+
+              set temp=#sql(string,"update opqot set xstatusqot='"+#status("xstatusqot",7)+"', xopref='"+xordernum+"' where xopqot='"+xopqot+"'")
+              set xstatusqot=#status("xstatusqot",7)
+              int i=0
+              set xrow=#sql(string,"select xrow from opqdt where xopqot='"+xopqot+"' and xrow>'"+i+"'")
+              while #result .eq. "true"
+                buffer opodt
+                move opodt=opqdt(xopqot,xrow)
+                set opodt.xordernum=xordernum
+                set opodt.xrow=xrow
+                set xitem=opqdt.xitem("zid='"+#id+"' and xopqot='"+xopqot+"' and xrow='"+xrow+"'")
+                set opodt.xtypeserial = caitem.xtypeserial("zid='"+#id+"' and xitem='"+xitem+"'")
+                set opodt.xstatusodt=#status("xstatusodt",2)
+			  	set whoption = opdef.xwhselect("zid='"+#id+"'")
+			  	if whoption .eq. "1"
+                	set opodt.xwh= cadef.xwh("zid='"+#id+"'")
+                end if
+                insert opodt
+				console #result+" "+xopqot+" "+xordernum+" "+xrow
+                set xrow=#sql(string,"select xrow from opqdt where xopqot='"+xopqot+"' and xrow>'"+xrow+"'")
+              end while
+              action show
+            end if
+          end event
+        end field
+
+		field Revise
+			event before
+				if xstatusqot .eq. #status("xstatusqot",8)
+					error "Quotation Already Revised"
+				end if
+				
+				set xorg=cacus.xorg("xcus='"+xcus+"'")
+				set temp=cacus.xcus("xcus='"+xcus+"'")
+				if #result .eq. "false"
+					error "Wrong Customer Code"
+				end if
+				
+				set xstatusqot=#status("xstatusqot",8)
+			end event
+			event after
+				string newnum = #nextrev(xopqot,2)
+				buffer opqot
+				move opqot=opqot(xopqot)
+				set opqot.xopqot=newnum
+				set opqot.xstatusqot=#status("xstatusqot",1)
+				insert opqot
+				if #result .eq. "false"
+					error "Cannot Create Revesion No: "+ newnum   
+				end if
+				
+	            buffer opqotdel
+	            move opqotdel=opqotdel(xopqot)
+	            set opqotdel.xopqot=newnum
+	            insert opqotdel
+	            if #result .eq. "false"
+	              error "Cannot Create Delivery Info for Revesion No: "+ newnum
+	            end if
+				
+				int i=0
+				set xrow=#sql(string,"select xrow from opqdt where xopqot='"+xopqot+"' and xrow>'"+i+"'")
+				while #result .eq. "true"
+					buffer opqdt
+					move opqdt=opqdt(xopqot,xrow)
+					set opqdt.xopqot=newnum
+					set opqdt.xrow=xrow
+					insert opqdt
+				
+					set xrow=#sql(string,"select xrow from opqdt where xopqot='"+xopqot+"' and xrow>'"+xrow+"'")
+				end while
+				
+				string xdoc=""
+				
+				set xdoc=#sql(string,"select xdoc from cadocs where xtypetrn='Quotation' and xtrnnum='"+xopqot+"' and xdoc>'"+xdoc+"'")
+				while #result .eq. "true"
+					buffer cadocs
+					move cadocs=cadocs(xtypetrn,xtrnnum,xdoc)
+					set cadocs.xtrnnum=newnum
+					insert cadocs
+				
+					set xdoc=#sql(string,"select xdoc from cadocs where xtypetrn='Quotation' and xtrnnum='"+xopqot+"' and xdoc>'"+xdoc+"'")
+				end while
+				
+				activity shortname=xorg;;source="Quotation";;type="Auto";;team=xteam;;note="Quotation No: "+xopqot+" Revised to "+newnum+"."
+				set temp=#sql(string,"update opqot set xstatusqot='"+#status("xstatusqot",8)+"' where xopqot='"+xopqot+"'")
+				set xstatusqot=#status("xstatusqot",8)
+			end event
+		end field
+
+		field xopqot
+			attrib search
+			pick list xopqot
+			event after
+				set globals(xopqot)=xopqot
+				if xstatusqot .eq. #status("xstatusqot",9)
+					set #field(Failed.display) = "disable"
+					set #field(xdate->.display) = "constant"
+					set #field(Delete.display) = "disable"
+					set #field(Update.display) = "disable"
+					set #field(Create.display) = "disable"
+				end if
+				if xstatusqot .eq. #status("xstatusqot",8)
+					set #field(Revise.display) = "disable"
+					set #field(Failed.display) = "disable"
+					set #field(xdate->.display) = "constant"
+					set #field(Delete.display) = "disable"
+					set #field(Update.display) = "disable"
+					set #field(Create.display) = "disable"
+				end if
+				if xstatusqot .eq. #status("xstatusqot",7)
+					set #field(xdate->.display) = "constant"
+					set #field(Create.display) = "disable"
+					set #field(Update.display) = "disable"
+					set #field(Delete.display) = "disable"
+					set #field(Revise->Failed.display) = "disabled"
+				end if		
+				
+				if xopqot .eq. ""
+					set #field(Revise->Failed.display) = "disabled"
+					set #field(Update.display) = "disabled"
+					set #field(Delete.display) = "disabled"
+					set #field(Add.display) = ""
+				end if
+				set globals(xtypetrn)="Quotation"
+				set globals(xtrnnum)=xopqot
+				set globals(xopqot)=xopqot
+				set globals(xcus)=xcus
+				set #field(xcus.caption) = "<font color=red>"+#field(xcus.caption)+"</font>"
+				set #field(xorg.caption) = "<font color=red>"+#field(xorg.caption)+"</font>"
+				set #field(xtype.caption) = "<font color=red>"+#field(xtype.caption)+"</font>"
+			end event
+		end field
+
+        field Return
+          embed onclick="clicked(this)"
+        end field
+        
+        embed onsubmit="submitit(this)"
+        
+     end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+
+          button=b.value
+        }
+        function submitit(form){
+          if (button=="Return"){
+            form.page.value = "smacc"
+            form.searchbutton.value = "Find xshort=?"
+           // return false
+          }
+        
+        
+        }
+        function calculateWt(){
+          document.details.xqtywt.value=document.details.xqtyreq.value*document.details.xwtnet.value
+          return true
+        }
+        function calculateQty(){
+          if (document.details.xwtnet.value==0) document.details.xwtnet.value=1
+          document.details.xqtyreq.value=document.details.xqtywt.value/document.details.xwtnet.value
+          return true
+        }
+
+        </script>
+     end script
+										   
+     method chkrec
+        if #command .ne. "Add" .and. xrow .ne. globals(xrow)
+          set globals(ErrChk) = "1"
+          error "Record pointer Mismatch, Try SHOW instead.<br>"
+        end if
+     end method
+
+     method chkitem
+        if xitem .ne. globals(xitem)
+          set globals(ErrChk) = "1"
+          error "Cannot change Item Code, Delete record and re-enter Item Code.<br>"
+        end if
+     end method
+
+     method chkcode
+        set tmpcode=xitem
+        buffer caitem
+        // ** if xcode used *** set xitem=xcode
+        move caitem=caitem(xitem)
+        if #command .eq. "Add"
+          if #result .ne. "true"
+            set globals(ErrChk) = "1"
+            // ** if xcode used *** set xitem=tmpcode
+            error "Wrong Item Code, Pick from the list.<br>"
+          else
+            set xitem = caitem.xitem
+            set xstype = caitem.xstype
+            set xunitsel = caitem.xunitsel
+            if caitem.xcfsel == 0.0
+              set xcfsel = 1.0
+            else
+              set xcfsel = 0.0+caitem.xcfsel
+            end if
+
+            // *** set xwtunit = caitem.xwtunit
+            // *** set xunitwt = caitem.xunitwt
+            set xcode = xitem // **** will be removed, if xcode used ***
+            set xtaxcat = caitem.xtaxcat
+            set xcodebasis = "Our Code"
+            set xstatusodt = "Item Verified"
+          end if
+        else
+          set xtaxcat = caitem.xtaxcat
+        end if
+     end method
+
+     method chkqty
+        decimal avl = 0.0
+        decimal onord = 0.0
+        decimal onalc = 0.0
+        decimal avlqty = 0.0
+        decimal newqty = 0.0
+
+        if #command .eq. "add"
+          set newqty = 0.0+xqtyreq
+        else if #command .eq. "update"
+          set newqty = 0.0+xqtyreq-globals(xqtyreq)
+        end if
+        
+      	if xbotype .eq. "None"
+      		if caitem.xstype .ne. "Non-Stock" 
+	        	buffer imstock
+	        	move imstock=imstock(xitem,xwh)
+	        	if #result .ne. "true"
+	          		set globals(ErrChk)="1"
+	          		error "Stock Not found for : "+xitem
+	          	else
+		            set avl = 0.0+(imstock.xinhand-imstock.xopqot-imstock.xwoalc-imstock.xtoout-imstock.xaltqty)
+		            set avlqty = 0.0+(avl/xcfsel)
+		            if avlqty >= newqty
+		              set xqtyord = 0.0+xqtyreq
+		              set xqtybac = 0.0
+		            else
+		              set globals(ErrChk) = "1"
+		              error "Not enough stock, Available: "+avlqty
+		            end if	          	
+	        	end if
+	        end if
+      	else if xbotype .eq. "Future Stock"
+            set xqtyord = 0.0+xqtyreq
+            set xqtybac = 0.0
+      	end if
+     end method
+
+     method chkprice
+        str tmpcatg = ""
+        str mysql = ""
+        decimal tmpval = 0.0
+
+        if #field(xcur.display) .sw. "Con" .or. #field(xcur.display) .sw. "con" .or. #field(xcur.display) .sw. "Hid" .or. #field(xcur.display) .sw. "hid"
+        else
+          set mysql = "select xexch from xcur where xcur='"+xcur+"'"
+          set xexch = 0.0+(#sql(decimal,mysql))
+          if #result .ne. "true" .or. xexch == 0
+            set globals(ErrChk) = "1"
+            error "Exchange rate is 0.00 .<br>"
+          end if
+        end if
+
+        if caitem.xstdprice <= 0
+          set globals(ErrChk) = "1"
+          error "Item price undefined.<br>"
+        end if
+
+        if globals(ErrChk) .ne. "1"
+          set xpricebasis = "Standard List"
+          set xcurprice = caitem.xcurprice
+          set xprice = 0.0+caitem.xstdprice
+          set tmpcatg = ""+caitem.xpricecat
+
+          set mysql = "select xexchsell from xcur where zid='"+#id+"' and xcur='"+xcurprice+"'"
+          set tmpval = 0.0+#sql(decimal,mysql)
+          if #result .eq. "true"
+            set xexchsell = 0.0+tmpval
+          end if
+
+          if xrate <= 0
+            set xrate= 0.0+(xprice*xexchsell/xexch)
+          else
+            set xpricebasis = "Entered"
+          end if
+          //print "price="+xprice+";exchsell="+xexchsell+";exch="+xexch
+
+          if xdisc == 0.0
+	          set xdisc = #sql(decimal,"select xdisc from cacus where xcus='"+globals(xcus)+"'")
+	          if xdisc == 0.0
+	          	set mysql = "select xdisc from opdis where zid='"+#id+"' and xpricecat='"+tmpcatg+"' and xqty<="+xqtyord+" order by zid,xpricecat,xqty DESC"
+	          	set tmpval = 0.0
+	          	set tmpval = 0.0+#sql(decimal, mysql)
+	          	if #result .eq. "true" .and. tmpval > 0
+	            	set xdisc = 0.0+tmpval
+	          	else
+	            	set xdisc = 0.0
+	            end if
+	          end if
+          end if
+
+          set mysql = "select xcomm from opdis where zid='"+#id+"' and xpricecat='"+tmpcatg+"' and xqty<="+xqtyord+" order by zid,xpricecat,xqty DESC"
+          set tmpval = 0.0
+          set tmpval = 0.0+#sql(decimal, mysql)
+          if #result .eq. "true" .and. tmpval > 0
+           set xcomm = 0.0+tmpval
+          else
+            set xcomm = 0.0
+          end if
+
+          if #field(xdiscf.display) .sw. "Con" .or. #field(xdiscf.display) .sw. "con" .or. #field(xdiscf.display) .sw. "Hid" .or. #field(xdiscf.display) .sw. "hid"
+            set xdiscf = 0.0
+          end if
+
+          set xstatusodt = "Priced"
+        end if
+     end method
+
+     method updtax
+        //class osbcustom(getOPtax(globals(xopqot),xtaxcat))
+        set xtaxscope = #sql("select xtaxscope from cacus where xcus='"+globals(xcus)+"'")
+        str mysql = "select xtaxrate from catax where xtaxcode='"+xtaxcode1+"' and xtaxscope='"+xtaxscope+"' and xtaxcat='"+xtaxcat+"'"
+        set xtaxrate1 = #sql(str,mysql)
+        if #result .ne. "true"
+        	set xtaxrate1=0.0
+        end if
+     end method
+     
+     method updprc
+     	  if xtaxrate1 > 0.0
+     	  	set xtaxrate1 = 0.00+xtaxrate1
+     	  	console "TaxRate "+xtaxrate1
+     	  	compute xdttax = (xrate*xqtyord)*(xtaxrate1/100)
+     	  end if
+     	  //print xdisc
+     	  if xdisc > 0
+     	  	set xdisc = 0.00+xdisc
+     	  	console "Discount% "+xdisc
+     	  	compute xdtdisc = (xrate*xqtyord)*(xdisc/100)
+     	  end if
+     	  compute xdtwotax = xrate*xqtyord
+     	  compute xlineamt = (xqtyord*xrate*(1-xdisc/100)-xdiscf)+xdttax 
+     end method     
+
+     method updstath
+        //class osbcustom(getOPtot(globals(xopqot),2))
+        set totdisc = #sql(decimal,"select sum(xdtdisc) from opqdt where xopqot='"+globals(xopqot)+"'")
+        set tottax = #sql(decimal,"select sum(xdttax) from opqdt where xopqot='"+globals(xopqot)+"'")
+        set totgross = #sql(decimal,"select sum(xdtwotax) from opqdt where xopqot='"+globals(xopqot)+"'")
+        set totamt = #sql(decimal,"select sum(xlineamt) from opqdt where xopqot='"+globals(xopqot)+"'")
+        
+        str mysql = "update opqot set xdtwotax="+totgross+" where xopqot='"+globals(xopqot)+"'"
+        set tmpstr = #sql(str,mysql)
+        
+        str mysql = "update opqot set xdttax="+tottax+" where xopqot='"+globals(xopqot)+"'"
+        set tmpstr = #sql(str,mysql)
+        
+        str mysql = "update opqot set xdtdisc="+totdisc+" where xopqot='"+globals(xopqot)+"'"
+        set tmpstr = #sql(str,mysql)
+        
+        str mysql = "update opqot set xtotamt="+totamt+" where xopqot='"+globals(xopqot)+"'"
+        set tmpstr = #sql(str,mysql)
+        
+        if globals(xstatusord) .eq. "Approved"
+          if #command .eq. "Add" .or. #command .eq. "Update" .or. #command .eq. "Delete"
+            set tmpchk = #sql("update opqot set xstatusord='Active' where xopqot='"+globals(xopqot)+"'")
+          end if
+        end if
+     end method
+     
+	valid validorder
+		mandatory xtrnopqt,xcus
+		config
+			set globals(pkey) = xopqot
+			
+			int detcount = #sql(int,"select count(*) from opqdt where xopqot='"+xopqot+"'")
+			if xopqot .ne. ""              
+				if detcount < 1
+					print "<span class=bl>No Details Entered -- Go to Details tab and Add record.</span>"
+				end if
+			end if
+              
+          	set stat = opqot.xstatusqot("xopqot='"+xopqot+"'")
+          	if stat .eq. #status("xstatusqot",4) .or. stat .eq. #status("xstatusqot",8) 
+          		set #field(Approve.display) = "disable"
+          	else
+          		set #field(Create.display) = "disable"
+          	end if
+              
+            str header="<font color=green>"+xstatusqot+"</font> Quotation "
+            //str print=opdef.xprintqot()
+			// 
+            if xopqot .ne. "" .and. xopqot .ne. "null"                
+	        //    if print .ne. "0" .and. detcount > 0               
+	              set header=header+": <a href='"+#report(opqotn.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xopqot+"&prompt2="+xopqot+"&prompt3="+opdef.xtitleqot()+"' target='_new'>"+xopqot+"</a> "
+	          //  else
+	            //  set header=header+": <span class=br>"+xopqot+"</span>"
+	            //end if
+            end if
+
+			if xstatusqot .ne. #status("xstatusqot",6)
+				set #field(Release.display)="disabled"
+			end if
+			if xstatusqot .ne. #status("xstatusqot",1)
+				set #field(Hold.display)="disabled"
+			end if
+			
+            set xsinglecur = #sql("select xsinglecur from cadef where zid='"+#id+"'")
+            if xsinglecur .eq. "1"
+            	set #field(xcur.display) = "hide"
+            	set #field(xexch.display) = "hide"
+            end if
+     		
+            set xappdiv = #sql("select xappdiv from cadef where zid='"+#id+"'")
+            if xappdiv .eq. "0"
+            	set #field(xdiv.display) = "hide"
+            end if
+            
+            set xappsec = #sql("select xappsec from cadef where zid='"+#id+"'")
+            if xappsec .eq. "0"
+            	set #field(xsec.display) = "hide"
+            end if
+            
+            set xappproj = #sql("select xappproj from cadef where zid='"+#id+"'")
+            if xappproj .eq. "0"
+            	set #field(xproj.display) = "hide"
+            end if            
+
+			set page = "opqot"
+            set attax = #sql("select xattribtax from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if attax .eq. "Show"
+            else if attax .eq. "Constant"
+            	set #field(xdttax.display) = "const"
+            else if attax .eq. "Hide"
+            	set #field(xdttax.display) = "hide"
+            end if   
+            
+            set atdisc = #sql("select xattribdisc from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atdisc .eq. "Show"
+            else if atdisc .eq. "Constant"
+            	set #field(xdtdisc.display) = "const"
+            else if atdisc .eq. "Hide"
+            	set #field(xdtdisc.display) = "hide"
+            end if   
+                                  
+            set atcomm = #sql("select xattribcomm from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atcomm .eq. "Show"
+            else if atcomm .eq. "Constant"
+            	set #field(xdtcomm.display) = "const"
+            else if atcomm .eq. "Hide"
+            	set #field(xdtcomm.display) = "hide"
+            end if   
+            
+            set atrate = #sql("select xattribrate from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atrate .eq. "Show"
+            else if atrate .eq. "Constant"
+            	set #field(xrate.display) = "const"
+            else if atrate .eq. "Hide"
+            	set #field(xrate.display) = "hide"
+            end if   
+
+            set atval = #sql("select xattribval from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atval .eq. "Show"
+            else if atval .eq. "Constant"
+            	set #field(xdtwotax.display) = "const"
+            	set #field(xlineamt.display) = "const"
+            else if atval .eq. "Hide"
+            	set #field(xdtwotax.display) = "hide"
+            	set #field(xlineamt.display) = "hide"
+            end if   
+            
+            set atsp = #sql("select xattribsp from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atsp .eq. "Show"
+            else if atsp .eq. "Constant"
+            	set #field(xsp.display) = "const"
+            else if atsp .eq. "hide"
+            	set #field(xsp.display) = "hide"
+            	set #field(sp_name.display) = "hide"
+            end if       	
+            
+            set atwh = #sql("select xattribwh from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atwh .eq. "Show"
+            else if atwh .eq. "Constant"
+            	set #field(xwh.display) = "const"
+            else if atwh .eq. "Hide"
+            	set #field(xwh.display) = "hide"
+            end if   
+                          
+            set atzemail = #sql("select xattribzemail from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atzemail .eq. "Show"
+            else if atzemail .eq. "Constant"
+            	set #field(zemail.display) = "const"
+            else if atzemail .eq. "Hide"
+            	set #field(zemail.display) = "hide"
+            end if   
+            
+            set atxemail = #sql("select xattribxemail from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+page+"'")
+            if atxemail .eq. "Show"
+            else if atxemail .eq. "Constant"
+            	set #field(xemail.display) = "const"
+            else if atxemail .eq. "Hide"
+            	set #field(xemail.display) = "hide"
+            end if
+			
+		end config
+	end valid
+
+     valid details
+     	mandatory xitem
+     	config
+     		set globals(pkey) = xopqot+" "+xrow
+     		set tpage = "opqdt"             
+     		set itemdesc = #sql("select xdesc from caitem where xitem='"+xitem+"'")
+     		
+            set attax = #sql("select xattribtax from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+tpage+"'")
+            if attax .eq. "Show"
+            else if attax .eq. "Constant"
+            	set #field(xtaxcode1.display) = "const"
+            	set #field(xtaxrate1.display) = "const"
+            else if attax .eq. "Hide"
+            	set #field(xtaxcode1.display) = "hide"
+            	set #field(xtaxrate1.display) = "hide"
+            	set #field(xdttax.display) = "hide"
+            end if   
+            
+            set atdisc = #sql("select xattribdisc from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+tpage+"'")
+            if atdisc .eq. "Show"
+            else if atdisc .eq. "Constant"
+            	set #field(xdisc.display) = "const"
+            else if atdisc .eq. "Hide"
+            	set #field(xdisc.display) = "hide"
+            	set #field(xdtdisc.display) = "hide"
+            end if   
+                                  
+            set atcomm = #sql("select xattribcomm from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+tpage+"'")
+            if atcomm .eq. "Show"
+            else if atcomm .eq. "Constant"
+            	set #field(xcomm.display) = "const"
+            else if atcomm .eq. "Hide"
+            	set #field(xcomm.display) = "hide"
+            	set #field(xdtcomm.display) = "hide"
+            end if   
+            
+            set atrate = #sql("select xattribrate from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+tpage+"'")
+            if atrate .eq. "Show"
+            else if atrate .eq. "Constant"
+            	set #field(xrate.display) = "const"
+            else if atrate .eq. "Hide"
+            	set #field(xrate.display) = "hide"
+            end if   
+
+            set atval = #sql("select xattribval from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+tpage+"'")
+            if atval .eq. "Show"
+            else if atval .eq. "Constant"
+            	set #field(xdtwotax.display) = "const"
+            	set #field(xlineamt.display) = "const"
+            else if atval .eq. "Hide"
+            	set #field(xdtwotax.display) = "hide"
+            	set #field(xlineamt.display) = "hide"
+            end if   
+            
+            set atbotype = #sql("select xattribbotype from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+tpage+"'")
+            if atbotype .eq. "Show"
+            else if atbotype .eq. "Constant"
+            	set #field(xbotype.display) = "const"
+            else if atbotype .eq. "hide"
+            	set #field(xbotype.display) = "hide"
+            end if       	
+
+            set atstype = #sql("select xattribstype from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+tpage+"'")
+            if atstype .eq. "Show"
+            else if atstype .eq. "Constant"
+            	set #field(xstype.display) = "const"
+            else if atstype .eq. "hide"
+            	set #field(xstype.display) = "hide"
+            end if       	
+                                    	
+            set atbatch = #sql("select xattribbatch from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+tpage+"'")
+            if atbatch .eq. "Show"
+            else if atbatch .eq. "Constant"
+            	set #field(xbatch.display) = "const"
+            else if atbatch .eq. "Hide"
+            	set #field(xbatch.display) = "hide"
+            end if   
+                           
+            set atzemail = #sql("select xattribzemail from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+tpage+"'")
+            if atzemail .eq. "Show"
+            else if atzemail .eq. "Constant"
+            	set #field(zemail.display) = "const"
+            else if atzemail .eq. "Hide"
+            	set #field(zemail.display) = "hide"
+            end if   
+            
+            set atxemail = #sql("select xattribxemail from cadefp where zid='"+#id+"' and zref = 'OP' and zobject='"+tpage+"'")
+            if atxemail .eq. "Show"
+            else if atxemail .eq. "Constant"
+            	set #field(xemail.display) = "const"
+            else if atxemail .eq. "Hide"
+            	set #field(xemail.display) = "hide"
+            end if                       
+     	end config
+     end valid     
+
+#include access.valid
+	
+end page

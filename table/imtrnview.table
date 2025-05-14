@@ -1,0 +1,24 @@
+product ERP on the Net
+
+table imtrnview
+	caption "Transfer Detal View"
+
+	columns ztime,zutime,zid,ximtrnnum, xitem,item_name,xitemrow,xitemcol, xwh,xdate,xyear, xper,~
+			xqty,xval,xvalpost,xdoctype,xdocnum,xdocrow,xnote,xaltqty,xdiv,xsec,xproj,~
+			xbatch,xdateexp,xdaterec, xlicense,xcus,xsup,xaction,xsign,xtime,zemail,xemail,xtrnim,~
+			xfrslnum,xtoslnum,xrectrn,xbin,xteam,xmember,xmanager,xdept,xstdprice
+
+		 
+	sql create view imtrnview (ztime,zutime,zid,ximtrnnum, xitem,item_name,xitemrow,xitemcol, xwh,xdate,xyear, xper,~
+		xqty,xval,xvalpost,xdoctype,xdocnum,xdocrow,xnote,xaltqty,xdiv,xsec,xproj,~
+		xbatch,xdateexp,xdaterec, xlicense,xcus,xsup,xaction,xsign,xtime,zemail,xemail,xtrnim,~
+		xfrslnum,xtoslnum,xrectrn,xbin,xteam,xmember,xmanager,xdept,xstdprice) ~
+		as select imtrn.ztime,imtrn.zutime,imtrn.zid,imtrn.ximtrnnum,imtrn.xitem,~
+        (select xdesc from caitem where zid=imtrn.zid and xitem=imtrn.xitem),~
+		imtrn.xitemrow,imtrn.xitemcol,imtrn.xwh,imtrn.xdate,imtrn.xyear,imtrn.xper,~
+		imtrn.xqty,imtrn.xval,imtrn.xvalpost,imtrn.xdoctype,imtrn.xdocnum,imtrn.xdocrow,imtrn.xnote,imtrn.xaltqty,imtrn.xdiv,imtrn.xsec,imtrn.xproj,~
+		imtrn.xbatch,imtrn.xdateexp,imtrn.xdaterec,imtrn.xlicense,imtrn.xcus,imtrn.xsup,imtrn.xaction,imtrn.xsign,imtrn.xtime,imtrn.zemail,imtrn.xemail,imtrn.xtrnim,~
+		imtrn.xfrslnum,imtrn.xtoslnum,imtrn.xrectrn,imtrn.xbin,imtrn.xteam,imtrn.xmember,imtrn.xmanager,imtrn.xdept,imtrn.xstdprice ~
+		FROM imtrn
+
+end table

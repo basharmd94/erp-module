@@ -1,0 +1,21 @@
+product ERP on the Net
+
+table Cacuscr
+	caption "Customer Credit View"
+
+	columns  ztime,zutime, zid, xcus,xcrlimit,xappamt,xtotamt
+
+	primary key zid, xcus
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xcus references cacus.zid,xcus
+	end foreign key
+
+	sql create view cacuscr (ztime,zutime, zid, xcus,xcrlimit,xappamt,xtotamt) ~
+		as select  ztime,zutime, zid,xcus,xcrlimit,~
+		coalesce((SELECT SUM(xappamt*xexch) FROM opord WHERE opord.xcus = cacus.xcus AND opord.zid=cacus.zid),0), ~
+		coalesce((select sum(0-xprime*xexch) from gldetail where gldetail.xsub=cacus.xcus and gldetail.xaccusage='AR' and gldetail.xaccsource='Customer' and (gldetail.xvoucher not like 'IN%') and gldetail.zid=cacus.zid ),0) ~
+		from cacus
+
+end table

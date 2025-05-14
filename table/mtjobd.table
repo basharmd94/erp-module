@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table mtjobd
+	caption "Maintenance Register Details"
+
+	columns ztime,zutime,zid,xmtjob,xrow,xyear,xper,xweekno,xsaction,xrem,xlong,xemp,xaction,xproduct,zemail,xemail,zactive
+
+	primary key zid,xmtjob,xrow
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xmtjob references mtjobh.zid,xmtjob
+	end foreign key
+
+end table

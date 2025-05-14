@@ -1,0 +1,292 @@
+page poshipmtrprcdt
+
+    caption "C&F Details for : LC# "+globals(xlcno)+"  BL# "+globals(xblno)
+
+    //embed onload="move_caret('one','xpocode')"
+
+    sidebar 
+
+    sections form one, list one,text top,script myscript
+
+    text top
+        "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list one
+        caption "Shipment Wise C&F Sub Code Details"
+        table poshipmtrprcdt
+        order xpornum,xshiplno,xrowin,xline desc
+        fixed xpornum,xshiplno,xrowin
+        select "zid='"+#id+"'"
+        rows 30
+        objects  xline attrib(link #servlet+"?page=poshipmtrprcdt&command=Show&xline=?"), ~
+                 xopcode,xdaterel
+
+        field xline
+            caption SL No
+        end field
+        
+        field xopcode
+            caption C&F Sub Code
+        end field
+        
+        field xdaterel
+            caption Date
+        end field
+        
+    end list
+
+     form one
+        caption "<font color=red>C&F Code </font>"+xcostcode
+        valid valid,access
+        table poshipmtrprcdt
+        order xpornum,xshiplno,xrowin,xline
+        fixed xpornum,xshiplno,xrowin
+        select "zid='"+#id+"'"
+        layout 2
+        objects Show,Add, Update,Clear, Top, Previous, Delete, Next, Bottom,Return,~
+                xline attrib(row 0 10),"",xopcode,xdaterel,~
+                zemail display(hide),xemail display(hide),xrem
+
+		field show
+			event before
+				set globals(temp) = xline
+			end event
+			event after
+				set globals(temp) = xline
+			end event
+		end field
+
+		field Top
+			event before
+				set globals(temp) = xline
+			end event
+			event after
+				set globals(temp) = xline
+			end event
+		end field
+
+        field xline
+            caption SL No
+            col 3
+            event after
+                set globals(xline)=xline
+            end event
+        end field
+        
+        field xopcode
+            display combo
+            pick "select xopcode from poshipmtrprcsetupdt where zid='"+#id+"' and xcostcode='"+xcostcode+"'"
+            caption C&F Sub Code
+            event after
+                set globals(xopcode)=xopcode
+            end event
+        end field
+
+        field xamount
+            caption Amount
+            len 10.2
+        end field
+
+        field xdaterel
+            caption Date
+            event after
+                set globals(xdaterel)=xdaterel
+            end event
+        end field
+        
+        field xrem
+            width 50
+            height 2
+        end field
+
+        field add
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatusord
+                    end if
+                end if
+                
+                if globals(ErrChk) .ne. "1"
+                    set zemail=#user
+                    set xdaterel=#date
+                end if
+
+            end event
+        end field
+
+        field update
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                	if xline .ne. globals(xline)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xline .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatusord
+                    end if
+                end if
+                if globals(ErrChk) .ne. "1"
+                    set xemail=#user
+                end if
+
+            end event
+        end field
+
+        field delete
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                	if xline .ne. globals(xline)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                	if xline .ne. globals(temp)
+                		set globals(ErrChk) = "1"
+                		set #command = "show"
+                		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Delete <br> New Record Retrieved</font>"
+                	end if
+                end if
+
+                if globals(ErrChk) .ne. "1"
+                    set xstatusord = poilc.xstatusord("zid='"+#id+"' and xpornum='"+xpornum+"'")
+                    if xstatusord .ne. "Open"
+                        set globals(ErrChk) = "1"
+                        error "Cannot "+#command+"<br>Already "+xstatusord
+                    end if
+                end if
+
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+            embed onclick="clicked()"
+        end field
+
+     end form
+
+     script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+            $.hotkeys.add('Ctrl+s',function(){
+                //alert('Pressed Ctrl+s');
+                var form=document.forms[0];
+                form.searchbutton.value="Add";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+e',function(){
+                //alert('Pressed Ctrl+e');
+                var form=document.forms[0];
+                form.searchbutton.value="Update";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+d',function(){
+                //alert('Pressed Ctrl+d');
+                var form=document.forms[0];
+                form.searchbutton.value="Delete";
+                form.submit();
+            });
+            $.hotkeys.add('Ctrl+r',function(){
+                //alert('Pressed Ctrl+r');
+                var form=document.forms[0];
+                form.searchbutton.value="Clear";
+                form.submit();
+            });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail=""
+        function clicked(){
+          detail="clicked"
+        }
+        function submitit(form){
+
+	    if (detail=="clicked"){
+            form.page.value = "poshipmtrprc"
+            form.searchbutton.value= "Find xpornum=?&xshiplno=?&xrowin=?"
+            //return false
+          }
+        }
+
+        function picktype(link, potype, costacc,subdr)
+        {
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xpocode.value=link.text
+            document.one.xacccat.value=potype.text
+            document.one.xcostacc.value=costacc.text
+            document.one.xsubdr.value=subdr.text
+          }else{
+            document.one.xpocode.value=link.innerText
+            document.one.xacccat.value=potype.innerText
+            document.one.xcostacc.value=costacc.innerText
+            document.one.xsubdr.value=subdr.innerText
+          }
+          return false
+        }
+        function picksub(test)
+        {
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xsub.value=link.text
+          }
+          else{
+            document.one.xsub.value=link.innerText
+          }
+          return false
+        }
+
+        function pickCode(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xpocode.xvalue=link.text
+          }else{
+            document.one.xpocode.value=link.innerText
+          }
+          return false
+        }
+        
+        </script>
+     end script
+
+    valid valid
+        mendatory xopcode,xdaterel
+        config
+            set globals(pkey) = xpornum+" "+xshiplno+" "+xrowin+" "+xline
+
+            set page = "poshipmtrprcdt"
+
+        end config
+    end valid
+
+#include access.valid
+     
+end page

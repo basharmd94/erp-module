@@ -1,0 +1,23 @@
+product ERP on the Net
+
+table prmstview
+  caption "Emp View" 
+
+  columns zid,xemp,xname,xdesig,xdept,xlocation,xdiv,xcostcent,xsec,xempcat,xcat,xstatusemp,xdtbirth,xadd,~
+  xpadd,xfather,xmother,xbloodgrp,xreligi,xsex,xcitizen,xmstatus,xshift,xjoindate,xpassport,xtinno,~
+  xbank,xpayact,xquarter,xpaytyp,xpsclcode
+  
+  primary key zid,xemp
+  
+  sql create view prmstview (zid,xemp,xname,xdesig,xdept,xlocation,xdiv,xcostcent,~
+		xsec,xempcat,xcat,xstatusemp,xdtbirth,xadd,xpadd,xfather,xmother,xbloodgrp,~
+		xreligi,xsex,xcitizen,xmstatus,xshift,xjoindate,xpassport,xtinno,~
+		xbank,xpayact,xquarter,xpaytyp,xpsclcode) as ~
+		
+  SELECT  zid,xemp,xname,xdesig,xdept,xlocation,xdiv,xcostcent,xsec,xempcat,xcat,xstatusemp,~
+			xdtbirth,xadd,xpadd,xfather,xmother,xbloodgrp,~
+			xreligi,xsex,xcitizen,xmstatus,xshift,xjoindate,xpassport,xtinno,~
+			xbank,xpayact,xquarter,xpaytyp,xpsclcode ~
+   from prmst
+   
+end table

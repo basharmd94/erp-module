@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table prloanapp
+  caption "Salary Loan and Advance Apply"
+  //columns ztime,zutime,zid,xemp,xpaycode,zemail,xemail//,xtotadv,xprrate,xtotdeduc,xbalance
+  columns ztime,zutime,zid,xrow,xemp,xdept,xjoindate,xpaycode,xdate,xprime,xstatusloan,xapprover,xdaterev,xnote,zemail,xemail
+
+  primary key zid,xrow,xemp,xpaycode
+  unique zid,xemp,xpaycode,xdate
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xpaycode references prpayhead.zid,xpaycode
+		zid,xemp references prmst.zid,xemp
+  end foreign key
+
+end table

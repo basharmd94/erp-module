@@ -1,0 +1,68 @@
+page pratpost
+    embed onload="move_caret('one','xyear')"
+
+     caption "Attendance Posting to Payroll"
+     sections  form one, script myscript //list one, text top,
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     form one
+        caption "Attendance Posting to Payroll"
+        objects Process,~
+                xyear,xper
+
+
+        field Process
+          event before
+              set globals(ErrChk) = ""
+              str mysql
+
+              set mysql = "select xyear+xper+xday from pratd where zid='"+#id+"' and xyear+xper+xday>'0'"
+              set tmpchk = #sql(mysql)
+              while #result .eq. "true"
+                print tmpchk              
+                str xemp
+                set myqry = "select xemp from pratd where zid= '"+#id+"' and xemp>'"+xemp+"'"
+                set xemp = #sql(myqry)
+                while #result .eq. "true"
+                  print "E:"+xemp
+                  set myqry = "select xemp from pratd where zid= '"+#id+"' and xemp>'"+xemp+"'"
+                  set xemp = #sql(myqry)
+                end while  
+                set mysql = "select xyear+xper+xday from pratd where zid='"+#id+"' and xyear+xper+xday>'"+tmpchk+"'"
+                set tmpchk = #sql(mysql)
+              end while
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          detail="back"
+        }
+        function submitit(form)
+        {
+          if (detail=="back")
+          {
+            //form.page.value = "prath"
+            //form.searchbutton.value= "Find xyear=?&xper=?&xday=?&xshift=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+
+end page
+

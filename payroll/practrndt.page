@@ -1,0 +1,83 @@
+page practrndt
+     caption header
+     //sidebar text two,list two, text three
+     sections form one,list one, script myscript
+
+     list one
+        caption "Amount Details for "Emloyee Code: ""+xemp+"   Name:"+xdumname
+        //table practrndt
+		table (select *,~
+			(select xdesc from prpayhead ~
+			where zid=practrndt.zid and xpaycode=practrndt.xpaycode) as tmpdesc ~
+			from practrndt) as tbl
+
+        order xpaydate,xemp,xpaycode
+//	      navigators alpha
+        fixed xpaydate,xemp
+        rows 20
+        //objects  xpaycode attrib(link #servlet+"?page=prtrndt&command=Show&xpaycode=?")
+        objects xpaycode,tmpdesc,xamount
+
+        field xpaycode
+         width 10
+         end field
+
+        field xamount
+         caption Amount
+        end field
+
+        field xlong
+         caption Description
+        end field
+
+        field tmpdesc
+          storage varchar
+          caption Description
+        end field
+
+     end list
+
+     form one
+		valid valid
+        //caption "Actual Payment Details"
+        layout 1		
+        objects Return
+
+          embed onsubmit="submitit(this)"
+
+          field Return
+            embed onclick="clicked(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          details="back"
+        }
+        function submitit(form)
+        {
+          if (details=="back")
+          {
+            form.page.value = "praccmsg"
+            form.searchbutton.value= "Find xpaydate=?&xemp=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+	 
+	 valid valid
+		config
+			set header = "<font color=green size=4+>Actual Payment Details</font><br>"
+		end config
+	 end valid
+	 
+end page

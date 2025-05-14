@@ -1,0 +1,97 @@
+page prpayscal
+
+    caption "Pay Scale Code"
+	layout mylayout 2 1  //columns rows
+	 	form one,list one (1, 1) //(col,row,colspan,rowspan,width,height)
+		script myscript (0,0)
+	end layout
+	
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+
+     list one
+        table prpayscal
+        order xpsclcode
+        rows 20
+        objects  xpsclcode attrib(link #servlet+"?page=prpayscal&command=Show&xpsclcode=?"),xdesc
+
+          field xpsclcode
+          	caption Salary Scale
+          end field
+        
+     end list
+
+    form one
+		valid valid,access
+        table prpayscal
+        order xpsclcode
+        layout 1
+        objects Show, Details,Add,Clear, Update, Delete,Previous, Next,~
+                xpsclcode,xdesc,xvalue01 display(hide),xqty01 display(hide),xvalue02 display(hide),xqty02 display(hide),~
+				xvalue03 display(hide),xqty03 display(hide),xvalue04 display(hide),xqty04 display(hide),~
+				xvalue05 display(hide),xqty05 display(hide),~
+				zemail display(const),xemail display(const)
+
+		
+        field Add
+          event before
+          	//set xpsclcode = xvalue01+"-"+xqty01+"-"+xvalue02+"-"+xqty02+"-"+xvalue03+"-"+xqty03+"-"+xvalue04+"-"+xqty04+"-"+xvalue05
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field Update
+          event before
+          	//set xpsclcode = xvalue01+"-"+xqty01+"-"+xvalue02+"-"+xqty02+"-"+xvalue03+"-"+xqty03+"-"+xvalue04+"-"+xqty04+"-"+xvalue05
+            set xemail=#user
+          end event
+        end field
+
+
+          field xpsclcode
+          	pick list xpsclcode
+          	//caption Salary Scale
+            width 50
+            event after
+               set globals(xpsclcode)=xpsclcode
+            end event
+          end field
+
+          field xdesc
+            width 50
+            event after
+              set globals(xdesc) = xdesc
+            end event
+          end field
+
+          embed onsubmit="submitit(this)"
+
+          field Details
+            embed onclick="Details(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function Details(b)
+        {
+          detail="Others"
+        }
+        function submitit(form)
+        {
+          if (detail=="Others")
+          {
+            form.page.value = "prpayscaledt"
+            form.searchbutton.value="Find xpsclcode=?"
+          }
+        }
+        </script>
+     end script
+end page

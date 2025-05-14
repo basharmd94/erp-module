@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table prdocs
+  caption "Documents"
+  columns ztime, zutime, zid, xtrnnum, xdoc, xlink, zactive,xname
+
+  primary key zid, xtrnnum,xdoc
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  list xlink, zactive
+  
+end table

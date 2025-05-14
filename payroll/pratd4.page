@@ -1,0 +1,129 @@
+page pratd4
+    embed onload="move_caret('one','xemp')"
+
+     caption "Time-Out Details for Date : "+globals(xdate)+" Shift: "+globals(xshift)
+     sections  form one,list one,text top,script myscript
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+      table pratd
+      order xyear,xper,xday,xshift,xemp
+      fixed xyear,xper,xday,xshift
+      navigators alpha
+      object xemp attrib(link #servlet+"?page=pratd4&command=Show&xemp=?"),~
+             empname storage(varchar) equals((select xfirst from prmst where xemp=pratd.xemp)),~
+             empdesig storage(varchar) equals((select xdesig from prmst where xemp=pratd.xemp)),~
+             xintime,xouttime,xatdstat
+
+      field empname
+        caption Employee Name
+      end field
+
+	field empdesig
+        caption Designation
+      end field
+     end list
+
+     form one
+        //caption "Time-Out Details for<br>Date: <font color=cyan>"+globals(xdate)+"</font><br>Shift: <font color=cyan>"+globals(xshift)+"</font>"
+        table pratd
+        order xyear,xper,xday,xshift,xemp
+        fixed xyear,xper,xday,xshift
+        layout 1
+        objects Update, Back, Show, Clear, Top, Previous, Next, Bottom,~
+                 xemp,xnamedum,xouttime,zemail display(hide),xemail display(hide)
+
+        field update
+          event before
+            set globals(ErrChk) = ""
+            buffer pratd
+            move pratd=pratd(xyear,xper,xday,xshift,xemp)
+            if #result .eq. "true" .and. pratd.xpflag .eq. "1"
+              set globals(ErrChk) = "1"
+              error "Cannot Update; Already Posted"
+             else if #result .ne. "true"
+              set globals(ErrChk) = "1"
+              error "Cannot Update; 'Time In' Entry Not Found"
+             else if #result .eq. "true" .and. pratd.xouttime .ne. ""
+              set globals(ErrChk) = "1"
+              error "Already Out; Cannot "+#command
+             else if globals(xdate) .ne. #date
+               error " Entry Not Accepted; You are try to add previous or post date entry!!"
+            end if
+              set xemail=#user
+            end if
+            if globals(ErrChk) .eq. "1"
+               class osbcustom(clear)
+            end if
+          end event
+          event after
+            if globals(ErrChk) .ne. "1"
+              class osbcustom(clear)
+              print "<h2><font color=blue>Entry Accepted</font></h2>"
+            end if
+          end event
+        end field
+
+        field xemp
+          pick list xemp
+          event after
+            set globals(xemp)=xemp
+            if #command .sw. "Find"
+              class osbcustom(clear)
+            end if
+          end event
+        end field
+
+        field xnamedum
+          attrib local
+          display constant
+          caption Employee Name
+          event after
+            set xnamedum=#sql(str, "select xfirst from prmst where xemp='"+xemp+"'")
+          end event
+        end field
+
+        field xouttime
+          attrib readonly        
+          event before
+            class osbcustom(#time(xouttime))
+          end event
+        end field
+
+
+        embed onsubmit="submitit(this)"
+
+        field back
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          detail="back"
+        }
+        function submitit(form)
+        {
+          if (detail=="back")
+          {
+            form.page.value = "prath"
+            form.searchbutton.value= "Find xyear=?&xper=?&xday=?&xshift=?"
+          }
+          //return false
+
+        }
+
+        </script>
+     end script
+
+end page
+

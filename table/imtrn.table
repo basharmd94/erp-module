@@ -1,0 +1,24 @@
+product ERP on the Net
+
+table imtrn
+	caption "Inventory Transaction"
+	columns ztime,zutime,zid,ximtrnnum, xitem,xitemrow,xitemcol, xwh,xdate,xyear, xper,~
+			xqty,xval,xvalpost,xdoctype,xdocnum,xdocrow,xnote,xaltqty,xdiv,xsec,xproj,~
+			xbatch,xdateexp,xdaterec, xlicense,xcus,xsup,xaction,xsign,xtime,zemail,xemail,xtrnim,~
+			xfrslnum,xtoslnum,xrectrn,xbin,xteam,xmember,xmanager,xdept,xstdprice
+
+	primary key zid,ximtrnnum
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xitem references caitem.zid,xitem
+	end foreign key
+
+	field xval
+		length 30.6
+	end field
+
+	field xvalpost
+		length 30.6
+	end field
+end table

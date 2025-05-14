@@ -1,0 +1,41 @@
+page fadpprocs
+   caption "FA Depreciation Process"
+//   sidebar list one
+   sections  form one
+
+     list one
+        table facode
+        order xcode
+        navigators alpha
+        rows 10
+        objects  xtype,xcode attrib(link #servlet+"?page=facode&command=Show&xtype=?&xcode=?"),xdesc
+     end list
+
+   form one
+      caption "Depreciation Process"
+      table
+      order
+      layout 1      
+
+      objects  Process,Clear,~
+               xcode,xitem,xyear
+
+      field xcode
+        caption From Asset Code
+        pick list famst
+      End field
+
+      field xitem
+        caption To Asset Code
+        pick list famst1
+      End field
+
+      field process
+        event before
+          class osbcustom(depreciate(xcode,xitem,xyear,2))
+        end event
+      end field
+
+   end form
+
+end page

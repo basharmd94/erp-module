@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table printerview
+  caption "Interview Schedule"
+  columns ztime,zutime,zid,xsrqnum,xgroup,xwmjobnum,xdate,xtypep,xdesc01,zemail,xemail,~
+  xcat,xdept,xsec,xtitlejob,xcostcent,xtsact
+  
+
+  primary key zid,xsrqnum
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+ 
+end table

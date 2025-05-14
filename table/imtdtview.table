@@ -1,0 +1,22 @@
+product ERP on the Net
+
+table imtdtview
+  caption "Transfer Detal View"
+  columns zid,ximtor,xtorlno,xitem,xfwh,xtwh,xqtyord,xqtycom,xqtyalc,xstatustor,xbin,xbatch,xval,xdate
+  primary key zid,ximtor,xtorlno
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  							 
+  sql create view imtdtview (zid,ximtor,xtorlno,xitem,xfwh,xtwh,xqtyord,xqtycom,xqtyalc,xstatustor,xbin,xbatch,xval,xdate) ~
+            as SELECT zid, ximtor, xtorlno,xitem,~
+			(select xfwh from imtor where imtor.ximtor=imtdt.ximtor and imtor.zid=imtdt.zid), ~
+            (select xtwh from imtor where imtor.ximtor=imtdt.ximtor and imtor.zid=imtdt.zid), ~
+			xqtyord,xqtycom,xqtyalc,~
+			(select xstatustor from imtor where imtor.ximtor=imtdt.ximtor and imtor.zid=imtdt.zid),~
+			xbin,xbatch,coalesce(xval,0), ~
+			(select xdate from imtor where imtor.ximtor=imtdt.ximtor and imtor.zid=imtdt.zid) ~
+    FROM imtdt
+                  
+ end table

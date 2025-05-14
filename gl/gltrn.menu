@@ -1,0 +1,42 @@
+//gltrn.menu
+//-------------------------------------------------------------------
+caption "General Ledger" page 3
+option                           		|action
+//-------------------------------------------------------------------
+-Vouchers
+Voucher Entry            				|#classPath+"/"+#servlet+"?page=glheader&command=clear"
+Receipt Voucher Entry            		|#classPath+"/"+#servlet+"?page=glheaderm&command=clear"
+Payment Voucher Entry            		|#classPath+"/"+#servlet+"?page=glheaderpv&command=clear"
+//Money Collection Register            	|#classPath+"/"+#servlet+"?page=mrentryacc&command=clear"
+-Cheque
+Cheque Receive Register          		|#classPath+"/"+#servlet+"?menu=glchs"
+//Recurring Voucer Entry           		|#classPath+"/"+#servlet+"?page=glrecur"
+//Bank Reconciliation              		|#classPath+"/"+#servlet+"?page=glbankrncl"
+//Inter Company Voucher Entry      		|#classPath+"/"+#servlet+"?page=glhdic"
+//IOU Voucher Entry            	 		|#classPath+"/"+#servlet+"?page=gliouentry"
+//IOU Adjustment               	 		|#classPath+"/"+#servlet+"?page=gliou_adj"
+-Master
+Chart of Accounts                		|#classPath+"/"+#servlet+"?page=glmst&command=clear"
+//-Budget
+//Budget Entry                     		|#classPath+"/"+#servlet+"?page=glbudhed&command=clear"
+//-Audit
+//Voucher Verification              		|#classPath+"/"+#servlet+"?page=glheaderv"
+-Others
+Opening Balances                 		|#classPath+"/"+#servlet+"?page=glopen&command=clear"
+Year End Processing              		|#classPath+"/"+#servlet+"?page=glyearend"
+IM to GL Trial Run              		|#classPath+"/"+#servlet+"?page=imglnew"
+IM to GL Final Run              		|#classPath+"/"+#servlet+"?page=imglnewpost"
+IM to GL Audit Trail              		|#classPath+"/"+#servlet+"?page=*crystal imaudit(xyear=Year=#glyear,xper=Period=#glper)"
+Voucher Details	- Single 	            |#classPath+"/"+#servlet+"?page=*crystal imtrnviewnew(xvoucher=Voucher==text)"
+Voucher Details	- Month 	            |#classPath+"/"+#servlet+"?page=*crystal imtrnviewnew1(xyear=Year=,xper=Period=,xvoucher=From Voucher==text,xvoucher=To Voucher=zzz=text)"
+//Voucher Auto Reverse             		|#classPath+"/"+#servlet+"?page=glautorev"
+//Voucher Posting                  		|#classPath+"/"+#servlet+"?page=glpost"
+//Auto Allocation Process          		|#classPath+"/"+#servlet+"?page=glalcprocess"
+//Error Check for Unbalanced Vouchers  	|#classPath+"/"+#servlet+"?page=glerrchk"
+//Cheque Register                    |#classPath+"/"+#servlet+"?page=glchqr"
+//Cheque Register Posting            |#classPath+"/"+#servlet+"?page=glpostchqr"
+-chq old
+Cheque Register Entry            		|#classPath+"/"+#servlet+"?page=glheadermch&command=clear"
+Cheque Deposit Entry            		|#classPath+"/"+#servlet+"?page=glchkdeposit&command=clear"
+
+//------------------------------------------------------------------

@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table poquot
+  caption "Quotation Order"
+
+  columns ztime,zutime,zid,xpoqot,xdate,xref,~
+          xdiv,xsec,xproj,xstatusqot,xlong,zemail,xemail,xtrnpoqt,~
+          xporeqnum,xtypepor,xteam,xmember,xmanager,xtypeact,xitem,xdesc,xline,~
+		  zactive,xdept,xemail1
+
+  primary key zid, xpoqot
+
+  foreign key
+	    zid references zbusiness.zid
+        zid,xporeqnum references poreq.zid,xporeqnum
+  end foreign key
+
+end table

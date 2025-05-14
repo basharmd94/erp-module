@@ -1,0 +1,28 @@
+//PO Reports.menu
+caption "PO Local Reports" page
+//-------------------------------------------------------------------------------------
+option                                       |action
+//-------------------------------------------------------------------------------------
+Item List                                    |#classpath+"/"+#servlet+"?page=*crystal itemlst(xgitem=Item Group, xitem=From Item=,xitem=To Item=z)"
+-Requsition Report
+Date Wise Requsition List                        |#classPath+"/"+#servlet+"?page=*crystal porequ(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Local=hide)"
+Item Wise Requsition List                        |#classPath+"/"+#servlet+"?page=*crystal porequ_item(xdatereq=From Date=#d,xdatereq=To Date=#d,xitem=From Item,xitem=To Item)"
+-Quotation Report
+Quotation List By Date                       |#classPath+"/"+#servlet+"?page=*crystal poquotu(xdatereq=From Date=#d,xdatereq=To Date=#d)"
+Quotation List By REQ No.                    |#classPath+"/"+#servlet+"?page=*crystal poquotu_req(xdatereq=From Date=#d,xdatereq=To Date=#d,xporeqnum=Requisition No==text=list xporeqnum,xporeqnum=Requisition No==text=list xporeqnum)"
+
+-Purchase Report
+Purchase Order List By Date                  |#classPath+"/"+#servlet+"?page=*crystal poord(xdate=From Date=#d,xdate=To Date=#d,xpornum=From Order,xpornum=To Order,xtypepor=Type=Local=hide)"
+Purchase Order List By Item                |#classPath+"/"+#servlet+"?page=*crystal poord_item(xdate=From Date=#d,xdate=To Date=#d,xitem=From Item=0,xitem=To Item=z,xtypepor=Type=Local=hide)"
+Product Purchase Report                |#classPath+"/"+#servlet+"?page=*crystal poord_itemd(xdate=From Date=#d,xdate=To Date=#d,xitem=From Item=0,xitem=To Item=z,xsup=From Supplier=,xsup=To Supplier=)"
+-MRR Report
+MRR Report By Date                           |#classPath+"/"+#servlet+"?page=*crystal pogrn_mrr(xdatereq=From Date=#d,xdatereq=To Date=#d,xtypepor=Type=Local=hide)"
+-
+Item Wise MRR Report                         |#classPath+"/"+#servlet+"?page=*crystal pogrn_mrr_item(xdatereq=From Date=#d,xdatereq=To Date=#d,xitem=From Item,xitem=To Item)"
+
+Statement By Supplier 			   			 |#classPath+"/"+#servlet+"?page=*crystal glsupstm(xsup=From Supplier=,xsup=To Supplier=,xdate=From Date=#d,xdate=To Date=#d)"
+-
+
+//Ware house Wise MRR Report                   |#classPath+"/"+#servlet+"?page=*crystal pogrn_mrr_proj(xdatereq=From Date=#d,xdatereq=To Date=#d,xwh=From Project,xwh=To Project)"
+//-------------------------------------------------------------------
+

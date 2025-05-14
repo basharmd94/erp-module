@@ -1,0 +1,193 @@
+page poilcpadh
+     caption "L.C. Information"
+     sections form one, list poilc, text top, script myscript
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list one
+        caption "<font size=3>P.O. List for PAD</font>"
+        table poord
+        order xpornum DESC
+        select "xstatuspor='Cleared' and {fn LEFT(xpornum,4)}='IP--' and xcoststat<>'LC Opened' and xcoststat<>'LC Completed'"
+        navigators alpha
+        rows 10
+        objects xpornum attrib(link "abc" embed onclick="return pickPO(this)"), ~
+                xdate,xsup,desc equals((select xorg from casup where casup.zid=poord.zid and casup.xsup=poord.xsup)),xstatuspor
+
+        field desc
+          caption Description
+          storage varcahr
+        end field
+
+     end list
+
+     list poilc
+        caption "<font size=3>L.C. List for PAD</font>"
+        table poilc
+        order xpornum
+        navigators alpha
+        rows 10
+        objects xlcno attrib(link #servlet+"?page=poilcpadh&command=Show&xpornum=?"),~
+                xpornum, xsup,desc equals((select xorg from casup where casup.zid=poilc.zid and casup.xsup=poilc.xsup)),xlcopndate,xcur,xlcvalue
+
+        field desc
+          caption Description
+          storage varcahr
+        end field
+
+     end list
+
+     form one
+        caption "L.C. Information for PAD"
+        table poilc
+        order xpornum
+        layout 2
+        objects ~
+                Show,Details,Top, Previous, Next,Clear, Bottom,~
+                xlcno attrib(search),xlcopndate default(#d),xcur display(const),xlcvalue display(const),~
+                xpornum display(const),xbank
+
+        field xpornum
+          event after
+            set globals(xpornum) = xpornum
+          end event
+        end field
+
+        field xlcno
+          event after
+            set globals(xlcno)=xlcno
+          end event
+        end field
+        
+        field xbank
+          caption L.C. Opening Bank
+          display const
+          event after
+                set globals(xbank)=xbank
+          end event
+        end field
+
+        field xsup
+          caption Supplier
+          display text
+          pick
+          attrib readonly
+          event before
+           set xsup=#sql("select xsup from poord where xpornum='"+xpornum+"'")
+          end event
+        end field
+
+        field Details
+          embed onclick="clicked(this)"
+        end field
+        embed onsubmit="submitit(this)"
+
+   end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but= ""
+        function clicked(b){
+          but="clicked"
+        }
+
+        function submitit(form){
+          if (but=="clicked"){
+            form.page.value = "poilcpad_n"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        function pickCur(link, exch){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcur.value=link.text
+            document.one.xexch.value=exch.text
+          }else{
+            document.one.xcur.value=link.innerText
+            document.one.xexch.value=exch.innerText
+          }
+          return false
+        }
+
+        function pickPO(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xpornum.value=link.text
+//            document.one.xexch.value=exch.text
+          }else{
+            document.one.xpornum.value=link.innerText
+ //           document.one.xexch.value=exch.innerText
+          }
+          return false
+        }
+
+        function pickLC(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xlcno.xvalue=link.text
+          }else{
+            document.one.xlcno.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+     method mth_check
+        buffer xlocals
+        set globals(xtypelocal)="Module"
+        set globals(xname)="gl"
+        move xlocals=xlocals(xtypelocal,xname)
+        int offset
+        int per
+        int year=#sub(xlcopndate,0,4)
+        set offset=#prop(xlocals.xprops,"offset")
+        set per=12+#sub(xlcopndate,5,2)-offset
+        if per<=12
+           set xper=per
+           set xyear=year-1
+        else
+           set xper=per-12
+           set xyear=year
+        end if
+
+        set mth_status = #sql(str,"select xpflag from pomthend where xyear='"+xyear+"' and xper='"+xper+"'")
+        if mth_status .eq. "1"
+          set globals(ErrChk) = "1"
+          error xyear+"("+xper+") Already Closed; Cannot "+#command
+        end if   
+     end method
+     
+
+     method chk_rec
+       if #command .eq. "Add" 
+         if poord.xstatuspor .ne. "Cleared"
+            set globals(ErrChk) = "1"
+            error "Cannot Open L.C. ; Status is : "+poord.xstatuspor
+         end if
+         if globals(xlcno) .eq. xlcno
+            set globals(ErrChk) = "1"
+            error "Cannot "+#command +" ; Duplicate L.C. No. found"
+         end if
+       end if
+
+       if globals(ErrChk) .ne. "1"
+         if poord.xstatuspor .eq. "Received" .or. poord.xstatuspor .eq. "Partial Received" .or. poord.xstatuspor .eq. "Completed"
+            set globals(ErrChk) = "1"
+            error "Cannot "+#command+"<br>Already "+globals(xstatuspor)
+         end if
+       end if
+     end method
+
+     method check_status
+        if xstatusord .ne. "Open"
+           set globals(ErrChk) = "1"
+           error "Cannot "+#command+"<br>Already "+xstatusord
+        end if
+     end method
+
+end page
+
+

@@ -1,0 +1,10 @@
+   list xsec1
+	caption "Section"
+      table xcodes
+      order xcode
+      select "xtype='Section1'"
+	  navigators alpha
+
+      objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xsec')")
+
+   end list

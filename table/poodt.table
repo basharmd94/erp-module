@@ -1,0 +1,32 @@
+product ERP on the Net
+
+table poodt
+  caption "Purchase Order Details"
+  columns ztime,zutime,zid,xpornum,xrow, xcode,xcodebasis,xitem, xlong, ~
+          xstatuspdt,xstype,xwh, xdropship, ~
+          xqtyord,xqtygrn,xqtystk,~
+          xunitpur,xcfpur,xwtunit,xunitwt,xcur,xexch,xrate,xmargin,~
+          xdisc,xdiscf,xcomm,xpricebasis,xcurprice,~
+          xexchbuy,xprice,xdatesch,~
+          xtaxcat,xtaxcode1,xtaxrate1,xtaxcode2,xtaxrate2,xtaxcode3,xtaxrate3,~
+          xtaxcode4,xtaxrate4,xtaxcode5,xtaxrate5,xlandcost,xdttax,xdtdisc,~
+		  xdtwotax,xlineamt,xpoqot,xline,xbatch,xcompwh,xdescdet
+
+  primary key zid, xpornum,xrow
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xpornum references poord.zid,xpornum
+        zid,xitem references caitem.zid,xitem
+  end foreign key
+
+  field xdtwotax
+        length 30.6
+  end field
+
+  field xlineamt
+        length 30.6
+  end field
+
+end table
+

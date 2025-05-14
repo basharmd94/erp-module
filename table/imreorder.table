@@ -1,0 +1,24 @@
+product ERP on the Net
+
+table imreorder
+	  caption "Reorder View"
+	  
+	  columns zid,xitem,xwh,xinhand,xreordlvl,xsup
+	  
+	  primary key zid,xitem,xwh
+	  
+	  foreign key
+	        zid references zbusiness.zid
+	  end foreign key
+	  
+	  check
+	    //country  = 'US' or country = 'SG'
+	  end check
+	  
+	  sql create view imreorder (zid,xitem,xwh,xinhand,xreordlvl,xsup) ~
+	            as SELECT zid, xitem,xwh,xinhand, ~
+	            coalesce((select xreordlvl from imstk where imstk.xitem=imstock.xitem and imstk.xwh=imstock.xwh and imstk.zid=imstock.zid),0), ~
+	            (select xsup from caitem where caitem.xitem=imstock.xitem and caitem.zid=imstock.zid) ~
+	            FROM imstock where xinhand < coalesce((select xreordlvl from imstk where imstk.xitem=imstock.xitem and imstk.xwh=imstock.xwh and imstk.zid=imstock.zid),0)
+ 
+end table

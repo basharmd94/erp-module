@@ -1,0 +1,232 @@
+page prlvroster
+     
+	 embed onload="move_caret('one','xemp')"
+     caption "Leave Roster"
+     sidebar list one
+     sections form one, script myscript,method chk_acc_group,~
+              method upd_log
+     
+     list one
+     	caption "Added Record(s)"
+        table prlvroster
+        order xrow desc
+        rows 5
+        objects xrow attrib(link #servlet+"?page="+page+"&command=Show&xrow=?")~
+        		xemp,xdatefrom,xdateto,xdaylv
+                
+     end list
+
+     form one
+        table prlvroster
+        order xrow desc        
+        layout 1
+        objects Add, Show,Clear,Update, Top, Previous, Delete, Next, Bottom,~			
+  			xrow attrib(row 0 1),xemp attrib(attach),empname,xleave,xdatefrom default(#d),xdateto default(#d),~
+  			xyear display(hide),xdaylv display(const),xreason,~
+  			zemail display(hide),xemail display(hide),xstatus display(const)
+
+        
+        field xrow
+        	event after
+        		set globals(xrow)=xrow
+        		set globals(xemp)=xemp
+          		if xstatus .eq. "Approved"
+          			set #field(Update.display) = "disable"
+          			set #field(Delete.display) = "disable"
+          			set #field(Approve.display) = "disable"
+          		end if        		        		
+        	end event
+        end field
+        
+        field empname
+        	attrib local
+        	display const
+        	caption
+        	event after
+        		set empname = #sql("select xname from prmst where xemp='"+xemp+"'")
+        	end event
+        end field
+               
+		field xleave
+			width 10
+			display const
+			default "Annual Leave"
+			pick "select xcode from xcodes where xtype like 'Leave Type' and zactive='1'"
+		end field
+		
+		field xreason
+			width 50
+			height 2
+		end field
+		
+		field zemail
+			caption Created By
+		end field
+		
+		field xemail
+			caption Updated By
+		end field
+
+		field xstatus
+			pick
+		end field
+		
+        embed onsubmit="submitit(this)"
+        field Sub
+          embed onclick="clicked(this)"
+        end field
+
+        field add
+          event before
+          	set globals(ErrChk) = ""         	
+          	if globals(ErrChk) .ne. "1"
+          		int fyr = 0
+          		int tyr = 0
+          		set fyr = #sub(xdatefrom,0,4)
+          		set tyr = #sub(xdateto,0,4)
+          		if fyr != tyr
+          			set globals(ErrChk) = "1"
+          			error "Entry should be within the same year"
+          		end if
+          	end if
+          	if globals(ErrChk) .ne. "1"
+          		set chkemp = #sql(str,"select xemp from prmst where xemp='"+xemp+"'")
+          		if #result .ne. "true"
+          			set globals(ErrChk) = "1"
+          			error "Wrong Employee Code"
+          		end if
+          	end if
+          	if globals(ErrChk) .ne. "1"
+          		//class osbcustom(#days(xdatefrom,xdateto,xdaylv,"i"))
+	        	if xdatefrom .gt. xdateto 
+	        		set globals(ErrChk) = "1"
+	        		error "Invalid Date Range"
+	        	else
+	        		set xdaylv=#days(xdateto)-#days(xdatefrom)+1
+	        	end if
+          		 
+          		set xyear = #sub(xdatefrom,0,4)
+          		set zemail = #user
+          		set xstatus = ""
+          	end if			
+          end event
+        end field
+
+        field Update
+          event before
+          	set globals(ErrChk) = ""
+          	
+          	if globals(ErrChk) .ne. "1"
+          		if xstatus .eq. "Approved"
+          			set globals(ErrChk) = "1"
+          			error "Cannot "+#command+"</p>Already Confirmed"
+          		end if
+          	end if          	
+          	if globals(ErrChk) .ne. "1"
+          		int fyr = 0
+          		int tyr = 0
+          		set fyr = #sub(xdatefrom,0,4)
+          		set tyr = #sub(xdateto,0,4)
+          		if fyr != tyr
+          			set globals(ErrChk) = "1"
+          			error "Entry should be within the same year"
+          		end if
+          	end if
+          	if globals(ErrChk) .ne. "1"
+          		if xrow .ne. globals(xrow)
+          			set globals(ErrChk) = "1"
+          			error "Record pointer mismatch</p>Cannot "+#command
+          		end if
+          	end if
+	        if globals(ErrChk) .ne. "1"
+	        	if xdatefrom .gt. xdateto 
+	        		set globals(ErrChk) = "1"
+	        		error "Invalid Date Range"
+	        	else
+	        		set xdaylv=#days(xdateto)-#days(xdatefrom)+1
+	        	end if
+	        	set xyear = #sub(xdatefrom,0,4)
+	        	set xemail = #user
+	        	call upd_log
+	        end if
+          end event
+        end field
+        
+        field Delete
+        	event before
+        		set globals(ErrChk) = ""
+	          	if globals(ErrChk) .ne. "1"
+	          		if xstatus .eq. "Approved"
+	          			set globals(ErrChk) = "1"
+	          			error "Cannot "+#command+"</p>Already Confirmed"
+	          		end if
+	          	end if        		
+	          	if globals(ErrChk) .ne. "1"
+	          		if xrow .ne. globals(xrow)
+	          			set globals(ErrChk) = "1"
+	          			error "Record pointer mismatch</p>Cannot "+#command
+	          		end if
+	          	end if        		
+        		if globals(ErrChk) .ne. "1"
+        			call upd_log
+        		end if
+        	end event
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          b.value = "Top"
+          detail="clicked"
+        }
+        	function PickName(link){
+	  if (navigator.appName.indexOf("Netscape")>=0){
+	    document.one.xacc.value=link.text
+	  }else{
+	    document.one.xacc.value=link.innerText
+	  }
+	  return false
+	}
+
+	function submitit(form){
+
+	    if (detail=="clicked"){
+            form.page.value = "glsub"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+    method chk_acc_group
+      str tmpacg = ""
+      set tmpacg = xcodes.xcode("xtype='Account Group' and xcode='"+xaccgroup+"'")
+      if tmpacg .ne. xaccgroup
+        set globals(ErrChk) = "1"
+        error "Not a valid Account Group<br>Pick from the list"
+      end if
+    end method
+
+    
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql     
+
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+xleave+"','"+xrow+"','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+#time+"','"+page+"','')"
+		set tmpstr =#sql(myqry)		
+     end method
+     
+end page

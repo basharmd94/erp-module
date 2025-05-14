@@ -1,0 +1,11 @@
+//Attendance Sub Menu
+//---------------------------------------------------------------------------------------
+caption "Attendance Setupt Menu" page 3
+option                            |action                                          |modules|models
+//---------------------------------------------------------------------------------------
+Attendance Posting(In)            |#classPath+"/"+#servlet+"?page=prtxtupdn"                |
+Attendance Posting(Out)           |#classPath+"/"+#servlet+"?page=prtxtupdnout"            |
+Shift Code                        |#classPath+"/"+#servlet+"?page=xcodes(xtype=Shift)"     |
+Default Time Settings             |#classPath+"/"+#servlet+"?page=pratdt"                  |
+Attendance Upload                 |#classPath+"/"+#servlet+"?page=*data pratdummy,add"
+//---------------------------------------------------------------------------------------

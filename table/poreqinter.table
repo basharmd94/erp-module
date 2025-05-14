@@ -1,0 +1,13 @@
+product ERP on the Net
+
+table poreqinter
+  caption "Purchase Requisition"
+  columns ztime,zutime,zid,xcounterno,xdate,xemail1,xstatusreq,zemail,xemail,xsup
+
+  primary key zid, xcounterno
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table

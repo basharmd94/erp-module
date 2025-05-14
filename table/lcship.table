@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table lcship
+  caption "Shipment Information"
+  columns  ztime,zutime,zid,xlctrnnum,xrow,xshipdate,xblno,xcarrier,xport,xtime,xqty,xunit,~
+           xrem,xqtydel,zemail,xemail,xamt,xlimitgit,xpayperc,xchgdel,xavlperc,xqtybac,~
+           xdateesc,xdatemor,xqtysrn,xcostass,xitemnew,xline 
+           
+  primary key zid, xlctrnnum,xrow
+   
+  foreign key
+        zid references zbusiness.zid
+        zid,xlctrnnum references lcmst.zid,xlctrnnum        
+  end foreign key
+  
+end table

@@ -1,0 +1,140 @@
+page prlibrary
+
+	 embed onload="move_caret('one','xdesc')"
+     caption "<span class=bl>Library Information for Employee <a href=/da/"+#servlet+"?page=prlibhed&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+     sections form one,list one, script myscript
+
+     list one
+        caption "Added Record(s)"
+        table prfurniture
+        order xrow,xemp
+        select "(xstatustor='Library' and xemp='"+xemp+"')"
+        //navigators alpha
+        rows 60
+        objects xrow attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xrow=?"),~
+                xdesc,xname
+                
+        field xqty
+            caption Approved Amount
+        end field
+        
+        field xdesc
+            caption Book Name
+        end field
+        
+        field xname
+            caption Library Name
+        end field
+        
+     end list
+
+     form one
+        //caption "<font color=black size=4>Furniture Allocation for <font color=white></p>"+globals(xname)+"</font></font>"
+        table prfurniture
+        order xrow,xemp
+        select "(xstatustor='Library')"
+        fixed xemp
+        layout 1
+        objects Add, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,Back,~
+          xrow ,xdesc,xdate,xdatefrom,xname,xremarks,xqty display(hide),xstatustor display(hide),zemail display(hide),xemail display(hide)
+
+        field xdesc
+            caption Book Name
+//            display combo
+//            pick "Educational,Financial"
+        end field
+        
+        field xqty
+            caption Approved Amount
+        end field
+        
+        field xname
+            caption Library Name
+        end field
+        
+        field xdate
+            caption Issue Date
+        end field
+        
+        field xdatefrom
+            caption Date Due
+        end field
+        
+        field xremarks
+            caption Contact Person Information
+            width 50
+            height 4
+        end field
+        
+        field next
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow+1
+        		set xrow = 0+nrow
+        		action show
+        		//print xprqano+" "+nrow
+        	end event
+        end field
+
+        field previous
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow-1
+        		set xrow = 0+nrow
+        		action show
+        		//print xprqano+" "+nrow
+        	end event
+        end field
+
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+            set xstatustor="Library"
+            
+            int last_num=0
+            set last_num = #sql(int,"select xrow from prfurniture where xstatustor='Library' and xemp='"+xemp+"' order by xrow desc")
+                if #result .eq. "true"
+                    set xrow = 0+1+last_num
+                else
+                    set xrow = 0+1
+                end if
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+          embed onsubmit="submitit(this)"
+
+          field Back
+            embed onclick="back(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail=""
+
+        function back(b)
+        {
+          details="back"
+        }
+        function submitit(form)
+        {
+          if (details=="back")
+          {
+            form.page.value = "prlibhed"
+            form.searchbutton.value= "Find xemp=?"
+          }
+        }
+        </script>
+     end script
+
+end page

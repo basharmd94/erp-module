@@ -1,0 +1,10 @@
+   list xdept1
+	caption "Department"
+      table xcodes
+      order xcode
+      select "xtype='Department1'"
+	  navigators alpha
+
+      objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xdept')")
+
+   end list

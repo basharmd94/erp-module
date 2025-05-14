@@ -1,0 +1,322 @@
+page prpf
+
+    embed onload="move_caret('one','xdate')"
+    caption "<span class=bl>Provident Fund Details for Employee <a href=/da/"+#servlet+"?page=prpfhed&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xname)+")"
+    sidebars list one
+    sections  form one, text top, script myscript,~
+              method chk_rec, method chk_mand, method upd_pkey, method chk_edit, method upd_values    
+
+    text top
+      "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+    end text
+
+    list one
+      caption "Available Entries"
+      table prpf
+      order xemp,xdate
+      fixed xemp
+      select
+      navigator
+      rows 20
+      object  xdate attrib(link #servlet+"?page=prpf&command=-&xemp=?&xdate=?"),~
+              xtypetrn,xdesc,xsign,xtotamt
+              
+    end list
+    
+    form one
+      caption
+      table prpf
+      order xemp,xdate
+      fixed xemp
+      select
+      layout 1
+      objects Show, Add, Update, Clear, Previous,-,Next, Top, Delete, Bottom, Return,~
+              xdate,xtypetrn,type_desc,xsign display(const),xtotamt,~
+              xremark,zemail,xemail
+
+
+      field xtypetrn
+        pick "OB,AD,LN,RF"
+        display combo
+        attrib attach
+        event after
+          set globals(xyear)=xyear
+          set globals(xper)=xper
+          set globals(xday)=xday
+          set globals(xdate)=xdate
+
+          if xtypetrn .eq. "OB"
+            set type_desc = "Opening Balance"
+          else if xtypetrn .eq. "AD"
+            set type_desc = "Addition"
+          else if xtypetrn .eq. "LN"
+            set type_desc = "Loan"
+          else if xtypetrn .eq. "RF"
+            set type_desc = "Refund"
+          else
+            set type_desc = ""
+          end if
+          set type_desc = "<center>"+type_desc+"</center>"
+        end event
+      end field
+      
+      field type_desc
+        attrib local
+        display const
+      end field
+
+      field xprime
+        caption Amount
+      end field
+
+      field xremark
+        height 3
+        width 50
+      end field
+
+      field zemail
+        caption Created By
+        disp const
+      end field
+
+      field xemail
+        caption Last Updated By
+        disp const
+      end field
+
+
+      field add
+        event before
+          set globals(ErrChk) = ""
+          
+          if globals(ErrChk) .ne. "1"
+            call chk_rec
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            call chk_mand
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            call chk_edit
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            call upd_values
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            set zemail=#user
+            set xemail=""
+          end if
+        end event
+      end field
+      
+      
+      field update
+        event before
+          set globals(ErrChk) = ""
+
+          if globals(ErrChk) .ne. "1"
+            call chk_rec
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            call chk_mand
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            call chk_edit
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            call upd_values
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            set xemail=#user
+          end if
+        end event
+      end field
+      
+      
+      field delete
+        event before
+          set globals(ErrChk) = ""
+
+          if globals(ErrChk) .ne. "1"
+            call chk_rec
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            call chk_edit
+          end if
+        end event
+      end field
+      
+      
+      field show
+        event before
+          if #field(xyear.display) .sw. "hid" .or. #field(xyear.display) .sw. "const"
+            call upd_pkey
+          end if
+        end event
+      end field
+      
+      field -
+        attrib hidden
+        event before
+          str tmpper=""
+          str tmpyear=""
+          str tmpday=""
+          //print "ok"
+          //print xyear+"-"+xper+"-"+xday
+          if #length(xper)==1
+            set tmpper="0"+xper
+          else
+            set tmpper=xper
+          end if
+          if #length(xday)==1
+            set tmpday="0"+xday
+          else
+            set tmpday=xday
+          end if
+          set xdate=xyear+"-"+tmpper+"-"+tmpday
+          action show
+        end event
+      end field      
+
+      embed onsubmit="submitit(this)"      
+      field Return
+        embed onclick = "back()"
+      end field
+
+    end form
+
+    script myscript
+      <script language="javascript" type="text/javascript">
+        var detail
+        
+        function back(){
+          detail = "back"
+        }
+
+        function submitit(form){
+          if (detail=='back'){
+            form.page.value = "prpfhed"
+            form.searchbutton.value= "Find xemp=?"
+          }
+          return true
+        }
+
+      </script>
+    end script
+    
+    
+    method chk_rec
+      if #command .ne. "Add"
+        if globals(year) .eq. xyear .and. globals(xper) .eq. xper .and. globals(xday) .eq. xday .or. globals(xdate) .eq. xdate
+        else
+          set globals(ErrChk) = "1"
+          error "Record pointer mismatch<br>Click SHOW, then "+#command
+        end if
+      end if
+    end method
+    
+    
+    method chk_mand
+      if xdate .eq. "" .or. xdate .eq. #max .or. xdate .eq. "2999-12-31"
+        set globals(ErrChk) = "1"
+        error "Pls enter "+#field(xdate.caption)
+
+      else if xtypetrn .eq. ""
+        set globals(ErrChk) = "1"
+        error "Pls select "+#field(xtypetrn.caption)
+
+      else if xprime <= 0
+        set globals(ErrChk) = "1"
+        error "Pls enter appropriate "+#field(xprime.caption)
+      end if
+      
+      if globals(ErrChk) .ne. "1"
+        call upd_pkey
+        if xyear <= 1900 .or. xper <= 0 .or. xday <= 0
+          set globals(ErrChk) = "1"
+          error "Not a valid "+#field(xdate.caption)
+        end if
+      end if
+
+      if globals(ErrChk) .ne. "1"
+        if xtypetrn .eq. "OB" .or. xtypetrn .eq. "DE" .or. xtypetrn .eq. "RF"
+        else
+          set globals(ErrChk) = "1"
+          error "Not a valid "+#field(xtypetrn.caption)
+        end if
+      end if
+    end method
+    
+    
+    method upd_pkey
+      int tmp_yr = 0
+      int tmp_pr = 0
+      int tmp_dy = 0
+
+      set tmp_yr = 0+#sub(xdate,0,4)
+      set tmp_pr = 0+#sub(xdate,5,2)
+      set tmp_dy = 0+#sub(xdate,8,2)
+
+      set xyear = tmp_yr
+      set xper = tmp_pr
+      set xday = tmp_dy
+    end method
+    
+
+    method upd_values
+      if xtypetrn .eq. "OB"
+        set xsign = 1
+        set xbase = xprime
+      else if xtypetrn .eq. "DE"
+        set xsign = 1
+      else if xtypetrn .eq. "RF"
+        set xsign = 0-1
+      end if
+    end method
+    
+    
+    method chk_edit
+      str tmp_str = ""
+      
+      // *** donot allow any entry if refund/final settlement made ***
+      str mysql = "select xdate from prsecdep where zid="+#id+" and xemp='"+globals(xemp)+"' and xtypetrn='RF'"
+      set tmp_str = #sql(str, mysql)
+      if tmp_str .ne. ""
+        set globals(ErrChk) = "1"
+        error "Final Settlement already done<br>Cannot "+#command
+      end if
+
+      if globals(ErrChk) .ne. "1"
+        if #command .eq. "Add"
+          if xtypetrn .eq. "RF"
+            set globals(ErrChk) = "1"
+            error ""+#field(xtypetrn.caption)+": "+xtypetrn+" not allowed for manual entry/updating<br>Cannot "+#command
+          else if xtypetrn .eq. "OB"
+            set mysql = "select xdate from prsecdep where zid="+#id+" and xemp='"+globals(xemp)+"' and xtypetrn='"+xtypetrn+"'"
+            set tmp_str = #sql(str, mysql)
+            set tmp_str = #sub(tmp_str,0,10)
+            if tmp_str .ne. ""
+              set globals(ErrChk) = "1"
+              error ""+#field(xtypetrn.caption)+": "+xtypetrn+" already exist on: "+tmp_str+"<br>Cannot "+#command
+            end if
+          end if
+        else
+          if xtypetrn .ne. "OB"
+            if xbase > 0
+              set globals(ErrChk) = "1"
+              error "Already deducted<br>Cannot "+#command+" now"
+            end if
+          end if
+        end if
+      end if
+    end method
+    
+end page

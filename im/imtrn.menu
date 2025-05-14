@@ -1,0 +1,35 @@
+//imtrn.menu
+caption "Transactions" page 3
+//-------------------------------------------------------------------
+option                          |action
+//-------------------------------------------------------------------
+-Receive
+Receive Entry                   |#classPath+"/"+#servlet+"?page=imtemptrn&command=clear"
+-Store Requisition
+Store Requisition Entry    		|#classPath+"/"+#servlet+"?page=imtemptsr&mode=Entry&command=clear"
+Store Requisition Approval 		|#classPath+"/"+#servlet+"?page=imtemptsrapp"
+Store Requisition Confirm 		|#classPath+"/"+#servlet+"?page=imtemptsrcon"
+Sales Return                 |#classPath+"/"+#servlet+"?page=imtemptsrisrt"
+Return Type              	   |#classPath+"/"+#servlet+"?page=xcodes(xtype=Return Type)"
+-Transfer
+//Transfer Entry          	    |#classPath+"/"+#servlet+"?page=imtor&command=clear"
+Transfer Entry          	    |#classPath+"/"+#servlet+"?page=imtor&command=clear"
+Transfer Approve          	    |#classPath+"/"+#servlet+"?page=imtorp&command=clear"
+Transfer Confirm          	    |#classPath+"/"+#servlet+"?page=imtorc&command=clear"
+-Internal Transfer
+Transfer Entry          	    |#classPath+"/"+#servlet+"?page=imtori&command=clear"
+Transfer Approve          	    |#classPath+"/"+#servlet+"?page=imtorpi&command=clear"
+Transfer Confirm          	    |#classPath+"/"+#servlet+"?page=imtorci&command=clear"
+Purchase Return                 |#classPath+"/"+#servlet+"?page=imtemptsriss"
+-Issue
+Issue Entry                     |#classPath+"/"+#servlet+"?page=imtemptsris"
+-Status
+Item Master                     |#classPath+"/"+#servlet+"?page=caitem"
+Stock Status                    |#classPath+"/"+#servlet+"?page=imstock"
+//----------------------------------------------------------------------------------------------------------
+//Stock Status                 	|#classPath+"/"+#servlet+"?page=imstk"
+//Stock Verification            |#classPath+"/"+#servlet+"?page=imstkupdate"
+//I.C. T.O. Entry               |#classPath+"/"+#servlet+"?page=imtorice"
+//Inter Company/Project Transfer|#classPath+"/"+#servlet+"?page=imtoric"
+//Transaction Entry All	        |#classPath+"/"+#servlet+"?page=imtrn&command=clear"
+//----------------------------------------------------------------------------------------------------------

@@ -1,0 +1,131 @@
+page pogdtbat
+     caption "Batch Entry"
+     sidebar list one
+		 sections form one, list trn, script myscript
+
+     list one
+        table pogdtbat
+        order xgrnnum,xrow,xline
+        fixed xgrnnum,xrow
+        rows 10
+        objects  xline attrib(link #servlet+"?page=pogdtbat&command=Show&xgrnnum=?&xrow=?&xline=?"), ~
+                 xbatch,xdaterec,xqty,xdateexp
+
+
+        totals "","Totals","",sum
+
+        //headers none
+     end list
+     
+     list trn
+        caption "IM Transactions"
+        table imtrn
+        order ximtrnnum
+        select " xdoctype='Goods Receipt Note' and xdocnum='"+xgrnnum+"'  and xdocrow="+xrow+" "
+        rows 10
+        objects  ximtrnnum attrib(link #servlet+"?page=imtrn&command=Show&ximtrnnum=?"), ~
+          xitem,xbatch,xbin,xwh,xdate,xyear, xper,~
+          xqty,xval,xvalpost
+          
+
+        totals "","Totals",,,,,,,sum,sum,sum
+
+     end list
+
+
+     form one
+        caption "Batch"
+        table pogdtbat
+        order xgrnnum,xrow,xline
+        fixed xgrnnum,xrow
+		focus xitem
+		
+        layout 2
+        objects ~
+                Clear,Show,Add, Update, Delete, Top, Previous, Next, Bottom,Return,~
+                xline attrib(row 0 10;search),xbatch,xdaterec,xqty,xdateexp,xbin
+
+
+        field xline
+          event after
+            set xstatusgrn=pogrn.xstatusgrn("xgrnnum='"+xgrnnum+"'")
+            if xstatusgrn .eq. #status("xstatusgrn",5)
+              set #field(Delete.display) = "disabled"
+              set #field(Update.display) = "disabled"
+              set #field(Add.display) = "disabled"
+              set #field(xbatch->.display)="const"
+            end if
+          end event
+        end field
+
+        field update
+          event before
+						call checkbatch
+					end event
+					event after
+          end event
+
+        end field
+
+        field delete
+          event after
+          end event
+        end field
+
+        field add
+          event before
+						call checkbatch
+					end event
+        event after
+        end event
+
+
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "pogdt"
+            form.searchbutton.value = "Find xrow=?"
+          }
+        }
+
+        function pickCur(link, exch){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcur.value=link.text
+            document.one.xexch.value=exch.text
+          }else{
+            document.one.xcur.value=link.innerText
+            document.one.xexch.value=exch.innerText
+          }
+          return false
+        }
+
+
+        </script>
+     end script
+		 method checkbatch
+		 	set xitem=pogdt.xitem(xgrnnum,xrow)
+		 	str xbatchman=caitem.xbatchman(xitem)
+			if xbatchman .eq. "1"
+				if xbatch .eq. ""
+						error "Must Enter a Batch Number"
+				end if
+
+			end if
+		 end method
+
+end page

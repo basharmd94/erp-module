@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table moord
+  caption "Manufacturing Order"
+  columns ztime,zutime,zid,xmoord,xitem,xcus,xbom,xqtyprd,xunit,xstatusmor,xdatemo,~
+          xdatereq,xdatesch,xdateexp,xdaterel,xdatekit,xdatecom,xdateundo,~
+          xlong,xdiv,xsec,xproj,xwh,xcompwh,xmoglref,xshift,xref,xsuper,xbatch,zemail,xemail,ximtrnnum,~
+          xtrnmor,xdfshift
+
+  primary key zid, xmoord
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xitem references caitem.zid,xitem
+        zid,xbom references bmbom.zid,xbom
+  end foreign key
+
+end table

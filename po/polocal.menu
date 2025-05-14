@@ -1,0 +1,16 @@
+//PO Codes.menu
+caption "Local Purchasing" page 3
+//-------------------------------------------------------------------
+option                             |action
+//-------------------------------------------------------------------
+Purchase Order                     |#classPath+"/"+#servlet+"?page=poord&command=clear"
+-
+Confirm GRN/MRR           	  	   |#classPath+"/"+#servlet+"?page=pogrn&command=clear"
+Quality Control                    |#classPath+"/"+#servlet+"?page=pogrnq&command=clear"
+Invoice Create                     |#classPath+"/"+#servlet+"?page=pogrnqinv&command=clear"
+-
+Purchase Return                    |#classPath+"/"+#servlet+"?page=podrn&command=clear"
+-Reports				
+Item Information                   |#classpath+"/"+#servlet+"?page=*crystal itemlstt(xitem=From Item=,xsup=To Item=zzz)"
+
+//-------------------------------------------------------------------

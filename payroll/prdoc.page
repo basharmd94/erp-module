@@ -1,0 +1,110 @@
+page prdoc
+
+	 embed onload="move_caret('one','xdesc')"
+     caption "<span class=bl>Submitted Document Information for Employee <a href=/da/"+#servlet+"?page=prsubmit&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+     sections form one,list one, script myscript
+
+     list one
+        caption "Added Record(s)"
+        table prdoc
+        order xrow,xemp
+        select "(xemp='"+xemp+"')"
+        //navigators alpha
+        rows 60
+        objects xrow attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xrow=?"),~
+              xdoctype,xqtyspc
+                
+        field xqtyspc
+            caption Number of Copy
+        end field
+        
+     end list
+
+     form one
+        //caption "<font color=black size=4>Furniture Allocation for <font color=white></p>"+globals(xname)+"</font></font>"
+        table prdoc
+        order xrow,xemp
+        fixed xemp
+        layout 1
+        objects Add, Clear,Show,  Update,  Top, Delete,Previous, Next, Bottom,Back,~
+                xrow attrib(row 0 1),xdoctype,xqty ,zemail display(hide),xemail display(hide),~
+                xremarks
+
+        field xqty
+            caption Number of Copy
+            len 2
+        end field
+        
+        filed xdoctype
+            display combo
+            pick "select xcode from xcodes where xtype='Doccument Type'"
+        end field
+        
+        field xremarks
+            width 50
+            height 4
+        end field
+        
+        field next
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow+1
+        		set xrow = 0+nrow
+        		action show
+        		//print xprqano+" "+nrow
+        	end event
+        end field
+
+        field previous
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow-1
+        		set xrow = 0+nrow
+        		action show
+        		//print xprqano+" "+nrow
+        	end event
+        end field
+
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Back
+            embed onclick="back(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail=""
+
+        function back(b)
+        {
+          details="back"
+        }
+        function submitit(form)
+        {
+          if (details=="back")
+          {
+            form.page.value = "prsubmit"
+            form.searchbutton.value= "Find xemp=?"
+          }
+        }
+        </script>
+     end script
+
+end page

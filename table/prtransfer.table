@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table prtransfer
+  caption "Doccument Details"
+  columns ztime,zutime,zid,xemp,xrow,xname,xunit,xdesig,xdept,xcostcent,xjoindate,~
+          xtypeloc,xnewdept,xnewdesig,xnewsec,xlocation,xdateto,zemail,xemail,xpostflag,xemailc,xempnew
+		  
+
+  primary key zid,xrow
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xemp references prmst.zid,xemp
+  end foreign key
+ 
+end table

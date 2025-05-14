@@ -1,0 +1,22 @@
+product ERP on the Net
+
+table podrn
+  caption "Debit Note"
+  
+  columns ztime,zutime,zid,xdrnnum,xdate,xsup,xref,xpornum,xgrnnum,xsinnum,xvoucher,~
+          xsupref,xdatesupref,xdiv,xsec,xproj,xstatusdrn,xcur,xexch,~
+          xnote,xteam,xmember,xmanager,xwh,xrem,xdisc,~
+          xdtwotax,xdtdisc,xdttax,xval,xdiscamt,xtotamt,zemail,xemail,~
+          xconuser,xconfirmt,xfailer,xfailedt,xinvuser,xinvoicet,xtypepor,xtrnporet,xdatecom
+
+  primary key zid, xdrnnum
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xgrnnum references pogrn.zid,xgrnnum
+        zid,xpornum references poord.zid,xpornum
+        zid,xsup references casup.zid,xsup
+  end foreign key
+  
+  
+end table

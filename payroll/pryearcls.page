@@ -1,0 +1,136 @@
+page pryearcls
+
+    caption "Year Closing for Leave"
+    sections form imtrn,script myscript
+
+    form imtrn
+      //caption "<Costing Run Process (Weighted Average)</font>"
+      layout 1
+      objects ~
+              Process,~
+              xyear default(#glyear)
+              
+      field process
+        event before
+        	set maxzero = ""
+        	set noerr = ""
+        	int holiday = 0
+        	int workday = 0
+        	int lvbal = 0
+        	int lvavail = 0
+        	int present = 0
+        	int absent = 0
+        	double earnlv = 0.00
+        	int maxcf = 0
+        	int newyear = 0+xyear+1
+			
+			if globals(ErrChk) .ne. "1"
+          		set xleave = #sql("select xprearnlv from prdef where zid='"+#id+"' and xprearnlvapp='Yes'")
+          		if #result .eq. "true"
+					set chkrec = #sql("select xcode from xcodes where xtype='Leave Type' and zactive='1' and xcode='"+xleave+"'")
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+						error "Earn Leave Code not defined in PR default"
+					end if
+          		end if
+			end if
+			
+			call errmsg
+						
+			set globals(ErrChk) = ""
+			
+			str xemp = ""
+			str mysql = "select xemp from prmst where zid='"+#id+"' and xstatusemp='A-Active' and xemp>'"+xemp+"'"
+			set xemp = #sql(str,mysql)
+			while #result .eq. "true"
+				set xempcat = #sql("select xempcat from prmst where zid='"+#id+"' and xemp='"+xemp+"'")
+				set maxcf = #sql(int,"select xleavecfd from prlvpolicy where xempcat='"+xempcat+"' and xleave='"+xleave+"'")
+				set lvaloc = #sql(int,"select xleavealc from prlvpolicy where xempcat='"+xempcat+"' and xleave='"+xleave+"'")
+				set lvavail = #sql(int,"select xdaysapp from  prlvstatus where xemp='"+xemp+"' and xyear='"+xyear+"' and xleave='"+xleave+"'")
+                set cfday = #sql(int,"select xcfleave from  prlvalc where xemp='"+xemp+"' and xyear='"+xyear+"' and xleave='"+xleave+"'")
+                
+                set lvbal = 0+lvaloc+cfday-lvavail
+                //print lvbal+" - "+xemp
+                
+				if lvbal > 0 
+				  if lvbal < maxcf
+
+					   set chkrec = #sql("select xemp from prlvalc where xemp='"+xemp+"' and xyear="+newyear+" and xleave='"+xleave+"'")
+					   if #result .eq. "true"
+						    str mysql = "update prlvalc set xcfleave="+lvbal+" where zid='"+#id+"' and xemp='"+xemp+"' and xyear="+newyear+" and xleave='"+xleave+"'"
+						    set tmpstr = #sql(mysql)
+					   else
+						    set myqry = "insert into prlvalc (ztime,zid,xemp,xyear,xleave,xmdlmt,xmdavl,zemail,xemail,xcfleave)"
+						    set myqry = myqry + " values('"+#time+"','"+#id+"','"+xemp+"',"+newyear+",'"+xleave+"',"0","0",~
+							   '"+#user+"','',"+lvbal+")"
+						    set tmpstr =#sql(myqry)
+					   end if
+					else
+ 					   set chkrec = #sql("select xemp from prlvalc where xemp='"+xemp+"' and xyear="+newyear+" and xleave='"+xleave+"'")
+					   if #result .eq. "true"
+						    str mysql = "update prlvalc set xcfleave="+maxcf+" where zid='"+#id+"' and xemp='"+xemp+"' and xyear="+newyear+" and xleave='"+xleave+"'"
+						    set tmpstr = #sql(mysql)
+					   else
+						    set myqry = "insert into prlvalc (ztime,zid,xemp,xyear,xleave,xmdlmt,xmdavl,zemail,xemail,xcfleave)"
+						    set myqry = myqry + " values('"+#time+"','"+#id+"','"+xemp+"',"+newyear+",'"+xleave+"',"0","0",~
+							   '"+#user+"','',"+maxcf+")"
+						    set tmpstr =#sql(myqry)
+					   end if					   
+					end if
+				end if	
+								
+				str mysql = "select xemp from prmst where zid='"+#id+"' and xstatusemp='A-Active' and xemp>'"+xemp+"'"
+				set xemp = #sql(str,mysql)
+			end while
+			
+			if maxzero .ne. ""
+				//print "<font color=red>Max "+xleave+" Carry Forward limit not defined for Employee Category: "+maxzero+"</font></p>"
+			end if
+			
+			if noerr .ne. ""
+				print "Year Closed for Employee Category: "+noerr+"</font>"
+			end if
+			
+        end event
+      end field
+      
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+//            form.searchbutton.value = "Find xvoucher=?"
+            //return false
+          }
+        }
+
+        </script>
+    end script
+    
+    method errmsg
+		str xcode = ""
+		str mysql = "select xcode from xcodes where xtype='Employee Category' and xcode>'"+xcode+"'"
+		set xcode = #sql(str,mysql)
+		while #result .eq. "true"
+			set maxcf = #sql(int,"select xleavecfd from prlvpolicy where zid='"+#id+"' and xempcat='"+xcode+"' and xleave='"+xleave+"'")
+			//print maxcf+" - "+xleave
+			if maxcf <= 0
+				set maxzero = xcode+"; "+maxzero
+			else
+				set noerr = xcode+"; "+noerr
+			end if
+			str mysql = "select xcode from xcodes where xtype='Employee Category' and xcode>'"+xcode+"'"
+			set xcode = #sql(str,mysql)
+		end while	    	
+    end method
+
+end page

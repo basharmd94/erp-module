@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table preducation
+  caption "Education"
+  columns ztime,zutime,zid,xemp,xrow,xyearq,xorg,xcourse,xdatefrom,xdateto,xdegree,xgrade,xissuedby,xboard,xsession
+  
+  
+
+  primary key zid, xemp,xrow
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xemp references prmst.zid,xemp
+  end foreign key
+
+end table

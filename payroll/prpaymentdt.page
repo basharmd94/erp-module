@@ -1,0 +1,255 @@
+page prpaymentdt
+
+     caption "<span class=bl><font size=+1>Payment Details of Employee <a href=/da/portal?page=prpaymenthd&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xname)+")"
+     sidebar list payhead
+     sections form one,list one, script myscript,method calc_sal //list sal,
+
+     list one
+      caption "Payment List"
+	  table (select *,~
+			(select xdesc from prpayhead where zid=prpaymentdt.zid and xpaycode=prpaymentdt.xpaycode) as xdesc from prpaymentdt) as tbl
+      order xemp,xpaycode
+      fixed xemp      
+      objects xpaycode attrib(link #servlet+"?page=prpaymentdt&command=Show&xpaycode=?"),~
+	      xdesc ,xamount
+
+      field xdesc
+        caption Description
+        storage varchar
+      end field
+     end list
+
+     list payhead
+        caption "Payment Head(s)"
+        table prpayhead
+        order xpaycode  	    
+        rows 20
+        objects xpaycode attrib(link "abc" embed onclick="return pickPH(this)"),~
+                xdesc
+     end list
+
+     list sal
+        caption "Salary Details"
+        table prempsal
+        order xemp,xpaycode
+        fixed xemp
+  	    navigators alpha
+        rows 20
+        objects xpaycode,paydesc equals((select xdesc from prpayhead where zid=prempsal.zid and xpaycode=prempsal.xpaycode)),~
+                xamount
+                
+        field paydesc
+            caption Paycode Description
+        end field
+
+     end list
+
+
+     form one
+        table prpaymentdt
+        order xemp,xpaycode
+        fixed xemp
+        layout 1
+        objects Add, Show, Clear, Update, Delete, Top, Previous, Next, Bottom,Return,~ //View_Salary,
+                xpaycode,xdumdesc,xamount,zemail display(hide),xemail display(hide)
+
+          field xpaycode
+            display text
+            width 10
+            pick list xpaycode
+            event after
+                if #user .eq. "sadia@destiny-2000.com" .or. #user .eq. "anupom.das@destiny-2000.com"
+                //    set #field(Update.display) = "hide"
+                end if
+            end event
+          end field
+
+          field xdumdesc
+            attrib local
+            display constant
+            caption Description
+            event after
+              set xdumdesc = #sql(str,"select xdesc from prpayhead where xpaycode='"+xpaycode+"'")
+            end event
+          end field
+
+          field Add
+			event before
+				set globals(ErrChk) =""
+				buffer prpayhead
+				move prpayhead=prpayhead(xpaycode)
+				if #result .ne. "true"
+					set globals(ErrChk) = "1"
+					error "Invalid Payment Code"
+				end if
+				set zemail=#user
+				set xemail=""
+			end event
+		end field
+
+          field Update
+			event before
+				set globals(ErrChk) =""
+				buffer prpayhead
+				move prpayhead=prpayhead(xpaycode)
+				if #result .ne. "true"
+					set globals(ErrChk) = "1"
+					error "Invalid Payment Code"
+				end if
+				set xemail=#user
+			end event
+		end field
+          
+          field View_Salary
+            event before
+                set globals(ErrChk) =""
+                call calc_sal
+            end event
+          end field
+
+          embed onsubmit="submitit(this)"
+          field Return
+            embed onclick="clicked(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          detail="back"
+        }
+        function submitit(form)
+        {
+          if (detail=="back")
+          {
+            form.page.value = "prpaymenthd"
+            form.searchbutton.value= "Find xemp=?"
+          }
+          //return false
+
+        }
+
+        function pickPH(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xpaycode.value=link.text
+          }else{
+            document.one.xpaycode.value=link.innerText
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+    method calc_sal
+
+        if globals(ErrChk) .ne. "1"
+      		set absent_code = #sql("select xprabsent from prdef where zid='"+#id+"' and xprabsentapp='Yes'")
+      		if #result .eq. "true"
+				set chkcode = #sql(str,"select xpaycode from prpayhead where xpaycode='"+absent_code+"'")
+				if #result .eq. "false"
+					set globals(ErrChk) = "1"
+					error "<font color=red>Absent Deduction Code ("+absent_code +") not found in Payment Head Table</font>"
+				end if
+      		end if
+      	end if
+
+        set globals(xpaycode) = "0"
+        double totpay = 0.0D
+        double totded = 0.0D
+        double basic = 0.0D
+        double gross = 0.0D
+        double tmpamt=0.0D
+        set delsql=#sql("delete from prempsal  where zid='"+#id+"' and  xemp='"+globals(xemp)+"'")
+        set globals(xpsclcode)=#sql("select xpsclcode from prmst where zid='"+#id+"' and  xemp='"+globals(xemp)+"'")
+        set mysql = "select xpaycode from prpayhead where zid='"+#id+"' and xpaycode>'"+globals(xpaycode)+"' order by xpaycode"
+        set globals(xpaycode) = #sql(str,mysql)
+        while #result .eq. "true" .and. globals(xpaycode) .ne. ""
+            double actamt = 0.0D
+            set tmpamt=0.0D
+            set globals(payamt) = 0.0D
+            set xprsign = #sql("select xprsign from prpayhead where  zid='"+#id+"' and xpaycode='"+globals(xpaycode)+"'")
+            set xdesc = #sql("select xdesc from prpayhead where  zid='"+#id+"' and xpaycode='"+globals(xpaycode)+"'")
+            set xdigit = #sql(int,"select xdigit from prpayhead where  zid='"+#id+"' and xpaycode='"+globals(xpaycode)+"'")
+            if xprsign .sw. "3"
+                set globals(payamt) = 0.0D+totpay
+
+				if globals(xpaycode) .eq. gross_code
+					set gross = 0.0D+globals(payamt)
+				end if
+
+            else if xprsign .sw. "4"
+                set globals(payamt) = 0.0D+totded
+
+            else if xprsign .sw. "5"
+                set globals(payamt) = 0.0D+totpay-totded
+
+            else
+
+                set xpercent = 0.0+prpayheaddt.xpercent("zid='"+#id+"' and xpsclcode='"+globals(xpsclcode)+"' and xpaycode='"+globals(xpaycode)+"'")
+                set amount = 0.0+prpayheaddt.xamount("zid='"+#id+"' and xpsclcode='"+globals(xpsclcode)+"' and xpaycode='"+globals(xpaycode)+"'")
+                set xminpay = 0.0+prpayheaddt.xminpay("zid='"+#id+"' and xpsclcode='"+globals(xpsclcode)+"' and xpaycode='"+globals(xpaycode)+"'")
+                set xmaxpay = 0.0+prpayheaddt.xmaxpay("zid='"+#id+"' and xpsclcode='"+globals(xpsclcode)+"' and xpaycode='"+globals(xpaycode)+"'")
+                set xpcode = prpayheaddt.xpcode("zid='"+#id+"' and xpsclcode='"+globals(xpsclcode)+"' and xpaycode='"+globals(xpaycode)+"'")
+                //print xpercent+";"+amount+";"+xpcode+";"+globals(xpaycode)
+                if xpcode .ne. "" .and. xpercent>0
+                    set depamt = 0.0+prempsal.xamount("zid='"+#id+"' and xemp='"+globals(xemp)+"' and xpaycode='"+xpcode+"'")
+                    set tmpamt = 0.00+depamt*xpercent/100
+                    if xprsign .sw. "2" .and. globals(xpaycode) .eq. absent_code
+                        set tmpamt = 0.00
+                    end if
+                else if amount<>0
+                        set tmpamt = 0.0D+amount
+                end if
+
+                if xminpay > 0 .and. tmpamt < xminpay
+                    set tmpamt = 0.0D+xminpay
+                end if
+
+                if xmaxpay > 0 .and. tmpamt > xmaxpay
+                    set tmpamt = 0.0D+xmaxpay
+                end if
+
+                set chkrec = #sql(str,"select xpaycode from prpaymentdt where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"'")
+                if #result .eq. "true"
+                    set tmpamt1 = 0.0+#sql(decimal,"select xamount from prpaymentdt where zid='"+#id+"' and xemp='"+globals(xemp)+"' and xpaycode='"+globals(xpaycode)+"'")
+                    set tmpamt = 0.0D+tmpamt1
+                end if
+
+                set globals(payamt) = 0.0D+tmpamt
+
+                if xdigit > 0
+                    set globals(payamt) = 0.0D+#round(globals(payamt),xdigit)
+                else if xdigit < 0
+                    set globals(payamt) = 0.0D+#round(globals(payamt),0)
+                end if
+
+                if xprsign .sw. "1"
+                    set totpay = 0.0D+totpay+globals(payamt)
+                else if xprsign .sw. "2"
+                    set totded = 0.0D+totded+globals(payamt)
+                end if
+
+            end if
+
+                //print "found;"+globals(xpaycode)+";"+globals(payamt)
+
+            if globals(payamt) > 0.0D
+                set myqry = "insert into prempsal (zid,xemp,xpaycode,xamount,zemail,xemail)"
+                set myqry = myqry + " values('"+#id+"','"+globals(xemp)+"','"+globals(xpaycode)+"',~
+                '"+globals(payamt)+"','"+#user+"','')"
+                set tmpstr =#sql(myqry)
+            end if
+
+            set mysql = "select xpaycode from prpayhead where zid='"+#id+"' and xpaycode>'"+globals(xpaycode)+"' order by xpaycode"
+            set globals(xpaycode) = #sql(str,mysql)
+        end while
+
+    end method
+
+end page

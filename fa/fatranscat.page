@@ -1,0 +1,68 @@
+page fatranscat
+
+    caption "Fixed Asset Transfer"
+    sections form imtrn,script myscript
+
+    form imtrn
+      caption "<font color=black size=3>Asset Transfer By Category</font>"      
+      layout 1
+      objects ~
+              Transfer,~
+              xastcatg,xprvdiv,xprvproj,xdiv,xproj
+
+      field xastcatg
+      	display combo
+      	pick select xcode from xcodes where xtype='FA Category'
+      end field
+      
+      field xprvdiv
+        caption Current Division
+        display combo
+        pick select xcode from xcodes where xtype='Project'
+      end field
+
+      field xprvproj
+        caption Current Project
+        display combo
+        pick select xcode from xcodes where xtype='Project'
+      end field
+
+      field xdiv
+        caption <font color=blue>New Division
+      end field
+
+      field xproj
+        caption <font color=blue>New Project
+      end field
+      
+      field Transfer
+        event before
+          print "<font color=blue size=3>Transfer Under Process"
+        end event
+      end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+          }
+        }
+
+        function keeplastkey(){
+        document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        }
+        </script>
+    end script
+
+end page

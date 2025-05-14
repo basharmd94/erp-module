@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table opspprc
+  caption "Special Selling Prices by Price Code"
+  columns ztime,zutime,zid,  xpricecat,xqty,xstdprice,xdisc,xdateeff,xdateexp,xqtypur,xtype
+
+  primary key zid, xpricecat,xqty
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  
+  
+end table

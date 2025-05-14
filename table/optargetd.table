@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table optargetd
+
+  caption "OP Target Entry Details"
+
+  columns ztime,zutime,zid,xyear,xper,xamount,xdisc,zemail,xemail,xsp
+
+  primary key zid,xyear,xper,xamount
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xyear,xper references optarget.zid,xyear,xper
+  end foreign key
+
+end table

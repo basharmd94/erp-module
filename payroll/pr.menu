@@ -1,0 +1,12 @@
+//pr.menu
+caption "Payroll"
+//-------------------------------------------------------------------
+option                     |action
+//-------------------------------------------------------------------
+//Payroll                    |#classPath+"/"+#servlet+"?menu=prroll"              |pr
+Payroll                    |#classPath+"/"+#servlet+"?page=prroll&nexttab=Processed"              |pr
+Schedules and Rates        |#classPath+"/"+#servlet+"?menu=prsch"              |pr
+Codes                      |#classPath+"/"+#servlet+"?menu=prcodes"            |pr
+Reports                    |#classPath+"/"+#servlet+"?menu=prreports"          |pr
+//-------------------------------------------------------------------
+

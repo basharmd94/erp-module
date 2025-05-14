@@ -1,0 +1,14 @@
+//gl.menu
+//-------------------------------------------------------------------------------------
+caption "Accounts" page 3
+option                           		|action
+//-------------------------------------------------------------------------------------
+Transactions                     |#classPath+"/"+#servlet+"?menu=gltrn"
+GL Reports                       |#classPath+"/"+#servlet+"?menu=glreports"
+Financial Reports             	 |#classPath+"/"+#servlet+"?menu=glfinreports"
+Project Accounting Reports       |#classPath+"/"+#servlet+"?menu=pareports"
+Settings                         |#classPath+"/"+#servlet+"?menu=glcodes"
+//---------------------------------------------------------------------------------------
+//Div-Sec-Project Reports        |#classPath+"/"+#servlet+"?menu=gldspreports"
+//Consolidated Reports           |#classPath+"/"+#servlet+"?menu=glconreports"
+//----------------------------------------------------------------------------------------

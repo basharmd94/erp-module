@@ -1,0 +1,526 @@
+page opordermob_olldd
+
+     caption "Mobile Order(s)"
+     sidebar list new,confirm,items_failed
+     sections form one, list items,items_det, script myscript
+
+     list new
+        caption "<font color=red>New Orders</font>"
+        table opordermobv	
+		//table (select *,(select ztime from order_transaction where zid=opordermobv.zid and invoiceno=opordermobv.invoiceno) as desc ~
+		//		from opordermobv) as tbl
+        order invoiceno
+		select "xstatusord = 'New'"
+        rows 10
+        objects invoiceno attrib(link #servlet+"?page="+page+"&command=Show&invoiceno=?"),xdate, ~
+			shopid,shopname,xstatusord
+     end list
+
+     list confirm
+        caption "<br><font color=black>Confirmed Orders</font></br>"
+        table opordermobv
+		
+        order invoiceno
+		select "xstatusord = 'Order Created'"
+        rows 10
+        objects invoiceno attrib(link #servlet+"?page="+page+"&command=Show&invoiceno=?"),xdate, ~
+			shopid,shopname,xstatusord
+     end list
+	 
+     list items
+        caption "Details"
+        table order_transaction
+		empty ""
+        order invoiceno
+		select "invoiceno='"+invoiceno+"' and xstatusord = 'New'"
+        rows 10 
+        objects prdid,prdname,qty,price,xordernum,xstatusord
+		
+     end list
+
+     list items_det
+        caption "<font color=red>Failed"
+        table order_transaction
+		empty ""
+        order invoiceno
+		//select "invoiceno='"+invoiceno+"' and xstatusord = 'Order Created'"
+		select "invoiceno='"+invoiceno+"' and xstatusord = 'Not enough stock to create Order'"
+        rows 10
+        objects prdid,prdname,qty,price,xordernum,xstatusord
+		
+     end list
+	 
+     list items_failed
+        caption "<font color=red>Unsucessful Order(s)"
+        table order_transaction
+		empty ""
+        order invoiceno
+		//select "invoiceno='"+invoiceno+"' and xstatusord = 'Order Created'"
+		select "xstatusord = 'Not enough stock to create Order'"
+        rows 10
+        objects invoiceno attrib(link #servlet+"?page="+page+"&command=Show&invoiceno=?"),xdate,~
+			prdid,prdname,qty,price,xordernum,xstatusord
+		
+     end list
+	 
+     form one
+	valid valid
+        //caption "Customer Master"
+		table order_transaction
+        order invoiceno
+        //select
+        layout 1
+        objects Show,Clear,Create Order,~
+		  invoiceno,shopid,shopname,xdate attrib(local) display(const) caption(Date)
+		  
+		 field xcity
+			caption Area
+		   display ocombo
+           pick "select xdistrict from casalshrc3 where zid='"+#id+"'"
+            event after
+				set globals(xcity)=xcity
+			end event
+         end field
+	 
+	field xsic
+	    caption Priority Card?
+	    attrib mandatory
+	    pick "Bronze,Silver,Gold,Platinum,No Card"
+	end field
+		 
+		 field xsp
+			display text
+			pick list xemp
+		 end field
+		 
+		 field xmethodpay
+			pick "Cash,Credit"
+		 end field
+		 
+		 field spname
+			display const
+			event after
+				set spname=#sql("select xname from prmst where zid='"+#id+"' and xemp='"+xsp+"'")
+			end event
+		 end field
+		 
+		field xadd2
+			display ocombo
+			pick "select xthana from casalshrc4 where zid='"+#id+"' and xdistrict='"+xcity+"'"
+			//pick casalshrc4
+		end field
+		 
+		  field xstate
+		   display hide
+            pick "select xdiv from casalshrc2 where zid='"+#id+"'"
+         end field
+		  
+		  
+          field Add
+            event before
+				set xisscode="CUS-"
+				str mysql = #sql(str,"select xcus from cacus where xcus like '"+xisscode+"%' order by xcus desc")
+				if #result .eq. "true" .and. mysql .ne. ""
+					set last_num = 0+#sub(mysql,6)
+				end if
+				set last_num = 0+1+last_num
+				set mysql = #padl(""+last_num,6,"0")
+				set xcus = xisscode + mysql            
+
+            end event
+            event after
+              buffer cadel=cacus(xcus)
+              set cadel.xcur=#cur
+              set cadel.xwh=cadef.xwh()
+
+              set cadel.xrowdel=10
+              insert cadel
+            end event
+          end field
+
+					field xstatuscus
+						display radio
+					end field
+				field xcrlimit
+
+					default cadef.xcrlimitcus()
+				end field
+
+        field xpayins
+          extend
+          //caption Remarks
+          //display rtf
+        end field
+        field xcravail
+          attrib local
+          display const
+          event after
+						call cacredit
+              set globals(returnpage)="cacus"
+              set globals(trnfield)="xcus"
+              set globals(xtypetrn)="Customer"
+              set globals(xtrnnum)=xcus
+
+              if cadef.xnoautocus() .eq. "1"
+                set #fields(xcus.display)="text"
+              else
+                set #fields(xcus.display)="trn Customer Number"
+
+              end if
+
+          end event
+        end field
+
+
+
+        field xcus
+         //pick list xcus
+         event after
+          //set #field(Bottom.display)="hide"
+          set globals(xcus)=xcus
+         end event
+        end field
+	
+	field Create
+	   event before
+	      set ordernum="COMO"
+              set chkord = #sql("select xtrn from xtrn where xtypetrn='Customer Order' and xtrn='"+ordernum+"'")      
+              if #result .eq. "false"
+              	error "Related transaction code for OP not found"
+              end if
+              set xordernum=#trn("Customer Order",ordernum)		
+
+              buffer opord
+              set opord.xordernum=xordernum
+              move opord=order_transaction(invoiceno)
+              set opord.xref="Created From "+ invoiceno
+			set date=#sql("select ztime from order_transaction where zid='"+#id+"' and invoiceno='"+invoiceno+"'")
+			set orddate=#sub(date,0,10)
+              set opord.xdate=orddate
+			set opord.xtrnord="COMO"
+              set opord.xcuspo= xcusenq
+              set opord.xcus= shopid
+              set opord.xcur= "BDT"
+              set opord.xexch= 1
+              set opord.xsalescat= "Local"              
+              set opord.zemail= #user
+              //set opord.xinvrule= xinvrule            
+              set opord.xstatusord= #status("xstatusord",1)
+			  set whoption = opdef.xwhselect("zid='"+#id+"'")
+			  if whoption .eq. "1"
+			  	 set opord.xwhoption = "Detail"
+			  else
+				 set opord.xwhoption = "Header"
+				 set opord.xwh= cadef.xwh("zid='"+#id+"'")
+			  end if              
+              insert opord
+              if #result .eq. "false"
+              	error "Order not created"
+              end if
+			  
+			  //print invoiceno+" "+#id
+			  
+			int row=0
+			set xpricecat=""
+			set xpricecat=#sql(string,"select xpricecat from ordertranview where zid='"+#id+"' and invoiceno='"+invoiceno+"' and xpricecat>'"+xpricecat+"' order by zid,invoiceno,xpricecat")
+			
+			while #result .eq. "true"
+					//print xpricecat
+					set saltupd=""
+					set xdiscf=0
+					set xdisc=0
+					set xqtyord=#sql(decimal,"select xqtyord from ordertranview where zid='"+#id+"' and invoiceno='"+invoiceno+"' and xpricecat='"+xpricecat+"'")
+			  
+					set discount = "select xdisc from opspprc where zid='"+#id+"' and xpricecat='"+xpricecat+"' and ~
+							xdateexp >= '"+orddate+"' and xdateeff <= '"+orddate+"'  and xqty <="+xqtyord+" and xqtypur >="+xqtyord+" order by xdateeff desc "
+					set xdiscf = #sql(double,discount)
+					//print xdiscf //+"-"+discount
+					
+					set saltpe = "select xtype from opspprc where zid='"+#id+"' and xpricecat='"+xpricecat+"' and ~
+							xdateexp >= '"+orddate+"' and xdateeff <= '"+orddate+"'  and xqty <="+xqtyord+" and xqtypur >="+xqtyord+" order by xdateeff desc "
+					set saltupd = #sql(str,saltpe)
+					
+			  
+
+				//int row=0
+					set prdid=""
+					set prdid=#sql(string,"select prdid from ordertranview1 where zid='"+#id+"' and invoiceno='"+invoiceno+"' and xpricecat='"+xpricecat+"' and prdid>'"+prdid+"' order by prdid")
+	
+				while #result .eq. "true"
+					//print prdid+" "+xdiscf
+					//print prdid+"-Item"
+					set xitem=caitem.xitem("zid='"+#id+"' and xitem='"+prdid+"'")			  
+					set xqtyord=order_transaction.qty("zid='"+#id+"' and invoiceno='"+invoiceno+"' and prdid='"+xitem+"'")			  
+					//set xwh="HMBR -Main Store (4th Floor)"
+					set xwh=cadef.xwh("zid='"+#id+"'")
+					set xpricecat=caitem.xpricecat("zid='"+#id+"' and xitem='"+xitem+"'")
+					//print xpricecat
+					
+					call chkqty
+					if flag == 0
+						//set disper=0
+						//set xdiscf=0
+						//set xdisc=0
+						//set saltupd=""
+						set row=0+row+1
+						//print row
+						
+						//string tmprate = "select xstdprice from opspprc where zid='"+#id+"' and xpricecat='"+xpricecat+"' and ~
+						//		xdateexp >= '"+orddate+"' and xdateeff <= '"+orddate+"' and xqty <="+xqtyord+" and xqtypur >="+xqtyord+""
+						//set cusrate = #sql(double,tmprate)
+						//if cusrate == 0.0
+						set xrate=caitem.xstdprice("zid='"+#id+"' and xitem='"+xitem+"'")
+						//else
+						//set xrate=cusrate
+						//end if
+						
+						//set discount = "select xdisc from opspprc where zid='"+#id+"' and xpricecat='"+xpricecat+"' and ~
+						//		xdateexp >= '"+orddate+"' and xdateeff <= '"+orddate+"'  and xqty <="+xqtyord+" and xqtypur >="+xqtyord+" order by xdateeff desc "
+						//set xdiscf = #sql(double,discount)
+						//print xdiscf+"-"+discount
+						
+						//set saltpe = "select xtype from opspprc where zid='"+#id+"' and xpricecat='"+xpricecat+"' and ~
+						//		xdateexp >= '"+orddate+"' and xdateeff <= '"+orddate+"'  and xqty <="+xqtyord+" and xqtypur >="+xqtyord+" order by xdateeff desc "
+						//set saltupd = #sql(str,saltpe)
+					//print row	
+						buffer opodt
+						move opodt=order_transaction(invoiceno)
+						set opodt.xordernum=xordernum
+						set opodt.xrow=row
+						set opodt.xunitsel=caitem.xunitsel("zid='"+#id+"' and xitem='"+prdid+"'")		
+						set opodt.xitem=xitem
+						set opodt.xcode=xitem
+						set opodt.xcodebasis="Our Code"
+						set opodt.xstype="Stock-N-Sell"					
+						set opodt.xpricebasis="Standard List"
+						//print prdid+" "+xdiscf
+						set opodt.xbotype="None"
+						set opodt.xunitsel=xunitsel
+						set opodt.xcur="BDT"
+						set opodt.xexch=1
+						set opodt.xcfsel=1		
+						set opodt.xstatusodt="Priced"		
+						set opodt.xtaxcat="ANY"		
+						set opodt.xwh="HMBR -Main Store (4th Floor)"
+						set opodt.xqtyreq=xqtyord
+						set opodt.xqtyord=xqtyord
+						set opodt.xdiscf=xdiscf
+						set opodt.xtype=saltupd
+						set opodt.xrate=xrate
+						comp dtwotax = 0.0+(xrate-xdiscf)*xqtyord
+						//print dtwotax
+						set opodt.xdtwotax=0.0+dtwotax //(xrate-xdiscf)*xqtyord
+						set opodt.xdttax = 0.0
+						comp dtdisc = 0.0+((xrate-xdiscf)*xqtyord)*(xdisc/100)
+						//print dtdisc
+						set opodt.xdtdisc = 0.0+dtdisc//((xrate-xdiscf)*xqtyord)*(xdisc/100)
+						comp lineamt = 0.0+(xqtyord*(xrate-xdiscf)*(1-xdisc/100))
+						//print lineamt
+						set opodt.xlineamt = 0.0+lineamt //(xqtyord*(xrate-xdiscf)*(1-xdisc/100))
+						//print row+"-"+xitem+"-"+qty
+						//set opodt.xlineamt=qty*xrate
+						//set whoption = opdef.xwhselect("zid='"+#id+"'")
+						//if whoption .eq. "1"
+						//	set opodt.xwh= cadef.xwh("zid='"+#id+"'")
+						//end if
+						insert opodt
+						//print #result+" "+xordernum
+						if #result .eq. "true"
+							set myqry = "update order_transaction set xstatusord='Order Created', xordernum='"+xordernum+"',xroword='"+row+"' where invoiceno='"+invoiceno+"' and prdid='"+prdid+"'"
+							set tmpstr = #sql(str,myqry)
+						//print #result+"-"+myqry
+						end if
+					else
+						set myqry = "update order_transaction set xstatusord='Not enough stock to create Order', xordernum='',xroword='0' where zid='"+#id+"' and invoiceno='"+invoiceno+"' and prdid='"+prdid+"'"
+						set tmpstr = #sql(str,myqry)				
+					end if
+					set prdid=#sql(string,"select prdid from ordertranview1 where zid='"+#id+"' and invoiceno='"+invoiceno+"' and xpricecat='"+xpricecat+"' and prdid>'"+prdid+"' order by prdid")
+				end while
+
+				//print xpricecat
+				set xpricecat=#sql(string,"select xpricecat from ordertranview where zid='"+#id+"' and invoiceno='"+invoiceno+"' and xpricecat>'"+xpricecat+"' order by zid,invoiceno,xpricecat")
+			end while
+
+	set totamt=#sql(decimal,"select sum(xlineamt) from opodt where zid='"+#id+"' and xordernum='"+xordernum+"'")
+			set myval = "update opord set xdtwotax='"+totamt+"', xval='"+totamt+"',xtotamt='"+totamt+"' where zid='"+#id+"' and xordernum='"+xordernum+"'"
+			set rupon = #sql(str,myval)
+		
+			set totamt = #sql(decimal,"select sum(xlineamt) from opodt where zid='"+#id+"' and xordernum='"+xordernum+"'")
+			//print totamt
+			if totamt > 0.0
+				set edate=opord.xdate("zid='"+#id+"' and xordernum='"+xordernum+"'")
+				set year=cadate.xyear("zid='"+#id+"' and xdate='"+edate+"'")
+				set per=cadate.xper("zid='"+#id+"' and xdate='"+edate+"'")
+				
+				if per == 1
+					set cyear=0+year-1
+					set cper=0+12
+				else
+					set cyear=0+year
+					set cper=0+per-1
+				end if
+				//print cyear+" "+cper
+				
+				set xeccnum=cacus.xeccnum("zid='"+#id+"' and xcus='"+shopid+"'")
+				//print "ECC: "+xeccnum
+				if xeccnum .eq. "Yes"
+				
+					decimal starting=0.0+5000
+					set colamt=#sql(decimal,"select sum(xprime) from cacuscolach where zid='"+#id+"' and xcus='"+shopid+"' and xyear='"+cyear+"' and xper='"+cper+"' and xprime>'"+starting+"' and xdiscf=0")
+					//print colamt+" "+starting+" "+cyear+" "+cper
+					
+					if colamt > 0.0			
+						set spdiscamt = 0.0
+						set mysql = "select xdisc from opspdiscount where zid='"+#id+"' and xdateeff<='"+edate+"' and xamtprom<="+colamt+" order by zid,xamtprom DESC"
+						set tmpval = 0.0
+						set tmpval = 0.0+#sql(decimal, mysql)
+						set discp = 0.0+tmpval/100
+						set spdiscamt = 0.0+colamt*discp
+						
+						if spdiscamt > 0.0
+							if spdiscamt > totamt
+								print "<font color=red size=2+>Customer "+cacus.xorg("zid='"+#id+"' and xcus='"+shopid+"'")+" has earned "+spdiscamt+" as special discount;<br>But cannot avail now as Invoice Amount is less than Discount Amount</font>"
+								//print "C: "+colamt+" T: "+tmpval+" "+discp+" "+spdiscamt
+								str mysql = "update opord set xdiscamt=0,xtotamt="+totamt+",xyear=0,xper=0 where xordernum='"+xordernum+"'"
+								set tmpstr = #sql(str,mysql)		
+								//print "L: "+#result
+							else
+								print "<font color=black size=2+>Customer "+cacus.xorg("zid='"+#id+"' and xcus='"+shopid+"'")+" has earned "+spdiscamt+" as special discount</font>"
+								set gtot=0.0+totamt-spdiscamt
+								str mysql = "update opord set xdiscamt="+spdiscamt+",xtotamt="+gtot+",xyear='"+cyear+"',xper='"+cper+"' where xordernum='"+xordernum+"'"
+								set tmpstr = #sql(str,mysql)			
+								//print #result
+							end if
+						end if
+					end if
+					
+					decimal starting=0.0+5000
+					
+					set discf=#sql(decimal,"select xdiscf from cacuscolach where zid='"+#id+"' and xcus='"+shopid+"' and xyear='"+cyear+"' and xper='"+cper+"' and xordernum='"+xordernum+"'")
+					if discf > 0.0
+						set colamt=#sql(decimal,"select sum(xprime) from cacuscolach where zid='"+#id+"' and xcus='"+shopid+"' and xyear='"+cyear+"' and xper='"+cper+"' and xprime>'"+starting+"'")
+						set spdiscamt = 0.0
+						set mysql = "select xdisc from opspdiscount where zid='"+#id+"' and xdateeff<='"+edate+"' and xamtprom<="+colamt+" order by zid,xamtprom DESC"
+						set tmpval = 0.0
+						set tmpval = 0.0+#sql(decimal, mysql)
+						set discp = 0.0+tmpval/100
+						set spdiscamt = 0.0+colamt*discp
+						if spdiscamt > totamt
+							//print "<font color=red size=2+>Customer "+cacus.xorg("zid='"+#id+"' and xcus='"+shopid+"'")+" has earned "+spdiscamt+" as special discount;<br>But cannot avail now as Invoice Amount is less than Discount Amount</font>"
+							//print "C: "+colamt+" T: "+tmpval+" "+discp+" "+spdiscamt
+							str mysql = "update opord set xdiscamt=0,xtotamt="+totamt+",xyear=0,xper=0 where xordernum='"+xordernum+"'"
+							set tmpstr = #sql(str,mysql)		
+							//print "L5: "+#result
+						else
+							//print "<font color=black size=2+>Customer "+cacus.xorg("zid='"+#id+"' and xcus='"+shopid+"'")+" has earned "+spdiscamt+" as special discount</font>"
+							set gtot=0.0+totamt-spdiscamt
+							str mysql = "update opord set xdiscamt="+spdiscamt+",xtotamt="+gtot+",xyear='"+cyear+"',xper='"+cper+"' where xordernum='"+xordernum+"'"
+							set tmpstr = #sql(str,mysql)			
+							//print "5:"+#result
+						end if
+					end if
+				end if
+			end if
+		
+              action show
+     	      //print "<span class=bl>Customer Order No <a href=/da/"+#servlet+"?page=opord&command=Show&xordernum="+xordernum+">" +xordernum+ "</a> Created.</span>"	   
+	   end event
+
+	end field
+
+        //embed onsubmit="return submitit(this)"
+        embed onsubmit="submitit(this)"
+        field Order
+          embed onclick="clicked(this)"
+        end field
+
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail=b.value
+        }
+        function submitit(form){
+
+          if (detail=="Order"){
+            form.page.value = "opordcus"
+            form.searchbutton.value = "Find xcus=?"
+            //form.searchbutton.value = "Top"
+           // return false
+          }
+          if (detail=="Credit"){
+            form.page.value = "opcredit"
+            //form.searchbutton.value = "Find xcus=?"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (detail=="Delivery Address"){
+            form.page.value = "cadel"
+            //form.searchbutton.value = "Find xcus=?"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (detail=="Payment Methods"){
+            form.page.value = "capay"
+            //form.searchbutton.value = "Find xcus=?"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (detail=="Shipping Methods"){
+            form.page.value = "caship"
+            //form.searchbutton.value = "Find xcus=?"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (detail=="Follow Up"){
+            form.page.value = "opact"
+            //form.searchbutton.value = "Find xcus=?"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (detail=="Contacts"){
+            form.page.value = "cacuscon"
+            //form.searchbutton.value = "Find xcus=?"
+            form.searchbutton.value = "Top"
+            //return false
+          }else if (detail=="Docs"){
+            form.page.value = "xdocs"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        </script>
+     end script
+
+     method chkqty
+        decimal avlqty = 0.0
+        int flag = 0
+
+		set avlqty = #sql(decimal,"select sum(xinhand-xopord-xwoalc-xtoout-xaltqty) from imstock where zid='"+#id+"' and xitem='"+xitem+"' and xwh='"+xwh+"'")
+
+		if avlqty > qty
+		else
+			set flag = 0+1
+      	end if
+     end method
+	 
+     valid valid
+		config
+			set temp=order_transaction.ztime("zid='"+#id+"' and invoiceno='"+invoiceno+"'")
+			set xdate=#sub(temp,0,10)
+			//print "US:"+temp+" "+invoiceno
+			set xordernum=#sql("select xordernum from order_transaction where zid='"+#id+"' and invoiceno='"+invoiceno+"' and xstatusord='Order Created'")
+			set status=#sql("select xstatusord from order_transaction where zid='"+#id+"' and invoiceno='"+invoiceno+"' and xstatusord='Order Created'")
+			//print xordernum+"-"+invoiceno
+			if status .eq. "Order Created"
+				set #field(Create.display) = "disable"
+				print "<span class=bl>Customer Order No <a href=/da/"+#servlet+"?page=opord&command=Show&xordernum="+xordernum+">" +xordernum+ "</a> Created.</span>"	   
+			end if		     
+     	end config
+     end valid
+
+end page

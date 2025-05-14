@@ -1,0 +1,156 @@
+page cadate
+
+    sections form one,list one,script myscript
+	list one_old
+		table cadate
+		caption "<center>Available Entries</center>"
+		order xdate  
+		object xdate attrib(link #servlet+"?page=cadate&command=show&xdate=?"),~
+		xname,xremark,xyear,xper,xweekxmonthname,xmonthname
+	end list
+	
+	list one
+		table cadate
+		caption "<center>Available Entries</center>"
+		order xdate  
+		object xdate attrib(link #servlet+"?page=cadate&command=show&xdate=?"),~
+		xname,xremark,xyear,xper,xweekmth,xmonthname
+		
+		
+		field xname
+			caption Day Name
+		end field 
+	end list
+
+	form one
+		caption "<font color=black>Date Update"
+		table cadate
+		order xdate
+		layout 1
+		objects Show,Update,Clear,Top, Previous, Next, Bottom,"<p>" ,~
+		xdate,xremark,xnote,xname,xweekno display(constant),~
+			xyear display(constant),xper display(constant),xmonthname display(constant)
+
+		field xname
+			caption Day Name
+			display constant
+		end field
+
+		field xremark
+			caption Other Holiday
+			width 50
+			height 2
+		end field
+
+		field update
+			event before
+				set globals(ErrChk) = ""
+				if globlas(ErrChk) .ne. "1"
+					if xremark .eq. "Holiday" .and. xnote .eq. ""
+						set globals(ErrChk) = "1"
+						error "<font color=red size=4>Please Enter Reason for Holiday in Notes Tab"
+					end if
+				end if
+					set day2=#sub(xdate,8,2)
+					int day1=0
+					set day1=0+day2
+
+					set xyear = #sub(xdate,0,4)
+					set xper = #sub(xdate,5,2)
+
+					if xper .eq. "1"
+						set xmonthname = "January"
+					else if xper .eq. "2"
+						set xmonthname = "February"
+					else if xper .eq. "3"
+						set xmonthname = "March"
+					else if xper .eq. "4"
+						set xmonthname = "April"
+					else if xper .eq. "5"
+						set xmonthname = "May"
+					else if xper .eq. "6"
+						set xmonthname = "June"
+					else if xper .eq. "7"
+						set xmonthname = "July"
+					else if xper .eq. "8"
+						set xmonthname = "August"
+					else if xper .eq. "9"
+						set xmonthname = "September"
+					else if xper .eq. "10"
+						set xmonthname = "October"          	
+					else if xper .eq. "11"
+						set xmonthname = "November"
+					else if xper .eq. "12"
+						set xmonthname = "December"
+					end if
+					set holiday=""
+					set note=""
+					if xper .eq. "02" .and. day2 .eq. "21"
+						set holiday="Holiday"
+						set note="Shahid Dibosh(International Mother Language Day)"
+					end if
+					if xper .eq. "03" .and. day2 .eq. "17"
+						set holiday="Holiday"
+						set note="Sheikh Mujibur Rahman Birthday"
+					end if
+					if xper .eq. "03" .and. day2 .eq. "26"
+						set holiday="Holiday"
+						set note="Independence Day"
+					end if
+					if xper .eq. "04" .and. day2 .eq. "14"
+						set holiday="Holiday"
+						set note="Pahela Baishakh(Bangla New Year)"
+					end if
+					if xper .eq. "05" .and. day2 .eq. "01"
+						set holiday="Holiday"
+						set note="Labour Day"
+					end if
+					if xper .eq. "05" .and. day2 .eq. "17"
+						set holiday="Holiday"
+						set note="Buddha Purnima"
+					end if
+					if xper .eq. "08" .and. day2 .eq. "15"
+						set holiday="Holiday"
+						set note="National Mourning Day"
+					end if
+					if xper .eq. "08" .and. day2 .eq. "22"
+						set holiday="Holiday"
+						set note="Janmashtami"
+					end if
+					if xper .eq. "12" .and. day2 .eq. "16"
+						set holiday="Holiday"
+						set note="Bijoy Dibosh(Victory Day)"
+					end if
+					if xper .eq. "12" .and. day2 .eq. "25"
+						set holiday="Holiday"
+						set note="Christmas Day"
+					end if
+
+					set chk_dayname=#sql("select weekday from cadatevw where zid='"+#id+"' and xdate='"+xdate+"'")
+					if chk_dayname ==1
+						set xname="Sunday"
+					else if chk_dayname ==2
+						set xname="Monday"
+					else if chk_dayname ==3
+						set xname="Tuesday"
+					else if chk_dayname ==4
+						set xname="Wednesday"
+					else if chk_dayname ==5
+						set xname="Thursday"
+					else if chk_dayname ==6
+						set xname="Friday"
+					else if chk_dayname ==7
+						set xname="Saturday"
+					end if
+
+					if dayname .eq. xremark
+						set holiday="Holiday"
+					end if
+
+					set xweekno = cadatevw.week("zid='"+#id+"' and xdate='"+xdate+"'")                      
+			end event
+		end field
+
+		embed onsubmit="submitit(this)"
+	end form
+end page

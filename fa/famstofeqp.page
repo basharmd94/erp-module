@@ -1,0 +1,409 @@
+page famstofeqp
+    caption "Fixed Asset Master (Office Equipment)"
+    sections form frmone,list one,text top, script myscript,~
+     	method chk_access, method chk_command    
+
+    text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+   list one
+      table famst
+      order xcode
+      select "xastcatg='Office Equipment'"
+      row 20
+      object xcode attrib(link #servlet+"?page="+page+"&command=show&xcode=?"),xastname,~
+      	xdiv,xastloc,xdept,xsubdept,xastcatg,xasttype
+      	
+      	field xdiv
+      		caption Unit
+      	end field
+      	
+      	field xdept
+      		caption Department
+      	end field
+      	
+      	field xastloc
+      		caption Location
+      	end field
+      	
+      	field xastcatg
+      		caption Asset Type
+      	end field
+
+      	field xasttype
+      		caption Sub Type
+      	end field
+      	      	
+   end list
+
+   form frmone
+      //caption "<font color=black size=3>Fixed Asset Master (Office Equipment)"
+      table famst
+      order xcode
+      select "xastcatg='Office Equipment'"
+      layout 2
+      
+      objects Asset_search,Show,Clear,Top, Previous, Next, Bottom,~
+              //~Addition Details,Disposal Details,~
+                xcode,xvoucher display(const),xdiv,xastloc,xdept,xsubdept display(hide),xastcatg,xasttype,xastname,~
+                xastunit,xastbr,xdepmeth,xdepfactor display(hide),~
+                xdate display(const) ,xyear display(constant),xper display(constant),xsec,xproj,~
+                xcur attrib(attach),xexch display(const),xprime attrib(attach),xbase,~
+                xsup display(hide),xinvno display(hide),~
+                xastbook,xnomlife display(hidden),xestlife,xslvval,xretdate default(#d)display(hidden),~
+                xglref,xlong,xpornum, xdateto, xleasestat display(hide),xmortgstat display(hide),xassetstat
+
+        field show
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+             
+          	 if globals(ErrChk) .ne. "1"
+            	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Create.display) = "hide"
+		                set #field(Sub.display) = "hide"		                
+		                set #field(Details.display) = "hide"		                		                
+		                set #field(Post.display) = "hide"		                
+		                set #field(Back.display) = "hide"		                		                
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if           
+           end event
+        end field
+
+        field Top
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+             
+          	 if globals(ErrChk) .ne. "1"
+            	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Create.display) = "hide"
+		                set #field(Sub.display) = "hide"		                
+		                set #field(Details.display) = "hide"		                	                
+		                set #field(Payment.display) = "hide"		                
+		                set #field(Post.display) = "hide"		                
+		                set #field(Back.display) = "hide"		                		                
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if           
+           end event
+        end field
+                
+        field Asset_search
+          event before
+            class osbcustom(search(xastname,"s","famst","xcode:xastname:xastcatg","pickAsset","xcode:xastname:xdiv:xastloc:xdept:xsubdept:xastcatg:xasttype","yes","Code:Name:Unit:Location:Department:Sub Dept:Type:Sub Type"))
+          end event
+        end field
+              
+        field xsubdept
+        	display text
+        	pick list xsubdept
+        	width 10
+        	event after
+        		set globals(xsubdept)=xsubdept
+        	end event
+        end field
+
+        field xdiv
+        	caption Unit
+        	event after
+        		set globals(xdiv)=xdiv
+        	end event
+        end field
+
+        field xdiv
+        	event after
+        		set globals(xdept)=xdept
+        	end event
+        end field
+                
+        field xastcatg
+          	caption Asset Type
+          	display const
+          	pick list xastcatg
+	        event after
+	        	set globals(xastcatg)=xastcatg
+	        end event
+        end field
+
+        field xastunit
+      		pick list faunit
+        end field
+
+		field xastloc
+			pick list falocation
+			event after
+				set globals(xastloc)=xastloc
+			end event
+		end field
+                
+       field xsec
+         display hide
+       end field
+
+       field xproj
+       	display hide
+       end field
+
+        field xvoucher
+         caption Transaction Number
+         event after
+          	set globals(xvoucher)=xvoucher
+         end event
+        end field
+
+        field xcode
+          caption Asset Code
+          width 25
+        end field
+
+        field xastbook
+          //pick list fabook
+          display hide
+        end field
+
+		field xasttype
+			caption Sub Type
+			pick list fatype
+			event after
+				set globals(xasttype)=xasttype
+			end event          
+		end field
+
+        field xastbr
+          //pick list fabranch
+          display hide		
+        end field
+
+        field xcur
+          display combo
+          //pick
+          default "BDT"
+        end field
+
+        field xexch
+          default "1.0000"
+        end field
+
+        field xdepmeth
+//          display combo
+//          pick "SL - Straight Line,RB - Reducing Balance,DD - Double Declining Balance,SY - Sum of the Years Digit,SP - Special"
+          display text
+          default "SL - Straight Line"
+          attrib readonly
+        end field
+
+        field xbase
+          display constant
+          event before
+            //class osbcustom(#calc(xprime,xexch,"*",2,xbase))
+            set xbase = 0.0+xprime*xexch
+          end event
+        end field
+
+        field xsupplier
+          pick list xsup
+        end field
+
+        field xglref
+          display hide
+        end field
+
+        field xlong
+        	display hide
+        end field
+        
+        field xdateto
+        	caption Purchase Date
+        	default #d
+        end field
+
+        field xprime
+        	caption Asset Value
+        end field
+        
+        field xdate	
+        	event after
+        		set globals(xdate) = xdate
+        	end event
+        end field
+
+        embed onsubmit = "return submitit(this)"
+        field addition
+          embed onclick = "show_addition()"
+        end field
+
+        field revaluation
+          embed onclick = "show_revaluation()"
+        end field
+
+        field transfer
+          embed onclick = "show_transfer()"
+        end field
+
+        field disposal
+          embed onclick = "show_disposal()"
+        end field
+
+   end form
+
+   script myscript
+    <script language="javascript" type="text/javascript">
+
+      var flag = ""
+
+      function show_addition() {
+        //this.value=top
+        flag = "show_addition"
+      }
+
+      function show_revaluation() {
+        flag = "show_revaluation"
+      }
+
+      function show_transfer() {
+        flag = "show_transfer"
+      }
+
+      function show_disposal() {
+        flag = "show_disposal"
+      }
+
+      function submitit(form){
+        if(flag == "show_addition"){
+          form.page.value = "famstad"
+          form.searchbutton.value = "Find xcode=?"
+        }else if(flag == "show_revaluation"){
+          form.page.value = "famstrv"
+          form.searchbutton.value = "Find xcode=?"
+        }else if(flag == "show_transfer"){
+          form.page.value = "famsttr"
+          form.searchbutton.value = "Find xcode=?"
+        }else if(flag == "show_disposal"){
+          form.page.value = "famstdp"
+          form.searchbutton.value = "Find xcode=?"
+        }
+      }
+
+        function pickAsset(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+		    document.frmone.xcode.value=link.text
+          }else{
+		    document.frmone.xcode.value=link.innerText
+          }
+          return false
+        }
+      
+    </script>
+   end script
+
+     method chk_access
+     	set stype = ""
+	  	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          buffer xcriminal
+	          set xcriminal.xwornum = mysql
+	          set xcriminal.xemail = #user
+	          set xcriminal.xdate = #date
+	          str tmptime = ""
+	          class osbcustom(#time(tmptime))
+	          set xcriminal.xtime = tmptime
+	          set xcriminal.xobject = page
+	          insert xcriminal
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+     
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	end if    
+     end method
+   
+ end page

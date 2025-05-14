@@ -1,0 +1,16 @@
+product ERP on the Net
+
+table preducationview
+  caption "Education View"
+  
+  columns zid,xemp,xrow,xyearq,xorg,xcourse,xdatefrom,xdateto,xdegree,xgrade,xissuedby,xboard,xsession
+  
+  
+  primary key zid,xemp,xrow
+
+ sql create view preducationview (zid,xemp,xrow,xyearq,xorg,xcourse,xdatefrom,xdateto,~
+									xdegree,xgrade,xissuedby,xboard,xsession) as ~
+		select zid,xemp,xrow,xyearq,xorg,xcourse,xdatefrom,xdateto,xdegree,xgrade,xissuedby,xboard,xsession ~
+		from preducation 
+ 
+end table

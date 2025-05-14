@@ -1,0 +1,100 @@
+page prdiscpaction
+     //embed onload="move_caret('one','xpaydate')"
+
+     caption "Disciplinary Action"
+     sections form one, list one, script myscript, text top
+
+     text top
+        "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+     end text
+
+     list one
+        table prpay
+        order xpaydate //DESC
+        rows 20
+        objects xpaydate attrib(link #servlet+"?page=prpay&command=Show&xrow=?"),~
+                xremarks
+     end list
+
+     form one
+        //caption "Pay Date"
+        table prpay
+        order xpaydate DESC
+        layout 1
+        objects  Show,  Detail, Add, Clear, Update, Delete, Top, Previous, Next, Bottom,~
+                 xpaydate,xremarks,zemail display(hide),xemail display(hide),xyear display(hide),~
+                 xper display(hide)
+
+        field add
+          event before
+			class osbcustom(getglyear(xpaydate, xyear))
+			class osbcustom(getglper(xpaydate, xper))              
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+			class osbcustom(getglyear(xpaydate, xyear))
+			class osbcustom(getglper(xpaydate, xper))              
+            set xemail=#user
+          end event
+        end field
+
+
+
+          field xpaydate
+		default #date
+            event after
+              set globals(xpaydate)=xpaydate
+            end event
+          end field
+
+         field xremarks
+            display area
+            caption Payment Description
+            width 34
+            height 3
+         end field
+
+          embed onsubmit="submitit(this)"
+
+          field Detail
+           embed onclick="clicked(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b)
+        {
+          detail="EMPCode"
+        }
+        function pickvalue(b){
+          detail="pick"
+        }
+        function submitit(form)
+        {
+	        if (detail=="EMPCode")
+          {
+            form.page.value = "prmsg"
+            form.searchbutton.value="Find xpaydate=?"
+            //return false
+          }
+	        if (detail=="pick")
+          {
+            document.one.xpaydate.value=xpaydate
+            return true
+          }
+        }
+
+        </script>
+     end script
+
+
+
+end page

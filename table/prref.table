@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table prref
+  caption "References"
+  columns ztime,zutime,zid,xemp,xrow,xname,xorg,xoccu,xrelation,xdate,xfeedback,xadd,xphone,xmobile1,xemail1
+
+  primary key zid,xemp,xrow
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xemp references prmst.zid,xemp
+  end foreign key
+  
+end table

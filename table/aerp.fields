@@ -1,0 +1,416 @@
+//aerp.fields
+//---------------------------------------------------------------------------------------------------------------------------------------------
+name       		|caption              				|storage |length|scale|display	  |hei|w |form|def|help|doc|det|valid|attrib|font|calc|pick
+
+//----------------------|-------------------------------------|--------|------|-----|-----------|---|--|----|---|----|---|---|-----|------|----|-------|----
+
+xlcno         |L.C. No                              |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xlcopndate    |L/C Open Date                        |date    |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xlcvalue      |L/C Value                            |decimal |    20|    3|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xfreight      |Freight Value                        |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xfobval       |FOB Value                            |decimal |    20|    3|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xpinvno       |Proforma Invoice No                  |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xpinvdate     |Proforma Invoice Date                |date    |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xicno         |IC No                                |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xlcclsdate    |L/C Maturity Date                    |date    |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xshipupto     |Shipment Upto                        |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xshipdate     |Last Shipment Date                   |date  	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xinscvr       |Insurance Cover Note                 |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xlcano        |LCA No                               |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xamddate      |Ammendment Date                      |date    |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xlmemt        |LME M/T                              |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xpsino        |PSI No                               |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xindent       |Indent No                            |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xmnfst        |Manifesto No                         |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xblno         |B/L No                               |varchar |    50|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xbeno     	  |B/E No               				|varchar |   100|    0|text    	  |  4|20|    |   |    |   |   |     |      |    |    |
+xpaydate      |Payment Date                         |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xpocode       |Import Cost Code                     |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |list xpocode
+xglref        |GL Voucher No                        |varchar |   100|    0|constant   |  1|10|    |   |    |   |   |     |      |    |    |
+xpocracc      |Credit Acc for Cost                  |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xshiplno      |Line                                 |int     |    -1|    0|text       |  1| 4|    |   |    |   |   |     |      |    |    |
+xlandcost     |Landed Cost                          |decimal |    20|    3|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xdtdisc       |Gross Discount                       |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xdttax        |Total Tax                            |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xdtwotax      |Gross Amount w/o Tax                 |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xstype   	  |Stock Type           				|varchar |   100|    0|combo   	  |	 1|20|    |"Stock-N-Sell"   |    |   |   |     | mandatory|    |    |"Stock-N-Sell, Indent, Manufactured, Non-Stock"
+xsubdr        |Debit Sub Account                    |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xacccat       |Duty Category                        |varchar |   100|    0|combo      |  1|10|    |   |    |   |   |     |      |    |    |
+xsubcr        |Credit Sub Account                   |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xpotype       |Cost Type                            |varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |
+xcoststat     |Cost Status                          |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xorgdate      |Original Doc Date                    |date    |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xretdate      |Retirement Letter Date               |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xcostacc      |Account Code                         |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+
+
+//Fields for HR and Payroll
+
+
+xemp          |Employee Code                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |list xemp
+xamount       |Payment Amount                       |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xadvance      |Advance                              |decimal |    20|    2|text       |  1|20|    |0  |    |   |   |     |      |    |    |
+xprrate       |Present Repayment Rate               |decimal |    20|    2|text       |  1|20|    |0  |    |   |   |     |      |    |    |
+xpflag        |Process Flag                         |varchar |   100|    0|text       |  1| 1|    |   |    |   |   |     |      |    |    |
+xinstalno     |Total Instalment No                  |int     |    -1|    0|text       |  1| 4|    |   |    |   |   |     |      |    |    |
+xjobfactor    |Job Factors                          |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |code Job Factor
+xaprsby  	  |Appraisal By							|varchar |   100|    0|combo	  |  1|10|    |   |    |   |   |     |		|	 |	  |code Designation1
+xpercent      |Percent                              |decimal |    20|    2|text       |  1| 5|    |   |    |   |   |     |      |    |    |
+xscore        |Score                                |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xaprstype     |Apraisal Type                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |list xaprstype
+xmgtgrade     |Grading Keys                         |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |code Grading Key
+xstataprs     |Apraisal Status                      |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xremarks      |Remarks                              |varchar |   250|    0|area       |  1|30|    |   |    |   |   |     |      |    |    |
+xintime       |Time In                              |time    |    -1|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xouttime      |Time Out                         	|time    |    -1|    0|text       |  1|20|    |#time | |   |   |     |      |    |    |
+xpnlttime     |Penalty Time                         |varchar |   100|    0|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xdouttime     |Default Out Time                     |varchar |   100|    0|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xatdrem       |Remarks                              |varchar |   250|    0|area       |  5|30|    |   |    |   |   |     |      |    |    |
+xmemtype      |Member Type                          |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xannfee       |Annual Fee                           |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xinstut       |Institute                            |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xconvidnum    	|Conveyance ID Number             	|varchar |   100|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |list xpsprosnum
+xweekno       |Week of the Year                     |varchar |   100|    0|combo      |  1|2 |    |   |    |   |   |     |      |    |    |
+xlunch 			|Lunch/Dinner          				|varchar |   100|    0|radio   	  |  1|20|    |   |    |   |   |     |      |    |    |"Yes,No"
+xprbasicapp	  |Basic Salary Applicable?             |varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xprbasic  	  |Basic Salary Payhead                 |varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |list xpaycode
+xprpfapp	  |Provident Fund Applicable?           |varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xprpf  	  	  |Provident Fund Payhead               |varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |list xpaycode
+xprbonusapp   |Bonus Applicable?           			|varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xprbonus  	  |Bonus Payhead		                |varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |list xpaycode
+xpritaxapp    |Auto Income Tax Applicable?          |varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xpritax   	  |Income Tax Payhead               	|varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |list xpaycode
+xprarrearapp  |Arrear Salary Applicable?           	|varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xprarrear 	  |Arrear Salary Payhead                |varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |list xpaycode
+xprhrentapp   |House Rent Applicable?            	|varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xprhrent  	  |House Rent Payhead                   |varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |list xpaycode
+xprsuspapp	  |Suspension Deduction Applicable?     |varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xprsusp   	  |Suspension Payhead                   |varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |list xpaycode
+xprsubsistapp |Subsistence Allowance Applicable?    |varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xprsubsist	  |Subsistence Allowance Payhead        |varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |list xpaycode
+xprearnlvapp  |Earned Leave Applicable?    			|varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xprearnlv 	  |Earned Leave Code                    |varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |
+xprgrossapp	  |Gross Salary Applicable?             |varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xprgross  	  |Gross Salary Payhead                 |varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |list xpaycode
+xprmatlvapp   |Maternity Leave Applicable?   		|varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xprmatlv 	  |Maternity Leave Code                 |varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |
+xefffrom      |Eligible after Year                  |int     |    -1|    0|text       |  1|10|    |   				   | | | | | |   |    |
+xmaxoffers    |Max Number of Offers 				|int     |    -1|    0|text  	  |	 1| 4|    |   |    |   |   |     |      |    |    |
+xlvprenatal   |Prenatal Leave (Days)           		|int     |    -1|    0|text       |  1|10|    |   				   | | | | | |   |    |
+xlvpostnatal  |Postnatal Leave (Days)           	|int     |    -1|    0|text       |  1|10|    |   				   | | | | | |   |    |
+xperend       |Period Ends on Day       			|int     |    -1|    0|text    	  |	 1| 2|    |   				   | | | | | |   |    |
+xprpfloanapp  |PF Loan Applicable?                  |varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xprpfloan  	  |PF Laon Payhead               		|varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |list xpaycode
+xprsalcalc    |Salary Calculation Based On 			|varchar |   100|    0|radio	  |	 1| 1|    |"Last Day"  		   | | | | | |   |    |"Last Day,Custom"
+xprabsentapp  |Absent Deduction Applicable?         |varchar |   100|    0|radio	  |	 1| 1|    | "No"			   | | | | | |   |    |"Yes,No"
+xprabsent  	  |Absent Deduction Code                |varchar |   100|    0|text       |  1|10|    |                    | | | | | |   |    |list xpaycode
+xpfempcont    |Employee Contribution(P.F.)          |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xpfcomcont    |Company Contribution(P.F.)           |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xdiscpmeth    |Disciplinary Method                  |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |code Discipline
+xdayab        |Absent Days                          |int     |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xnewdesig     |New Designation                      |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |code Designation
+xnewdept      |New Department                       |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |code Department
+xcourse       |Courses                              |varchar |   100|    0|combo      |  1|20|    |                    | | | | | |   |    |code Courses
+xempcat       |Employee Category          			|varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code Employee Category1
+xleave        |Leave Type                           |varchar |   100|    0|text       |  1| 8|    |   |    |   |   |     |      |    |    |list xleave
+xleavealc     |Allocated Leave Day(s)               |int 	 |    -1|    0|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xleavecfd  	  |Leave Carry Over Limit Day(s)        |int 	 |    -1|    0|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xkin          |Name of Kin                          |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xdependant	  |Dependant?	      					|varchar |   100|    0|radio  	  |	 1|20|    |"No"				   | | | | | |   |    |"Yes,No"
+xnominee	  |Nominee?		      					|varchar |   100|    0|radio  	  |	 1|20|    |"No"				   | | | | | |   |    |"Yes,No"
+xbloodgrp     |Blood Group                          |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xspocc        |Spouse Occupation                    |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xspppno       |Spouse Passport No                   |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xplbirth      |Place of Birth                       |varchar |   100|    0|text       |  1|40|    |   |    |   |   |     |      |    |    |
+xincno        |Increment No                         |int     |    -1|    0|text       |  1| 4|    |   |    |   |   | 	 | 	    |    |    |
+xpostflag     |GL Posting Flag                      |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xdesc01       |Description 1                        |varchar |   100|    0|text       |  1|50|    |   |    |   |   |     |      |    |    |
+xcostcent     |Cost Center                          |varchar |   100|    0|text       |  5|30|    |   |    |   |   |     |      |    |    |
+xfather       |Father's Name                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |		|	 |    |
+xmother       |Mother's Name                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |		|	 |    |
+xdesc03       |Description 3                        |varchar |   100|    0|text       |  1|50|    |   |    |   |   |     |      |    |    |
+xdesc04       |Description 4                        |varchar |   100|    0|text       |  1|50|    |   |    |   |   |     |      |    |    |
+xdesc05       |Description 5                        |varchar |   100|    0|text       |  1|50|    |   |    |   |   |     |      |    |    |
+xapproverhr	  |Approved By          				|varchar |   100|    0|text    	  |	 1|30|    |   |    |   |   |     |      |    |    
+xapproveracc  |Approved By          				|varchar |   100|    0|text    	  |	 1|30|    |   |    |   |   |     |      |    |    |
+xrepto        |Reporting To                         |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |code Designation|
+xcomments1    |Comments_1              				|varchar |   250|    0|area    	  |	 5|20|    |   |    |   |   |     |      |    |    |
+xcomments2    |Comments_2              				|varchar |   250|    0|area    	  |	 5|20|    |   |    |   |   |     |      |    |    |
+xcomments3    |Comments_3              				|varchar |   250|    0|area    	  |	 5|20|    |   |    |   |   |     |      |    |    |
+xfdate        |Form Date                            |date	 |    -1|    0|text       |  1|10|    |#d |    |   |   |     |      |    |    |
+xtdate        |To Date                              |date	 |    -1|    0|text       |  1|10|    |#d |    |   |   |     |      |    |    |				
+xremark       |Remarks                              |varchar |   250|    0|area       |  1|30|    |   |    |   |   |     |      |    |    |
+xlvtype		  |Leave Type                           |varchar |   100|    0|combo      |  4|20|    |   |    |   |   |     |      |    |    |"1-Full Pay,2-Half Pay,3-No Pay"
+xdtbirth      |Date of Birth                        |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xdaysavl      |avldays                              |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xjoindate     |Joining Date                         |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xstatusloan 	|Loan Status          				|varchar |   100|    0|radio   	  |  1|20|    |   |    |   |   |     |      |    |    |"1-New,2-Recomended,3-Approved,5-Denied"
+xuserc        |Created By                           |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xleavecfy  	  |Max Carry Over for No. of Year       |int 	 |    -1|    0|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xmaxleave  	  |Day(s) on Leave at a stretch (Max)  	|int 	 |    -1|    0|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xminleave  	  |Day(s) on Leave at a stretch (Min)	|int 	 |    -1|    0|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xmaxencash 	  |Maximum Encashment%                  |decimal |    20|    2|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xminencash 	  |Minimum Encashment%                  |decimal |    20|    2|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xfstslabday	  |1st Slab(Day) for Extended SL        |int 	 |    -1|    0|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xfstslabpay	  |Pay Type for 1st Slab of Extended SL |varchar |   100|    0|combo      |  4|20|    |   |    |   |   |     |      |    |    |"1-Full Pay,2-Half Pay,3-Basic Only,4-No Pay"
+xsndslabday	  |2nd Slab(Day) for Extended SL        |int 	 |    -1|    0|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xsndslabpay	  |Pay Type for 2nd Slab of Extended SL |varchar |   100|    0|combo      |  4|20|    |   |    |   |   |     |      |    |    |"1-Full Pay,2-Half Pay,3-Basic Only,4-No Pay"
+xtrdslabday	  |3rd Slab(Day) for Extended SL        |int 	 |    -1|    0|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xtrdslabpay	  |Pay Type for 3rd Slab of Extended SL |varchar |   100|    0|combo      |  4|20|    |   |    |   |   |     |      |    |    |"1-Full Pay,2-Half Pay,3-Basic Only,4-No Pay"
+xcfleave	  |Carry Forwared Leave                 |int 	 |    -1|    0|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xcalcday      |Leave Ratio                  		|int     |    -1|    0|text       |  1|10|    |   				   | | | | | |   |    |
+xdaylv        |Leave Days                           |int     |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xmaxload      |Maximum Loading Capacity             |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xrcvamt       |Net Receivable Amount                |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xmobcomp	  	|Mobile Companies   				|varchar |   100|    0|combo  	  |	 1|20|    | |   |   |  |  |  |    |    |"Grameen,Banglalink,Citycell,Warid"
+xstatusps 	  	|Mob_Bill Status           			|varchar |   100|   0|text    	  |  1|20|    |   |    |   |   |     |      |    |    |"1-New,2-Confirmed"
+xhour         |Working Hours in Month               |decimal |    20|    2|text       |  1| 8|    |   |    |   |   |     |      |    |    |
+xgvholyd      |Government Holy Day                  |    int |    -1|    0|text       |  1| 3|    |   |    |   |   |     |      |    |    |
+xweekend      |Weekend                              |    int |    -1|    0|text       |  1| 3|    |   |    |   |   |     |      |    |    |
+xnhour        |Normal Hour                          |int     |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xgvothour     |Government OT Hour                   |int     |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xnoothour     |Normal OT Hour                       |int     |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xresth        |Rest Hour                            |int     |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xadvflag      |Process Loan/Advance                 |varchar |   100|    0|radio      |  1|10|    |   |    |   |   |     |      |    |    |"Yes,No"
+xdaysuspend   |Suspension Days                      |int     |    -1|    0|text       |  1|10|    |   				   | | | | | |   |    |
+xdaysuspenq   |Suspension Enq Days                  |int     |    -1|    0|text       |  1|10|    |   				   | | | | | |   |    |
+xsuspendf	  |Deduction% for Suspension            |decimal |    20|    2|text       |  1|20|    |   				   | | | | | |   |    |
+xsuspenqf	  |Deduction% for Enq		            |decimal |    20|    2|text       |  1|20|    |   				   | | | | | |   |    |
+xtrnemp       |Employee Code Prefix           		|char    |     4|    0|combo      |  1| 4|    |  				   | | | | | |   |    |select xtrn from xtrn where xtypetrn = 'Employee Code' and zactive='1'
+xpayscl       |Pay Scale                            |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xpaytyp       |Pay Type                             |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |"Monthly Rated,Held,Non-Pay"
+xfadd         |Foreign Address                      |varchar |   250|    0|area       |  5|30|    |   |    |   |   |     |      |    |    |
+xpadd         |Permanent Address                    |varchar |   250|    0|area       |  5|30|    |   |    |   |   |     |      |    |    |
+xpost         |Postal Code                          |varchar |   100|    0|text       |  5|30|    |   |    |   |   |     |      |    |    |
+xmstatus      |Marital Status                       |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |"Single,Married,Divorced,Widowed"
+xreligi       |Religion                             |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |"Islam,Hindu,Christian,Budhu"
+xcitizen      |Nationality                          |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xcardno       |Card Number                          |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xpassport     |Passport No.                         |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xtinno        |Tax Identification No.(TIN)          |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xempnature    |Nature of Employment                 |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |~
+               "Regular,Temporary,Contact,Probation"
+xprobfrdate   |Probation Period From                |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xprobtodate   |Probation Period To                  |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xcondate      |Confirm Date                         |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xobjective    |Job Objective(s)                     |varchar |   250|    0|area       |  5|50|    |   |    |   |   |     |      |    |    |
+xkeyarea      |Key Performance Areas                |varchar |   250|    0|area       |  5|50|    |   |    |   |   |     |      |    |    |
+xtasks        |Duties/Tasks                         |varchar |   250|    0|area       |  5|50|    |   |    |   |   |     |      |    |    |
+xempnew       |New Employee Code                    |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+dumzid        |Dummy Business Id                    |int     |    -1|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |list idlist
+xpfflag       |Provident Fund Eligibility           |varchar |   100|    0|radio      |  1|10|    |"Yes"|  |   |   |     |      |    |    |"Yes,No"
+xstatusemp    |Employee Status                      |varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |"A-Active,D-Dismissed,H-Hold,R-Resigned,T-Terminated"
+xpsclcode     |Pay scale Code                       |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |list xpsclcode
+xunionmem     |Associated With Union                |varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code Association
+xwelfund      |Associated With Welfare Fund         |varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code Welfare
+xquarter      |Accomodation                         |varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |"Yes,No"
+xspitno       |Spouse Income Tax No                 |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xfphone       |Foreign Phone                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xwpno         |Work Permit Number                   |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xwptype       |Work Permit Type                     |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xwpeffect     |WP Effective Date                    |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xwpexpire     |WP Expire Date                       |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xvhclass      |Symbol of Vehicle Class              |varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code Vehicle Class
+xplace        |Place of Occurence                   |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xtemdate      |Temporary EP Date                    |date	 |    -1|    0|text       |  1|10|    |#d |    |   |   |     |      |    |    |
+xlicentype    |License Type                     	|varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |"Local,International,Noninternational"
+xdtmarr       |Date of Marrige                  	|date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xappby1       |Approval Authority 1                 |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |list xemp
+xappid1       |Approval By ID 1                     |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xappby2       |Approval Authority 2                 |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |list xemp
+xappby3       |Approval Authority 3                 |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |list xemp
+xappid2       |Approval By ID 2                     |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xappid3       |Approval By ID 3                     |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xrecby1       |Recommendation Authority 1           |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |list xemp
+xrecby2       |Recommendation Authority 2           |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |list xemp
+xrecby3       |Recommendation Authority 3           |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |list xemp
+xrecid1       |Recommeded By ID1                    |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xrecid2       |Recommeded By ID2                    |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xrecid3       |Recommeded By ID3                    |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xdisease      |Medical Information/Allergies        |varchar |   250|    0|area       |  5|30|    |  				   | | | | | |   |    |
+xtypepay   |Payment Type       |varchar |    100|    0|combo|1|10|    |   |    |   |   |     ||||code
+xsalary       |Join Salary                          |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xplaceiss     |Place of Issue                       |varchar |   100|    0|text       |  1|20|    |   				   | | | | | |   |    |
+xppexpdt  	  |Passport Expiry Date    				|date	 |    -1|    0|text  	  |	 1|10|    |   				   | | | | | |   |    |
+xemaila       |Email                                |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xemailb       |Email                                |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xbankbr       |Bank Branch                          |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xotflag       |Overtime Eligibility           		|varchar |   100|    0|radio      |  1|10|    |"Yes"|  |   |   |     |      |    |    |"Yes,No"
+xlocatadd  	  	|Location             				|varchar |   100|   0|area    	  |	 2|60|    |   |    |   |   |     |      |    |    |
+xleftdate     |Left on Date                         |date	 |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xleftre       |Left on Reason                       |varchar |   250|    0|area       |  1|30|    |   |    |   |   |     |      |    |    |
+xresignstat   |Resign Status                        |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |"No,Yes"
+xsepmode      |Mode of Seperation                   |varchar |   100|    0|combo      |  1|30|    |   				   | | | | | |   |    |"D-Dismissed,T-Terminated,R-Resigned"
+xlensv        	|Message Id             			|int     |    -1|   0|text    	  |  1| 8|    |   |    |   |   |     | 		|    |    |
+xdigit        |Round Digit                          |int     |    -1|    0|text       |  1| 4|    |   |    |   |   |     |      |    |    |
+xprsign       |Sign                                 |varchar |   100|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xpcode        |Paycode                              |varchar |   100|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xminpay       |Mininum Limit                        |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xmaxpay       |Maximun Limit                        |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xholialw        |Working on Holiday Allowance      |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xhltchg         |Haltage Charge Dhaka, Sylhet & Ctg Zone|decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xhltchgo        |Haltage Charge Other Places       |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xdaholt         |DA on Haltage                     |decimal |    20|    2|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xtraining     |Name of Training                     |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xtraintype    |Type of Training                     |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |
+xdegcom       |Completed Degree                 	|varchar |   100|    0|combo      |  1|35|    |   |    |   |   |     |      |    |    |"After Appointment,Before Appointment"
+xmarks        |Marks                            	|decimal |    20|    2|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xpass         |Pass Status                      	|varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |"Yes,No"
+xref1     	  |Name                   				|varchar |   100|    0|text    	  |	 1|20|    |   |    |   |   |     |      |    |    |
+xsubsec   	  |Sub Section              				|varchar |   100|    0|combo   	  |	 1|20|    |   |    |   |   |     |      |    |    |code SECTION
+xcategory     |Category Code                        |varchar |   100|    0|text       |  1|15|    |   |    |   |   |     |      |    |    |list xcategory
+xnewsec    	  |New Section              				|varchar |   100|    0|combo   	  |	 1|20|    |   |    |   |   |     |      |    |    |code SECTION
+xnewsubsec    |New Sub Section              				|varchar |   100|    0|combo   	  |	 1|20|    |   |    |   |   |     |      |    |    |code SECTION
+xcompany      |Company Division                     |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xoccu         |Occupation                           |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xweekmth      |Week of the Month                    |varchar |   100|    0|combo      |  1|2 |    |   |    |   |   |     |      |    |    |
+xmonthname    |Month Name                           |varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |"January,February,March,April,May,June,July,August,September,October,November,December"
+xautocus      |Auto-generation of Customer Numbers? |varchar |   100|    0|checkbox   |	 1| 1|    | cadefold.xautocus()  | | | | | |    |    |"Yes"
+xautosup      |Auto-generation of Supplier Numbers? |varchar |   100|    0|checkbox   |	 1| 1|    | cadefold.xautosup()  | | | | | |    |    |"Yes"
+xautoemp      |Auto-generation of Employee Codes?   |varchar |   100|    0|checkbox   |	 1| 1|    | cadefold.xautoemp()  | | | | | |    |    |"Yes"
+xappdiv       |Division Applicable?                 |varchar |   100|    0|checkbox   |	 1| 1|    | cadefold.xappdiv()   | | | | | |    |    |"Yes"
+xappsec       |Section Applicable?                  |varchar |   100|    0|checkbox   |	 1| 1|    | cadefold.xappsec()   | | | | | |    |    |"Yes"
+xappproj      |Project Applicable?                  |varchar |   100|    0|checkbox   |	 1| 1|    | cadefold.xappproj()  | | | | | |    |    |"Yes"
+xsingaccsup   |Single Account for Supplier?			|varchar |   100|    0|checkbox	  |	 1| 1|    | cadefold.xsingaccsup()| | | | | |   |    |"Yes"
+xsingacccus   |Single Account for Customer?			|varchar |   100|    0|checkbox	  |	 1| 1|    | cadefold.xsingacccus()| | | | | |   |    |"Yes"
+xratehistory  |Item Rate/Price History?     		|varchar |   100|    0|checkbox	  |	 1| 1|    | cadefold.xratehistory()|| | | | |   |    |"Yes"
+xdatecheck    |Previous or Post Data Entry Allowed?	|varchar |   100|    0|checkbox	  |	 1| 1|    | cadefold.xdatecechk()  || | | | |   |    |"Yes"
+xaitp    	  |AIT %           						|decimal |     5|    2|text    	  |	 1| 6|    |   				   | | | | | |   |    |
+xautoitem     |Auto-generation of Item Code?    	|varchar |   100|    0|checkbox	  |	 1| 1|    | cadefold.xautoitem()| | | | |  |    |    |"Yes"
+xinvmenret    |Invoice No Mendatory in Return?    	|varchar |   100|    0|checkbox	  |	 1| 1|    | cadefold.xinvmenret()| | | | | |   |    	|"Yes"
+xdefwhpo   	  |Default Warehouse for Purchase		|varchar |   100|    0|combo  	  |  1|20|    |cadefold.xdefwhpo()        | | | | | |   |    |code
+xdefwhop   	  |Default Warehouse for Sale   		|varchar |   100|    0|combo  	  |  1|20|    |cadefold.xdefwhop()        | | | | | |   |    |code
+xdefsup       |Default Supplier                     |varchar |   100|    0|text       |  1|40|    |                    | | | | | |   |    |
+xaccdupcheck  |Duplication of Accounts Allowed?    	|varchar |   100|    0|checkbox	  |	 1| 1|    | cadefold.xaccdupcheck()  || | | | |  |   |"Yes"
+
+//Real Estate
+xproj             |Project                          |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |list xproject
+xtower	          |Tower No                         |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xplotsize         |Plot Size in Katha               |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xpsnum            |Order Number                     |varchar |   100|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |list xpsnum
+xaptface          |Apartment Face                   |varchar |    50|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xplottype         |Plot Type                        |varchar |    50|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |"Shop Area,Office Area,Appartment"
+xsalute           |Salutation                       |varchar |   100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Mr,Ms,Mrs,Dr,Prof"
+xnamestatus       |Name Status                      |varchar |   100|    0|checkbox   |  1|20|    |   |    |   |   |     |      |    |    |"1-Customer,2-Dealer,3-Supplier"
+xlevel1           |Level A                          |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xlevel2           |Level B                          |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xlevel3           |Level C                          |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xlevel4           |Level D                          |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xlevel5           |Level E                          |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xlevel6           |Level F                          |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xplotsize1        |Flat Size in sft                 |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xplotsize2        |Flat Size in sft                 |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xplotsize3        |Flat Size in sft                 |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xplotsize4        |Flat Size in sft                 |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xplotsize5        |Flat Size in sft                 |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xplotsize6        |Flat Size in sft                 |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xkatha	          |Project Size(KATHA)              |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xdatedoa          |Deed of Agreement Date           |date    |    -1|    0|text       |  1|10|    |#date|  |   |   |     |      |    |    |
+xdatepoa          |Power of Atony Date              |date    |    -1|   0|text        |  1|10|    |#date|  |   |   |     |      |    |    |
+xdatepapp         |Plane Approval Date              |dat e   |    -1|   0|text        |  1|10|    |#date|  |   |   |     |      |    |    |
+xnamearc          |Architect Name                   |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xnmarcc           |Architect Company                |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xref0             |Name                             |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xnmstrc           |Structural Company               |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xroad             |Road Size                        |varchar |    50|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code Road Size
+xoffadd           |Address                          |varchar |   250|    0|area       |  4|20|    |   |    |   |   |     |      |    |    |
+xmut              |Mutation/Demarcation             |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xptalk            |Possession Talkover              |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xloapp            |LO Approve on Plan               |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xloapps           |LO's Apt. Selection              |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xbuild            |Building Breaking                |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xelevation        |Elevation                        |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xprojnm           |Project Name                     |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xgltrn            |GL Voucher Prefix                |char    |     4|    0|combo      |  1| 4|    |   |    |   |   |     |      |    |    |select xtrn from xtrn where xtypetrn = 'GL Voucher'
+xpsprosnum        |Prospects's ID Number            |varchar |   100|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |list xpsprosnum
+xfollsl           |Followup Serial                  |varchar |    50|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xcstatusdt        |Customer Status Details          |varchar |   100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Suspect,Prospect,Dead,BFU,BFO,Delegated"
+xprospect         |Prospect	Status                  |varchar |   100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Cool,Warm,Hot"
+xcond1            |Condition                        |varchar |   500|    0|area       |  5|20|    |   |    |   |   |     |      |    |    |
+xnaction          |Next Action                      |varchar |   100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Call,Internal Visit,Project Visit"
+xcaction          |Current Action                   |varchar |   100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Call,Call Receipt,External Visit,Internal Visit,Project Visit"
+xteaml            |Team Leader                      |varchar |   100|    0|checkbox   |  1| 1|    |"No"|   |   |   |     |      |    |    |"Yes"
+xtrnref           |Prospects Ref. ID Prefix         |char    |     4|    0|combo      |  1| 4|    |   |    |   |   |     |      |    |    |select xtrn from xtrn where xtypetrn = 'Prospects Trn'
+xrcvtype          |Received as                      |varchar |   100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Adv,Card,Ref,Others,Bill Board"
+xpaymode          |Payment Mode                     |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xstatusps         |Pre-sale Status                  |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |"1-Open,2-Approved,5-Confirmed"
+xproff1           |Proffession                      |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |code Proffession
+xproff2           |Proffession                      |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |code Proffession
+xdistrict         |District                         |varchar |    50|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |list xdistrict
+xeducation        |Education                        |varchar |   100|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xage              |Age                              |varchar |   100|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xspouse           |Spouse Name                      |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xdecimak          |Decision Maker                   |varchar |   100|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xrelation1        |Relationship                     |varchar |   100|    0|combo      |  1|10|    |   |    |   |   |     |      |    |    |
+xhobby            |Hobby                            |varchar |   100|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xstatusd          |Decision Maker                   |varchar |   100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Silent,Inattentive,Talkative,Experienced,Other"
+xcstatus          |Customer Status                  |varchar |   100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Suspect,Client,BFO,BFU,Dead,Delegated"
+xprospect         |Prospect	Status                  |varchar |   100|    0|radio      |  1|20|    |   |    |   |   |     |      |    |    |"Cool,Warm,Hot"
+xaptsize          |Apartment Type                   |varchar |    50|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xarea             |Area                             |varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code
+xplotsize         |Plot Size in Katha               |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xnmchild01        |Children Name                    |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xnmchild02        |Children Name                    |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xinstut01         |Institute                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xinstut02         |Institute                        |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xsltype           |Type of Sales                    |varchar |   100|    0|combo      |  1|10|    |   |    |   |   |     |      |    |    |code Sale Type
+xrefcus           |Reference By                     |varchar |    50|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xinstal           |Instalments Period               |int     |    -1|    0|text       |  1| 4|    |   |    |   |   |     |      |    |    |
+xdownpay          |Down Payment                     |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xvalue07       	  |Value 07                            |decimal |    20|   2|text        |  1|10|    |   |    |   |   |     |      |    |    |
+xdownper          |Down Payment%                    |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xplotno           |Plot No.                         |varchar |    50|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |list xplotno
+xdelcat           |Handover Category                |varchar |    50|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code Handover Category
+xchplotno         |Previous Plot No.                |varchar |    50|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |list xplotno
+xchroad           |Previous Road Size               |varchar |    50|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code Road Size
+xchplottype       |Previous Plot Type               |varchar |    50|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code Plot Type
+xchdelcat         |Previous Handover Category       |varchar |    50|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |code Handover Category
+xchplotsize       |Previous Plot Size in Katha      |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xdatepub          |Date of publish                  |datetime|    -1|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xtrnplot          |Plot Sales Prefix                |char    |     4|    0|combo      |  1| 4|    |   |    |   |   |     |      |    |    |select xtrn from xtrn where xtypetrn = 'Plot Sales Trn'
+xcond2            |Condition                        |varchar |   500|    0|area       |  5|20|    |   |    |   |   |     |      |    |    |
+xdateagre         |Agreement Date                   |date    |    -1|    0|text       |  1|10|    |#date|  |   |   |     |      |    |    |
+xaptno            |Apartment No                     |varchar |    50|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xdateho           |Hand Over Date                   |date    |    -1|    0|text       |  1|10|    |#date|  |   |   |     |      |    |    |
+xdatein           |Arrival Date                     |date    |    -1|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xgltmp0           |Show Account Details             |varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |"Yes,No"
+xpaymth           |Payment Method                   |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xpaytype          |Payment Type                     |varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |"Cash,Credit Card-Visa,Credit Card-Master,Cheque,DD,TT"
+xcard             |Type of Card                     |varchar |   100|    0|combo      |  1|20|    |   |    |   |   |     |      |    |    |"None,NBL,ST.Chartered,Vanik,Ready Cash,Prime,Q-Cash"
+xauthno           |Authorisation No.                |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xbankref          |Bank Ref No                      |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xmonth            |Period                           |int     |    -1|    0|text       |  1| 4|    |   |    |   |   |     |      |    |    |
+xdue              |Due Amount                       |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xpaid             |Paid Amount                      |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xcurinterest      |Current Interest                 |decimal |    20|    4|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xactpay           |Actual Payment                   |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xcall01           |Call                             |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xcall02           |Call                             |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xgen01            |Generating                       |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xvisit01          |Visit                            |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xvisit02          |Visit                            |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xcall03           |Call                             |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xcall04           |Call                             |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xgen02            |Generating                       |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xvisit03          |Visit                            |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xvisit04          |Visit                            |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xsaleval          |Sale Value                       |decimal |    20|    4|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xavail            |Qty Available                    |decimal |    20|    3|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xemaild           |Email                            |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xcall05           |Call                             |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xcall06           |Call                             |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xvisit05          |Visit                            |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xvisit06          |Visit                            |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xvisit07          |Visit                            |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xvisit08          |Visit                            |decimal |    20|    2|text       |  1|20|    | 0 |    |   |   |     |      |    |    |
+xaitacc           |AIT Account                      |varchar |   100|    0|text       |  1|20|    |   |     |  |   |     |      |    |    |list xacc
+xaitsub           |AIT Sub Account                  |varchar |   100|    0|text       |  1|10|    |   |     |  |   |     |      |    |    |list xsalessub
+xdesig        	  |Designation                      |varchar |   100|    0|combo      |  1|30|    |   |    |   |   |     |      |    |    |select xcode from xcodes where xtype='Designation1'
+xboard            |Education Board                  |varchar |   100|    0|text       |  1|10|    |   |    |   |   |     |      |    |    |
+xsession      	  |From Session                     |varchar |   100|    0|text       |  1|20|    |   |    |   |   |     |      |    |    |
+xoccu1        	  |Last Position Held               |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xempt             |To Employee Code                 |varchar |   100|    0|text       |  1|30|    |   |    |   |   |     |      |    |    |
+xatdstat          |Attendance Status                |varchar |   100|    0|text       |  1|15|    |   |    |   |   |     |      |    |    |
+xdate			  |Date              			    |date|    -1|    0|text    |1|10|    |#date   |    |   |   |"xdate<="+#date     |   |    |    |
+
+

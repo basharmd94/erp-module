@@ -1,0 +1,16 @@
+Product ERP on The Net
+
+table practrndt
+	caption "Payment Actual Details"
+
+	columns ztime,zutime,zid,xpaydate,xemp,xpaycode,xrow,xamount,zemail,xemail
+
+	primary key zid,xpaydate,xemp,xpaycode,xrow
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xpaydate,xemp references prmsg.zid,xpaydate,xemp
+		zid,xpaycode references prpayhead.zid,xpaycode
+	end foreign key
+
+end table

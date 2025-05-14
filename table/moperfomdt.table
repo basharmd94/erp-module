@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table moperfomdt
+  caption "BOM Components"
+  columns ztime,zutime,zid,xmoord,xtype,xqty,xdisc,zemail,xemail
+          
+  primary key zid,xmoord,xtype
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xmoord references moperfom.zid,xmoord
+  end foreign key
+  
+end table

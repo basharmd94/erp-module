@@ -1,0 +1,139 @@
+page prlvprocess
+
+    embed onload = "move_caret('one','xdate')"
+
+    caption "Leave Processing"
+    section form one
+
+    form one
+      //caption "Leave Process"
+      layout 1
+      object  Process,~
+              xdate,xempf,xempt
+
+
+      field xdate
+        caption Payment Date
+		default #date
+      end field
+
+      field xempf
+         pick list xfemp
+         width 10
+         event before
+            //set globals(xfemp)=xfemp
+         end event
+      end field
+
+      field xempt
+         pick list xtemp
+         width 10
+         event before
+            //set globals(xtemp)=xtemp
+         end event
+      end field
+
+      field Process
+        event before
+          set globals(ErrChk) = ""
+
+          str paydate = ""
+          set payyr = #sub(xdate,0,4)
+          set paypr = #sub(xdate,5,2)
+          str payyrpr = ""+payyr+""+paypr
+
+          class osbcustom(lastdate(payyr,paypr,paydate))
+          set paydate = #sub(paydate, 0,10)
+          set tmpstr = #sub(xdate,0,10)
+
+          //print "date="+tmpstr+"; yr="+payyr+"; pr="+paypr+"; ldate="+paydate
+          if tmpstr .ne. paydate
+            set globals(ErrChk) = "1"
+            error "Not a valid pay date"
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            buffer prpay
+            set xpaydate = paydate
+            move prpay=prpay(xpaydate)
+            if #result .ne. "true"
+              set prpay.xpaydate = paydate
+              insert prpay
+              if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                error "Error occured while creating pay date"
+              end if
+            end if
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            set globals(xemp) = xempf
+            set mysql = "select xemp from prmst where zid='"+#id+"' and xemp>='"+globals(xemp)+"' and xemp<='"+xempt+"' order by zid,xemp"
+            set globals(xemp) = #sql(str,mysql)
+
+            while #result .eq. "true" .and. globals(xemp) .ne. ""
+              set globals(lvday) = 0
+              set globals(ratev) = 0.0
+      	      decimal half_day =0.0	 
+
+              set mysql = "select xrow from prleave where zid='"+#id+"' and xemp = '"+globals(xemp)+"' and xyear ='"+payyr+"' and xper = '"+paypr+"' and xrow > '"+xrow+"'"
+              set xrow= #sql(str,mysql)
+
+              while #result .eq. "true"
+                str xemp=globals(xemp)
+                buffer prleave
+                move prleave = prleave(xemp,xrow)
+
+                if prleave.xstatleave .eq. "Yes"
+                    set globals(ratev) = 0.0+prleave.xleavetkn + globals(ratev)
+                else if prleave.xstatleave .eq. "Half-Pay"
+                    set half_day = 0.0+prleave.xleavetkn/2
+                    set globals(ratev) = half_day + globals(ratev)                    
+                else
+                    set globals(lvday) = 0+prleave.xleavetkn + globals(lvday)
+                end if
+
+                set mysql = "select xrow from prleave where zid='"+#id+"' and xemp = '"+globals(xemp)+"' and xyear ='"+payyr+"' and xper = '"+paypr+"' and xrow > '"+xrow+"'"
+                set xrow= #sql(str,mysql)
+              end while
+
+              //print "A: "+globals(abday)
+              str xemp=globals(xemp)
+              buffer prmsg
+              move prmsg = prmsg(xpaydate,xemp)
+
+              if #result .eq. "true"
+                 //print "lv="+globals(lvday)
+                 //print "lvwop="+globals(ratev)
+                 set prmsg.xdaylv = 0+globals(lvday)
+                 set prmsg.xratev = 0.0+globals(ratev)
+                 update prmsg(xpaydate,xemp)
+              else
+                 move prmsg=prmst(xemp)
+                 set prmsg.xpaydate = xpaydate
+                 set prmsg.xdaylv = globals(lvday)
+                 set prmsg.xratev = globals(ratev)
+                 set prmsg.xpflag = ""
+                 set prmsg.xadvflag = "Yes"
+                 insert prmsg
+              end if  
+              set mysql = "select xemp from prmst where zid='"+#id+"' and xemp>'"+globals(xemp)+"' and xemp<='"+xempt+"' order by zid,xemp"
+              set globals(xemp) = #sql(str,mysql)
+              if globals(ErrChk) .ne. ""
+                 set #result = "false"
+              end if
+            end while
+
+            if globals(ErrChk) .ne. "1"
+              print "<font color=blue size=+1><strong>Leave Processing Completed</strong></font>"
+            end if
+          end if
+        	set zemail=#user
+        end event
+      end field
+
+   end form
+
+end page
+
+

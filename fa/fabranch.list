@@ -1,0 +1,12 @@
+list fabranch
+        table xcodes
+        order xcode
+        select "xtype='FA Branch'"
+        navigators alpha
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xastbr')"), ~
+                xlong
+
+
+     end list
+

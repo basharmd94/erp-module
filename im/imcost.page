@@ -1,0 +1,148 @@
+page imcost
+
+    caption "Costing Run (Weighted Average Method)"
+    //sidebar list item //,list warehouse
+    sections form imtrn,script myscript
+
+     list warehouse
+        caption "<b>WareHouses</b><br>"
+        table xcodes
+        order ximtrnnum
+        navigators alpha //,group xgitem "select xcode from xcodes where xtype = 'Item Group'"
+        rows 20
+        objects ~
+                ximtrnnum attrib(link #servlet+"?page=imtrn&command=Show&ximtrnnum=?"), ~
+                xitem,xwh,xaction,xqty,xbatch
+
+        //totals count,"","Totals",sum,"","",sum,"",sum
+
+        //headers none
+     end list
+
+    form imtrn
+      layout 1
+      objects ~
+              Process,~
+              xwh,xitem,xgazitem
+
+      field xwh
+        caption WareHouse
+        //display text
+        //pick list xwh
+      end field
+
+      field xitem
+        caption From Item
+	  pick list xitem
+      end field
+
+      field xgazitem
+        caption To Item
+        display text
+        pick list xgazitem
+      end field
+
+      field process
+        event before
+            set globals(ErrChk)=""
+            string citem =""
+            string trn =""
+            double trate=0.0D
+            double lrate=0.0D
+            double tqty=0.0D
+            double tval=0.0D
+            int sign = 0
+            double cval=0.0D
+            
+            set globals(xitem)=xitem
+            set mysql="select xitem from caitem where zid='"+#id+"' and xitem >= '"+globals(xitem)+"' and xitem<='"+xgazitem+"' order by zid,xitem"
+            set globals(xitem)=#sql(str,mysql)
+            while #result .eq. "true"
+            	//print globals(xitem)
+            	int count = 0
+            	str xdate = "1900-01-01"
+				str mysql = "select xdate from imtrn where xwh='"+xwh+"' and xitem='"+globals(xitem)+"' and xdate > '"+xdate+"' order by xtime"
+				set xdate = #sql(str,mysql)				
+				while #result .eq. "true"
+					print "Date: "+xdate
+					set ximtrnnum = ""
+					str mysql = "select ximtrnnum from imtrn where xwh='"+xwh+"' and xitem='"+globals(xitem)+"' and xdate = '"+xdate+"' and ximtrnnum > '"+ximtrnnum+"' order by xtime,ximtrnnum"
+					set ximtrnnum = #sql(str,mysql)
+					//print ximtrnnum
+					while #result .eq. "true"
+						set count = 0+count+1
+						double qty = 0.0D
+						double val = 0.0D
+						set ztime = #sql("select ztime from imtrn where ximtrnnum = '"+ximtrnnum+"'")
+						set xtime = #sql("select xtime from imtrn where ximtrnnum = '"+ximtrnnum+"'")
+						set xsign = #sql("select xsign from imtrn where ximtrnnum = '"+ximtrnnum+"'")
+						if xsign < 0							
+							set qty = #sql(double,"select sum(xqty*xsign) from imtrn where xitem='"+globals(xitem)+"' and xwh='"+xwh+"' and xtime<'"+xtime+"'")
+							set val = #sql(double,"select sum(xval*xsign) from imtrn where xitem='"+globals(xitem)+"' and xwh='"+xwh+"' and xtime<'"+xtime+"'")
+							double rate = 0.0D+val/qty
+							set rate = #round(rate,2)
+							//str mysql = "update imtrn set xval=xqty*"+rate+" where zid='"+#id+"' and ximtrnnum='"+ximtrnnum+"'"
+							//set tmpstr = #sql(str,mysql)
+						end if
+						print ztime+" "+ximtrnnum+" "+xdate+" "+xtime+" "+xsign+" "+qty+" "+val+" "+rate
+						str mysql = "select ximtrnnum from imtrn where xwh='"+xwh+"' and xitem='"+globals(xitem)+"' and xdate = '"+xdate+"' and ximtrnnum > '"+ximtrnnum+"' order by xtime,ximtrnnum"
+						set ximtrnnum = #sql(str,mysql)
+					end while
+					str mysql = "select xdate from imtrn where xwh='"+xwh+"' and xitem='"+globals(xitem)+"' and xdate > '"+xdate+"' order by xtime"
+					set xdate = #sql(str,mysql)
+				end while					
+                set mysql="select xitem from caitem where zid='"+#id+"' and xitem > '"+globals(xitem)+"' and xitem<='"+xgazitem+"' order by zid,xitem"
+                set globals(xitem)=#sql(str,mysql)
+            end while
+            print count
+        end event
+      end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+//            form.searchbutton.value = "Find xvoucher=?"
+            //return false
+          }
+        }
+
+
+        function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.imtrn.xitem.value=link.text
+          }else{
+            document.imtrn.xitem.value=link.innerText
+          }
+          return false
+        }
+
+
+        function pickBatch(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.imtrn.xbatch.value=link.text
+          }else{
+            document.imtrn.xbatch.value=link.innerText
+          }
+          return false
+        }
+
+        function keeplastkey(){
+        document.imtrn.xtempstr1.value=document.imtrn.xitem.value
+        document.imtrn.xtempstr2.value=document.imtrn.xwh.value
+        }
+
+        </script>
+    end script
+
+end page

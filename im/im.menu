@@ -1,0 +1,13 @@
+//im.menu
+caption "Inventory" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Transactions                     |#classPath+"/"+#servlet+"?menu=imtrn"
+//Stock Take                       |#classPath+"/"+#servlet+"?menu=imtake"
+Reorder                          |#classPath+"/"+#servlet+"?menu=imreorder"
+//Costing Run                      |#classPath+"/"+#servlet+"?page=imcost"
+//Transfer to GL                   |#classPath+"/"+#servlet+"?page=imgl"
+Reports                          |#classPath+"/"+#servlet+"?menu=imreports"
+Set up                           |#classPath+"/"+#servlet+"?menu=imcodes"
+//-------------------------------------------------------------------

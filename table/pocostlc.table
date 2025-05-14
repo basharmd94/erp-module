@@ -1,0 +1,26 @@
+product ERP on the Net
+
+table pocostlc
+
+  caption "L/C Cost Details"
+
+  columns ztime,zutime,zid,xpornum,xline,xpocode,xacccat,xcur,xexch,xdaterel,xcost,xpocracc,xstatusresp,xsubcr,~
+          xcostacc,xsubdr,xglref,zactive,xshiplno,xbeno,xbase,xrem,zemail,xemail
+
+  primary key zid, xpornum , xline
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xpornum references poilc.zid,xpornum
+        zid,xpocode references pocharge.zid,xpocode
+  end foreign key
+
+  field xcost
+        length 30.6
+  end field
+
+  field xbase
+        length 30.6
+  end field
+
+end table

@@ -1,0 +1,21 @@
+product ERP on the Net
+
+table imtag
+  caption "Tag Header"
+  
+  columns ztime,zutime,zid,~
+  	xtagnum,xdate,xdatecom,xlong,xref,xwh,xstatustag,zemail,xemail
+
+  primary key zid,xtagnum desc
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+  
+  list xwh,xdate,xdatecom,xlong,xref,xstatustag
+
+end table

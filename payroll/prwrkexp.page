@@ -1,0 +1,87 @@
+page prwrkexp
+
+  section form one,list one, script one
+
+  list one
+   table prwrkexp
+   order xrow
+   //nevigator alpha
+   object xrow attrib(link #servlet+"?page=prwrkexp&command=Show&xrow=?"),xemp,~
+         xcompany,xoccu, xsalary
+   //object prqano attrib(link #servlet+"?page=prqualific&command=Show&prqano=?"),prqayr
+  end list
+
+  form one
+    caption "Working Experience of <font color=cyan>"+xemp+"</font>
+    table prwrkexp
+    order xemp,xrow
+    fixed xemp
+    layout 2
+    object Add,Update,Back,Delete,Clear,Previous,Next,Top,Bottom,~
+          xrow,xfdate,xtdate,xcompany,xadd,xoccu,xcountry,xsalary,~
+          xremarks,zemail display(hide),xemail display(hide)
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+    field xrow
+      atrrib row 0 1
+      columns 3
+      caption Exp No
+    end field
+
+    field xcompany
+      caption Company
+    end field
+
+    field xsalary
+      columns 3
+      caption Salary
+    end field
+
+    field xadd
+      caption Address
+      height 3
+    end field
+
+    field xremarks
+      columns 3
+      width 80
+      display area
+      height 3
+    end field
+
+    embed onsubmit="submitit(this)"
+
+    field Back
+      embed onclick="clicked(this)"
+    end field
+
+  end form
+
+  script one
+  <script language="javascript" type="text/javascript">
+  var detail
+  function clicked(b){
+    detail="Back"
+  }
+  function submitit(form){
+    if (detail=="Back"){
+      form.page.value="prothdt"
+      form.searchbutton.value="Find xemp=?"
+    }
+  }
+  </script>
+  end script
+
+end page

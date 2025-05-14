@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table prlvyear
+  caption "Leave Year"
+  columns ztime,zutime,zid,xempcat,xyear,xdateeff,xdateexp
+  
+  primary key zid,xempcat,xyear
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+  
+  list xdateeff,xdateexp
+  
+end table

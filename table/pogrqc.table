@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table pogrqc
+  caption "Goods Receipt Note Details"
+  columns ztime,zutime,zid,xgrnnum,xrow,xitem,xqtycrn,xqtyord,xprime,xaction,xrem,xpercent,ximtrnnum,xcfpur,xunitpur
+          
+  primary key zid, xgrnnum,xrow
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xgrnnum references pogrn.zid,xgrnnum
+        zid,xgrnnum,xrow references pogdt.zid,xgrnnum,xrow
+  end foreign key
+
+  field xprime
+        length 30.6
+  end field
+
+end table

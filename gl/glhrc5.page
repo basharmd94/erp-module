@@ -1,0 +1,86 @@
+page glhrc5
+     caption "GL Level 1"
+     sidebar list five
+     sections form one,  script myscript
+
+	list five
+        caption "List of "+xhrc4
+        table glhrc5
+        order xhrc1,xhrc2,xhrc3,xhrc4,xhrc5
+        fixed xhrc1,xhrc2,xhrc3,xhrc4
+        rows 20
+        objects xhrc5
+     end list
+
+     form one
+//        caption "Level 2 of "+xhrc1
+        table glhrc5
+        order xhrc1,xhrc2,xhrc3,xhrc4,xhrc5
+        fixed xhrc1,xhrc2,xhrc3,xhrc4
+        layout 1
+        objects Back to previous level,~
+               Add, Update, Delete,  Previous, Next,~
+               xhrc5
+
+             
+        field xhrc5
+          event after
+            set globals(xhrc5)=xhrc5
+          end event
+        end field
+
+        field add
+        	event before
+        		set globals(ErrChk) = ""
+        	end event
+        end field
+
+        field update
+        	event before
+        		set globals(ErrChk) = ""
+        	end event
+        end field
+        
+        field delete
+        	event before
+        		set globals(ErrChk) = ""
+        	end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Back
+          embed onclick="clicked(this)"
+        end field
+
+        field Level
+          embed onclick="grouped(this)"
+        end field
+
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var but = ""
+        function clicked(b){
+          but = "clicked"
+        }
+        function submitit(form){
+          if (but == "clicked"){
+            form.page.value = "glhrc4"
+            form.searchbutton.value = "Find xhrc1=?&xhrc2=?&xhrc3=?&xhrc4=?"
+
+          }
+          if (but == "grouped"){
+            form.page.value = "glhrc5"
+            form.searchbutton.value = "Find xhrc1=?&xhrc2=?&xhrc3=?&xhrc4=?"
+
+          }
+        }
+
+        </script>
+     end script
+
+end page

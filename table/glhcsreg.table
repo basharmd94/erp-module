@@ -1,0 +1,17 @@
+product ERP on the Net
+
+table glhcsreg
+
+	caption "Cash/Cheque Receive Register"
+
+	columns ztime,zid,xordernum,xdate,xtype,xbank,xbankbr,xcheque,xdatedue,xdatecom,xdatenotice,~
+				xamount,xcus,xprime,xremark,zemail,xemail,xchqstat,xsp,xacc,xsub,xdateclr,zutime,~
+				xglref,xendsch,xtproj
+
+	primary key zid,xordernum
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+
+end table

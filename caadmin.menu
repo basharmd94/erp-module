@@ -1,0 +1,12 @@
+//caadmin.menu
+caption "Admin Report" page
+//---------------------------------------------------------------------------------------
+option                  |action                                          |modules|models
+//---------------------------------------------------------------------------------------
+Internal Price & Std. Cost Difference    |#classPath+"/"+#servlet+"?page=*crystal imcosrdfrnc(xdate=From Date=#d,xdate=To Date=#d,xwh=Warehouse)"
+Internal Price & Std. Cost Difference Test    |#classPath+"/"+#servlet+"?page=*crystal imcosrdfrnc1(xdate=From Date=#d,xdate=To Date=#d,xwh=Warehouse)"
+Weighted Avg. Calculation report   |#classpath+"/"+#servlet+"?page=*crystal powtavg(xdate=From Date,xdate=To Date,xitem= Item=)"
+Weighted Avg. Calculation report_Summary   |#classpath+"/"+#servlet+"?page=*crystal powtavgsum(xdate=From Date,xdate=To Date,xitem=From Item=,~
+											xitem=To Item=)"
+Customer Wise Total Collection Report		   				 |#classPath+"/"+#servlet+"?page=*crystal glcusstot(xcus=From Customer=,xcus=To Customer=,xdate=From Date=#d,xdate=To Date=#d)"
+Total Inventory Report                |#classPath+"/"+#servlet+"?page=*crystal imstck(xgitem=From Item Group,xgitem=To Item Group)"

@@ -1,0 +1,9 @@
+//ar.menu
+caption "AR Settings"
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Defaults                        |#classPath+"/"+#servlet+"?page=ardef"|ar,gl
+Cheque Register Interface       |#classPath+"/"+#servlet+"?page=glchqgli"|gl
+//-------------------------------------------------------------------
+

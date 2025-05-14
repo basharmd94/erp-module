@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table Imtor
+  caption "IM Transfer"
+  columns  ztime,zutime, zid, ximtor,xdate,xdatecom,xrem,xstatustor,~
+           xfdiv,xtdiv,xfsec,xtsec,xfproj,xtproj,xfwh,xtwh,zemail,xemail,~
+           dumzid,xictrnno,xtrnimto,xdaterel,xcost,xteam,xmember ,xmanager,~
+           xaction,xvoucher,xglref
+
+  primary key zid, ximtor
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+end table

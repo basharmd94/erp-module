@@ -1,0 +1,42 @@
+//OP Reports.menu
+//-------------------------------------------------------------------
+caption "Payroll Reports" page 3
+option                           |action
+//-------------------------------------------------------------------
+Salary Sheet                                    |#classpath+"/"+#servlet+"?page=*crystal prsalarysht(xpaydate=Payment Date=#d=,xdiv1=Name Of Office,xdept2=Department,xemp=From Employee=,xemp=To Employee=zzz)"
+Salary Sheet (For Net Office)                   |#classpath+"/"+#servlet+"?page=*crystal prsalaryshtnet(xpaydate=Payment Date=#d=,xdiv1=Name Of Office,xemp=From Employee=,xemp=To Employee=zzz)"
+Salary Sheet (For Destiny Group)                |#classpath+"/"+#servlet+"?page=*crystal prsalaryshtnetgr(xpaydate=Payment Date=#d=,xemp=From Employee=0,xemp=To Employee=zzz)"
+Salary Sheet (For Destiny Shopping Center)      |#classpath+"/"+#servlet+"?page=*crystal prsalaryshtnetdscl(xpaydate=Payment Date=#d=,xemp=From Employee=0,xemp=To Employee=zzz)"
+Salary Sheet (For Air Destiny)                  |#classpath+"/"+#servlet+"?page=*crystal prsalaryshtnetadl(xpaydate=Payment Date=#d=,xemp=From Employee=0,xemp=To Employee=zzz)"
+Salary Sheet (For Destiny Tree Plantation Ltd.) |#classpath+"/"+#servlet+"?page=*crystal prsalaryshtdtpl(xpaydate=Payment Date=#d=,xemp=From Employee=0,xemp=To Employee=zzz)"
+Salary Sheet (For Destiny Diamond Builders)      |#classpath+"/"+#servlet+"?page=*crystal prsalaryshtnetdbl(xpaydate=Payment Date=#d=,xemp=From Employee=0,xemp=To Employee=zzz)"
+Salary Sheet (For Destiny Developers Ltd.)      |#classpath+"/"+#servlet+"?page=*crystal prsalaryshtnetddl(xpaydate=Payment Date=#d=,xemp=From Employee=0,xemp=To Employee=zzz)"
+Salary Sheet (Top Sheet for Head Office)        |#classpath+"/"+#servlet+"?page=*crystal prsalaryshttop(xpaydate=Payment Date=#d=)"
+Salary Sheet (Top Sheet for Group Office)       |#classpath+"/"+#servlet+"?page=*crystal prsalaryshttopgr(xpaydate=Payment Date=#d=)"
+Salary Sheet (For Bank)                         |#classpath+"/"+#servlet+"?page=*crystal prsal_sum(xpaydate=Payment Date=#d=,xdiv1=Name Of Office)"
+Salary Sheet (Without Bank)                     |#classpath+"/"+#servlet+"?page=*crystal prsal_sum_oth(xpaydate=Payment Date=#d=,xdiv1=Name Of Office)"
+Income Tax Paid (Monthly)                       |#classpath+"/"+#servlet+"?page=*crystal prsal_sum_M(xemp=From Employee=0,xemp=To Employee=zzz,xyear=Year=,xper=Period=)"
+Income Tax Paid (Datewise)                       |#classpath+"/"+#servlet+"?page=*crystal prsal_sum_year(xemp=From Employee=0,xemp=To Employee=zzz,xpaydate=From Date,xpaydate=To Date)"
+Pay Slip                                        |#classpath+"/"+#servlet+"?page=*crystal prpayslip(xyear=Year=,xper=Period=,xemp=From Employee=,xemp=To Employee=zzz)"
+Pay Slip(Office)                                        |#classpath+"/"+#servlet+"?page=*crystal prpayslip_off(xyear=Year=,xper=Period=,xemp=From Employee=,xemp=To Employee=zzz,xdiv1=Name Of Office)"
+-
+Salary Sheet (Top Sheet for Net Office)         |#classpath+"/"+#servlet+"?page=*crystal prsalaryshttopnet(xpaydate=Payment Date=#d=)"
+Salary Sheet (Top Sheet for Divisional Office)  |#classpath+"/"+#servlet+"?page=*crystal prsalaryshttopdiv(xpaydate=Payment Date=#d=)"
+
+-
+Bonus Sheet                                     |#classpath+"/"+#servlet+"?page=*crystal prbonussht(xpaydate=Payment Date=#d=,xdiv1=Name Of Office,xdept2=Department,xemp=From Employee=,xemp=To Employee=zzz)"
+Bonus Sheet (For Net Office)                    |#classpath+"/"+#servlet+"?page=*crystal prbonussht_netoff(xpaydate=Payment Date=#d=,xdiv1=Name Of Office,xemp=From Employee=,xemp=To Employee=zzz)"
+Payment Sheet                                   |#classpath+"/"+#servlet+"?page=*crystal prpaymentsht(xpaydate=Payment Date=#d=,xemp=From Employee=,xemp=To Employee=zzz)"
+Bonus Sheet(Summary)                            |#classpath+"/"+#servlet+"?page=*crystal prbobusum(xpaydate=Payment Date=#d)"
+Bonus Sheet(Summary And Net Office)             |#classpath+"/"+#servlet+"?page=*crystal prbobusum_netoff(xpaydate=Payment Date=#d)"
+Bonus Sheet(Bank)                            |#classpath+"/"+#servlet+"?page=*crystal prbonusshtbank(xpaydate=Payment Date=#d,xdiv1=Name Of Office)"
+Bonus Sheet(cash)                            |#classpath+"/"+#servlet+"?page=*crystal prbonusshtcash(xpaydate=Payment Date=#d,xdiv1=Name Of Office)"
+-
+Loan/Advance Report                             |#classpath+"/"+#servlet+"?page=*crystal prloneadv(xemp=From Employee=0,xemp=To Employee=zzz,xstatusemp= Status=A-Active)"
+Paypackage                                      |#classPath+"/"+#servlet+"?page=*crystal prpaypackage"
+-New Reports
+Reconciliation Statement                        |#classpath+"/"+#servlet+"?page=*crystal gross_salary(xpaydate=Payment Date=#d)"
+Reconciliation Statement By Department          |#classpath+"/"+#servlet+"?page=*crystal gross_salary_dip(xpaydate=Payment Date=#d,xdiv1=From Department,xdiv1=To Department)"
+Abstract Salary Statement                       |#classpath+"/"+#servlet+"?page=*crystal prsalaryshttop_emp(xpaydate=Payment Date=#d=,xdiv1=Office)"
+Employee Wise Salary                                  |#classPath+"/"+#servlet+"?page=*crystal prmst005(xemp=From Employee=0,xemp=To Employee=z,xstatusemp= Employee Status=A-Active )"
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------

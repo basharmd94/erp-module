@@ -1,0 +1,13 @@
+page xbookcode
+  section form one, script myscript
+
+  form one
+    caption "Book Codes"
+    table xcodes
+    order xcode
+    select "xtype='Book'"
+
+    object Add,Delete,Update,Show,Previous,Next,Top,Bottom,~
+           xcode,xlong
+  end form
+end page

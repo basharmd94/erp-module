@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table opddtbat
+  caption "Delivery Order Batch Details"
+  columns ztime,zutime,zid,xdornum,xrow,xline,xqty,xbatch,xdaterec,xcfsel
+
+  primary key zid, xdornum,xrow,xline
+  foreign key
+        zid references zbusiness.zid
+        zid,xdornum references opdor.zid,xdornum
+        zid,xdornum,xrow references opddt.zid,xdornum,xrow
+  end foreign key
+end table
+

@@ -1,0 +1,328 @@
+page bmbom
+
+    //embed onload = "move_caret('one','xbom')"
+
+    caption "Bill of Quantity "+"<a href='"+#report(bmused.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xbom+"&prompt2="+xbom+"' target='_new'>Print</a>"
+
+    sidebar list details
+
+    sections form one, list bom,text top, script myscript
+
+    text top
+        "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list bom
+        caption "BOM List"
+        table bmbom
+        order xbom
+        select "zid='"+#id+"'"
+        rows 6
+        objects xbom attrib(link #servlet+"?page="+page+"&command=Show&xbom=?"),~
+                xgitem
+                
+        field xdesc
+            caption Description
+        end field
+                
+    end list
+
+    list details
+        caption "Components for BOM "+xbom
+        //table bmbdt
+		table (select *,~
+			(select xdesc from caitem ~
+			where zid=bmbdt.zid and xitem=bmbdt.xitem) as itemdesc ~
+			from bmbdt) as tbl
+			
+        order xbom,xline
+        fixed xbom
+        select "zid='"+#id+"'"
+        rows 20
+        objects xline attrib(link #servlet+"?page=bmbdt&command=Show&xbom=?&xline=?"), ~
+                xitem,itemdesc,~
+                xqty,xunit,xstype
+
+        field xqty
+            len 10.3
+        end field
+		
+		field xamount
+			caption Amount
+		end field
+
+        field desc
+            caption Description
+            storage varchar
+        end field
+
+    end list
+	
+    form one
+        valid valid,access
+        table bmbom
+        order xbom
+        select "zid='"+#id+"'"
+        
+        layout 1
+        objects Show,Add, Detail,By_Products display(hide), Clear, Update, Delete, Top, Previous,Next, Bottom,BOM_Delete,~
+                xbom ,xgitem display(hide),zemail attrib(hidden),xemail attrib(hidden)
+
+
+		field show
+			event before
+				set globals(hed) = xbom
+			end event
+			event after
+				set globals(hed) = xbom
+			end event
+		end field
+
+		field Top
+			event before
+				set globals(hed) = xbom
+			end event
+			event after
+				set globals(hed) = xbom
+			end event
+		end field
+
+        field xbom
+			second list xitem
+            event after
+                set globals(xbom)=xbom
+            end event
+        end field
+
+        field xdesc
+            caption Description
+            width 20
+        end field
+
+        field Add
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    set zemail = #user
+                end if
+            end event
+			
+        end field
+
+        field Update
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+                if globals(ErChk) .ne. "1"
+                    set xemail = #user
+                end if
+            end event
+        end field
+
+        field Delete
+            event before
+                set globals(ErrChk) = ""
+
+                if globals(ErrChk) .ne. "1"
+                    call chk_rec
+                end if
+            end event
+        end field
+
+        field pick
+            event before
+
+                call mymethod
+
+                set xstype="Non-Stock"
+                int i = 0
+                int xrow=0
+                set xrow=#sql(int,"select xline from bmbdt where zid='"+#id+"' and xbom='"+globals(xbom)+"' and xoption='' order by xline DESC")
+                str my = "select xline from bmnstk where zid='"+#id+"' and xstype = '"+xstype+"' and xline > '"+i+"'"
+                set xline=#sql(str, my)
+                while #result .eq. "true"
+                    set i=xline
+                    str xbom=globals(xbom)
+                    str xoption=""
+
+                    buffer bmnstk
+                    move bmnstk=bmnstk(xstype,xline)
+                    buffer bmbdt
+                    set bmbdt.xbom=globals(xbom)
+                    set bmbdt.xoption=""
+                    set bmbdt.xline=0+i+xrow
+                    set bmbdt.xitem=bmnstk.xitem
+                    set bmbdt.xqty=bmnstk.xqty
+                    set bmbdt.xunit=bmnstk.xunit
+                    set bmbdt.xstype=bmnstk.xstype
+                    set bmbdt.xdate=#date
+                    insert bmbdt
+
+                    str my = "select xline from bmnstk where zid='"+#id+"' and xstype = 'Non-Stock' and xline > '"+i+"'"
+                    set xline=#sql(str, my)
+                end while
+                print "Non-Stock Items Picking Completed"
+            end event
+        end field
+
+        field BOM_Delete
+            event before
+                set globals(ErrChk) = ""
+                set myqry = #sql(str,"select xmoord from moord where zid='"+#id+"' and xbom='"+xbom+"'")
+                if #result .eq. "true"
+                    set globals(ErrChk) = "1"
+                    error "M.O. exists with this BOM; Cannot Delete"
+                else
+                    set Del_Bdt=#sql("delete bmbdt where zid='"+#id+"' and xbom='"+xbom+"'")
+                    set Del_Opt=#sql("delete bmopt where zid='"+#id+"' and xbom='"+xbom+"'")
+                    set Del_Bom=#sql("delete bmbom where zid='"+#id+"' and xbom='"+xbom+"'")
+                    action show
+                end if
+            end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Detail
+            embed onclick="clicked(this)"
+        end field
+
+        field By_Products
+            embed onclick="byprod()"
+        end field
+
+    end form
+
+    script myscript
+
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+s',function(){
+          //alert('Pressed Ctrl+s');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+e',function(){
+          //alert('Pressed Ctrl+e');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+r',function(){
+          //alert('Pressed Ctrl+r');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+            function clicked(b){
+              b.value = "Top"
+              detail="clicked"
+            }
+            function byprod(){
+              detail="byprod"
+            }
+            function submitit(form){
+
+            if (detail=="clicked"){
+				form.page.value = "bmbdt"
+                //form.page.value = "bmopt"
+                //return false
+              }else if (detail=="byprod"){
+                form.page.value = "bmrcvitm"
+              }
+            }
+
+
+            function pickbom(link){
+              if (navigator.appName.indexOf("Netscape") >= 0){
+                document.one.xbom.value=link.text
+              }else{
+                document.one.xbom.value=link.innerText
+              }
+              return false
+            }
+
+            function pickItem(link){
+              if (navigator.appName.indexOf("Netscape") >= 0){
+                document.one.xbom.xvalue=link.text
+              }else{
+                document.one.xbom.value=link.innerText
+              }
+              return false
+            }
+
+        </script>
+    end script
+
+    method mymethod
+        int linenum=0
+        str myqry = "select xline from bmbdt where zid='"+#id+"' and xbom='"+globals(xbom)+"' and xoption='' and xline > '"+linenum+"' and xstype='Non-Stock'"
+        set xline=#sql(str,myqry)
+        while #result .eq. "true"
+            set linenum=xline
+            set xbom=globals(xbom)
+            set xoption=""
+            buffer bmbdt
+            move bmbdt=bmbdt(xbom,xoption,xline)
+            delete bmbdt(xbom,xoption,xline)
+            str myqry = "select xline from bmbdt where zid='"+#id+"' and xbom='"+globals(xbom)+"' and xoption='' and xline > '"+linenum+"' and xstype='Non-Stock'"
+            set xline=#sql(str,myqry)
+        end while
+    end method
+
+    method chk_rec
+        set xoption = #sql(str,"select xoption from bmopt where zid='"+#id+"' and xbom='"+xbom+"' and xoption=''")
+        if #result .eq. "true"
+            str xline = ""
+            set xline = #sql(str,"select xline from bmbdt where zid='"+#id+"' and xbom='"+xbom+"' and xoption='' and xline>'"+xline+"'")
+            if xline .ne. ""
+                set globals(Err_check) = "1"
+                error "Detail Exists; Cannot "+#command
+            end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+        	if xbom .ne. globals(xbom)
+        		set globals(ErrChk) = "1"
+        		set #command = "show"
+        		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+        	end if
+        end if
+
+        if globals(ErrChk) .ne. "1"
+        	if xbom .ne. globals(hed)
+        		set globals(ErrChk) = "1"
+        		set #command = "show"
+        		print "<font color=red>Record Pointer Mismatch; Cannot <font color=blue>Update <br> New Record Retrieved</font>"
+        	end if
+        end if
+
+    end method
+
+    valid valid
+        mendatory xbom
+        config
+            set globals(pkey) = xbom
+        end config
+    end valid
+
+#include access.valid
+
+end page

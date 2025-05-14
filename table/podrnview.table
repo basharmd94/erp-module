@@ -1,0 +1,21 @@
+product ERP on the Net
+
+table podrnview
+
+  caption "PO Debit Note View"
+  columns  ztime,zutime,zid,xgrnnum,xrow,xitem,xwh,xqty,xqtycrn,xunitpur,xcfpur
+  
+  primary key zid, xgrnnum, xrow
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xgrnnum references pogrn.zid,xgrnnum
+  end foreign key
+  
+  sql create view podrnview (ztime,zutime,zid, xgrnnum,xrow,xitem,xwh,xqty,xqtycrn,xunitpur,xcfpur) ~
+		as select  ztime,zutime, zid, xgrnnum,xrow,xitem,xwh,xqty,~
+		coalesce((SELECT SUM(poddt.xqty*poddt.xcfpur) FROM poddt ~
+		WHERE poddt.zid=pogdt.zid AND poddt.xgrnnum = pogdt.xgrnnum AND poddt.xrow = pogdt.xrow),0),xunitpur,xcfpur ~
+		from pogdt
+		
+end table

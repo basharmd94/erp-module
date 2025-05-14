@@ -1,0 +1,15 @@
+     list xasttypes
+		caption "Asset Sub Type"+globals(xastcatg)
+        table faassetpdt
+        order xcode,xsub
+		select "(xsub like '%"+zvalue+"%' or xdesc like '%"+zvalue+"%') and xcode='"+globals(xastcatg)+"'"
+        rows 20
+        objects xsub attrib(link "abc" embed onclick="return updateParent(this:'xasttype')"),~
+                xdesc
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+

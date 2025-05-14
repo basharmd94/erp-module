@@ -1,0 +1,265 @@
+page prtaxslab
+
+    embed onload="move_caret('one','xrow')"    
+    caption "Tax Rate Slab Setup Table"
+    sidebars  list one
+    sections  form one, text top, script myscript,~
+              method chk_rec, method chk_mand,~
+              method chk_access
+    
+    text top
+      "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+    end text
+
+    list one
+      caption "Available Entries"
+      table prtaxslab
+      order xrow
+      fixed
+      select
+      //navigator alpha
+      rows 20
+      object  xrow attrib(link #servlet+"?page=prtaxslab&command=Show&xrow=?"),~
+              xdateeff,xdateexp,xtotamt,xpercent
+              
+      field xtotamt
+      	caption Amount
+      end field
+              
+    end list
+              
+    form one
+      caption
+      table prtaxslab
+      order xrow
+      fixed
+      select
+      layout 1
+      objects Show, Add, Update, Clear, Previous,Next, Top, Delete, Bottom,~
+              xrow, xdateeff, xdateexp, xtotamt, xpercent,~
+              xremark,zemail,xemail
+
+      field xrow
+        attrib row 0 1
+        event after
+          set globals(xrow)=xrow
+          set globals(xdateeff)=xdateeff
+          set globals(xdateexp)=xdateexp
+        end event
+      end field
+      
+      field xremark
+        height 3
+        width 50
+      end field
+
+      field xtotamt
+      	caption Amount
+      end field
+      
+      field zemail
+        caption Created By
+        disp const
+      end field
+
+      field xemail
+        caption Last Updated By
+        disp const
+      end field
+
+      field add
+        event before
+          set globals(ErrChk) = ""
+
+          if globals(ErrChk) .ne. "1"
+          	call chk_access
+          end if
+                    
+          if globals(ErrChk) .ne. "1"
+            call chk_rec
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            call chk_mand
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            set zemail=#user
+            set xemail=""
+          end if
+        end event
+      end field
+            
+      field update
+        event before
+          set globals(ErrChk) = ""
+
+          if globals(ErrChk) .ne. "1"
+          	call chk_access
+          end if
+          
+          if globals(ErrChk) .ne. "1"
+            call chk_rec
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            call chk_mand
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            set xemail=#user
+          end if
+        end event
+      end field
+            
+      field delete
+        event before
+          set globals(ErrChk) = ""
+          
+          if globals(ErrChk) .ne. "1"
+          	call chk_access
+          end if
+
+          if globals(ErrChk) .ne. "1"
+            call chk_rec
+          end if
+        end event
+      end field
+            
+      embed onsubmit="submitit(this)"      
+      field Back
+        embed onclick = "back()"
+      end field
+
+    end form
+
+    script myscript
+      <script language="javascript" type="text/javascript">
+        var detail
+        
+        function back(){
+          detail = "back"
+        }
+
+        function submitit(form){
+          if (detail=='back'){
+            form.page.value = "prpayhead"
+            form.searchbutton.value= "Find xpaycode=?"
+          }
+          return true
+        }
+
+      </script>
+    end script
+        
+    method chk_rec
+      if #command .ne. "Add"
+        if globals(xrow) .ne. xrow
+          set globals(ErrChk) = "1"
+          error "Record pointer mismatch<br>Click SHOW, then "+#command
+        end if
+      end if
+    end method    
+    
+    method chk_mand
+      if xdateeff .eq. "" .or. xdateeff .eq. #max .or. xdateeff .eq. "2999-12-31"
+        set globals(ErrChk) = "1"
+        error "Pls enter "+#field(xdateeff.caption)
+
+      else if xdateexp .eq. "" .or. xdateexp .eq. #max .or. xdateexp .eq. "2999-12-31"
+        set globals(ErrChk) = "1"
+        error "Pls enter "+#field(xdateexp.caption)
+
+      else if xtotamt <= 0
+        set globals(ErrChk) = "1"
+        error "Pls enter "+#field(xtotamt.caption)
+      end if
+    end method
+    
+     method chk_access
+     	set stype = ""
+	  	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          buffer xcriminal
+	          set xcriminal.xwornum = mysql
+	          set xcriminal.xemail = #user
+	          set xcriminal.xdate = #date
+	          str tmptime = ""
+	          class osbcustom(#time(tmptime))
+	          set xcriminal.xtime = tmptime
+	          set xcriminal.xobject = page
+	          insert xcriminal
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+     
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	end if    
+     end method
+    
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql     
+
+		str tmptime = ""
+		class osbcustom(#time(tmptime))
+				
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(xacc)+"','','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+tmptime+"','"+page+"','')"
+		set tmpstr =#sql(myqry)		
+     end method
+    
+end page

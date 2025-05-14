@@ -1,0 +1,274 @@
+page poqudta
+     //caption "PO Entry - Details"
+     caption "<span class=bl>Details for Quotation : <a href=/da/"+#servlet+"?page=poquota&command=Show&xpoqot="+xpoqot+">" +xpoqot+ "</a></span>"
+     //embed onload="move_caret('detail','xsup')"
+	 sidebar list order
+     sections form detail,list prv_ord_sup_item, text top, script myscript
+
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+     list order
+        caption "Details for Quotation: "+xpoqot
+		table (select *,~
+			(select xorg from casup ~
+			where zid=poqudt.zid and xsup=poqudt.xsup) as supdesc ~
+			from poqudt) as tbl
+			
+        order xpoqot,xrow
+        fixed xpoqot
+        rows 20
+        objects xrow attrib(link #servlet+"?page=poqudta&command=Show&xpoqot=?&xrow=?"), ~
+                xsup,supdesc,xqtyord,xunitpur,xcur,xrate,xstatusqdt
+
+        field xunitpur
+          caption Unit
+        end field
+
+        field supdesc
+            storage varchar
+            caption Name
+        end field
+
+        totals "Totals","","",sum,"","","","",sum
+     end list
+
+    list prv_ord_sup_item
+      caption "Previous 5 Order(s) for Item: <font color=red>"+globals(xitem)+"</font> to Supplier : <font color=red>"+xsup
+      table poodtview
+      order xsup,xitem,xdate DESC
+      fixed xsup,xitem
+      rows 5
+      objects xdate,xpornum,xrow,xqtyord,xrate
+    end list
+     
+     form detail
+		valid valid,access
+        table poqudt
+        order xpoqot,xrow
+        fixed xpoqot
+        layout 2
+		focus xsup
+        objects Add, Update,Clear,Show,Previous,Next,Bottom,Approve Supplier,Return,~
+                xrow attrib(row 0 10),xstatusqdt display(constant),~
+                xsup,sup_name,xsupref,xdatesupref default(#date),~
+                xcur,xrate,xqtyord attrib(attach),xunitpur disply(const),xqtypur,xpornum display(const),~
+                zemail display(hide), xemail display(hide)
+        
+        field xrow
+          event after
+            set globals(xrow) = xrow
+            if xstatuspdt .eq. "Approved"
+            	set #field(Add.display) = "disable"
+            	set #field(Update.display) = "disable"
+            	set #field(Delete.display) = "disable"
+            	set #field(Approve.display) = "disable"
+            end if
+          end event
+        end field
+
+        field xitem
+          event after
+            set globals(xitem)=xitem
+          end event
+        end field
+
+        field sup_name
+          attrib local
+          display const
+          caption Name
+          event after
+            set sup_name=#sql(str,"select xorg from casup where xsup='"+xsup+"'")
+          end event
+        end field
+
+        field xstatuspdt
+          caption Status
+        end field
+
+        field xcur
+          default "BDT"
+        end field
+
+        field Add
+          event before
+            set globals(ErrChk) = ""
+            set globals(ErrMsg) = ""
+			call chk_access
+			
+			if globals(ErrChk) .ne. "1"
+            	call chk_code
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call chk_rec
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              	set zemail = #user
+        		set xunitpur=#sql(str,"select xunitstk from caitem where xitem='"+xitem+"'")
+            	set xstatuspdt = ""
+	            if xqtyord <= 0
+	              set xqtyord = 1
+	            end if       		
+            end if
+          end event
+        end field
+
+        field update
+          event before
+            set globals(ErrChk) = ""
+            set globals(flagchk) = ""
+            set globals(ErrMsg) = ""
+			
+			if globals(ErrChk) .ne. "1"
+            	call chk_rec
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              call chk_code
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              	set xemail = #user
+        		set xunitpur=#sql(str,"select xunitstk from caitem where xitem='"+xitem+"'")
+            end if
+          end event
+        end field
+
+        field delete
+          event before
+            set globals(ErrChk) = ""
+            set globals(flagchk) = ""
+            set globals(ErrMsg) = ""
+			call chk_access
+			if globals(ErrChk) .ne. "1"
+            	call chk_rec
+            end if
+          end event
+        end field
+
+        field Approve
+          event before
+          	set globals(ErrChk) = ""
+          	
+			if globals(ErrChk) .ne. "1"
+				if xrow .ne. globals(xrow)
+					set globals(ErrChk)="1"
+					error "Record pointer mismatch"
+				end if
+			end if 
+			
+			if globals(ErrChk) .ne. "1"
+				set chkrec = #sql(int,"select count(xrow) from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xstatusqdt='4-Approved'")
+				if chkrec > 0 
+					set globals(ErrChk) = "1"
+					error "Already Confirmed"
+				else
+				end if
+			end if
+			
+          	if globals(ErrChk) .ne. "1"
+				str mysql = "update poqudt set xstatusqdt='4-Approved' where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xrow='"+xrow+"'"
+				set tmpstr = #sql(str,mysql)
+				action show
+	            //buffer poqudt
+	            //move poqudt = poqudt(xpoqot,xrow)
+	            //if #result .eq. "true"
+	              //if poqudt.xstatuspdt .ne. "Order Created"
+	                 //set poqudt.xstatuspdt = "Approved"
+	                 //update poqudt(xpoqot,xrow)
+	                 //action show
+	              //else
+	                 //error "Already Order Created</p>Cannot Approve"
+	              //end if
+	            //end if
+	         end if
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+//          b.value = "Find xpoqot=?"
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "poquota"
+            form.searchbutton.value = "Find xpoqot=?"
+            //return false
+          }
+        }
+        </script>
+     end script
+
+     method chk_code
+        buffer casup
+        move casup=casup(xsup)
+        if #result .ne. "true"
+            set globals(ErrChk) = "1"
+            error "Wrong Supplier Code"
+        end if
+     end method
+
+     method chk_rec
+        if #command .ne. "Add" .and. xrow .ne. globals(xrow)
+          set globals(ErrChk) = "1"
+          error "Record pointer Mismatch, Try SHOW instead."
+        end if
+
+        if globals(xstatusqot) .eq. "Order Created"
+          set globals(ErrChk) = "1"
+          error "Cannot "+#command+", Already "+globals(xstatusqot)
+        end if
+        
+        if globals(ErrChk) .ne. "1"
+        	if xstatuspdt .eq. "Approved"
+        		set globals(ErrChk) = "1"
+        		error "Cannot "+#command+"</p>Status: "+xstatuspdt
+        	end if
+        end if
+     end method
+     
+    valid valid
+        mandatory xsup
+        config
+            set globals(pkey) = xpoqot+" "+xrow
+
+            set header = "<span class=bl>Quotation Details: <a href=/da/"+#servlet+"?page=poquot&command=Show&xpoqot="+xpoqot+">" +xpoqot+ "</a></span>"
+            set header = header+" Item: "+poquot.xitem("zid='"+#id+"' and xpoqot='"+xpoqot+"'")+" "+caitem.xdesc("zid='"+#id+"' and xitem='"+globals(xitem)+"'")
+
+            set chkrec = #sql(int,"select count(*) from poqudt where zid='"+#id+"' and xpoqot='"+xpoqot+"' and xstatusqdt='"+#status("xstatusqdt",4)+"'")
+            if chkrec > 0
+                set #field(Add.display) = "disable"
+                set #field(Update.display) = "disable"
+                set #field(Delete.display) = "disable"
+                set #field(Approve.display) = "disable"
+            end if
+            if xunitpur .eq. ""
+                set xunitpur=caitem.xunitpur("zid='"+#id+"' and xitem='"+xitem+"'")
+            end if
+			
+			if xstatusqdt .eq. "4-Approved"
+                set #field(Add.display) = "disable"
+                set #field(Update.display) = "disable"
+                set #field(Delete.display) = "disable"
+                set #field(Approve.display) = "disable"
+                set #field(xsup->.display) = "const"
+			end if
+			
+        end config
+	end valid
+	 
+end page

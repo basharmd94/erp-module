@@ -1,0 +1,127 @@
+page prassistance
+
+	 embed onload="move_caret('one','xdesc')"
+     caption "<span class=bl>Financial & Educational Assistance Info for Employee <a href=/da/"+#servlet+"?page=prassished&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xfirst)+")"
+     sections form one,list one, script myscript
+
+     list one
+        caption "Added Record(s)"
+        table prfurniture
+        order xrow,xemp
+        select "(xstatustor='Assistance' and xemp='"+xemp+"')"
+        //navigators alpha
+        rows 60
+        objects xrow attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xrow=?"),~
+                xdesc,xqty,xdate,xlong
+                
+        field xqty
+            caption Approved Amount
+        end field
+        
+        field xdesc
+            caption Assistance Type
+        end field
+        
+        field xlong
+              caption Reason
+        end field
+     end list
+
+     form one
+        //caption "<font color=black size=4>Furniture Allocation for <font color=white></p>"+globals(xname)+"</font></font>"
+        table prfurniture
+        order xrow,xemp
+        select "(xstatustor='Assistance')"
+        fixed xemp
+        layout 1
+        objects Add, Clear,Show,  Update,  Top,Delete, Previous, Next, Bottom,Back,~
+          xrow ,xdesc,xdate,xqty,xstatustor display(hide),zemail display(hide),xemail display(hide),xlong
+
+        field xdesc
+            caption Assistance Type
+            display combo
+            pick "Educational,Others"
+        end field
+        
+        field xqty
+            caption Approved Amount
+            len 16.2
+        end field
+        
+        field xlong
+            caption Reason
+            width 50
+        end field
+
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+            set xstatustor="Assistance"
+            
+            int last_num=0
+            set last_num = #sql(int,"select xrow from prfurniture where xstatustor='Assistance' and xemp='"+xemp+"' order by xrow desc")
+                if #result .eq. "true"
+                    set xrow = 0+1+last_num
+                else
+                    set xrow = 0+1
+                end if
+          end event
+        end field
+        
+        field next
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow+1
+        		set xrow = 0+nrow
+        		action show
+        		//print xprqano+" "+nrow
+        	end event
+        end field
+
+        field previous
+        	event before
+        		int nrow = 0
+        		set nrow = 0+xrow-1
+        		set xrow = 0+nrow
+        		action show
+        		//print xprqano+" "+nrow
+        	end event
+        end field
+
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+          embed onsubmit="submitit(this)"
+
+          field Back
+            embed onclick="back(this)"
+          end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail=""
+
+        function back(b)
+        {
+          details="back"
+        }
+        function submitit(form)
+        {
+          if (details=="back")
+          {
+            form.page.value = "prassished"
+            form.searchbutton.value= "Find xemp=?"
+          }
+        }
+        </script>
+     end script
+
+end page

@@ -1,0 +1,12 @@
+//Employee Other Details Menu
+//---------------------------------------------------------------------------------------
+caption "Payroll Setup" page 3
+option                  |action                                      |modules|models
+//---------------------------------------------------------------------------------------
+Payment Head            |#classPath+"/"+#servlet+"?page=prpayhead"           |
+Salary Structure        |#classPath+"/"+#servlet+"?page=prpayscal"           |
+Tax Slab Table          |#classPath+"/"+#servlet+"?page=prtaxslab"           |
+Month Setup          |#classPath+"/"+#servlet+"?page=prmonthst"           |
+-                                                                    |
+Payroll Default         |#classPath+"/"+#servlet+"?page=prdef"				 |
+//---------------------------------------------------------------------------------------

@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table faasset
+
+  caption "Asset"
+
+  columns ztime,zutime, zid,xcode,xdesc,zemail,xemail
+          
+  primary key zid, xcode
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table

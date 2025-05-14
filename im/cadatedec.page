@@ -1,0 +1,78 @@
+page cadatedec
+
+     caption "Date Entries"
+     sections form one,script myscript
+
+     list one
+     caption "<center>Available Entries</center>"
+      table cadate
+      order xdate
+      //navigators alpha
+      row 50
+      object xdate attrib(link "Main?page=cadate&command=show&xdate=?"),~
+             xname,xremark
+
+     end list
+
+
+     form one
+        caption "<font color=white>"+"Holiday Diclaretion"+"</font>"
+        //table cadate
+        //order xdate
+        //select
+        //return "Main"
+        layout 1
+        //objects "<br><br>","<center><font color=blue size=+1><strong>Holiday Diclaretion</strong></font></center>", ~
+        objects Process,"<p>" ,~
+               xyear,xname,xremark
+               
+            field xname
+                display combo
+                pick "select distinct(xname)from cadate"
+            end field
+            
+            field xdate
+                caption From Date
+            end field
+
+			field xremark
+				display combo
+				
+				pick ",Holiday"
+			end field
+			
+			field Process
+                event before
+                    set exst=#sql("select xdate from cadate where year(xdate)='"+xyear+"'")
+                    if #result .eq. "true"
+                        set holiday=#sql("update cadate set xremark='"+xremark+"' where xname='"+xname+"' and year(xdate)='"+xyear+"'")
+                        if #result .eq. "true"
+                            print "<font color=blue size=+1>"+xname+" Declared as: "+xremark
+                        end if
+                    else
+                        print "<font color=blue size=+1>"+ "Date is Not Uploded ;"+"<p>"+"Please Use 'Day Upload' Process to Upload the Days"
+                    
+                end event
+			end field
+
+        embed onsubmit="submitit(this)"
+
+     end form
+
+
+     script myscript
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+        //  b.value = "Top"
+          detail="clicked"
+        }
+        function submitit(form){
+        }
+
+        </script>
+     end script
+
+
+
+end page

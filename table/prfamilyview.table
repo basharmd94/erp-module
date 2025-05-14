@@ -1,0 +1,18 @@
+product ERP on the Net
+
+table prfamilyview
+  caption "Family Details"
+  
+  columns zid,xemp,xkin,xdob,zemail,xrelation,xdependant,xnominee,xbloodgrp,~
+  	xspocc,xspppno,xplbirth,xmobile,xphone,xemail,xnote
+
+  primary key zid,xemp,xkin
+  
+	sql create view prfamilyview (zid,xemp,xkin,xdob,zemail,xrelation,xdependant,xnominee,xbloodgrp,~
+				xspocc,xspppno,xplbirth,xmobile,xphone,xemail,xnote) as ~
+				
+			SELECT zid,xemp,xkin,xdob,zemail,xrelation,xdependant,xnominee,xbloodgrp,~
+					xspocc,xspppno,xplbirth,xmobile,xphone,xemail,xnote ~
+			from prfamily
+
+end table

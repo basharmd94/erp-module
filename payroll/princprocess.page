@@ -1,0 +1,215 @@
+page princprocess
+
+    embed onload = "move_caret('one','xdate')"
+
+    caption "Payroll Processing Page"
+    section form one, method chk_access
+
+    form one
+      caption "Increment Process"
+      layout 1
+      object  Process,~
+              xpsclcode,xdate,dbase,xprime
+
+      field xdate
+         caption Effective Date
+         default #date
+      end field
+
+      field dbase
+        attrib local
+        storage varchar
+        caption Increment Basis
+        display combo
+        pick "Flat,Percentage"
+        def "Flat"
+      end field
+
+      field xprime
+        caption Increment Amount
+      end field
+
+      field xempf
+         pick list xfemp
+         width 10
+         event before
+            //set globals(xfemp)=xfemp
+         end event
+      end field
+
+      field xempt
+         pick list xtemp
+         width 10
+         //def #char(254)
+         event before
+            //set globals(xtemp)=xtemp
+         end event
+      end field
+
+      field Process
+        event before
+          set globals(ErrChk) = ""
+          
+          call chk_access
+          
+          if globals(ErrChk) .ne. "1"
+          	if xprime <= 0.0
+          		set globals(ErrChk) = "1"
+          		error "Please enter Increment Amount"
+          	end if
+          end if
+          
+          if globals(ErrChk) .ne. "1"
+			set typelocal="Module"
+			set typename="pr"
+			
+			set propname = "basic"
+			set bprop = ""
+			class osbcustom(get_local_prop(typelocal,typename,propname,bprop))
+			set basic_code = #sql(str,"select xpaycode from prpayhead where xpaycode='"+bprop+"'")
+			if #result .ne. "true"
+				set globals(ErrChk) = "1"
+				error "Pay Code for Basic Salary not found"
+			end if
+          end if
+          
+          if globals(ErrChk) .ne. "1"
+			set curbas = #sql(decimal,"select xamount from prpayheaddt where xpsclcode='"+xpsclcode+"' and xpaycode='"+basic_code+"'")          	
+			set maxamt = #sql(decimal,"select xmaxpay from prpayheaddt where xpsclcode='"+xpsclcode+"' and xpaycode='"+basic_code+"'")
+			if dbase .eq. "Flat"
+          		set newbasic = 0.0+curbas+xprime
+          		if newbasic > maxamt
+          			set globals(ErrChk) = "1"
+          			error "Increment Amount exceeding Ceiling "
+          		end if
+          	else if dbase .eq. "Percentage"
+          		decimal tmp = 0.0
+          		class osbcustom(#calc(curbas,xprime,"*",2,tmp))
+          		class osbcustom(#calc(tmp,100,"/",2,tmp))
+          		class osbcustom(#calc(curbas,tmp,"+",2,newbasic))
+          	end if 
+          end if
+          
+          if globals(ErrChk) .ne. "1"
+          	set xemp = ""
+            set mysql = "select xemp from prmst where xpsclcode='"+xpsclcode+"' and xpaytyp<>'Held' and xemp>'"+xemp+"'"
+            set xemp = #sql(str,mysql)
+            while #result .eq. "true"
+            	str mysql = "delete from princrement where xemp='"+xemp+"' and xdate='"+xdate+"'"
+            	set tmpstr = #sql(str,mysql)
+            	
+				str last_num = #sql(int,"select xincno from princrement where xemp='"+xemp+"' order by xincno desc")
+				if #result .ne. "true"
+					set last_num = 0
+				end if
+				set last_num = 0+1+last_num
+		
+				set myqry = "insert into princrement (zid,xemp,xincno,xdate,xamount,xremarks,zemail,xemail,xref,xtotamt)"
+				set myqry = myqry + " values('"+#id+"','"+xemp+"','"+last_num+"','"+xdate+"','"+xprime+"','','"+#user+"',~
+						   '','','0.0')"
+				set tmpstr =#sql(myqry)		
+            
+				//print xemp+" "+#result
+              	set mysql = "select xemp from prmst where xpsclcode='"+xpsclcode+"' and xpaytyp<>'Held' and xemp>'"+xemp+"'"
+              	set xemp = #sql(str,mysql)
+            end while
+            
+            str mysql = "update prpayheaddt set xamount = "+newbasic+" where xpsclcode='"+xpsclcode+"' and xpaycode='"+basic_code+"'"
+            set tmpstr = #sql(str,mysql) 
+
+            if globals(ErrChk) .ne. "1"
+              print "<font color=blue size=3>Increment Processing Completed</p>New Basic : "+newbasic
+            end if
+          end if
+        end event
+      end field
+
+   end form
+
+     method chk_access
+     	set stype = ""
+	  	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+    	//print "P"+stype
+    	if stype .eq. "Yes"    
+	       set type = "Page"
+	       set object = page
+	       set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+	       if #result .ne. "true"
+	          set tmp = "REC-"
+	          str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+	          if #result .eq. "true" .and. mysql .ne. ""
+	             set last_num = 0+#sub(mysql,6)
+	          end if
+	          set last_num = 1+last_num
+	          set mysql = #padl(""+last_num,6,"0")
+	          set mysql=tmp+mysql
+	          buffer xcriminal
+	          set xcriminal.xwornum = mysql
+	          set xcriminal.xemail = #user
+	          set xcriminal.xdate = #date
+	          str tmptime = ""
+	          class osbcustom(#time(tmptime))
+	          set xcriminal.xtime = tmptime
+	          set xcriminal.xobject = page
+	          insert xcriminal
+	
+	          set globals(ErrChk) = "1"
+	          error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+	       end if
+	     end if  
+     end method
+     
+     method chk_command
+     	set excomm = #sql("select xmand from xosbpermit_det where zemail='"+#user+"' and ztype='Page' and zobject='"+object+"' and xprobe='Yes'")
+     	if excomm .eq. "Add"
+     		set #field(Add.display) = "hide"
+     	else if excomm .eq. "Update"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Delete"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     	else if excomm .eq. "Add_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Add_Update_Delete"
+     		set #field(Add.display) = "hide"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Update_Delete"
+     		set #field(Update.display) = "hide"
+     		set #field(Delete.display) = "hide"
+     	else if excomm .eq. "Confirm"
+     		set #field(Confirm.display) = "hide"
+     	else if excomm .eq. "Post"
+     		set #field(Post.display) = "hide"
+     	else if excomm .eq. "Create"
+     		set #field(Create.display) = "hide"
+     	else if excomm .eq. "Invoice"
+     		set #field(Invoice.display) = "hide"
+     	else if excomm .eq. "Detail"
+     		set #field(Details.display) = "hide"
+     	end if    
+     end method
+    
+     method upd_log
+		set tmp = "LOG-"
+		str mysql = #sql(str,"select xsornum from zreclog where xsornum like '"+tmp+"%' order by xsornum desc")
+		if #result .eq. "true" .and. mysql .ne. ""
+			set last_num = 0+#sub(mysql,10)
+		end if
+		set last_num = 1+last_num
+		set mysql = #padl(""+last_num,10,"0")
+		set mysql=tmp+mysql     
+
+		str tmptime = ""
+		class osbcustom(#time(tmptime))
+				
+		set myqry = "insert into zreclog (zid,xsornum,xvoucher,xrow,xaction,xemail,xdate,xtime,xobject,xname)"
+		set myqry = myqry + " values('"+#id+"','"+mysql+"','"+globals(xacc)+"','','"+#command+"','"+#user+"',~
+				   '"+#date+"','"+tmptime+"','"+page+"','')"
+		set tmpstr =#sql(myqry)		
+     end method
+   
+end page

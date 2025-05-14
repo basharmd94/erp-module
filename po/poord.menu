@@ -1,0 +1,7 @@
+//PO Codes.menu
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Local Purchase                   |#classPath+"/"+#servlet+"?page=poordr&mode=Local"
+Import Purchase                  |#classPath+"/"+#servlet+"?page=poordr&mode=Import"
+//-------------------------------------------------------------------

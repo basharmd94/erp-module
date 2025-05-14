@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table mgadd
+	caption "Address Book"
+
+	columns ztime, zutime, zid, xfrom,xto,xgroups
+
+	primary key zid,xfrom,xto
+
+	foreign key
+		zid references zbusiness.zid
+	end foreign key
+	
+	list xgroups
+end table

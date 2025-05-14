@@ -1,0 +1,22 @@
+product ERP on the Net
+
+table pogrnview
+  caption "GRN View"
+  columns  ztime,zutime,zid,xgrnnum,xpornum,xdate,xsup,xtotamt,xallocation,xcur,xexch
+
+  primary key zid, xgrnnum
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xgrnnum references pogrn.zid,xgrnnum
+  end foreign key
+
+  check
+    //country  = 'US' or country = 'SG'
+  end check
+  
+  sql create view pogrnview (ztime,zutime,zid,xgrnnum,xpornum,xdate,xsup,xtotamt,xallocation,xcur,xexch) ~
+         as select  ztime,zutime,zid,xgrnnum,xpornum,xdate,xsup,(SELECT SUM(xlineamt) FROM pogdt WHERE pogdt.zid=pogrn.zid AND pogdt.xgrnnum=pogrn.xgrnnum),~
+         COALESCE((SELECT SUM(glgrnview.xtotamt/glgrnview.xgrnexch*glgrnview.xexch) FROM glgrnview WHERE glgrnview.zid=pogrn.zid AND glgrnview.xgrnnum=pogrn.xgrnnum),0),xcur,xexch FROM pogrn
+
+end table

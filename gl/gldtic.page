@@ -1,0 +1,901 @@
+page gldtic
+     caption "<span class=bl>Details for: <a href=/da/"+#servlet+"?page=glhdic&command=Show&xvoucher="+xvoucher+">" +xvoucher+ "</a></span>"   
+     //embed onload="move_caret('one','xacc')"
+     sidebar list one
+     sections list header, form one, script myscript
+     
+    list header
+        //caption "<span class=bl>"+trndesc+": <a href=/da/"+#servlet+"?page=glhdic&command=Show&xvoucher="+xvoucher+">" +xvoucher+ "</a></span>"   
+        table glheader
+        order xvoucher
+        fixed xvoucher
+        rows 2 f
+        objects ~
+                xvoucher attrib(link #servlet+"?page=glhdic&command=Show&xvoucher=?"), ~
+                xref,xdate,xyear,xper,dumzid,xnote
+                
+                field xnote
+                	caption Narration
+                end field
+
+     end list
+
+     list one
+     	caption "Added Record(s)"
+        table gldetaildescview
+        order xvoucher,xrow
+        fixed xvoucher
+        rows 20
+        objects xrow attrib(link #servlet+"?page=gldtic&command=Show&xvoucher=?&xrow=?"), ~
+                xacc, acc_desc,~
+                xsub,sub_desc,~
+                debit ,credit,~
+                xicacc,xicsub
+                
+                field xicacc
+                	caption IC A/C
+                end field
+                
+                field xicsub
+                	caption IC Sub A/C
+                end field
+                
+                field xsub
+                	caption Sub A/C
+                end field
+                
+		        field acc_desc
+		          caption Description
+		        end field
+		        
+		        field sub_desc
+		          caption Description
+		        end field                
+		        
+		        field debit
+		        	caption Debit
+		        	len 20.2
+		        end field
+		
+		        field credit
+		        	caption Credit
+		        	len 20.2
+		        end field      		        
+
+		        totals "","Totals","","","",sum,sum,"",""
+
+     end list
+
+     form one
+     	//caption "<font color=black size=3>Details for Voucher "
+     	valid valid,access     	
+        table gldetail
+        order xvoucher,xrow
+        fixed xvoucher
+		focus xacc
+		default Add
+        layout 1
+        objects Add,Clear,Show,Update, Top,Previous, Next,Delete, Bottom,Return,~
+               xrow attrib(row 0 1),xacc ,dummy_1,xsub ,dummy_2,~
+               xicacc,dumicacc,xicsub,dumicsub,~
+               xdiv,xsec,xproj,xcur,xexch,~
+               xprime,xbase, xlong display(hide),xrem,xaccusage display(const),xaccsource display(const),~
+               zemail display(const),xemail display(const),~
+               xstatusrfp display(hide),xallocation display(hide),~
+               xicdiv display(hide),xicsec display(hide),xicproj display(hide),~
+               xcheque display(hide),xpaytype display(hide),xstatus display(hide),~
+               xacctype display(hide),xvmcode display(hide),xamount display(hide)               
+               
+        field xrow
+          event before
+            if globals(xpostflag) .eq. "Posted"
+              set #field(add.display)="hide"
+              set #field(update.display)="hide"
+              set #field(delete.display)="hide"
+            end if
+          end event
+          event after
+            set globals(xrow)=xrow
+            set globals(xsub)=xsub
+            set globals(xdiv)=xdiv
+            set globals(xsec)=xsec
+            set globals(xproj)=xproj
+            set globals(icacc_usage)=#sql(str,"select xaccusage from glicmstvw where dumzid='"+globals(dumzid)+"' and xacc='"+xicacc+"'")
+            set globals(icacc_source) = #sql(str,"select xaccsource from glicmstvw where dumzid='"+globals(dumzid)+"' and xacc='"+xicacc+"'")
+			set #field(xacc.caption) = "<font color=red>"+#field(xacc.caption)+"</font>"
+			set #field(xsub.caption) = "<font color=red>"+#field(xsub.caption)+"</font>"
+			set #field(xicacc.caption) = "<font color=red>"+#field(xicacc.caption)+"</font>"
+			set #field(xicsub.caption) = "<font color=red>"+#field(xicsub.caption)+"</font>"
+            set totval = #sql(decimal,"select sum(xprime) from gldetail where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'")
+            if totval != 0.0
+            	set #field(Return.display)="hide"
+            end if
+      	  	set #field(zemail.caption) = "Entered By"
+      	  	set #field(xemail.caption) = "Last Updated By" 	            
+          end event
+        end field
+
+        field dummy_3
+          attrib local
+          display constant
+          caption Voucher Number
+          event after
+            set dummy_3=xvoucher
+          end event
+        end field
+
+        field xacc
+          attrib attach; submit
+          pick list xacc
+          width 10
+          event after
+		        set globals(xacc)=xacc
+	      end event
+        end field
+        
+        field xsub
+        	attrib attach; submit
+        end field
+
+        field dummy_1
+          attrib local
+          display constant
+          caption Account Description
+        end field
+
+        field dummy_2
+          attrib local
+          display constant
+          caption Sub Account Description
+        end field
+
+        field xaccsource
+          pick
+          display constant
+          default ""
+        end field
+
+        field xaccusage
+          pick
+          display constant
+          default ""
+          event after
+            set globals(xaccusage)=xaccusage
+          end event
+        end field
+
+        field xicacc
+          attrib attach; submit
+          width 10
+          caption IC Account Code
+          pick list xicacc
+          event after
+            set globals(xicacc)=xicacc
+          end event
+        end field
+
+        field dumicacc
+          attrib local
+          display constant
+          caption IC Account Name
+          event after
+            set dumicacc=#sql("select xdesc from glicmstvw where dumzid='"+globals(dumzid)+"' and xacc='"+globals(xicacc)+"'")
+          end event
+        end field
+
+        field xicsub
+          attrib attach //; submit
+          caption IC Sub-Account Code
+          pick //list xicsub
+          display text//constant
+        end field
+
+        field dumicsub
+          attrib local
+          display constant
+          caption IC Sub-Account Name
+        end field
+
+        field xrem
+          width 50
+          height 2
+          columns 3
+        end field
+
+       field xprime
+        //display constant
+        caption Amount
+        event after
+          set globals(xprime)=0-xprime
+        end event
+       end field
+
+        field xcur
+	        default "BDT"
+          width 4
+          event after
+            set globals(xcur)=xcur
+          end event
+        end field
+
+        field xexch
+		 default "1"
+        end field
+
+        field Add
+          event before
+            set globals(ErrChk)=""
+            
+            if globals(ErrChk) .ne. "1"
+	            str myqry = "select xpostflag from glheader where zid='"+#id+"' and xvoucher = '"+globals(xvoucher)+"'"
+	            str tmpflag = #sql(myqry)
+	            if #result .ne. "true"
+	              set globals(ErrChk) = "1"
+	              error "Voucher not found"
+	            else
+	              if tmpflag .eq. "Posted"
+	                set globals(ErrChk) = "1"
+	                error " Voucher posted -- cannot ADD record"
+	              end if
+	            end if
+	        end if    
+
+            if globals(ErrChk) .ne. "1"
+              buffer glmst
+              move glmst=glmst(xacc)
+              if #result .ne. "true"
+                set globals(ErrChk) = "1"
+                set #list(account.select)=#char(34)+"xacc like '"+xacc+"%'"+#char(34)
+                set #list(account.navigator)=""
+                error "Wrong account -- pick from the list"
+              else
+              	if glmst.zactive .eq. "1"
+	                set #list(account.select)=""
+	                set #list(account.navigator)="alpha"
+	                set xaccusage=glmst.xaccusage
+	                set xaccsource=glmst.xaccsource
+	            else
+	            	set globals(ErrChk) = "1"
+	            	error "Account "+xacc+" Inactive; Cannot use"
+	            end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+                set globals(xacc) = xacc
+                if xaccusage .eq. "Ledger" .or. xaccusage .eq. "Bank" .or. xaccusage .eq. "Cash" .and. xaccsource .eq. "Subaccount"
+                  set myqry = "select xsub from glsub where zid='"+#id+"' and xacc='"+xacc+"' and xsub='"+xsub+"'"
+                  set tmpret = #sql(str,myqry)
+                  if #result .ne. "true"
+                    set globals(ErrChk) = "1"
+                    set #field(xsub.pick)="list xsub"
+                    error "Not a valid Sub-Account<br>Pick from the list"
+                  end if
+
+                else if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+                  set myqry = "select xcus from cacus where zid='"+#id+"' and xaccar='"+xacc+"' and xcus='"+xsub+"'"
+                  set tmpret = #sql(str,myqry)
+                  if #result .ne. "true"
+                    set globals(ErrChk) = "1"
+                    set #field(xsub.pick)="list glcus"
+                    error "Not a valid Sub-Account<br>Pick from the list"
+                  end if
+
+                else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+                  set myqry = "select xsup from casup where zid='"+#id+"' and xaccap='"+xacc+"' and xsup='"+xsub+"'"
+                  set tmpret = #sql(str,myqry)
+                  if #result .ne. "true"
+                    set globals(ErrChk) = "1"
+                    set #field(xsub.pick)="list glsup"
+                    error "Not a valid Sub-Account<br>Pick from the list"
+                  end if
+
+                else if xaccusage .eq. "Ledger" .and. xaccsource .eq. "Employee"
+                  set myqry = "select xemp from prmst where zid='"+#id+"' and xemp='"+xsub+"'"
+                  set tmpret = #sql(str,myqry)
+                  if #result .ne. "true"
+                    set globals(ErrChk) = "1"
+                    set #field(xsub.pick)="list glemp"
+                    error "Not a valid Employee<br>Pick from the list"
+                  end if
+                else
+                  set xsub = ""
+                end if
+            end if
+            
+            if globals(ErrChk) .ne. "1"
+              call chkicacc
+            end if
+			            
+			if globals(ErrChk) .ne. "1"
+				call chkicsub
+			end if
+
+			if globals(ErrChk) .ne. "1"
+				if xprime == 0.0
+					set globals(ErrChk)="1"
+					error "Amount cannot be zero "
+				end if
+			end if                        
+
+            if globals(ErrChk) .ne. "1"
+              set xbase = 0.00+xprime*xexch
+	          set zemail=#user
+	          set xemail=""
+	          set xlong=xrem
+              if #field(xdiv.display) .sw. "h"
+                set xdiv=""
+              end if
+              if #field(xsec.display) .sw. "h"
+                set xsec=""
+              end if
+              if #field(xproj.display) .sw. "h"
+                set xproj=""
+              end if
+            end if
+		end event
+		event after   
+			//print globals(ErrChk)+"Ss"       				
+			if globals(ErrChk) .ne. "1"
+            	if xprime>0 .and. xaccusage .eq. "AR"
+          			if xaccsource .eq. "Customer"
+                		buffer glalc
+	                	set glalc.xvoucher=xvoucher
+      	          		set glalc.xrow=xrow
+                		set glalc.xalcnum=xvoucher
+	                	set glalc.xalcrow=xrow
+        	        	set glalc.xlong="Dummy Allocation"
+                		set glalc.xtotamt=0
+	                	insert glalc
+		          	end if
+              	end if
+
+              	if xprime<0 .and. xaccusage .eq. "AP"
+        	  		if xaccsource .eq. "Supplier"
+                		buffer glalc
+	                	set glalc.xvoucher=xvoucher
+               	  		set glalc.xrow=xrow
+                		set glalc.xalcnum=xvoucher
+                		set glalc.xalcrow=xrow
+                		set glalc.xlong="Dummy Allocation"
+                		set glalc.xtotamt=0
+                		insert glalc
+        	  	  	end if
+              	end if
+
+				decimal totalamt=#sql(double, "select round(sum(xprime*xexch),2) from gldetail where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'")
+				if totalamt == 0.0
+					set tmpflag = #sql(str,"update glheader set xstatusjv = 'Balanced' where zid='"+#id+"' and xvoucher = '"+globals(xvoucher)+"'")
+				else
+					set tmpflag = #sql(str,"update glheader set xstatusjv = 'Out of Balance' where zid='"+#id+"' and xvoucher = '"+globals(xvoucher)+"'")
+				end if
+              	
+              	//print "**** add line to IC business ***"
+              	//print xicsub
+              	str myqry="insert into gldetail (zid,xvoucher,xrow,xacc,xsub,xaccusage,xaccsource,xicacc,xicsub,xcur,xexch,~
+              				xprime,xbase,xlong,xdiv,xsec,xproj,xicdiv,xicsec,xicproj,xacctype,zemail,xemail,xstatusrfp,~
+              				xvmcode,xamount,xrem,xallocation,xcheque,xpaytype,xstatus) ~
+                         values('"+globals(dumzid)+"','"+globals(xictrnno)+"','"+xrow+"','"+xicacc+"','"+xicsub+"',~
+                         '"+globals(icacc_usage)+"','"+globals(icacc_source)+"','"+xacc+"','"+xsub+"','"+xcur+"',~
+                         '"+xexch+"',"+xprime+","+xbase+",'"+xlong+"','"+xicdiv+"','"+xicsec+"','"+xicproj+"',~
+                         '"+xdiv+"','"+xsec+"','"+xproj+"','"+xacctype+"','"+#user+"','','"+xstatusrfp+"','"+xvmcode+"',~
+                         '"+xamount+"','"+xrem+"','"+xallocation+"','"+xcheque+"','"+xpaytype+"','"+xstatus+"')"
+              	set tmpstat=#sql(myqry)
+              	//print "s"+#result
+              	if #result .ne. "true"
+                	set globals(errchk)="1"
+                	error "Error occured while adding record to IC Company<br>Delete this record and try again"
+              	else
+	              	decimal totalamt=#sql(double, "select round(sum(xprime*xexch),2) from gldetail where zid='"+globals(dumzid)+"' and xvoucher='"+globals(xictrnno)+"'")
+	              	if totalamt == 0.0
+	                	set tmpflag = #sql(str,"update glheader set xstatusjv = 'Balanced' where zid='"+globals(dumzid)+"' and xvoucher = '"+globals(xictrnno)+"'")
+	              	else
+	                	set tmpflag = #sql(str,"update glheader set xstatusjv = 'Out of Balance' where zid='"+globals(dumzid)+"' and xvoucher = '"+globals(xictrnno)+"'")
+	              	end if
+              	end if
+              	//**** end of adding line to IC business ***
+            end if
+		end event
+    end field
+
+        field Update
+          event before
+            set globals(ErrChk)=""
+            
+		    if globals(ErrChk) .ne. "1"		
+	            str myqry = "select xpostflag from glheader where zid='"+#id+"' and xvoucher = '"+globals(xvoucher)+"'"
+	            str tmpflag = #sql(myqry)
+	            if #result .ne. "true"
+	              set globals(ErrChk) = "1"
+	              error "Voucher not found"
+	            else
+	              if tmpflag .eq. "Posted"
+	                set globals(errChk) = "1"
+	                error " Voucher posted -- cannot be Updated"
+	              end if
+	            end if
+	        end if    
+
+            if globals(ErrChk) .ne. "1"
+              buffer glmst
+              move glmst=glmst(xacc)
+              if #result .ne. "True"
+                set globals(ErrChk) = "1"
+                set #list(account.select)=#char(34)+"xacc like '"+xacc+"%'"+#char(34)
+                set #list(account.navigator)=""
+                error "Wrong account -- pick from the list"
+              else
+              	if glmst.zactive .eq. "1"
+	                set #list(account.select)=""
+	                set #list(account.navigator)="alpha"
+	                set xaccusage=glmst.xaccusage
+	                set xaccsource=glmst.xaccsource
+	            else
+	            	set globals(ErrChk) = "1"
+	            	error "Account "+xacc+" Inactive; Cannot use"
+	            end if              
+              end if
+            end if
+
+            if globals(ErrChk) .ne. "1"
+                set globals(xacc) = xacc
+                if xaccusage .eq. "Ledger" .or. xaccusage .eq. "Bank" .or. xaccusage .eq. "Cash" .and. xaccsource .eq. "Subaccount"
+                  set myqry = "select xsub from glsub where zid='"+#id+"' and xacc='"+xacc+"' and xsub='"+xsub+"'"
+                  set tmpret = #sql(str,myqry)
+                  if #result .ne. "true"
+                    set globals(ErrChk) = "1"
+                    set #field(xsub.pick)="list xsub"
+                    error "Not a valid Sub-Account<br>Pick from the list"
+                  end if
+
+                else if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+                  set myqry = "select xcus from cacus where zid='"+#id+"' and xaccar='"+xacc+"' and xcus='"+xsub+"'"
+                  set tmpret = #sql(str,myqry)
+                  if #result .ne. "true"
+                    set globals(ErrChk) = "1"
+                    set #field(xsub.pick)="list glcus"
+                    error "Not a valid Sub-Account<br>Pick from the list"
+                  end if
+
+                else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+                  set myqry = "select xsup from casup where zid='"+#id+"' and xaccap='"+xacc+"' and xsup='"+xsub+"'"
+                  set tmpret = #sql(str,myqry)
+                  if #result .ne. "true"
+                    set globals(ErrChk) = "1"
+                    set #field(xsub.pick)="list glsup"
+                    error "Not a valid Sub-Account<br>Pick from the list"
+                  end if
+
+                else if xaccusage .eq. "Ledger" .and. xaccsource .eq. "Employee"
+                  set myqry = "select xemp from prmst where zid='"+#id+"' and xemp='"+xsub+"'"
+                  set tmpret = #sql(str,myqry)
+                  if #result .ne. "true"
+                    set globals(ErrChk) = "1"
+                    set #field(xsub.pick)="list glemp"
+                    error "Not a valid Employee<br>Pick from the list"
+                  end if
+                else
+                  set xsub = ""
+                end if
+            end if
+
+            if globals(ErrChk) .ne. "1"            
+              call chkicacc
+            end if
+
+			if globals(ErrChk) .ne. "1"
+              call chkicsub
+            end if
+
+			if globals(ErrChk) .ne. "1"
+				if xprime == 0.0
+					set globals(ErrChk)="1"
+					error "Amount cannot be zero"
+				end if
+			end if
+            
+            if globals(ErrChk) .ne. "1"
+              set xbase = 0.00+xprime*xexch
+              set xemail=#user
+              set xlong=xrem
+              if #field(xdiv.display) .sw. "h"
+                set xdiv=""
+              end if
+              if #field(xsec.display) .sw. "h"
+                set xsec=""
+              end if
+              if #field(xproj.display) .sw. "h"
+                set xproj=""
+              end if
+            end if
+          end event
+
+          event after
+			if globals(ErrChk) .ne. "1"
+              if xprime>0 .and. xaccusage .eq. "AR"
+	              buffer glalc
+        	      move glalc=glalc(xvoucher,xrow,xvoucher,xrow)
+		            if xaccsource .eq. "Customer" .and. #result .ne. "true"
+                	buffer glalc
+                	set glalc.xvoucher=xvoucher
+                	set glalc.xrow=xrow
+              	  	set glalc.xalcnum=xvoucher
+                	set glalc.xalcrow=xrow
+                	set glalc.xlong="Dummy Allocation"
+                	set glalc.xtotamt=0
+                	insert glalc
+		            end if
+              end if
+
+              if xprime<0 .and. xaccusage .eq. "AP"
+	              buffer glalc
+        	      move glalc=glalc(xvoucher,xrow,xvoucher,xrow)
+	  	          if xaccsource .eq. "Customer" .and. #result .ne. "true"
+		    	    buffer glalc
+                	set glalc.xvoucher=xvoucher
+                	set glalc.xrow=xrow
+                	set glalc.xalcnum=xvoucher
+                	set glalc.xalcrow=xrow
+                	set glalc.xlong="Dummy Allocation"
+              	    set glalc.xtotamt=0
+                	insert glalc
+                end if
+              end if
+
+              //Check out of balance
+				decimal totalamt=#sql(double, "select round(sum(xprime*xexch),2) from gldetail where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'")
+				if totalamt == 0.0
+					set tmpflag = #sql(str,"update glheader set xstatusjv = 'Balanced' where zid='"+#id+"' and xvoucher = '"+globals(xvoucher)+"'")
+				else
+					set tmpflag = #sql(str,"update glheader set xstatusjv = 'Out of Balance' where zid='"+#id+"' and xvoucher = '"+globals(xvoucher)+"'")
+				end if
+
+              //**** updating line to IC business ***
+              str myqry="update gldetail set xacc='"+xicacc+"',xsub='"+xicsub+"',xaccusage='"+globals(icacc_usage)+"',xaccsource='"+globals(icacc_source)+"',xicacc='"+globals(xacc)+"',xicsub='"+globals(xsub)+"',xcur='"+xcur+"',xexch='"+xexch+"',xprime='"+xprime+"',xbase='"+xbase+"',xlong='"+xlong+"' where zid='"+globals(dumzid)+"' and xvoucher='"+globals(xictrnno)+"' and xrow='"+xrow+"'"
+              //print myqry
+              set tmpstat=#sql(myqry)
+              if #result .ne. "true"
+                set globals(errchk)="1"
+                error "Error occured while updating record to IC Company<br>Please corresponding record in IC Company"
+              else
+	          	decimal totalamt=#sql(double, "select round(sum(xprime*xexch),2) from gldetail where zid='"+globals(dumzid)+"' and xvoucher='"+globals(xictrnno)+"'")
+	          	if totalamt == 0.0
+	            	set tmpflag = #sql(str,"update glheader set xstatusjv = 'Balanced' where zid='"+globals(dumzid)+"' and xvoucher = '"+globals(xictrnno)+"'")
+	          	else
+	            	set tmpflag = #sql(str,"update glheader set xstatusjv = 'Out of Balance' where zid='"+globals(dumzid)+"' and xvoucher = '"+globals(xictrnno)+"'")
+	          	end if
+              end if
+              //**** end of updating line to IC business ***
+            end if
+          end event
+        end field
+
+        field Delete
+          event before
+            set globals(ErrChk)=""
+            
+            if globals(ErrChk) .ne. "1"
+	            str myqry = "select xpostflag from glheader where zid='"+#id+"' and xvoucher = '"+globals(xvoucher)+"'"
+	            str tmpflag = #sql(myqry)
+	            if #result .ne. "true"
+	              set globals(ErrChk) = "1"
+	              error "Voucher not found"
+	            else
+	              if tmpflag .eq. "Posted"
+	                set globals(errChk) = "1"
+	                error " Voucher posted -- cannot be deleted"
+	              end if
+	            end if
+	            set tmprow=globals(xrow)
+	        end if    
+          end event
+
+          event after
+            if globals(errchk) .ne. "1"
+              str myqry="delete from gldetail where zid='"+globals(dumzid)+"' and xvoucher='"+globals(xictrnno)+"' and xrow='"+tmprow+"'"
+              //print "tt:"+myqry
+              set tmpstat=#sql(myqry)
+              if #result .ne. "true"
+                set globals(errchk)="1"
+                print "Error occured while deleting record in IC Company<br>Please DELETE that record manually"
+              else
+              	decimal totalamt=#sql(double, "select round(sum(xprime*xexch),2) from gldetail where zid='"+globals(dumzid)+"' and xvoucher='"+globals(xictrnno)+"'")
+              	if totalamt == 0.0
+                	set tmpflag = #sql(str,"update glheader set xstatusjv = 'Balanced' where zid='"+globals(dumzid)+"' and xvoucher = '"+globals(xictrnno)+"'")
+              	else
+                	set tmpflag = #sql(str,"update glheader set xstatusjv = 'Out of Balance' where zid='"+globals(dumzid)+"' and xvoucher = '"+globals(xictrnno)+"'")
+              	end if
+              end if
+            end if
+
+            //Check out of balance
+			decimal totalamt=#sql(double, "select round(sum(xprime*xexch),2) from gldetail where zid='"+#id+"' and xvoucher='"+globals(xvoucher)+"'")
+			if totalamt == 0.0
+				set tmpflag = #sql(str,"update glheader set xstatusjv = 'Balanced' where zid='"+#id+"' and xvoucher = '"+globals(xvoucher)+"'")
+			else
+				set tmpflag = #sql(str,"update glheader set xstatusjv = 'Out of Balance' where zid='"+#id+"' and xvoucher = '"+globals(xvoucher)+"'")
+			end if
+
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+        field Return
+          embed onclick="back(this)"
+        end field
+        
+        field Allocate
+          embed onclick="allocated(this)"
+        end field
+                
+     end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var but = ""
+        function back(b){
+          but = "backtohd"
+        }
+
+        function allocated(b){
+           but = "allocated"
+        }
+
+
+        function submitit(form){
+          if (but == "backtohd"){
+            form.page.value = "glhdic"
+            form.searchbutton.value = "Find xvoucher=?"
+          }else{
+              if (but == "allocated"){
+                  if (form.xaccusage.value != 'Ledger'){
+                    if (form.xaccusage.value == 'AP'){
+                       if (form.xprime.value > '0'){
+     		              form.page.value = "glalcap"
+                          form.searchbutton.value = "Find xvoucher=? and xrow=?"
+                       }
+                    }
+                    if (form.xaccusage.value == 'AR'){
+                       if (form.xprime.value < '0'){
+    		                  form.page.value = "glalcar"
+                          form.searchbutton.value = "Find xvoucher=? and xrow=?"
+                       }
+                    }
+                  }
+              }
+          }
+        }
+        function pickAccount(link, usage,source){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xacc.value=link.text
+            document.one.xaccusage.value=usage.text
+            document.one.xaccsource.value=source.text
+          }else{
+            document.one.xacc.value=link.innerText
+            document.one.xaccusage.value=usage.innerText
+            document.one.xaccsource.value=source.innerText
+          }
+          return false
+        }
+
+        function pickCur(link, exch){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcur.value=link.text
+            document.one.xexch.value=exch.text
+          }else{
+            document.one.xcur.value=link.innerText
+            document.one.xexch.value=exch.innerText
+          }
+          return false
+        }
+
+        function pickIcAccount(link, usage,source){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xacc.value=link.text
+            //document.one.xaccusage.value=usage.text
+            //document.one.xaccsource.value=source.text
+          }else{
+            document.one.xicacc.value=link.innerText
+            //document.one.xaccusage.value=usage.innerText
+            //document.one.xaccsource.value=source.innerText
+          }
+          return false
+        }
+
+        function pickSrchResult(link,link2){
+          // *** !!! DONOT CHANGE OR USE THIS SCRIPT WITHOUT KNOWING THE DETAILS ****
+          //alert(link.innerText+';'+link2.innerText)
+          if (null != link2){
+            if (navigator.appName.indexOf("Netscape")>=0){
+              document.one.xacc.value = link.text
+              document.one.xsub.value = link2.text
+            }else{
+              document.one.xacc.value = link.innerText
+              document.one.xsub.value = link2.innerText
+            }
+          }else{
+            if (navigator.appName.indexOf("Netscape")>=0){
+              document.one.xsub.value = link.text
+            }else{
+              document.one.xsub.value = link.innerText
+            }
+          }
+          return false
+        }
+
+        </script>
+     end script
+
+     method chkicacc
+      str acccode= #sql("select xacc from glmst where zid='"+globals(dumzid)+"' and xacc='"+xicacc+"'")
+      if #result .ne. "true"
+        set globals(ErrChk)="1"
+        error "Wrong IC account -- pick from the IC Account Helplist"
+      else
+        set globals(icacc_usage) = #sql(str,"select xaccusage from glicmstvw where dumzid='"+globals(dumzid)+"' and xacc='"+xicacc+"'")
+        set globals(icacc_source) = #sql(str,"select xaccsource from glicmstvw where dumzid='"+globals(dumzid)+"' and xacc='"+xicacc+"'")
+      end if
+     end method
+
+	method chkicsub
+		set icaccusage = #sql(str,"select xaccusage from glmst where zid='"+globals(dumzid)+"' and xacc='"+xicacc+"'")
+		set icaccsource = #sql(str,"select xaccsource from glmst where zid='"+globals(dumzid)+"' and xacc='"+xicacc+"'")            
+	
+		if icaccusage .eq. "Ledger" .or. icaccusage .eq. "Bank" .or. icaccusage .eq. "Cash" .and. icaccsource .eq. "Subaccount"
+			set myqry = "select xsub from glsub where zid='"+globals(dumzid)+"' and xacc='"+xicacc+"' and xsub='"+xicsub+"'"
+			set tmpret = #sql(str,myqry)
+			if #result .ne. "true"
+				set globals(ErrChk) = "1"
+				error "Not a valid IC Sub-Account"
+			end if		
+		else if icaccusage .eq. "AR" .and. icaccsource .eq. "Customer"
+			set myqry = "select xcus from cacus where zid='"+globals(dumzid)+"' and xaccar='"+xicacc+"' and xcus='"+xicsub+"'"
+			set tmpret = #sql(str,myqry)
+			if #result .ne. "true"
+				set globals(ErrChk) = "1"			
+				error "Not a valid IC Sub-Account<br>Pick from the list"
+			end if		
+		else if icaccusage .eq. "AP" .and. icaccsource .eq. "Supplier"
+			set myqry = "select xsup from casup where zid='"+globals(dumzid)+"' and xaccap='"+xicacc+"' and xsup='"+xicsub+"'"
+			set tmpret = #sql(str,myqry)
+			if #result .ne. "true"
+				set globals(ErrChk) = "1"				
+				error "Not a valid IC Sub-Account<br>Pick from the list"
+			end if		
+		else if icaccusage .eq. "Ledger" .and. icaccsource .eq. "Employee"
+			set myqry = "select xemp from prmst where zid='"+globals(dumzid)+"' and xemp='"+xicsub+"'"
+			set tmpret = #sql(str,myqry)
+			if #result .ne. "true"
+				set globals(ErrChk) = "1"
+				//set #field(xsub.pick)="list glemp"
+				error "Not a valid IC Employee<br>Pick from the list"
+			end if		
+		else
+			set xicsub = ""
+		end if
+	end method
+     
+	valid valid         		
+		config
+			set globals(dumzid)=glheader.dumzid("zid="+#id+" and xvoucher='"+globals(xvoucher)+"'")
+			set globals(pkey)=globals(xvoucher)+" "+xrow		
+	        set globals(xacc)=xacc
+	        set globals(xsub)=xsub
+	        set globals(xicacc)=xicacc
+	        set globals(xicsub)=xicsub
+	        set trndesc = #sql(str,"select xdesc from xtrn where zid='"+#id+"' and xtypetrn='GL Voucher' and xtrn='"+globals(xtrngl)+"'")
+	        
+			set dummy_1 = #sql(str,"select xdesc from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+			set xaccusage = #sql(str,"select xaccusage from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+			set xaccsource = #sql(str,"select xaccsource from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+            if xaccusage .eq. "Ledger" .or. xaccusage .eq. "Bank" .or. xaccusage .eq. "Cash" .and. xaccsource .eq. "Subaccount"
+                set #field(xsub.pick)="list xsub"
+                set dummy_2=#sql(str,"select xdesc from glsub where zid='"+#id+"' and xacc='"+xacc+"' and xsub='"+xsub+"'")
+            else if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+                set #field(xsub.pick)="list glcus"
+                set dummy_2=#sql(str,"select xorg from cacus where zid='"+#id+"' and xcus='"+xsub+"'")
+            else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+                set #field(xsub.pick)="list glsup"
+                set dummy_2=#sql(str,"select xorg from casup where zid='"+#id+"' and xsup='"+xsub+"'")
+            else if xaccusage .eq. "Ledger" .and. xaccsource .eq. "Employee"
+                set #field(xsub.pick)="list glemp"
+                set dummy_2=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xsub+"'")
+            else
+            	set #field(xsub.display) = "hide"
+            	set #field(dummy_2.display) = "hide"
+              	set xsub = ""
+              	set dummy_2 = ""
+            end if
+
+			set dumicacc = #sql(str,"select xdesc from glmst where zid='"+globals(dumzid)+"' and xacc='"+xicacc+"'")
+			set icaccusage = #sql(str,"select xaccusage from glmst where zid='"+globals(dumzid)+"' and xacc='"+xicacc+"'")
+			set icaccsource = #sql(str,"select xaccsource from glmst where zid='"+globals(dumzid)+"' and xacc='"+xicacc+"'")            
+			//print icaccusage+" "+icaccsource
+			if icaccusage .eq. "Ledger" .or. icaccusage .eq. "Bank" .or. icaccusage .eq. "Cash" .and. icaccsource .eq. "Subaccount"
+                set #field(xicsub.pick)="list xicsub"
+                set dumicsub=#sql(str,"select xdesc from glsub where zid='"+globals(dumzid)+"' and xacc='"+xicacc+"' and xsub='"+xicsub+"'")
+            else if icaccusage .eq. "AR" .and. icaccsource .eq. "Customer"
+                set #field(xicsub.pick)="list xiccus"
+                set dumicsub=#sql(str,"select xorg from cacus where zid='"+globals(dumzid)+"' and xcus='"+xicsub+"'")
+            else if icaccusage .eq. "AP" .and. icaccsource .eq. "Supplier"
+                set #field(xicsub.pick)="list xicsup"
+                set dumicsub=#sql(str,"select xorg from casup where  zid='"+globals(dumzid)+"' and xsup='"+xicsub+"'")
+            else if icaccusage .eq. "Ledger" .and. icaccsource .eq. "Employee"
+                set #field(xicsub.pick)="list xicemp"
+                set dumicsub=#sql(str,"select xname from prmst where  zid='"+globals(dumzid)+"' and xemp='"+xicsub+"'")
+            else
+            	set #field(xicsub.display) = "hide"
+            	set #field(dumicsub.display) = "hide"
+              	set xicsub = ""
+              	set dumicsub = ""
+            end if
+                        
+            set xsinglecur = #sql("select xsinglecur from cadef where zid='"+#id+"'")
+            if xsinglecur .eq. "1"
+            	set #field(xcur.display) = "hide"
+            	set #field(xexch.display) = "hide"
+            	set #field(xbase.display) = "hide"
+            else
+            	set #field(xprime.attribute) = "attach"
+            	set #field(xbase.display) = "const"
+            	set #field(xcur.attrib) = "attach"
+            	set #field(xexch.display) = "const"
+            end if
+            
+            set xappdiv = #sql("select xappdiv from cadef where zid='"+#id+"'")
+            if xappdiv .eq. "0"
+            	set #field(xdiv.display) = "hide"
+            end if
+            
+            set xappsec = #sql("select xappsec from cadef where zid='"+#id+"'")
+            if xappsec .eq. "0"
+            	set #field(xsec.display) = "hide"
+            end if
+            
+            set xappproj = #sql("select xappproj from cadef where zid='"+#id+"'")
+            if xappproj .eq. "0"
+            	set #field(xproj.display) = "hide"
+            end if
+            
+		end config  
+
+		check Add,Update
+			set temp=glmst.xacc(xacc) 
+			vtest xacc .eq. temp 
+			vmsg xacc,"Wrong Account Code: "+xacc			
+		end check
+					
+	end valid   
+     
+#include access.valid
+     
+end page

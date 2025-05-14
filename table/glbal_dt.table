@@ -1,0 +1,19 @@
+product ERP on the Net
+
+table glbal_dt
+	caption "Balance File"
+
+	columns zid,xdate,xacc,xsub,xdiv,xsec,xproj,xcur,xtotamt
+
+	primary key zid,xdate,xacc,xsub,xdiv,xsec,xproj,xcur
+
+	sql create view glbal_dt (zid,xdate,xacc,xsub,xdiv,xsec,xproj,xcur,xtotamt) as ~
+		SELECT GLheader.zid, GLheader.xdate,GLdetail.xacc, GLdetail.xsub, GLdetail.xdiv, GLdetail.xsec,~
+		GLdetail.xproj, GLdetail.xcur, SUM(GLdetail.xprime * GLdetail.xexch) AS xtotamt ~
+		FROM GLdetail INNER JOIN GLheader ON GLdetail.zid = GLheader.zid AND GLdetail.xvoucher = GLheader.xvoucher ~
+		WHERE GLheader.xstatusjv = 'Balanced' and glheader.xper<>'0' ~
+		GROUP BY GLheader.zid,GLheader.xdate, GLdetail.xacc,~
+		GLdetail.xsub, GLdetail.xdiv, GLdetail.xsec, GLdetail.xproj,~
+		GLdetail.xcur
+
+end table

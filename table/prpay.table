@@ -1,0 +1,12 @@
+product ERP on the Net
+
+table prpay
+  caption "Payroll Transactions Entry Date"
+  columns ztime,zutime,zid,xpaydate,xremarks,zemail,xemail,xyear,xper
+
+  primary key zid,xpaydate
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+end table

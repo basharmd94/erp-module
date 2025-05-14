@@ -1,0 +1,53 @@
+page opspl
+	caption "Special Selling Prices by Price Code_test"
+	sidebar list one
+	sections form one 
+
+
+	list one
+	table opspl
+	order xitem, xpricecode,xqty
+	
+	rows 20
+	//objects  xtype,xcode attrib(link #servlet+"?page="+page+"&command=Show&xtype=?&xcode=?"), ~
+	objects  xitem attrib(link #servlet+"?page=opspl&command=Show&xitem=?&xpricecode=?&xqty=?"),xqty,xunitsel, xcfsel,xcurprice, xstdprice, xpricecode,xdateeff,xdateexp
+	
+	field  xpricecode
+		caption Price % for (- / +)
+	end field
+	
+
+	end list
+
+	form one
+		table opspl
+		order xitem, xpricecode,xqty
+		
+		layout 1
+		objects Show, Add, Update, Delete, Top, Previous, Next, Bottom,"<p>" ,~
+				xitem,xqty,xunitsel, xcfsel,xcurprice, xstdprice,xpricecode,xdateeff,xdateexp
+
+		
+		field xpricecode
+			caption Price % for (- / +)
+			pick
+			display text
+		end field
+		
+		
+		
+		field Add
+			event before
+			set globals(ErrChk) = ""
+				
+			end event
+		end field
+
+		field Update
+			event before
+				set globals(ErrChk) = ""
+			end event
+		end field
+
+	end form
+end page

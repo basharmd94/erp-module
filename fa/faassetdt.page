@@ -1,0 +1,110 @@
+page faassetdt
+	caption "Asset Sub Class"
+    sections  form detail,list detial, script myscript                       
+     text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+     end text
+
+    list detial
+        caption "Asset Sub Class"
+		table faassetdt
+		order xcode,xsub desc
+		fixed xcode
+		rows 10
+		
+        objects  xsub attrib(link #servlet+"?page=faassetdt&command=Show&xcode=?&xsub=?"),~
+                xdesc,zemail,xemail
+     end list
+	 
+
+     form detail
+     	valid valid,access
+        table faassetdt
+        order xcode,xsub
+        fixed xcode
+        select "zid='"+#id+"'"
+		
+        layout 2
+        objects Show,Add,Update,Delete,Return,~
+                xsub,xdesc,zemail,xemail
+		
+		field xsub
+			caption Sub Asset 
+			len 2
+		end field
+		
+		field xdesc
+			caption Sub Class Description
+		end field
+		
+		field zemail
+			caption Entry By
+			display const
+		end field
+		
+		field xemail
+			caption Updated By
+			display const
+		end field
+				
+				
+		field Add
+			event before
+				set globals(ErrChk)=""
+				
+				if globals(ErrChk) .ne. "1"
+					set zemail=#user
+					set xemail=""
+				end if
+				
+			end event
+		end field
+
+		field Update
+			event before
+				set globals(ErrChk)=""
+				
+				if globals(ErrChk) .ne. "1"
+					set xemail=#user
+				end if
+				
+			end event
+		end field
+
+		
+
+        embed onsubmit="submitit(this)"
+
+		field Return
+			embed onclick="clicked(this)"
+		end field
+
+    end form
+
+     script myscript
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "faasset"
+            form.searchbutton.value = "Find xcode=?"     
+          }
+        }
+
+        </script>
+     end script
+
+     valid valid
+     	mandatory xitem
+     	config
+		 	set globals(pkey) = globals(xporeqnum)+" "+xrowreq    		
+			set #field(xinclude->.display)="const"
+     	end config
+     end valid
+
+#include access.valid
+     
+end page

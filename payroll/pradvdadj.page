@@ -1,0 +1,237 @@
+page pradvdadj
+    caption header
+
+    sections form one, list one, text top, script myscript
+
+    text top
+       "<a href=#top title='Back to Top'><font color=blue size=+1><strong>Go Top</strong></font></a>"
+    end text
+
+    list one
+        table pradvdadj
+        order xemp,xpaycode,xrow,xline DESC
+	    fixed xemp,xpaycode,xrow
+        object xline attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xpaycode=?&xrow=?&xline=?"),~
+               xpayamt
+
+        totals "Totals",sum
+     end list
+
+     form one        
+        valid valid,access
+        table pradvdadj
+		valid valid
+        order xemp,xpaycode,xrow,xline DESC
+        fixed xemp,xpaycode,xrow
+        layout 1
+        objects Show,Add, Update,Show, Clear, Top, Previous,Delete, Next, Bottom,Return,~
+                xline attrib(row 0 10),advance,amount,adjust,balance,~
+				xdatesch caption(Payment Date),xpayamt,zemail display(hide),xemail display(hide)
+
+        field xline          
+          event after
+          	set globals(xline) = xline
+          	set globals(xpayamt) = xpayamt
+          end event
+        end field
+
+        field advance
+        	display const
+        	caption Loan Amount
+        	attrib local
+        	event after
+        		set advance = #sql(double,"select sum(xadvance) from prloanview where zid='"+#id+"' and xemp='"+xemp+"' and xpaycode='"+xpaycode+"' and xrow='"+xrow+"'")
+        	end event
+        end field
+
+        field amount
+          caption Amount Deducted
+          display constant
+          attrib local
+          event after
+          	set amount = #sql(double,"select sum(xreturn) from prloanview where zid='"+#id+"' and xemp='"+xemp+"' and xpaycode='"+xpaycode+"' and xrow='"+xrow+"'")
+          end event
+        end field
+
+        field adjust
+          caption Amount Adjusted
+          display constant
+          attrib local
+          event after
+          	set adjust = #sql(double,"select sum(xpayamt) from prloanview where zid='"+#id+"' and xemp='"+xemp+"' and xpaycode='"+xpaycode+"' and xrow='"+xrow+"'")
+          end event
+        end field
+
+        field balance
+          caption Balance Amount
+          display constant
+          attrib local
+          event after
+          	set balance = #sql(double,"select sum(xadvance-xreturn-xpayamt) from prloanview where zid='"+#id+"' and xemp='"+xemp+"' and xpaycode='"+xpaycode+"' and xrow='"+xrow+"'")
+          end event
+        end field
+                
+		field Add
+			event before
+				set globals(ErrChk) = ""
+				
+				if globals(ErrChk) .ne. "1"
+					set balamt = #sql("select sum(xadvance-xreturn-xpayamt) from prloanview where zid='"+#id+"' and xemp='"+xemp+"' and xpaycode='"+xpaycode+"' and xrow='"+xrow+"'")
+					if  balamt == 0.0
+						set globals(ErrChk) = "1"
+						error "Nothing to Adjust"
+					else if balamt < xpayamt
+						set globals(ErrChk) = "1"
+						error "Amount cannot be more than "+balamt
+					end if					 
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					set pfloan_code = #sql("select xprpfloan from prdef where zid='"+#id+"' and xprpfloanapp='Yes'")
+					if xpaycode .eq. pfloan_code
+						int sign = 0+1
+						set myqry = "insert into prpf (ztime,zid,xemp,xdate,xtypetrn,xdesc,xsign,xpfempcont,xpfcomcont,~
+							xtotamt,xremark,zemail,xemail)"
+						set myqry = myqry + " values('"+#time+"','"+#id+"','"+globals(xemp)+"','"+xdate+"','RT','Addition','"+sign+"',~
+							"0","0","+xpayamt+",'','"+#user+"','')"
+						set tmpstr = #sql(myqry)
+						//print #result
+					end if				
+					set zemail=#user
+					set xemail=""					
+				end if				
+			end event
+		end field
+		
+		field update
+			event before
+				set globals(ErrChk) = ""
+				
+				if globals(ErrChk) .ne. "1"
+					if globals(xline) .ne. xline
+						set globals(ErrChk) = "1"
+						error "Record pointer mismatch"
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					set balamt = #sql("select sum(xadvance-xreturn-xpayamt) from prloanview where zid='"+#id+"' and xemp='"+xemp+"' and xpaycode='"+xpaycode+"' and xrow='"+xrow+"'")
+					if  balamt == 0.0
+						set globals(ErrChk) = "1"
+						error "Nothing to Adjust"
+					else if balamt < xpayamt
+						set globals(ErrChk) = "1"
+						error "Amount cannot be more than "+balamt
+					end if					 
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					set newamt = 0.0+xpayamt-globals(xpayamt)
+					set xemail = #user
+				end if
+			end event
+			event after
+				if globals(ErrChk) .ne. "1"
+					set pfloan_code = #sql("select xprpfloan from prdef where zid='"+#id+"' and xprpfloanapp='Yes'")
+					if xpaycode .eq. pfloan_code
+						set myqry = "update prpf set xtotamt=xtotamt+"+newamt+" where zid='"+#id+"' and xemp='"+xemp+"' and xdate='"+xdate+"' and xtypetrn='RT'"
+						set tmpstr = #sql(myqry)
+						//print #result
+					end if				
+				end if
+			end event
+		end field
+		
+		field delete
+			event before
+				set globals(ErrChk) = ""
+				
+				if globals(ErrChk) .ne. "1"
+					if globals(xline) .ne. xline
+						set globals(ErrChk) = "1"
+						error "Record pointer mismatch"
+					end if
+				end if			
+				
+				if globals(ErrChk) .ne. "1"
+					set pfloan_code = #sql("select xprpfloan from prdef where zid='"+#id+"' and xprpfloanapp='Yes'")
+					if xpaycode .eq. pfloan_code				
+						set mysql = "delete from prpf where zid='"+#id+"' and xemp='"+xemp+"' and xdate='"+xpaydate+"' and xtypetrn='RT'"
+						set tmpstr = #sql(str,mysql)
+					end if
+				end if					
+			end event
+		end field
+
+		embed onsubmit="submitit(this)"
+		field Return
+			embed onclick="clicked(this)"
+		end field
+
+     end form
+
+     script myscript
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery-1.2.1.js"></script>
+        <script LANGUAGE="JavaScript" SRC="html/jquery/jquery.hotkeys020.js"></script>
+     
+        <script language="javascript" type="text/javascript">
+          $.hotkeys.add('Ctrl+a',function(){
+          //alert('Pressed Ctrl+a');
+          var form=document.forms[0];
+          form.searchbutton.value="Add";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+u',function(){
+          //alert('Pressed Ctrl+u');
+          var form=document.forms[0];
+          form.searchbutton.value="Update";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+d',function(){
+          //alert('Pressed Ctrl+d');
+          var form=document.forms[0];
+          form.searchbutton.value="Delete";
+          form.submit();
+          });
+          $.hotkeys.add('Ctrl+c',function(){
+          //alert('Pressed Ctrl+c');
+          var form=document.forms[0];
+          form.searchbutton.value="Clear";
+          form.submit();
+          });
+        </script>
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b)
+        {
+          detail="back"
+        }
+        
+       
+        function submitit(form){
+          if (detail=="back"){
+            form.page.value = "pradvd"
+            form.searchbutton.value= "Find xemp=?&xpaycode=?&xrow=?"
+		  }
+        }
+        </script>
+     end script
+     
+     valid valid
+     	config
+     		set globals(pkey) = xemp+" "+xpaycode+" "+xrow+" "+xline
+			set balamt = #sql("select sum(xadvance-xreturn-xpayamt) from prloanview where zid='"+#id+"' and xemp='"+xemp+"' and xpaycode='"+xpaycode+"' and xrow='"+xrow+"'")
+			if  balamt == 0.0
+				set #field(Add.display) = "disable"
+				set #field(Update.display) = "disable"
+				set #field(Delete.display) = "disable"				
+			end if
+			set header = "<font color=green size=4+>"<span class=bl>Loan Adjustment Details for Employee "/// +xemp+" ("+globals(xname)+")"</font>"
+     	end config
+     end valid
+
+//#include access.valid
+
+end page

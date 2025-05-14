@@ -1,0 +1,220 @@
+page opordtop
+ 
+	caption header 
+	
+//     sidebar list opodt
+     sections form one, list active, script myscript
+	 
+     list opodt
+        caption "<font size=2>Item(s) Added</font>"
+        table  opodttop
+        order xordernum,xrow
+        fixed xordernum
+        rows 10
+        objects xrow attrib(link #servlet+"?page=opodttop&command=Show&xordernum=?&xrow=?"), ~
+                xinvnum,xcus,xarea,xsp,xlineamt
+
+        totals count,"Totals","","","","",sum,sum,sum,sum,sum
+
+     end list
+
+     list active
+        caption "<font color=black size=2>New Order(s)</font>"   	 
+        table opordtop
+        order xordernum,xdate,xcity desc
+	  	
+        rows 5
+        objects xordernum,xdate,xcity attrib(link #servlet+"?page="+page+"&command=Show&xordernum=?&xdate=?&xcity=?"), ~
+                zemail,xemail
+
+
+     end list
+	 
+     
+		form one
+			valid valid
+			table opordtop
+			order xordernum,xdate,xcity desc
+			layout 1
+			default Show
+			objects ~
+			Show,Clear,Add,Update,Previous,Delete,Next,Complete,~                //Details,
+			xordernum,xdate,xcity,zemail,xemail,xemail1,xstatusord display(const)
+
+
+
+			field xordernum
+				event after
+					set globals(returnpage)="opordtop"
+					set globals(trnfield)="xordernum"          
+					set globals(xordernum) = xordernum
+					set globals(xdate) = xdate
+				end event
+			end field
+			
+			
+
+
+			field xdate
+				default #date        
+				event after
+					set globals(xdate) = xdate
+				end event
+			end field
+			
+			field zemail
+				display const
+				caption Added By
+			end field
+
+			field xemail
+				display const
+				caption Updated By
+			end field
+
+			field xemail1
+				display hide
+				caption Approve By
+			end field
+			
+			 field xcity
+			   display ocombo
+			   caption Area
+				pick "select xdistrict from casalshrc3  where zid='"+#id+"' and xtype='Area'"
+			 end field
+
+			field xstatusord
+				caption Top Sheet Status
+				event after
+					set globals(xstatusord)=xstatusord
+				end event
+			end field
+
+			field Add
+				event before
+					set globals(ErrChk) = ""
+
+					if globals(ErrChk) .ne. "1" .
+						set xtrnord="TOP-"
+						str mysql = #sql(str,"select xordernum from opordtop where xordernum like '"+xtrnord+"%' order by xordernum desc")
+						if #result .eq. "true" .and. mysql .ne. ""
+							set last_num = 0+#sub(mysql,4,6)
+						end if
+						set last_num = 0+1+last_num
+						set mysql = #padl(""+last_num,6,"0")
+						set xordernum = xtrnord + mysql   
+						set xstatusord="1-Open"
+					end if
+				end event
+			end field
+
+			field update
+				event before
+					set globals(ErrChk) = ""
+					if globals(ErrChk) .ne. "1"
+						set xexch = #exch(xcur)
+						set xemail = #user
+					end if
+				end event
+			end field
+
+			field Delete
+				event before
+					set globals(ErrChk) = ""
+					call chkrec        
+					if globals(ErrChk) .ne. "1"
+						set detqty = #sql(decimal,"select sum(xqtyord) from opodt where xordernum='"+globals(xordernum)+"'")
+						if detqty > 0.0
+							set globals(ErrChk)="1"
+							error "Detail has record</p>Cannot "+#command
+						end if
+					end if            
+				end event
+			end field
+			
+			field Complete
+				event before
+					set globals(ErrChk)=""
+					
+					if globals(ErrChk) .ne. "1"
+						set mysql="update opordtop set xstatusord='Completed' where zid='"+#id+"' and xordernum='"+xordernum+"'"
+						set upval=#sql(str,mysql)
+						action show
+					end if
+				end event
+			end field
+
+
+			embed onsubmit="submitit(this)"
+			field Details
+				embed onclick="clicked(this)"
+			end field
+
+			field Payment
+				embed onclick="Payment(this)"
+			end field
+
+		end form
+
+     script myscript
+        <script language="javascript" type="text/javascript">
+        var button
+        function clicked(b){
+          button=b.value
+        }
+
+        function Payment(b){
+          button=b.value
+        }
+
+        function submitit(form){
+          if (button=="Details"){
+            form.page.value = "opodttop"
+            form.searchbutton.value = "Top"
+            //return false
+          }else if (button=="Payment"){
+            form.page.value = "opamt"
+            form.searchbutton.value = "Top"
+          }
+        }
+
+        </script>
+     end script
+
+
+     valid valid
+     	config
+			
+			if xordernum .eq. ""
+				set #field(Update.display)="disable"
+				set #field(Detials.display)="disable"
+				set #field(Complete.display)="disable"
+				set #field(Delete.display)="disable"
+			end if
+			
+			
+			set header = "Top Sheet"
+			set header = header +"<a href='"+#report(topsht.rpt)+"&promptonrefresh=y&prompt0="+#id+"&prompt1="+xordernum+"&prompt2="+xordernum+"' target='_new'>Preview</a>"
+			
+			
+			
+			
+			
+			
+//			set chkdt=#sql("select count(xrow) from opodttop where zid='"+#id+"' and xordernum='"+xordernum+"'")
+//			if chkdt==0
+//				set #field(Complete.display)="disable"
+//			end if
+			
+			set chkstatus=#sql("select xstatusord from opordtop where zid='"+#id+"' and xordernum='"+xordernum+"'")
+			if chkstatus .eq. "Completed"
+				set #field(Add.display)="disable"
+				set #field(Complete.display)="disable"
+				set #field(Delete.display)="disable"
+				set #field(Update.display)="disable"
+			end if
+			
+     	end config
+     end valid
+          
+end page

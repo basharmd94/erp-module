@@ -1,0 +1,29 @@
+//caload.menu
+caption "Load Data"
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Load Items                      |#classPath+"/"+#servlet+"?page=*data caitem,add"
+//Update Items                      |#classPath+"/"+#servlet+"?page=*data caitem,update"
+//Load Stock                      |#classPath+"/"+#servlet+"?page=*data imstk,add"
+Load Customers                      |#classPath+"/"+#servlet+"?page=*data cacus,add"
+Load Suppliers                      |#classPath+"/"+#servlet+"?page=*data casup,add"
+//Load Chart of Account                      |#classPath+"/"+#servlet+"?page=*data glmst,add"
+//Load GL Interface                      |#classPath+"/"+#servlet+"?page=*data cagli,add"
+//Load Zones                      |#classPath+"/"+#servlet+"?page=*data ffzone,add"
+//Remove Items                      |#classPath+"/"+#servlet+"?page=*data caitem,delete"
+//Remove Customers                      |#classPath+"/"+#servlet+"?page=*data customers,delete"
+//Update Prices                      |#classPath+"/"+#servlet+"?page=*data trprice,update"
+-
+//Remove Duplicates                      |#classPath+"/"+#servlet+"?page=camisc-dupim"
+//PR Old to New                      |#classPath+"/"+#servlet+"?page=camisc-pr2new"
+//Miscellaneous                      |#classPath+"/"+#servlet+"?page=camisc"
+//Miscellaneous-Post                      |#classPath+"/"+#servlet+"?page=camisc-post"
+//Correct Tax                      |#classPath+"/"+#servlet+"?page=camisc-correct-tax"
+//Auto Allocate-AR                      |#classPath+"/"+#servlet+"?page=camisc-autoallocate"
+-
+//Correct IMTRN-YW                      |#classPath+"/"+#servlet+"?page=camisc-imtrn-yw"
+
+//Miscellaneous-1                      |#classPath+"/"+#servlet+"?page=camisc1"
+//-------------------------------------------------------------------
+

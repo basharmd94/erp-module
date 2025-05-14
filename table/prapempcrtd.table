@@ -1,0 +1,14 @@
+product ERP on the Net
+
+table prapempcrtd
+  caption "Appraisal Criteria-Factors"
+  columns ztime,zutime,zid,xcat,xaprsby,xjobfactor,xmargin,xscore,zemail,xemail
+
+  primary key zid,xcat,xaprsby,xjobfactor
+
+  foreign key
+    zid references zbusiness.zid
+    zid,xcat,xaprsby,xjobfactor references prapempcrta.zid,xcat,xaprsby,xjobfactor
+  end foreign key
+
+end table

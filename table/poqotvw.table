@@ -1,0 +1,21 @@
+product ERP on the Net
+
+table poqotvw
+  caption "PO Quotation Details"
+  
+  columns  ztime,zutime, zid, xporeqnum,xrow,xref,xstatusreq,xitem,xqtyreq,xqtyord,xstatusreqd
+  
+  primary key zid, xporeqnum,xrow
+  
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+  sql create view poqotvw (ztime,zutime, zid, xporeqnum,xrow,xref,xstatusreq,xitem,xporeq,xqtyord,xstatusreqd) ~
+                 as select ztime,zutime, zid, xporeqnum,xrow,(select xref from poreq where poreq.zid=poreqd.zid and poreq.xporeqnum=poreqd.xporeqnum),~
+                 (select xstatusreq from poreq where poreq.zid=poreqd.zid and poreq.xporeqnum=poreqd.xporeqnum),xitem,xporeq,xqtyord,xstatusreqd ~
+                 from poreqd ~
+                 WHERE poreqd.xporeq <> poreqd.xqtyord and poreqd.xporeq > 0
+end table
+
+

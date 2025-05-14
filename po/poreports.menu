@@ -1,0 +1,42 @@
+//PO Reports.menu
+caption page
+//-------------------------------------------------------------------
+option                            |action
+//-------------------------------------------------------------------
+Requisitions Print		          |#classPath+"/"+#servlet+"?page=*crystal poreq(xsrqnum=Requisitions Number)"
+Requisitions By Date              |#classPath+"/"+#servlet+"?page=*crystal poreqdt(xdatereq=From Date=#d,xdatereq=To Date=#d)"
+Item Wise Requisitions By Date    |#classPath+"/"+#servlet+"?page=*crystal poreqstatitem(xdatereq=From Date=#d,xdatereq=To Date=#d,xdept=From Department,xdept=To Department,xitem=From Item,xitem=To Item)"
+Requisitions By Status            |#classPath+"/"+#servlet+"?page=*crystal poreqstat(xstatusreq=Status,xdatereq=From Date=#d,xdatereq=To Date=#d)"
+Requisition Tracking By P.O.      |#classPath+"/"+#servlet+"?page=*crystal poreqbord(xpornum=From P.O.=0,xpornum=To P.O.=#char(254))"
+P.O. Tracking By Requisition      |#classPath+"/"+#servlet+"?page=*crystal poordbreq(xsrqnum=From Requisition No.=0,xsrqnum=To Requisition No.=#char(254))"
+-
+Quotations By Item                |#classPath+"/"+#servlet+"?page=*crystal poqtitem(xitem=From Item=0,xitem=To Item=#char(254),xdate=From Date=#d,xdate=To Date=#d)"
+Quotations By Supplier            |#classPath+"/"+#servlet+"?page=*crystal poqtsup(xsup=From Supplier=0,xsup=To Supplier=#char(254),xdate=From Date=#d,xdate=To Date=#d)"
+-POs
+Purchase Order Print	      |#classPath+"/"+#servlet+"?page=*crystal poord(xpornum=Purchase Order Number)"
+List by PO Number             |#classPath+"/"+#servlet+"?page=*crystal polist(xpornum=From PO No=0=text,xpornum=To PO No=zzz=text)"
+List by Supplier by Date      |#classPath+"/"+#servlet+"?page=*crystal posup(xsup=From Supplier=0,xsup=To Supplier=zzz,xdate=From Date=#d,xdate=To Date=#d)"
+List by Date                  |#classPath+"/"+#servlet+"?page=*crystal polistdt(xdate=From PO Date=#d,xdate=To PO Date=#d)"
+List by Status                |#classPath+"/"+#servlet+"?page=*crystal postatus(xstatuspor=Order Status=0=combo)"
+Item Wise PO Status By Date   |#classPath+"/"+#servlet+"?page=*crystal polistitem(xitem=From Item,xitem=To Item,xdate=From Date=#d,xdatereq=To Date=#d,xpornum=From PO, xpornum=To PO)"
+Vendor History Form           |#classPath+"/"+#servlet+"?page=*crystal povendor(xsup=From Vendor=0,xsup=To Vendor=zzz,xdate=From Date=#d,xdate=To Date=#d)"
+Vendor Evaluation Form        |#classPath+"/"+#servlet+"?page=*crystal povendorevform(xsup=Supplier=0,xdate=From Date=#d,xdate=To Date=#d)"
+
+List by GRN Number           |#classPath+"/"+#servlet+"?page=*crystal pogrnlst(xgrnnum=From GRN No=0=text,xgrnnum=To GRN No=zzz=text)"
+List by Supplier by Date       |#classPath+"/"+#servlet+"?page=*crystal pogrnsupl(xsup=From Supplier=0,xsup=To Supplier=zzz,xdate=From GRN Date=#d,xdate=To GRN Date=#d)"
+List by Date                 |#classPath+"/"+#servlet+"?page=*crystal pogrndt(xdate=From GRN Date=#d,xdate=To GRN Date=#d)"
+List by Status               |#classPath+"/"+#servlet+"?page=*crystal pogrnstatus(xstatusgrn=Order Status=0=combo)"
+Item Received Summary        |#classPath+"/"+#servlet+"?page=*crystal pogrnitem(xitem=From Item=0=text,xitem=To Item=zzz=text,xdate=From Date=#d,xdate=To Date=#d)"
+Item Received Summary by Supplier     |#classPath+"/"+#servlet+"?page=*crystal pogrnitem_sup(xsup=From Supplier=0,xsup=To Supplier=zzz,xitem=From Item=0=text,xitem=To Item=zzz=text,xdate=From Date=#d,xdate=To Date=#d)"
+
+-REPORT
+Item Wise Purchase Order     |#classPath+"/"+#servlet+"?page=*crystal poitem(xdate=From Date=#d,xdate=To Date=#d,xitem=From Item=0=text,xitem=To Item=zzz=text,xsup=From Supplier=0=text,xsup=To Supplier=zzz=text)"
+Item Wise Goods Received Note     |#classPath+"/"+#servlet+"?page=*crystal poitemgrn(xdate=From Date=#d,xdate=To Date=#d,xitem=From Item=0=text,xitem=To Item=zzz=text)"
+GRN by PO               |#classPath+"/"+#servlet+"?page=*crystal poordgrn(xsup=Supplier No,xpornum=From PO No=0=text,xpornum=To PO No=zzz=text)"
+-L/C
+L/C Costing                 |#classPath+"/"+#servlet+"?page=*crystal pocostlc(xpornum=PO Number=text)"
+Shipment Details            |#classPath+"/"+#servlet+"?page=*crystal poilcsh(xpornum=PO Number=text)"
+Supplier Wise Payment Detail|#classPath+"/"+#servlet+"?page=*crystal suppayment(xsup=Suplier,xdate=From Date=#d,xdate=To Date=#d)"
+Supplier Wise Payment Summary|#classPath+"/"+#servlet+"?page=*crystal suppaysum(xdate=From Date=#d,xdate=To Date=#d)"
+//-------------------------------------------------------------------
+

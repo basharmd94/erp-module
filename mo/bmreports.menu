@@ -1,0 +1,10 @@
+//BmReports.menu
+caption "Reports" page 3
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+BOQ Listing                     |#classPath+"/"+#servlet+"?page=*crystal bmcos(xbom=BOM Key)"
+Menufecture Item                |#classPath+"/"+#servlet+"?page=*crystal moord1(xmoord=From MO,xmoord=To Mo)"
+Costed BOQ Listing              |#classPath+"/"+#servlet+"?page=*crystal bmcos(xbom=From BOM=0,xbom=To BOM=zzz)"
+//-------------------------------------------------------------------
+

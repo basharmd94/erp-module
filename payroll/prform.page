@@ -1,0 +1,41 @@
+page prform
+     caption "Pay Formula"
+     sidebar list one//,list two, text three
+     //sections list one, form one
+     sections form one //, method m1, method m2
+
+
+     list one
+        table (select *,(select xseq from prcode where zid=prform.zid and xcodepay=prform.xcodepay) as xseq from prform) as tbl
+        order xseq,xcyclepay,xgbenefit,xcodepay,xdateeff
+        //select none
+        navigators alpha
+        rows 20
+        objects xseq,xcyclepay,xgbenefit,xcodepay,xdateeff attrib(link #servlet+"?page="+page+"&command=Show&xcyclepay=?&xgbenefit=?&xcodepay=?&xdateeff=?"), ~
+                xdateexp,xformulapay,xnote,zactive
+
+
+
+        //totals "","Totals","","","","",sum,sum
+
+        //headers none
+     end list
+
+     form one
+        //caption "Pay Formula"
+        table prform
+        order xcyclepay,xgbenefit,xcodepay,xdateeff
+        //select
+        
+        layout 3
+        objects Show, Clear,Add, Update, Delete, Top, Previous, Next, Bottom,~
+                xcyclepay,xgbenefit,xcodepay,xdateeff,xdateexp columns(3),xformulapay columns(5) height(6) width(60),xnote columns(5) width(60),zactive
+
+	field xcodepay
+		//pick list prcode
+    //pick select prcode from prcode order by prcode
+	end field
+
+     end form
+
+end page

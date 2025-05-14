@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table bmopt
+	caption "BOM Options"
+
+	columns ztime,zutime,zid,xbom,xoption,xrem,zemail,xemail
+
+	primary key zid,xbom,xoption
+
+	foreign key
+		zid references zbusiness.zid
+		zid,xbom references bmbom.zid,xbom
+	end foreign key
+
+end table

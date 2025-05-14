@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table prdiscpldet
+  caption "Disciplinary Info"
+  columns ztime,zutime,zid,xemp,xrow,xdiscpmeth,xdate,xreason,xamount,xdatefrom,~
+          xdateto,xdayab,xtype,xnewdesig,xdept,xnewdept,xremarks,zemail,xemail,xaction
+
+  primary key zid,xemp,xrow
+
+  foreign key
+     zid references zbusiness.zid
+     zid,xemp references prmst.zid,xemp
+  end foreign key
+ 
+end table

@@ -1,0 +1,320 @@
+page famst
+    caption "FA Master Maitenace"
+    sidebar list cur
+    sections  form frmone,list one,text top, script myscript
+
+    text top
+      "<a href=#top title='Go Top of this Page'><p>Back To Top</p></a>"
+    end text
+
+    list cur
+      table xcur
+      order xcur
+      rows 20
+      objects xcur attrib(link "abc" embed onclick="return pickCur(this:xexch#)"), ~
+              xexch attrib(name xexch#)
+    end list
+
+   list one
+      table famst
+      order xcode
+      row 20
+      object xcode attrib(link #servlet+"?page=famst&command=show&xcode=?"),xastname
+   end list
+
+
+   form frmone
+      caption "Fixed Asset Master Maintennace"
+      table famst
+      order xcode
+      layout 2      
+
+      objects Show,Clear,Add attrib(hidden), Update attrib(hidden), Delete attrib(hidden), Top, Previous, Next, Bottom,~
+              Addition Details,Disposal Details,~
+              xcode attrib(search),xastname,xastcatg,xdcat,xastbook,xdbook,xasttype,xdtype,~
+              xastbr,xastunit,xdunit,xastloc,xdiv,xsec,xproj,xdepmeth,xdepfactor,~
+              xpurdate default(#d),xyear,xper,xcur,xexch,xprime,xbase,xnomlife,xestlife,xslvval,xretdate default(#d),~
+              xsup,xdummy,xinvno,xvoucher
+              //xprvunit,xprvbr,xprvloc,xprvdiv,xprvsec,xprvproj
+              //xcuradd,xexchadd,xprimeadd,xbaseadd,~
+              //xrebkval,xredate,xdisval,xdisdate,xsaleval,xsaledate,xscrpval,xscrpdate,~
+
+       field xdiv
+//        pick list xdiv
+//        display text
+        display hide
+       end field
+
+       field xsec
+//        pick list xsec
+//        display text
+         display hide
+       end field
+
+       field xproj
+//        pick list xproj
+//        display text
+          display hide
+       end field
+
+
+        field xcode
+          width 10
+          pick list famst
+          event after
+            set globals(xcode)=xcode
+          end event
+	      End field
+
+        field xastcatg
+          pick list facat
+        end field
+
+        field xdcat
+           attrib local
+           display constant
+           caption Category Description
+           event after
+                  set xdcat=#sql(str,"select xlong from xcodes where xtype='FA Category' and xcode='"+xastcatg+"'")
+           end event
+        end field
+
+        field xastbook
+         pick list fabook
+        end field
+
+        field xdbook
+          attrib local
+          display constant
+          caption Book Description
+          event after
+            set xdbook=#sql(str,"select xlong from xcodes where xtype='FA Book' and xcode='"+xastbook+"'")
+          end event
+        end field
+
+        field xasttype
+          pick list fatype
+        end field
+
+        field xdtype
+          attrib local
+          display constant
+          caption Type Description
+          event after
+              set xdtype=#sql(str,"select xlong from xcodes where xtype='FA Type' and xcode='"+xasttype+"'")
+          end event
+        end field
+
+        field xastbr
+          display hide
+          //pick list fabranch
+        end field
+
+        field xdbr
+          attrib local
+          display constant
+          caption Branch Name
+          event after
+                  set xdbr=#sql(str,"select xlong from xcodes where xtype='FA Branch' and xcode='"+xastbr+"'")
+          end event
+        end field
+
+        field xastunit
+          pick list faunit
+        end field
+
+        field xdunit
+          attrib local
+          display constant
+          caption Unit Description
+          event after
+               set xdunit=#sql(str,"select xlong from xcodes where xtype='FA Unit' and xcode='"+xastunit+"'")
+          end event
+        end field
+
+        field xastloc
+          //pick list falocation
+          display hide
+        end field
+
+         field xdloc
+           attrib local
+           display constant
+           caption Location Description
+           event after
+                  set xdloc=#sql(str,"select xlong from xcodes where xtype='FA Location' and xcode='"+xastloc+"'")
+           end event
+         end field
+
+         field xdepmeth
+          //display combo
+          pick "SL - Straight Line,RB - Reducing Balance,DD - Double Declining Balance,SY - Sum of the Years Digit,SP - Special"
+        end field
+
+        field xsup
+          pick list xsup
+        end field
+
+        field xdummy
+          attrib local
+          display constant
+          caption Supplier Name
+          event after
+            set xdummy=#sql(str,"select xorg from casup where xsup='"+xsup+"'")
+          end event
+        end field
+
+        field xvoucher
+          caption Acquisition Voucher
+          display constant
+        end field
+
+        field xyear
+          caption Purchase Year
+          display constant
+        end field
+
+        field xper
+          caption Purchase Period
+          display constant
+        end field
+
+        field xcur
+          display text
+          pick
+          default "BDT"
+        end field
+
+        field xexch
+          default "1.0000"
+        end field
+
+        field xbase
+          event before
+            set xbase=xprime*xexch
+          end event
+        end field
+
+        field add
+          event before
+              buffer xlocals
+              set globals(xtypelocal)="Module"
+              set globals(xname)="gl"
+              move xlocals=xlocals(xtypelocal,xname)
+              int offset
+              int per
+              int year=#sub(xpurdate,0,4)
+              set offset=#prop(xlocals.xprops,"offset")
+              set per=12+#sub(xpurdate,5,2)-offset
+              if per<=12
+                set xper=per
+                set xyear=year-1
+              else
+                set xper=per-12
+                set xyear=year
+              end if
+              set xpurdate=#sub(xpurdate,0,10)
+          end event
+        end field
+
+        field update
+          event before
+              buffer xlocals
+              set globals(xtypelocal)="Module"
+              set globals(xname)="gl"
+              move xlocals=xlocals(xtypelocal,xname)
+              int offset
+              int per
+              int year=#sub(xpurdate,0,4)
+              set offset=#prop(xlocals.xprops,"offset")
+              set per=12+#sub(xpurdate,5,2)-offset
+              if per<=12
+                set xper=per
+                set xyear=year-1
+              else
+                set xper=per-12
+                set xyear=year
+              end if
+              set xpurdate=#sub(xpurdate,0,10)
+          end event
+        end field
+
+        embed onsubmit = "return submitit(this)"
+
+        field addition
+          embed onclick = "show_addition()"
+        end field
+
+        field revaluation
+          embed onclick = "show_revaluation()"
+        end field
+
+        field transfer
+          embed onclick = "show_transfer()"
+        end field
+
+        field disposal
+          embed onclick = "show_disposal()"
+        end field
+
+   end form
+
+   script myscript
+    <script language="javascript" type="text/javascript">
+
+      var flag = ""
+
+      function show_addition() {
+        //this.value=top
+        flag = "show_addition"
+      }
+
+      function show_revaluation() {
+        flag = "show_revaluation"
+      }
+
+      function show_transfer() {
+        flag = "show_transfer"
+      }
+
+      function show_disposal() {
+        flag = "show_disposal"
+      }
+
+      function submitit(form){
+        if(flag == "show_addition"){
+          form.page.value = "famstad"
+          form.searchbutton.value = "Find xcode=?"
+        }else if(flag == "show_revaluation"){
+          form.page.value = "famstrv"
+          form.searchbutton.value = "Find xcode=?"
+        }else if(flag == "show_transfer"){
+          form.page.value = "famsttr"
+          form.searchbutton.value = "Find xcode=?"
+        }else if(flag == "show_disposal"){
+          form.page.value = "famstdp"
+          form.searchbutton.value = "Find xcode=?"
+        }
+      }
+
+
+      function pickCur(linkcur,linkexch){
+        if (navigator.appName.indexOf("Netscape")>=0){
+          //window.alert("C")
+          document.frmone.xcur.value=linkcur.text
+          document.frmone.xexch.value=linkexch.text
+        }else{
+          //window.alert("C")
+          document.frmone.xcur.value=linkcur.innerText
+          document.frmone.xexch.value=linkexch.innerText
+        }
+        return false
+      }
+
+    </script>
+   end script
+
+
+ end page
+
+

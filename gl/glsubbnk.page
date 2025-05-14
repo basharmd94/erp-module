@@ -1,0 +1,839 @@
+page glsubbnk
+
+	caption "<font color=black>Cash/Cheque Receive Register"
+
+	sections form one,list unallocated,text top,script myscript,~
+			method chk_rec, method chk_mand
+	sidebar list oneopen,submitopen,opinvoice,Dishoneropen
+	text top
+	"<a href=#top title='Back to Top'><font color=blue size=+1><b>Go Top</b></font></a>"
+	end text
+	
+     list unallocated
+        caption "<br><center><b>"Details For Customer"</b>"
+        table glalcview
+        order xsub,xordernum
+        fixed xsub,xcur
+        select "xprime > 0 and xsub='"+xcus+"'"
+        rows 10
+        objects ~
+         xordernum, ~
+         xref,xdate,xrow attrib(name xrow#),~
+         xacc,xsub,xcur,xexch,xprime,xallocation,xbalance equals(xprime-xallocation) attrib(name xbalance#)
+
+        field xref
+            caption Invoice No
+        end field        
+     end list
+
+	
+
+	list oneopen
+		caption "Completed Lists of Cheque(s) Receive".
+		empty " "
+		table (select *,~
+		(select xorg from cacus where zid=glhcsreg.zid and xcus=glhcsreg.xcus) as xorg from glhcsreg) as tbl
+		order xordernum desc
+		select "xchqstat='Completed'"
+		rows 10
+		objects xordernum attrib(link #servlet+"?page="+page+"&command=Show&xordernum=?"),~
+				xbank,xbankbr,xcheque,xdatedue,xdatecom,xdatenotice,xamount,xcus,zemail
+
+		field xordernum
+			caption Money Receipt
+		end field
+		
+		field xdate
+			caption Cash/Cheque Receive Date
+		end field
+		
+		field xtype
+			caption Payment Type
+		end field
+		
+		field xbank
+			caption Issue Bank Name
+		end field
+		
+		field xbankbr
+			caption Branch Name
+		end field
+		
+		field xcheque
+			caption Cheque Number
+		end field
+		
+		field xdatedue
+			caption Cheque Date
+		end field
+		
+		field xdatecom
+			caption Cheque Deposited Date
+		
+		end field
+		
+		field xdatenotice
+			caption Dep. Confirm Date
+		end field
+		
+		field xamount
+			caption Cheque Amount
+		end field
+		
+		
+		field xprime
+			caption Outstanding
+		end field
+		
+		field xremark
+			caption Remarks
+		end field
+		
+		field zemail
+			caption Entry By
+		end field
+		
+		field xemail
+			caption Updated By
+		end field
+		
+		field xchqstat
+			caption Cheque Status
+		end field
+		
+	end list
+	
+	list Dishoneropen
+		caption "Lists of Cheque(s) Dishoner"
+		empty " "
+		table (select *,~
+		(select xorg from cacus where zid=glhcsreg.zid and xcus=glhcsreg.xcus) as xorg from glhcsreg) as tbl
+		order xordernum desc
+		select "(xchqstat='Dishoner/New') and xdatecom<>'2999-12-31'"
+		rows 10
+		objects xordernum attrib(link #servlet+"?page="+page+"&command=Show&xordernum=?"),~
+				xbank,xbankbr,xcheque,xdatedue,xdatecom,xdatenotice,xamount,xcus,zemail
+				
+
+		field xordernum
+			caption Money Receipt
+		end field
+		
+		field xdate
+			caption Cash/Cheque Receive Date
+		end field
+		
+		field xtype
+			caption Payment Type
+		end field
+		
+		field xbank
+			caption Issue Bank Name
+		end field
+		
+		field xbankbr
+			caption Branch Name
+		end field
+		
+		field xcheque
+			caption Cheque Number
+		end field
+		
+		field xdatedue
+			caption Cheque Date
+		end field
+		
+		field xdatecom
+			caption Cheque Deposited Date
+		end field
+		
+		field xdatenotice
+			caption Dep. Confirm Date
+		end field
+		
+		field xamount
+			caption Cheque Amount
+		end field
+		
+		
+		field xprime
+			caption Outstanding
+		end field
+		
+		field xremark
+			caption Remarks
+		end field
+		
+		field zemail
+			caption Entry By
+		end field
+		
+		field xemail
+			caption Updated By
+		end field
+		
+		field xchqstat
+			caption Cheque Status
+		end field
+		
+	end list
+	
+
+	list opinvoice
+		caption "Bank Deposited Completed"
+		empty " "
+		table (select *,~
+		(select xorg from cacus where zid=glhcsreg.zid and xcus=glhcsreg.xcus) as xorg from glhcsreg) as tbl
+		order xordernum desc
+		select "xchqstat='Invoiced'"
+		rows 10
+		objects xordernum attrib(link #servlet+"?page="+page+"&command=Show&xordernum=?"),~
+				xbank,xbankbr,xcheque,xdatedue,xdatecom,xdatenotice,xamount,xcus,zemail,~
+				xglref
+				
+
+		field xordernum
+			caption Money Receipt
+		end field
+		
+		field xdate
+			caption Cash/Cheque Receive Date
+		end field
+		
+		field xtype
+			caption Payment Type
+		end field
+		
+		field xbank
+			caption Issue Bank Name
+		end field
+		
+		field xbankbr
+			caption Branch Name
+		end field
+		
+		field xcheque
+			caption Cheque Number
+		end field
+		
+		field xdatedue
+			caption Cheque Date
+		end field
+		
+		field xdatecom
+			caption Cheque Deposited Date
+		
+		end field
+		
+		field xdatenotice
+			caption Dep. Confirm Date
+		end field
+		
+		field xamount
+			caption Cheque Amount
+		end field
+		
+		
+		field xprime
+			caption Outstanding
+		end field
+		
+		field xremark
+			caption Remarks
+		end field
+		
+		field zemail
+			caption Entry By
+		end field
+		
+		field xemail
+			caption Updated By
+		end field
+		
+		field xchqstat
+			caption Cheque Status
+		end field
+		
+	end list
+
+	list submitopen
+		caption "Submit To Bank"
+		empty " "
+		table (select *,~
+		(select xorg from cacus where zid=glhcsreg.zid and xcus=glhcsreg.xcus) as xorg from glhcsreg) as tbl
+		order xordernum desc
+		select "xchqstat='Submit to Bank'"
+		rows 10
+		objects xordernum attrib(link #servlet+"?page="+page+"&command=Show&xordernum=?"),~
+				xbank,xbankbr,xcheque,xdatedue,xdatecom,xdatenotice,xamount,xcus,zemail
+				
+		field xordernum
+			caption Money Receipt
+		end field
+		
+		field xdate
+			caption Cash/Cheque Receive Date
+		end field
+		
+		field xtype
+			caption Payment Type
+		end field
+		
+		field xbank
+			caption Issue Bank Name
+		end field
+		
+		field xbankbr
+			caption Branch Name
+		end field
+		
+		field xcheque
+			caption Cheque Number
+		end field
+		
+		field xdatedue
+			caption Cheque Date
+		end field
+		
+		field xdatecom
+			caption Cheque Deposited Date
+		
+		end field
+		
+		field xdatenotice
+			caption Dep. Confirm Date
+		end field
+		
+		field xamount
+			caption Cheque Amount
+		end field
+		
+		
+		field xprime
+			caption Outstanding
+		end field
+		
+		field xremark
+			caption Remarks
+		end field
+		
+		field zemail
+			caption Entry By
+		end field
+		
+		field xemail
+			caption Updated By
+		end field
+		
+		field xchqstat
+			caption Cheque Status
+		end field
+		
+	end list
+
+
+	form one
+		valid valid
+		table glhcsreg
+		order xordernum
+		layout 3
+		objects Show,Update,Clear,Previous,Next,Submit_to_Bank,Bank_Deposited,Dishoner,~///Cheque_Search,
+				xordernum,xdate,xtype attrib(submit),xbank,xbankbr,xcheque,xdatedue,xdatecom,xdatenotice,~
+				xamount,xdateclr,xacc attrib(submit; attach),dummy_1,xsub attrib(submit; attach),dummy_2,~
+				xtproj,xcus attrib(submit;attach),cus_name,xsp display(const),spname,xdesig,xprime,xremark,zemail,xemail,xchqstat,~
+				xglref display(const),xendsch display(const)
+				
+		field xordernum
+			display text
+			caption Money Receipt
+			event after
+				if xordernum .eq. ""
+					set #field(Delete.display)="hide"
+					set #field(Update.display)="hide"
+				end if
+			end event
+		end field
+		
+		field xendsch
+			caption Disoner Count
+		end field 
+		
+		field xglref
+			caption Voucher
+		end field
+		
+		field spname
+			caption Sales Person Name
+			attrib local
+			display const
+		end field
+		
+		field xdesig
+			attrib local
+			display const
+		end field
+		
+		field xdateclr
+			caption Bank Submit Date
+		end field
+		
+		field xdate
+			caption Cash/Cheque Receive Date
+			attrib readonly
+		end field
+		
+		field xtype
+			caption Payment Type
+			display const
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Payment Type'"
+			default "Cheque"
+			event after
+				if xtype .eq. "Cash"
+					set #field(xbank.display)="hide"
+					set #field(xbankbr.display)="hide"
+					set #field(xcheque.display)="hide"
+					set #field(xdatedue.display)="hide"
+					set #field(xdatecom.display)="hide"
+					set #field(xdatenotice.display)="hide"
+				end if
+			end event
+		end field
+		
+		field xbank
+			caption Issue Bank Name
+			display const
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Bank'"
+		end field
+		
+		field xbankbr
+			
+			display const
+			caption Branch Name
+			pick "select xcode from xcodes where zid='"+#id+"' and xtype='Bank Branch Name'"
+		end field
+		
+		field xcheque
+			caption Cheque Number
+			attrib readonly
+		end field
+		
+		field xdatedue
+			caption Cheque Date
+			attrib readonly
+		end field
+		
+		field xdatecom
+			caption Cheque Deposited Date
+			attrib readonly
+		end field
+		
+		field xdatenotice
+			caption Dep. Confirm Date
+		end field
+		
+		field xamount
+			caption Amount
+			attrib readonly
+		end field
+		
+		field cus_name
+			display const
+			event after
+				set cus_name=#sql("select xorg from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			end event
+		end field
+		
+		field xcus
+			display const
+		end field
+		
+		field xtproj
+			caption Project
+			display const
+		end field
+		
+		field xprime
+			caption Outstanding
+			display const
+			event after
+				if xcus .ne. ""
+					set xprime=0.0+#sql(decimal,"select sum(xprime) from gldetailview where zid='"+#id+"' and xsub='"+xcus+"' ")
+				end if
+			end event
+		end field
+		
+		field xremark
+			caption Remarks
+			attrib readonly
+		end field
+		
+		field zemail
+			caption Entry By
+			display const
+		end field
+		
+		field xemail
+			caption Updated By
+			display const
+		end field
+		
+		field xchqstat
+			caption Cheque Status
+			display const
+		end field
+
+				
+		field Cheque_Search
+			event before
+				class osbcustom(search(xref,"a","glchqr","xref","pickRec","xref:xcus:xdate:xdatedue:xprime","yes","Cheque Number:Party Code:Received Date:Cheque Date:Amount"))
+			end event
+		end field
+
+
+		field Add
+			event before
+				set globals(ErrChk) = ""
+				
+				if globals(ErrChk) .ne. "1"
+					set prefix="MN--"
+					str mysql = #sql(str,"select xordernum from glhcsreg where zid='"+#id+"' and xordernum like '"+prefix+"%' order by xordernum desc")
+					if #result .eq. "true" .and. mysql .ne. ""
+						set last_num = 0+#sub(mysql,4,6)
+					end if
+					set last_num = 0+1+last_num			
+					set mysql = #padl(""+last_num,6,"0")
+					set xordernum = prefix + mysql            						
+				end if
+				
+				
+				if globals(ErrChk) .ne. "1"
+					set zemail=#user
+					set xemail = ""
+					set xchqstat ="New"
+				end if
+			end event
+		end field
+
+
+		field Update
+			event before
+				set globals(ErrChk) = ""
+				
+				if globals(ErrChk) .ne. "1"
+					set xemail = #user
+				end if
+			end event
+		end field
+
+		field Delete
+			event before
+				set globals(ErrChk) = ""
+			end event
+		end field
+		
+		field Dishoner
+			event before
+				set globals(ErrChk)=""
+				
+				if globals(ErrChk) .ne. "1"
+					set xendsch=#sql(int,"select xendsch from glhcsreg where zid='"+#id+"' and xordernum='"+xordernum+"'")
+					
+					set xendsch=0.0+xendsch+1
+					
+					set mysql="update glhcsreg set xchqstat='Dishoner/New',xendsch="+xendsch+" where zid='"+#id+"' and xordernum='"+xordernum+"'"
+					set upval=#sql(str,mysql)
+					action show
+				end if
+				
+			end event
+		end field
+		
+		field Submit_to_Bank
+			event before
+				set globals(ErrChk) =""
+				
+				if globals(ErrChk) .ne. "1"
+					if xdateclr .eq. "2999-12-31"
+						set globals(ErrChk)="1"
+						error "Submited Date Cannot Be Blank"
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					set xacc=#sql(str,"select xacc from glhcsreg where zid='"+#id+"' and xordernum='"+xordernum+"'")
+					if xacc .eq. ""
+						set globals(ErrChk)="1"
+						error "Account Code Can not be Blank"
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					set chkacc=#sql(str,"select xacc from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+					if #result .ne. "true"
+						set globals(ErrChk)="1"
+						error "<font color=red size=+1>Wrong Accounts Code"
+					end if
+				end if
+				
+				if globals(ErrChk) .ne. "1"
+					set mysql="update glhcsreg set xchqstat='Submit to Bank' where zid='"+#id+"' and xordernum='"+xordernum+"'"
+					set upval=#sql(str,mysql)
+					action show
+				end if
+				
+			end event
+			
+		end field
+		
+	
+		field Bank_Deposited
+			event before
+				set globals(ErrChk) = ""
+				
+				if globals(ErrChk) .ne. "1"
+					set chk_voucher = #sql("select xvoucher from glheader where zid="+#id+" and xref='"+xordernum+"'")
+
+					str mysql = "delete from glalc where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+					set updval = #sql(mysql)
+
+					str mysql = "delete from gldetail where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+					set updval = #sql(mysql)
+
+					str mysql = "delete from glheader where zid="+#id+" and xvoucher='"+chk_voucher+"'"
+					set updval = #sql(mysql)
+				end if
+
+
+
+				if globals(ErrChk) .eq. ""
+					begin
+
+					int offset
+					int per
+					int year=#sub(#date,0,4)
+		
+					int tempper
+					int tempyear	            
+					set offset=castatus.xinteger(" zid='"+#id+"' and xtypestatus='GL Period Offset'")
+					set per=12+#sub(xdate,5,2)-offset
+					if per<=12
+						set tempper=per
+						set tempyear=year-1
+					else
+						set tempper=per-12
+						set tempyear=year
+					end if
+
+					set xglcode="RCT-"
+					set sinvper=#sub(xdate,5,2)
+					set sinvyr=#sub(xdate,2,2)
+					set sinvprefix=xglcode//+sinvyr+sinvper+"-"	
+
+					str mysql = #sql(str,"select xvoucher from glheader where zid='"+#id+"' and xvoucher like '"+sinvprefix+"%' order by xvoucher desc ")
+					if #result .eq. "true" .and. mysql .ne. ""
+						set last_num = 0+#sub(mysql,4,6)
+					end if
+					set last_num = 0+1+last_num
+					set mysql = #padl(""+last_num,6,"0")
+					set xvoucher = sinvprefix + mysql     
+					
+					
+
+					set myqry = "insert into glheader (zid, xvoucher,xref,xdate,xlong,xpostflag,~
+						xyear,xper,xstatusjv,xdatedue,xdesc01,xdesc02,xdesc03,xdesc04,xdesc05,xictrnno,dumzid,~
+						zemail,xemail,xaccdr,xsubdr,xnumofper,xcheque,xpaytype,xstatus,xtrngl,xnote,xteam,xmember,~
+						xmanager,xapproved,xaction)"
+
+					set myqry = myqry + " values('"+#id+"','"+xvoucher+"','"+xordernum+"','"+#date+"',~
+						'System Generated Invoice from Cheque Received Register','','"+tempyear+"','"+tempper+"','Balanced','"+xdate+"',~
+						'','','','','','',"0",'"+#user+"','','','',"0",'','','','"+xglcode+"','System Generated Invoice from Cheque Received Register',~
+						'"+xteam+"','"+xmember+"','"+xmanager+"','','Receipt')"
+						
+					set tmpstr =#sql(myqry)
+					//print #result +" "+myqry+" "+"1"
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+						error "<font color=red size=+1>Error Creating In Header"
+					end if
+				end if
+
+
+				if globals(ErrChk) .eq. ""
+					set xaccusage=#sql("select xaccusage from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+					set xaccsource=#sql("select xaccsource from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+					set disamt=0.0+xamount
+
+					set rownum = 0+1+rownum
+					set mysql = "insert into gldetail (ztime,zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+						xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xrem,xicacc,xicsub,xacctype,zemail,xemail,~
+						xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xallocation,xcheque,xpaytype,~
+						xstatus,xtypegl,xinvnum,xref,xoriginal,xdateapp,xpaycode,xexchval,xdateclr,xflag,xdatedue,xsp)"							
+						set mysql = mysql + " values('"+#time+"','"+#id+"','"+xvoucher+"',"+rownum+",'"+xacc+"','"+xaccusage+"',~
+						'"+xaccsource+"','"+xsub+"','"+xdiv+"','"+xsec+"','"+xtproj+"','BDT','1',~
+						"+disamt+","+disamt+",'','','','"+xacctype+"','"+#user+"','','','','','','',"0","0",~
+						'','','','','"+xinvnum+"','"+xordernum+"','"+ximtmptrn+"','"+#date+"','','1','"+#date+"','','"+#date+"','"+xsp+"')"        
+						
+					set tmpstr = #sql(mysql)   
+///print #result +" "+mysql+" "+"2"
+					if #result .ne. "true"
+						set globals(ErrChk) = "1"
+						error "<font color=red size=+1>Error Creating In Debit Account1"
+					end if
+
+				end if
+				
+				if globals(ErrChk) .eq. ""
+						set aracc=#sql("select xaccar from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+						set xaccusage=#sql("select xaccusage from glmst where zid='"+#id+"' and xacc='"+aracc+"'")
+						set xaccsource=#sql("select xaccsource from glmst where zid='"+#id+"' and xacc='"+aracc+"'")
+						set disamt=0.0+xamount
+						set rownum = 0+1+rownum
+						set mysql = "insert into gldetail (ztime,zid, xvoucher,xrow,xacc,xaccusage,xaccsource,xsub,~
+									xdiv,xsec,xproj,xcur,xexch,xprime,xbase,xrem,xicacc,xicsub,xacctype,zemail,xemail,~
+									xstatusrfp,xicdiv,xicsec,xicproj,xvmcode,xamount,xallocation,xcheque,xpaytype,~
+									xstatus,xtypegl,xinvnum,xref,xoriginal,xdateapp,xpaycode,xexchval,xdateclr,xflag,xdatedue,xsp)"							
+									set mysql = mysql + " values('"+#time+"','"+#id+"','"+xvoucher+"',"+rownum+",'"+aracc+"','"+xaccusage+"',~
+									'"+xaccsource+"','"+xcus+"','"+xdiv+"','"+xsec+"','"+xtproj+"','BDT','1',~
+									"+0-disamt+","+0-disamt+",'','','','"+xacctype+"','"+#user+"','','','','','','',"0","0",~
+									'','','','','"+xinvnum+"','"+xordernum+"','"+ximtmptrn+"','"+#date+"','','1','"+#date+"','','"+#date+"','"+xsp+"')"        
+
+						set tmpstr = #sql(mysql)   
+////print #result +" "+mysql+" "+"3"
+						if #result .ne. "true"
+							set globals(ErrChk) = "1"
+							error "<font color=red size=+1>Error Creating In Debit Account2"
+						end if
+				end if
+				
+
+				if globals(ErrChk) .eq. "1" .or. globals(ErrChk) .eq. ""
+					set tot_prime = #sql(decimal,"select sum(xprime) from gldetail where  zid="+#id+" and xvoucher='"+xvoucher+"'")
+					
+					if tot_prime <> 0.0
+						set globals(ErrChk) = "1"
+						str mysql = "update glheader set xstatusjv = 'Out of Balance' where  zid="+#id+" and xref = '"+xordernum+"'"
+						set tmpstr = #sql(str,mysql)
+						error "Cannot Update("+xvoucher+")Out of Balance</p>Check Error Logs "
+					end if
+				end if
+
+				if globals(ErrChk) .eq. "" 
+					str mysql = "update glhcsreg set xglref='"+xvoucher+"',xchqstat='Invoiced' where zid="+#id+" and xordernum='"+xordernum+"'"
+					set tmpstr = #sql(str,mysql)
+					//print #result +" "+mysql+" "+"5"
+					if #result .eq. "true"
+						commit
+						action show
+						print "<font color=blue size=3>Invoice No. "+xvoucher+" Created"						
+					else
+						print "<font color=red size=+1>Could Not Confirm</font>"
+						rollback						
+					end if					 
+				end if
+			end event
+		end field
+		
+		
+		
+		embed onsubmit="submitit(this)"
+
+	end form
+
+
+	script myscript
+		<script language="javascript" type="text/javascript">
+		var detail
+
+		function show_order(){
+		detail = "order"
+		}
+
+		function pickRec(link){
+		if (navigator.appName.indexOf("Netscape")>=0){
+		document.one.xref.value = link.text
+		}else{
+		document.one.xref.value = link.innerText
+		}
+		return false
+		}
+
+		function submitit(form){
+		}
+		</script>
+	end script
+	
+	valid valid
+		config
+		
+	        set globals(xacc)=xacc
+	        set globals(xsub)=xsub
+	        
+			set dummy_1 = #sql(str,"select xdesc from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+			set xaccusage = #sql(str,"select xaccusage from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+			set xaccsource = #sql(str,"select xaccsource from glmst where zid='"+#id+"' and xacc='"+xacc+"'")
+            if xaccusage .eq. "Ledger" .or. xaccusage .eq. "Bank" .or. xaccusage .eq. "Cash" .and. xaccsource .eq. "Subaccount"
+                set #field(xsub.pick)="list xsub"
+                set dummy_2=#sql(str,"select xdesc from glsub where zid='"+#id+"' and xacc='"+xacc+"' and xsub='"+xsub+"'")
+            else if xaccusage .eq. "AR" .and. xaccsource .eq. "Customer"
+                set #field(xsub.pick)="list glcus"
+                set dummy_2=#sql(str,"select xorg from cacus where zid='"+#id+"' and xcus='"+xsub+"'")
+            else if xaccusage .eq. "AP" .and. xaccsource .eq. "Supplier"
+                set #field(xsub.pick)="list glsup"
+                set dummy_2=#sql(str,"select xorg from casup where zid='"+#id+"' and xsup='"+xsub+"'")
+            else if xaccusage .eq. "Ledger" .and. xaccsource .eq. "Employee"
+                set #field(xsub.pick)="list glemp"
+                set dummy_2=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xsub+"'")
+            else
+            	set #field(xsub.display) = "hide"
+            	set #field(dummy_2.display) = "hide"
+              	set xsub = ""
+              	set dummy_2 = ""
+            end if
+			
+			set xsp=#sql("select xsp from glhcsreg where zid='"+#id+"' and xordernum='"+xordernum+"'")
+			//set xsp=#sql("select xsp from cacus where zid='"+#id+"' and xcus='"+xcus+"'")
+			set spname=#sql(str,"select xname from prmst where zid='"+#id+"' and xemp='"+xsp+"'")
+			set xdesig=#sql(str,"select xdesig from prmst where zid='"+#id+"' and xemp='"+xsp+"'")
+			
+			if xchqstat .eq. "Submit to Bank"
+				set #field(Submit_to_Bank.display)="disbale"
+				set #field(Add.display)="disbale"
+				set #field(Update.display)="disbale"
+				set #field(Delete.display)="disbale"
+				set #field(xdate->.display)="const"
+			end if
+			//print xchqstat+" "+"fdf"
+			if xchqstat .eq. "Completed"
+				set #field(Bank_Deposited.display)="disbale"
+				set #field(Dishoner.display)="disbale"
+				set #field(Add.display)="disbale"
+				
+				set #field(Delete.display)="disbale"
+			end if
+			
+			if xchqstat .eq. "Dishoner/New"
+				set #field(Submit_to_Bank.display)="disbale"
+				set #field(Bank_Deposited.display)="disbale"
+				set #field(Dishoner.display)="disbale"
+				set #field(Add.display)="disbale"
+				set #field(Update.display)="disbale"
+				set #field(Delete.display)="disbale"
+				set #field(xdate->.display)="const"
+			end if
+			
+			if xchqstat .eq. "Invoiced"
+				set #field(Submit_to_Bank.display)="disbale"
+				set #field(Bank_Deposited.display)="disbale"
+				set #field(Dishoner.display)="disbale"
+				set #field(Add.display)="disbale"
+				set #field(Update.display)="disbale"
+				set #field(Delete.display)="disbale"
+				set #field(xdate->.display)="const"
+			end if
+			
+		end config
+	end vaild
+	
+#include access.valid   
+
+end page

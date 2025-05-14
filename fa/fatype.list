@@ -1,0 +1,12 @@
+list fatype
+        table xcodes
+        order xcode
+        select "xtype='FA Type'"
+        navigators alpha
+        rows 20
+        objects xcode attrib(link "abc" embed onclick="return updateParent(this:'xasttype')"), ~
+                xdescdet
+
+
+     end list
+

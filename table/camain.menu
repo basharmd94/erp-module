@@ -1,0 +1,88 @@
+//camain.menu
+caption "Main Menu" page
+//---------------------------------------------------------------------------------------
+
+option                  |action                                                       |modules|models
+//---------------------------------------------------------------------------------------
+-Common Modules
+Cross Application             |#classPath+"/"+#servlet+"?menu=ca"                     |
+System Administration         |#classPath+"/"+#servlet+"?menu=zx"                     |
+Messaging                     |#classPath+"/"+#servlet+"?menu=mg"                    |
+
+-General ERP      		      |												          |
+Accounts                      |#classPath+"/"+#servlet+"?menu=accounts"               |
+Sales 				          |#classPath+"/"+#servlet+"?menu=op"                     |
+Purchasing                    |#classPath+"/"+#servlet+"?menu=po"                     |
+LC Management                 |#classPath+"/"+#servlet+"?menu=lc"                  |
+Inventory                     |#classPath+"/"+#servlet+"?menu=im"                     |
+
+-Human Reosurce Management
+Employee Master               |#classPath+"/"+#servlet+"?menu=pd"                     |
+Payroll                       |#classPath+"/"+#servlet+"?menu=payroll"                |
+Leave Management              |#classPath+"/"+#servlet+"?menu=prleave"                     
+//Employee Appraisal            |#classPath+"/"+#servlet+"?menu=prapprs"			 	 
+Attendance Maintenance        |#classPath+"/"+#servlet+"?menu=prat"                    
+Training Management           |#classPath+"/"+#servlet+"?menu=prtrain"			 	 
+
+-Manufacturing  		      |												          |
+Bill of Materials             |#classPath+"/"+#servlet+"?menu=bom"                    |
+Manufacturing Orders          |#classPath+"/"+#servlet+"?menu=mor"                    |
+
+-Fixed Asset
+Fixed Asset                   |#classPath+"/"+#servlet+"?menu=fa"                     |
+
+-Public Portal
+Public Portal                 |#classPath+"/"+#servlet+"?menu=poinreq"                |
+
+//---------------------------------------------------------------------------------------------------------
+//Library Management             |#classPath+"/"+#servlet+"?menu=lb"                     
+//-
+//Hotel Management               |#classPath+"/"+#servlet+"?menu=hm"                     
+//-
+
+//-
+//Loan Management                |#classPath+"/"+#servlet+"?menu=loan"           
+//-
+//Machine Maintenance 	         |#classPath+"/"+#servlet+"?menu=mt"                  	 
+//-To Be Update
+//-Airlines
+//Airlines Ticket Sales for GSA  |#classPath+"/"+#servlet+"?menu=xa"
+//-
+//Airlines Cargo Sales for GSA   |#classPath+"/"+#servlet+"?menu=xacg"
+//-
+//-Hospital                      |												 
+//OPD                            |#classPath+"/"+#servlet+"?menu=mmopd"                   
+//IPD                            |#classPath+"/"+#servlet+"?menu=mmipd"                   
+//Diagnostic                 |#classPath+"/"+#servlet+"?menu=mmdiag"                  
+//-Garments				     |												 
+//Merchandise		 	     |#classPath+"/"+#servlet+"?menu=gmmerch"                    
+//Commercial 			     |#classPath+"/"+#servlet+"?menu=gmlcmenu"                    
+//Production 			     |#classPath+"/"+#servlet+"?menu=gmprod"                   
+//-Courier
+//Courier Export Management  |#classPath+"/"+#servlet+"?menu=pb"                      
+//Courier Import Management  |#classPath+"/"+#servlet+"?menu=pbimp"                      
+//-Freight
+//Air Freight Management     |#classPath+"/"+#servlet+"?menu=fma"                      
+//Sea Freight Management 	 |#classPath+"/"+#servlet+"?menu=fms"                      
+//-CRM
+//Sales Management           |#classPath+"/"+#servlet+"?menu=sm"              
+//Customer Support           |#classPath+"/"+#servlet+"?menu=cs"              
+//Fulfillment                |#classPath+"/"+#servlet+"?menu=ff"              		|
+//Sales Analysis             |#classPath+"/"+#servlet+"?menu=sa"                    |
+//-Multi Level Marketing     |                                                  	|
+//MLM Management             |#classPath+"/"+#servlet+"?menu=mlm"               	|
+//MLM Query                  |#classPath+"/"+#servlet+"?menu=mlmqry"         	    |
+//DORA 					     |#classPath+"/"+#servlet+"?menu=mlmdora"           	|
+//BRAO      				 |#classPath+"/"+#servlet+"?menu=mlmbrao"           	|
+//DMCSL 					 |#classPath+"/"+#servlet+"?menu=mlmdmcsl"              |
+//-Supply Chain			     |													    |
+//Supply Chain Management    |#classPath+"/"+#servlet+"?menu=mlsupply"              |											
+//Financial Management    	 |#classPath+"/"+#servlet+"?menu=bank"                  |
+//Bus Ticket Management      |#classPath+"/"+#servlet+"?menu=tm"   
+//-Top Management
+//Shortcut Menu              |#classPath+"/"+#servlet+"?menu=ed"                     |  
+//Fleet Management              |#classPath+"/"+#servlet+"?menu=vms"                     
+//Cross Application           |#classPath+"/"+#servlet+"?menu=ca"                     |    
+//Leave Management            |#classPath+"/"+#servlet+"?menu=prlvtrn"              
+//-------------------------------------------------------------------
+

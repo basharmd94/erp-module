@@ -1,0 +1,290 @@
+page glprocess_cf
+
+    caption "Cash Flow Process"
+    sections form imtrn,script myscript
+
+    form imtrn
+      //caption "<font color=black>Cash Flow Process</font>"
+      
+      layout 1
+      objects ~
+              Process,Top,Show,~
+              xyear
+
+        field show
+           display hide
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+          	 if globals(ErrChk) .ne. "1"
+            	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Undo_Import.display) = "hide"
+		                set #field(Detail.display) = "hide"		  
+		                set #field(Confirm.display) = "hide"
+						set #field(Transfer.display) = "hide"		                                	                
+						set #field(Create.display) = "hide"	                
+						set #field(Sub.display) = "hide"		                
+						set #field(Post.display) = "hide"
+						set #field(Docs.display) = "hide"
+						set #field(Manual.display) = "hide"
+						//set #field(Process.display) = "hide"
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if           
+           end event
+           event after
+	         if globals(ErrChk) .ne. "1"
+	         	set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+	         	if #result .ne. "true"
+	                set #field(Details.display) = "hide"
+	                set #field(Top.display) = "hide"
+	                set #field(Bottom.display) = "hide"
+	                set #field(Next.display) = "hide"
+	                set #field(Previous.display) = "hide"
+	                set #field(Show.display) = "hide"
+	                set #field(Add.display) = "hide"
+	                set #field(Update.display) = "hide"
+	                set #field(Delete.display) = "hide"
+	                set #field(Clear.display) = "hide"
+	                set #field(Create.display) = "hide"
+	                set #field(Import.display) = "hide"		                
+	                set #field(Undo_Import.display) = "hide"
+	                set #field(Detail.display) = "hide"		
+	                set #field(Confirm.display) = "hide"
+					set #field(Transfer.display) = "hide"		                                	                
+					set #field(Create.display) = "hide"	                
+					set #field(Sub.display) = "hide"
+					set #field(Post.display) = "hide"
+					set #field(Docs.display) = "hide"
+					set #field(Manual.display) = "hide"			
+					//set #field(Process.display) = "hide"		
+	                class osbcustom(clear)                		                
+	         	end if
+	         end if             
+           end event           
+        end field
+
+        field top
+           display hide
+           event before
+             set globals(ErrChk) = ""
+             set stype = ""
+          	 if globals(ErrChk) .ne. "1"
+            	class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+            	//print "P"+stype
+            	if stype .eq. "Yes"
+		             set type = "Page"
+		             set object = page
+		             set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+		             if #result .ne. "true" .and. #user .ne. permit
+		                set #field(Details.display) = "hide"
+		                set #field(Top.display) = "hide"
+		                set #field(Bottom.display) = "hide"
+		                set #field(Next.display) = "hide"
+		                set #field(Previous.display) = "hide"
+		                set #field(Show.display) = "hide"
+		                set #field(Add.display) = "hide"
+		                set #field(Update.display) = "hide"
+		                set #field(Delete.display) = "hide"
+		                set #field(Clear.display) = "hide"
+		                set #field(Import.display) = "hide"		                
+		                set #field(Undo_Import.display) = "hide"
+		                set #field(Detail.display) = "hide"		  
+		                set #field(Confirm.display) = "hide"
+						set #field(Transfer.display) = "hide"		                                	                
+						set #field(Create.display) = "hide"	                
+						set #field(Sub.display) = "hide"		                
+						set #field(Post.display) = "hide"
+						set #field(Docs.display) = "hide"
+						set #field(Manual.display) = "hide"
+						//set #field(Process.display) = "hide"
+		             end if
+		             call chk_access
+		             if globals(ErrChk) .eq. ""
+		             	call chk_command
+		             end if
+            	end if
+          	 end if           
+           end event
+           event after
+	         if globals(ErrChk) .ne. "1"
+	         	set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+	         	if #result .ne. "true"
+	                set #field(Details.display) = "hide"
+	                set #field(Top.display) = "hide"
+	                set #field(Bottom.display) = "hide"
+	                set #field(Next.display) = "hide"
+	                set #field(Previous.display) = "hide"
+	                set #field(Show.display) = "hide"
+	                set #field(Add.display) = "hide"
+	                set #field(Update.display) = "hide"
+	                set #field(Delete.display) = "hide"
+	                set #field(Clear.display) = "hide"
+	                set #field(Create.display) = "hide"
+	                set #field(Import.display) = "hide"		                
+	                set #field(Undo_Import.display) = "hide"
+	                set #field(Detail.display) = "hide"		
+	                set #field(Confirm.display) = "hide"
+					set #field(Transfer.display) = "hide"		                                	                
+					set #field(Create.display) = "hide"	                
+					set #field(Sub.display) = "hide"
+					set #field(Post.display) = "hide"
+					set #field(Docs.display) = "hide"
+					set #field(Manual.display) = "hide"			
+					//set #field(Process.display) = "hide"		
+	                class osbcustom(clear)                		                
+	         	end if
+	         end if             
+           end event           
+        end field
+              
+      field process
+        event before
+            set globals(ErrChk) = ""
+            decimal curtot = 0.0
+            decimal prvtot = 0.0
+            
+			if globals(ErrChk) .ne. "1"
+				str mysql = "delete from glcashflow where xyear='"+xyear+"'"
+				set tmpval = #sql(str,mysql)
+			end if
+			
+            if globals(ErrChk) .ne. "1"
+            	set prvyear = 0+xyear-1
+            	set prv2year = 0+xyear-2
+            	set xhrc1 = ""
+            	str mysql = "select xhrc1 from glhrched where xhrc1 > '"+xhrc1+"'"
+            	set xhrc1 = #sql(str,mysql)
+            	while #result .eq. "true"
+            		str xrow = ""
+            		str myqry = "select xrow from glhrcdet where xhrc1 = '"+xhrc1+"' and xrow > '"+xrow+"'"
+            		set xrow = #sql(str,myqry)
+            		while #result .eq. "true"
+            			decimal curamt = 0.0
+            			decimal prvamt = 0.0
+            			set xhrc2 = #sql(str,"select xhrc2 from glhrcdet where xhrc1 = '"+xhrc1+"' and xrow = '"+xrow+"'")
+            			set curamt = #sql(decimal,"select xtotamt from glcfview where xyear='"+xyear+"' and xhrc2 = '"+xhrc2+"'")
+            			set prvamt = #sql(decimal,"select xtotamt from glcfview where xyear='"+prvyear+"' and xhrc2 = '"+xhrc2+"'")
+			          	set curtot = 0.0+curamt+curtot
+			          	set prvtot = 0.0+prvamt+prvtot
+            			set chkrec = #sql("select xhrc2 from glcashflow where xyear='"+xyear+"' and xhrc1='"+xhrc1+"' and xrow='"+xrow+"'")
+			          	if #result .ne. "true"
+			            	set mysql = "insert into glcashflow (zid,xyear,xhrc1,xrow,xhrc2,xtotamt,xlineamt)"
+			            	set mysql = mysql + " values('"+#id+"','"+xyear+"','"+xhrc1+"','"+xrow+"','"+xhrc2+"','"+curamt+"','"+prvamt+"')"
+			            	set tmpstr =#sql(mysql)
+			            end if	
+            			
+            			//print xhrc1+" "+xrow+" "+xhrc2+" "+xamount
+	            		str myqry = "select xrow from glhrcdet where xhrc1 = '"+xhrc1+"' and xrow > '"+xrow+"'"
+	            		set xrow = #sql(str,myqry)
+            		end while
+        			
+	            	str mysql = "select xhrc1 from glhrched where xhrc1 > '"+xhrc1+"'"
+	            	set xhrc1 = #sql(str,mysql)
+            	end while
+            	
+            	//Increase/Decrease in Cash & Bank Balance
+            	set mysql = "insert into glcashflow (zid,xyear,xhrc1,xrow,xhrc2,xtotamt,xlineamt)"
+            	set mysql = mysql + " values('"+#id+"','"+xyear+"','50-Increase/Decrease in Cash & Bank Balance','0','','"+curtot+"','"+prvtot+"')"
+            	set tmpstr =#sql(mysql)
+        		
+            	set opbalcur = #sql(decimal,"select sum(xtotamt) from glbalcb where xyear='"+prvyear+"'")
+            	set clbalcur = #sql(decimal,"select sum(xtotamt) from glbalcb where xyear='"+xyear+"'")
+            	set opbalprv = #sql(decimal,"select sum(xtotamt) from glbalcb where xyear='"+prv2year+"'")
+            	//print curtot+" "+prvtot+" "+opbalcur+" "+clbalcur+" "+opbalprv
+            	
+            	//Opening Cash & Bank Balance
+            	set mysql = "insert into glcashflow (zid,xyear,xhrc1,xrow,xhrc2,xtotamt,xlineamt)"
+            	set mysql = mysql + " values('"+#id+"','"+xyear+"','51-Opening Cash & Bank Balance','0','','"+opbalcur+"','"+opbalprv+"')"
+            	set tmpstr =#sql(mysql)
+            	
+            	//Closing Cash & Bank Balance
+            	set mysql = "insert into glcashflow (zid,xyear,xhrc1,xrow,xhrc2,xtotamt,xlineamt)"
+            	set mysql = mysql + " values('"+#id+"','"+xyear+"','52-Closing Cash & Bank Balance','0','','"+clbalcur+"','"+opbalcur+"')"
+            	set tmpstr =#sql(mysql)            	
+            end if
+            
+			if globals(ErrChk) .ne. "1"
+				print "<font color=blue size=4>Processing Completed</font>"
+			end if				
+        end event
+      end field
+
+      embed onsubmit="submitit(this)"
+    end form
+
+    script myscript
+        <script language=javascript type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "imtrn"
+          }
+        }
+        </script>
+    end script
+
+	method chk_access
+		set chkid = #sql("select zemail from xusers where zemail='"+#user+"'")
+		if #result .ne. "true"
+			set globals(ErrChk) = "1"
+			error //"Please log in before you may access the system"
+		end if				
+	
+		if globals(ErrChk) .ne. "1"
+			set stype = ""
+			class osbcustom(getLocalProp("Module", "ca", "Security", stype))
+			//print "P"+stype
+			if stype .eq. "Yes"    
+				set type = "Page"
+				set object = page
+				set permit = #sql("select zemail from xosbpermit_det where zid = "+#id+" and ztype = '"+type+"' and zobject='"+object+"' and zemail='"+#user+"' and xprobe='Yes'")
+				if #result .ne. "true"
+					set tmp = "REC-"
+					str mysql = #sql(str,"select xwornum from xcriminal where zid="+#id+" and xwornum like '"+tmp+"%' order by xwornum desc")
+					if #result .eq. "true" .and. mysql .ne. ""
+						set last_num = 0+#sub(mysql,6)
+					end if
+					set last_num = 1+last_num
+					set mysql = #padl(""+last_num,6,"0")
+					set mysql=tmp+mysql
+					str tmptime = ""
+					class osbcustom(#time(tmptime))
+					
+					set myqry = "insert into xcriminal (zid,xwornum,xemail,xdate,xtime,xobject)"
+					set myqry = myqry + " values('"+#id+"','"+mysql+"','"+#user+"','"+#date+"','"+tmptime+"','"+page+"')"
+					set tmpstr =#sql(myqry)		
+					
+					set globals(ErrChk) = "1"
+					error //"Don't Try To Be Over Smart !!!!</p>You Will Be Fired If Caught Red Handed !!!!"
+				end if
+			end if  
+		end if  
+	end method
+    
+end page

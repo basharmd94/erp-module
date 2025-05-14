@@ -1,0 +1,15 @@
+product ERP on the Net
+
+table pogdtbat
+  caption "Goods Receipt Note Batch Details"
+  columns ztime,zutime,zid,xgrnnum,xrow,xline,xqty,xbatch,xdaterec,xdateexp,xbin
+
+  primary key zid, xgrnnum,xrow,xline
+  
+  foreign key
+        zid references zbusiness.zid
+        zid,xgrnnum references pogrn.zid,xgrnnum
+        zid,xgrnnum,xrow references pogdt.zid,xgrnnum,xrow
+  end foreign key
+
+end table

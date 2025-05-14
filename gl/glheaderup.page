@@ -1,0 +1,209 @@
+page glheaderup
+// modified by mamun for united group on 17.03.2001
+
+     caption "Unpost GL Voucher"
+     //sidebar text two,list two, text three
+     sections form one, list header, script myscript
+
+    list header
+        caption "<br><center><b>"Voucher List"</b>"
+        table glheader
+        order xvoucher// DESC
+        select "xper>0 and xpostflag='' and not(xvoucher like 'IC%')"
+        //fixed xsub
+        navigators alpha //group xsub "select xsub from gldetail where (xprime<xarap)"
+        rows 20
+        objects ~
+         xvoucher attrib(link "Main?page=glheader&command=Show&xvoucher=?"), ~
+         xref,xdate,xyear,xper,xstatusjv,xpostflag
+//         headers Invoice List
+     end list
+
+
+
+     form one
+        table glheader
+        order xvoucher// DESC
+        select "xper>0 "//and xpostflag='' and not(xvoucher like 'IC%')"
+        return "Main"
+        layout 1
+        objects Details, Clear,Show,Add, Update, Delete, Top, Previous, Next, Bottom,"<p>" ,~
+               xvoucher display(trn GL Voucher), xpostflag, xref, xdate,xdesc01,xdesc02,xdesc03,xdesc04,xdesc05,~
+               xyear, xper ,xstatusjv,xdatedue display(constant),xlong,zemail display(hide),xemail display(hide)
+
+
+        field xdesc01
+          caption PT/RF/ADJ
+	      end field
+
+        field xdesc02
+          caption Bank Name
+	      end field
+
+        field xdesc03
+          caption Acount
+	      end field
+
+        field xdesc04
+          caption Cheque Number
+	      end field
+
+        field xdesc05
+          caption Short Description
+	      end field
+
+        field xlong
+          width 50
+          height 2
+	      end field
+
+        field xstatusjv
+           display constant
+           attrib readonly
+        end field
+
+        field xvoucher
+         event after
+          set globals(xvoucher)=xvoucher
+          set globals(xstate)=xvoucher_ONE
+          set globals(xpostflag)=xpostflag
+          if xvoucher .eq. ""
+            set #field(Details.display) = "hidden"
+            set #field(Delete.display) = "hidden"
+            set #field(Update.display) = "hidden"
+            set #field(Show.display) = "hidden"
+          end if
+          //print globals(xpostflag)
+         end event
+        end field
+
+
+        field clear
+         event after
+            set #field(Details.display) = "hidden"
+            set #field(Delete.display) = "hidden"
+            set #field(Update.display) = "hidden"
+            set #field(Show.display) = "hidden"
+         end event
+        end field
+
+
+        field Add
+          event before
+            set globals(ErrChk)=""
+            if xvoucher .sw. "IC"
+              set globals(ErrChk) = "1"
+              error "IC Voucher Not allowed here."
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              set xstatusjv="Balanced"
+              set xpostflag=""
+              buffer xlocals
+              set globals(xtypelocal)="Module"
+              set globals(xname)="gl"
+              move xlocals=xlocals(xtypelocal,xname)
+              int offset
+              int per
+              int year=#sub(xdate,0,4)
+              set offset=#prop(xlocals.xprops,"offset")
+              set per=12+#sub(xdate,5,2)-offset
+              if per<=12
+                set xper=per
+                set xyear=year-1
+              else
+                set xper=per-12
+                set xyear=year
+              end if
+              int propyear=0
+              set propyear=#prop(xlocals.xprops,"year")
+              set propyear=0+propyear
+		          if propyear<>xyear
+                error "Year Mismatch" //+xyear+propyear
+              end if
+            end if
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field Update
+          event before
+            set globals(ErrChk)=""
+            if xvoucher .sw. "IC"
+              set globals(ErrChk) = "1"
+              error "IC Voucher Not allowed here."
+            end if
+
+            if xpostflag .eq. "Posted"
+              set globals(ErrChk) = "1"
+              error "Cannot Update Record, Already Posted."
+            end if
+
+            if globals(ErrChk) .ne. "1"
+              buffer xlocals
+              set globals(xtypelocal)="Module"
+              set globals(xname)="gl"
+              move xlocals=xlocals(xtypelocal,xname)
+              int offset
+              int per
+              int year=#sub(xdate,0,4)
+              set offset=#prop(xlocals.xprops,"offset")
+              set per=12+#sub(xdate,5,2)-offset
+              if per<=12
+                set xper=per
+                set xyear=year-1
+              else
+                set xper=per-12
+                set xyear=year
+              end if
+              int propyear=0
+              set propyear=#prop(xlocals.xprops,"year")
+              set propyear=0+propyear
+              if propyear<>xyear
+                error "Year Mismatch"
+              end if
+            end if
+            set xemail=#user
+          end event
+        end field
+
+        field delete
+          event before
+            if xpostflag .eq. "Posted"
+              error "Cannot Delete Record, Already Posted."
+            else if xpostflag .eq. "Checked"
+              error "Cannot Delete Record, Already Checked."
+            end if
+          end event
+        end field
+
+        //embed onsubmit="return submitit(this)"
+        embed onsubmit="submitit(this)"
+        field Details
+          embed onclick="clicked(this)"
+        end field
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.page.value = "gldetail"
+            form.searchbutton.value = "Find xvoucher=?"
+            //return false
+          }
+        }
+
+        </script>
+     end script
+
+
+
+end page
