@@ -1,13 +1,13 @@
 page printerdept
 
-   embed onload="move_caret('one','xdesc')"
-     caption "<span class=bl>Inter Departmental Working Information for Employee  <a href=/da/"+#servlet+"?page=printerdept&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xname)+")"
+	 embed onload="move_caret('one','xdesc')"
+     caption "<span class=bl>Inter Department Information for Employee <a href=/da/"+#servlet+"?page=printerdept&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xname)+")"
      sidebar list one
      sections form one, script myscript
 
      list one
         caption "Added Record(s)"
-        table printerdeptdet
+        table prawarddet
         order xrow,xemp
         select "(xemp='"+xemp+"')"
         //navigators alpha
@@ -19,7 +19,8 @@ page printerdept
             caption Reason
         end field
         
-     end list        
+     end list
+
      form one
         //caption "<font color=black size=4>Furniture Allocation for <font color=white></p>"+globals(xname)+"</font></font>"
         table printerdeptdet
@@ -28,8 +29,7 @@ page printerdept
         layout 1
         objects Add, Clear,Show,  Update,  Top, Delete,Previous, Next, Bottom,Return,~
                 xrow attrib(row 0 1),xdate,xdoctype display(hide),xqty display(hide),zemail display(hide),xemail display(hide),~
-                xjobdesc attrib(local),xdeptassgn attrib(local),xassignee attrib(local),xtimespent attrib(local),xunitsprod attrib(local),~
-                xrem,xremarks
+                xjobdesc,xdeptassgn,xassignee,assignee_name,xtimespent,xunitsprod,xrem,xremarks
 
         field xqtyspc
             caption Number of Copy
@@ -51,33 +51,6 @@ page printerdept
             width 40
             height 3
         end field
-
-        # New job-related fields
-        field xjobdesc
-            caption Job Description
-            width 50
-            height 3
-        end field
-
-        field xdeptassgn
-            caption Assigned Department
-            pick "select xcode from xcodes where xtype='Department'"
-        end field
-
-        field xassignee
-            caption Assignee
-            pick "select xemp from praemp where zid='"+#id+"'"
-        end field
-
-        field xtimespent
-            caption Time Spent on Job
-            len 10.2
-        end field
-
-        field xunitsprod
-            caption Units Produced
-            len 10
-        end field
         
         field add
           event before
@@ -90,6 +63,24 @@ page printerdept
           event before
             set xemail=#user
           end event
+        end field
+
+        field xassignee
+            caption Assignee
+            pick list xemp
+            event after
+                set globals(xassignee)=xassignee
+                class prmst(getname{xassignee})
+            end event
+        end field
+
+        field assignee_name
+            attrib local
+            caption Name
+            display const
+            event after
+                set assignee_name=prmst.xname("xemp='"+xassignee+"'")
+            end event
         end field
 
         embed onsubmit="submitit(this)"
