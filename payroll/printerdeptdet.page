@@ -29,7 +29,7 @@ page printerdept
         layout 1
         objects Add, Clear,Show,  Update,  Top, Delete,Previous, Next, Bottom,Return,~
                 xrow attrib(row 0 1),xdate,xdoctype display(hide),xqty display(hide),zemail display(hide),xemail display(hide),~
-                xjobdesc,xdeptassgn,xassignee,assignee_name,xtimespent,xunitsprod,xrem,xremarks
+                
 
         field xqtyspc
             caption Number of Copy
