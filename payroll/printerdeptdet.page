@@ -1,0 +1,96 @@
+page prawarddet
+
+	 embed onload="move_caret('one','xdesc')"
+     caption "<span class=bl>Awards Information for Employee <a href=/da/"+#servlet+"?page=praward&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xname)+")"
+     sidebar list one
+     sections form one, script myscript
+
+     list one
+        caption "Added Record(s)"
+        table prawarddet
+        order xrow,xemp
+        select "(xemp='"+xemp+"')"
+        //navigators alpha
+        rows 60
+        objects xrow attrib(link #servlet+"?page="+page+"&command=Show&xemp=?&xrow=?"),~
+              xdate,xrem
+              
+        field xrem
+            caption Reason
+        end field
+        
+     end list
+
+     form one
+        //caption "<font color=black size=4>Furniture Allocation for <font color=white></p>"+globals(xname)+"</font></font>"
+        table prawarddet
+        order xrow,xemp
+        fixed xemp
+        layout 1
+        objects Add, Clear,Show,  Update,  Top, Delete,Previous, Next, Bottom,Return,~
+                xrow attrib(row 0 1),xdate,xdoctype display(hide),xqty display(hide),zemail display(hide),xemail display(hide),~
+                xrem,xremarks
+
+        field xqtyspc
+            caption Number of Copy
+        end field
+        
+        filed xdoctype
+            display hide
+            pick "select xcode from xcodes where xtype='Doccument Type'"
+        end field
+
+        field xrem
+            caption Reason
+            width 40
+            height 3
+        end field
+        
+        field xremarks
+            caption Remarks/Comments
+            width 40
+            height 3
+        end field
+        
+        field add
+          event before
+            set zemail=#user
+            set xemail=""
+          end event
+        end field
+
+        field update
+          event before
+            set xemail=#user
+          end event
+        end field
+
+        embed onsubmit="submitit(this)"
+
+        field Return
+            embed onclick="back(this)"
+        end field
+
+     end form
+
+     script myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail=""
+
+        function back(b)
+        {
+          details="back"
+        }
+        function submitit(form)
+        {
+          if (details=="back")
+          {
+            form.page.value = "praward"
+            form.searchbutton.value= "Find xemp=?"
+          }
+        }
+        </script>
+     end script
+
+end page
