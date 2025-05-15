@@ -7,7 +7,7 @@ page printerdept
 
      list one
         caption "Added Record(s)"
-        table prawarddet
+        table printerdeptdet
         order xrow,xemp
         select "(xemp='"+xemp+"')"
         //navigators alpha
@@ -23,7 +23,7 @@ page printerdept
 
      form one
         //caption "<font color=black size=4>Furniture Allocation for <font color=white></p>"+globals(xname)+"</font></font>"
-        table prawarddet
+        table printerdeptdet
         order xrow,xemp
         fixed xemp
         layout 1
