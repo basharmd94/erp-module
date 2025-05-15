@@ -1,4 +1,4 @@
-page prawarddet
+page printerdept
 
 	 embed onload="move_caret('one','xdesc')"
      caption "<span class=bl>Awards Information for Employee <a href=/da/"+#servlet+"?page=praward&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xname)+")"
@@ -86,7 +86,7 @@ page prawarddet
         {
           if (details=="back")
           {
-            form.page.value = "praward"
+            form.page.value = "printerdept"
             form.searchbutton.value= "Find xemp=?"
           }
         }

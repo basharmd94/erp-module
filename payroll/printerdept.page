@@ -1,4 +1,4 @@
-page praward
+page printerdept
 
 	 embed onload="move_caret('one','xemp')"
      caption "Awards/Rewards Information"
@@ -92,7 +92,7 @@ page praward
 
         function submitit(form){
           if (detail=="details"){
-            form.page.value = "prawarddet"
+            form.page.value = "printerdeptdet"
             form.searchbutton.value= "Top"
           }
          }
