@@ -1,6 +1,6 @@
 page printerdept
 
-	 embed onload="move_caret('one','xdesc')"
+   embed onload="move_caret('one','xdesc')"
      caption "<span class=bl>Inter Departmental Working Information for Employee  <a href=/da/"+#servlet+"?page=printerdept&command=Show&xemp="+xemp+">" +xemp+ "</a></span>"+" ("+globals(xname)+")"
      sidebar list one
      sections form one, script myscript
@@ -29,7 +29,7 @@ page printerdept
         layout 1
         objects Add, Clear,Show,  Update,  Top, Delete,Previous, Next, Bottom,Return,~
                 xrow attrib(row 0 1),xdate,xdoctype display(hide),xqty display(hide),zemail display(hide),xemail display(hide),~
-                xrem,xremarks
+                xjobdesc,xdeptassgn,xassignee,xtimespent,xunitsprod,xrem,xremarks
 
         field xqtyspc
             caption Number of Copy
@@ -50,6 +50,33 @@ page printerdept
             caption Remarks/Comments
             width 40
             height 3
+        end field
+
+        # New job-related fields
+        field xjobdesc
+            caption Job Description
+            width 50
+            height 3
+        end field
+
+        field xdeptassgn
+            caption Assigned Department
+            pick "select xcode from xcodes where xtype='Department'"
+        end field
+
+        field xassignee
+            caption Assignee
+            pick "select xemp from praemp where zid='"+#id+"'"
+        end field
+
+        field xtimespent
+            caption Time Spent on Job
+            len 10.2
+        end field
+
+        field xunitsprod
+            caption Units Produced
+            len 10
         end field
         
         field add
