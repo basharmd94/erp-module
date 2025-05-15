@@ -19,7 +19,8 @@ page printerdept
             caption Reason
         end field
         
-     end list        form one
+     end list        
+     form one
         //caption "<font color=black size=4>Furniture Allocation for <font color=white></p>"+globals(xname)+"</font></font>"
         table printerdeptdet
         order xrow,xemp
